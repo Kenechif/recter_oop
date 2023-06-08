@@ -1,0 +1,403 @@
+/*
+ * settings.h
+ *
+ *  Created on: 25 Feb 2022
+ *      Author: tunjo
+ */
+
+#ifndef INC_SETTINGS_H_
+#define INC_SETTINGS_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "stdbool.h"
+#include "string.h"
+#include "stddef.h"
+#include "stdint.h"
+#include "stdio.h"
+
+
+//============================================
+#define _USE_SOFT_PULSER            1
+#define use_internal_rtc			0
+#define sense_power  				1
+#define sense_battery 				1
+#define delay_keypad                1
+
+#define test_battery        0
+#define test_power 					0
+#define test_rtc					0
+#define test_motor					0
+#define test_solenoid				0
+#define test_totaliser				0
+
+#define LCD_UPDATE_RATE             100
+#define keypad_delay				100
+
+#define pump_rx_bufsize  1000
+
+//#define  fast_flow_threshold       ( 140 )
+//============================================
+
+//typedef enum
+// {
+//     lafeng,
+//     bluesky
+// }pump;
+
+ typedef enum
+  {
+      online,
+      offline
+  }opmode_;
+
+
+ typedef enum
+  {
+		P,
+		L
+  }sellmode_;
+
+
+  enum
+  {
+	January = 1,
+	February,
+	March,
+	April,
+	May,
+	June,
+	July,
+	August,
+	September,
+	October,
+	November,
+	December
+  };
+
+  typedef struct     //structure for log.
+    {
+      char tm_[10];
+      float pr_;
+      float amt_;
+      float totaliser_;
+    }log_;
+
+    typedef struct
+    {
+          uint8_t _mm; // 1
+          uint8_t _dd; // 2
+          uint8_t _yy; // 3
+          uint8_t _dow; //    +1
+    }date_;
+
+	typedef struct
+	{
+         uint8_t _hh; // 4
+         uint8_t _mn; // 5
+	}time_;
+
+   typedef struct   //structure for log.
+   {
+						//real...
+	 float pr_;    //4
+	 float vol_;   //8
+						//calibrated...
+	 float pr__;   //12
+	 float vol__;  //16 -----> 16
+
+	// float pr_d;
+	// float vol_d;
+  //   uint64_t totaliserVol_real;
+  //   uint64_t totaliserVol_cal;
+
+	  float totaliserVol_real; //4
+	  float totaliserVol_cal;	//4  -->8 ---> 24
+
+	  date_ date;
+		//  	uint8_t mm; // 1
+		//      uint8_t dd; // 2
+		//      uint8_t yy; // 3
+		//      uint8_t dow;// 4
+	  time_ time;
+		  //uint8_t hh; // 4
+		  //uint8_t mn; // 5  //5 --> 29 + 1
+
+	 char tt_;          // ---> 31
+	 char tag_[18];     // ---> 31 + 18
+	 char tm_[1];       // ---> 31 + 19
+
+     float litre_price_;   // --> 50 + 4
+
+	 float totaliserAmount_real;  //4
+	 float totaliserAmount_cal;	  //4  -->8 ---> 54 + 8
+
+	 uint8_t autoTranxFlag;	  //--> 62 + 1
+
+	 char voucher_[];
+
+   }log_new;
+
+typedef struct   //structure for log.
+{
+	float totaliserAmount_real; //4
+	float totaliserAmount_cal;	//4  -->8
+}log_new1;
+
+ typedef struct
+ {
+	  float totaliserVol_real; //4
+	  float totaliserVol_cal;	//4  -->8
+ }totaliser_store;
+
+
+ typedef struct
+ {
+	  float lastSale_real; //4
+	  float lastSale_cal;	//4  -->8
+ }lastSale_store;
+
+
+typedef struct
+{
+	uint32_t current_loc;
+	uint32_t number_logs;
+
+}flash_store_info;
+
+typedef enum
+{
+	totaliser_view,
+	log_view
+}operatorfxn_;
+
+typedef enum
+{
+	overide,
+	nooveride
+}nozzle_overide;
+
+typedef enum
+{
+  pr,
+  ltr
+}default_type;
+
+typedef enum
+{
+   side_a = 1,
+   side_b
+}pump_sid;
+
+typedef enum
+{
+   move_to_settings,
+   move_to_copy
+}copy_dir;
+
+
+
+typedef enum
+{
+  P1 = 1,
+  P2,
+  P3,
+  P4,
+  P5
+}nozzleid;
+
+typedef enum
+{
+	PMS,
+	DPK,
+	AGO,
+}productname;
+
+typedef struct
+{
+	char pump_name[5];
+}pump_names;
+
+pump_names pumpName[2];
+
+//=================================
+// peripherals
+
+typedef enum
+{
+  LAFNG885 = 1,
+  BLSKY886_N,           //N -> Normal
+  BLSKY886_IN			//IN -> Inverted
+}displaytype;
+
+typedef enum
+{
+  LAFNG17_K = 1,    //ie. 17 punch-keys + a turn-key
+  BLSKY18_K,		//ie. 18 punch-keys + a turn-key
+  BLSKY22			//ie. 22 punch-keys + no turn-key
+}keypadtype;
+
+typedef enum
+{
+  DN_LAFNG17K = 0b00000001,		//Display->Normal, keypad->LAFNG-17K
+  DN_BLSKY18K,       			//Display->Normal, keypad->BLSKY-18K
+  DN_BLSKY22,					//Display->Normal, keypad->BLSKY-22
+  DIN_BLSKY18K,       			//Display->Inverted, keypad->BLSKY-18K
+  DIN_BLSKY22					//Display->Inverted, keypad->BLSKY-22
+}pump;
+
+
+//typedef enum
+//{
+//  DN_LAFNG17K = 0b00000001,		//keypad->LAFNG17_K
+//  DN_BLSKY18K,       			//keypad->BLSKY-12
+//  DN_BLSKY22					//keypad->BLSKY-16
+//}pump;
+
+ typedef enum
+ {
+ 	nozzle_name,
+ 	product_name,
+ 	disp_type,
+ 	keypad_type,
+ }pumpCompPart;
+
+//==================================
+//structure for settings
+typedef struct
+{
+	 opmode_  mode;
+	 nozzle_overide noz;
+	 sellmode_ def_t;
+	 pump pump_type_;
+	 float price_;
+	 int id_;
+	 int noflow_;
+	 int max_amt_;
+	 uint32_t passwd1;
+	 uint32_t passwd2;
+	 float pi_c;
+	 float pi_;
+	 int8_t dp_price;
+	 int8_t dp_amount;
+	 int8_t dp_unitprice;
+	 //peripherals
+	 displaytype display__;
+	 keypadtype keypad__;
+	 char product_[6];
+	 nozzleid noz_id;
+	 int8_t totalizer_day;
+}pump_settings;
+
+ int pump_max_litres,
+ 	 pump_max_litres2;
+
+ bool operating_sideA,
+ 	  operating_sideB;
+
+ pump_names pumpName[2];
+
+ bool operating_sideA,
+ 	 	 	 operating_sideB;
+
+ int8_t storage_fail,
+ 	 	tokenFlag;
+
+ char keyboard_entry[8];
+
+ int8_t keyEntry_len,
+ 	 	keyEntry2_len;
+
+//void get_settings();
+
+void dp_init(pump_sid sdd);
+
+void retrieve_settings();
+void save_settings();
+
+void save_volumeTotaliser(pump_sid side);
+float retrieve_volumeTotaliser(pump_sid side);
+
+void save_lastSale(pump_sid side);
+float retrieve_lastSale(pump_sid side);
+
+void copy_settings(copy_dir dir);
+void load_settings(pump_sid side);
+
+int get_auth(void);
+
+int get_auth_cmd();
+
+void make_settings(pump_sid side);
+
+float sellPrice_max_dp(int8_t amount_dp);
+
+int8_t dpFlag,
+	   dpCount,
+	   dpFlag2,
+	   dpCount2;
+
+char config_buf[pump_rx_bufsize];
+
+
+
+//typedef enum
+//{
+//  P1 = 1,
+//  P2,
+//  P3,
+//  P4
+//}nozzleid;
+//
+//typedef enum
+//{
+//	PMS,
+//	DPK,
+//	AGO,
+//}productname;
+//
+//typedef enum
+//{
+//  LAFNG17_K = 1,
+//  BLSKY18_K,
+//  BLSKY22
+//}keypadtype;
+//
+//
+//typedef enum
+//{
+//  LAFNG885 = 1,
+//  BLSKY886_N
+//}displaytype;
+//
+//typedef enum
+//{
+//	nozzle_name,
+//	product_name,
+//	disp_type,
+//	keypad_type,
+//}pumpCompPart;
+//
+//typedef enum
+//{
+//  DN_LAFNG17K = 0b00000001,		//keypad->LAFNG-12
+//  DN_BLSKY18K,       			//keypad->BLSKY-12
+//  DN_BLSKY22					//keypad->BLSKY-16
+//}pump;
+//
+//typedef enum
+//{
+//	nozzle_name,
+//	product_name,
+//	disp_type,
+//	keypad_type,
+//}pumpCompPart;
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* INC_SETTINGS_H_ */

@@ -1,0 +1,8 @@
+log.c:63:6:flash_info_read	8	static
+log.c:71:6:update_info	12	static
+log.c:148:14:read_flash_state_Handler	8	static
+log.c:218:14:write_flash_state_Handler	24	static
+log.c:403:7:clear_totA	0	static
+log.c:412:7:clear_totB	0	static
+log.c:422:6:clear_logA	8	static
+log.c:435:6:clear_logB	16	static

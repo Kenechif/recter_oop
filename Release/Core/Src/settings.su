@@ -1,0 +1,8 @@
+settings.c:114:6:retrieve_settings	8	static
+settings.c:129:6:load_settings	12	static
+settings.c:176:6:make_settings	12	static
+settings.c:220:6:save_settings	8	static
+settings.c:236:6:save_volumeTotaliser	4	static
+settings.c:259:7:retrieve_volumeTotaliser	8	static
+settings.c:282:6:copy_settings	4	static
+settings.c:307:5:get_auth	0	static

@@ -1,0 +1,3 @@
+interrupt_codes.c:61:1:HAL_UART_RxHalfCpltCallback	0	static
+interrupt_codes.c:98:1:HAL_UART_RxCpltCallback	8	static
+interrupt_codes.c:142:6:check_flow	16	static

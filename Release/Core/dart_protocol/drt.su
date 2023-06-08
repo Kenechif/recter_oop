@@ -1,0 +1,3 @@
+drt.c:70:6:receive_response	32	static
+drt.c:147:1:parse_message	8	static
+drt.c:172:6:parse_message1	12	static
