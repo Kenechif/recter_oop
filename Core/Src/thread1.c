@@ -1478,6 +1478,7 @@ skip_test:
 //	   EEPROM_Read(flash_info_sto, flash_stoA, &flash_infoA, sizeof(flash_infoA));
 //	goto rre;
 
+
   // EEPROM_Read(flash_info_sto,flash_stoA, datar1, 50);
   // EEPROM_Read(flash_info_sto, flash_stoA, &flash_infoA, sizeof(flash_infoA));
 
@@ -1585,10 +1586,10 @@ void run()
 	//============================================//
 	// 				EP's ROUTINE SENDING			  //
 	//============================================//
-	if (HAL_GPIO_ReadPin(network_connected_GPIO_Port, network_connected_Pin) == 1 )
-	{
-		epSend_interval();
-	}
+//	if (HAL_GPIO_ReadPin(network_connected_GPIO_Port, network_connected_Pin) == 1 )
+//	{
+//		epSend_interval();
+//	}
 
 	//============================================//
 
