@@ -73,8 +73,8 @@
  void doubleWidthOn();
  void doubleHeightOff();
  void doubleHeightOn();
- void offline();
- void online() ;
+ void MANUAL();
+ void AUTO() ;
 //-----------------------------------------------------
  void flush() ;
  void reset();
@@ -214,7 +214,7 @@ void reset()
 
 void setDefault()
 {
-	  online();
+	  AUTO();
 	  justify('L');
 	//  inverseOff();
 	//  doubleHeightOff();
@@ -339,9 +339,9 @@ void boldOff() { unsetPrintMode(BOLD_MASK); }
 
   void doubleWidthOff() { unsetPrintMode(DOUBLE_WIDTH_MASK); }
   void doubleWidthOn() { setPrintMode(DOUBLE_WIDTH_MASK); }
-  void offline() { writeBytes3(ASCII_ESC, '=', 0); }
+  void MANUAL() { writeBytes3(ASCII_ESC, '=', 0); }
 
- void online() { writeBytes3(ASCII_ESC, '=', 1); }
+ void AUTO() { writeBytes3(ASCII_ESC, '=', 1); }
 //-----------------------------------------------------
  void flush() { writeBytes(ASCII_FF); }
 

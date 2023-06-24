@@ -42,6 +42,12 @@ extern int calibr;
 
 extern uint8_t buff[30] ;
 
+extern uint32_t transaction_period,
+				transaction_period2;
+
+extern uint8_t firstTime_filling,
+			   firstTime_filling2;
+
 //===============================================
 
 extern int tot_buttonpress_tmr2;
@@ -189,49 +195,57 @@ void check_flow(void)
 			current_pulser = __HAL_TIM_GET_COUNTER(&htim5);
 	#endif
     //------------------------------------------------------------------
-	  if (filling == 1)
-		{
-		  //....if programmed....
-		  if(target_pulser > 0)
-			{
-			  if(pulser_rem > 0)
-				{
-				    pulser_complete = 0;
-					pulser_rem = target_pulser - current_pulser;
-					if(pulser_rem >= fast_flow_threshold)
-					{
-						if(current_pulser >=  fast_flow_threshold/2 )
-							{
-							    fast_flow();
-							}
-						else
-						{
-							slow_flow();
-						}
-					}
-					else
-					{
-						pump_status_ = STATUS_MAMO_REACHED;
-						slow_flow();
-					}
-				}
-			  else
-			  {
-				  //pulser complete   ---==>> //sales complete...
-				  //---------------------------------------------
-				 pulser_complete = 1;
-				 pump_status_ = STATUS_FILLING_COMP;
-				 stop_flow(); 			  //stop solenoid.
-			  }
-			}
-				else
-			{
-				//not programmed high flow
-				fast_flow();
-			}
-		}
-	  else
+	if (filling == 1)
+	{
+//	  static int8_t firstTime = 1;
+
+	  if(firstTime_filling == 1)
 	  {
+		  transaction_period = 0;
+		  firstTime_filling = 0;
+	  }
+
+	  //....if programmed....
+	  if(target_pulser > 0)
+	  {
+		  if(pulser_rem > 0)
+		  {
+			pulser_complete = 0;
+			pulser_rem = target_pulser - current_pulser;
+			if(pulser_rem >= fast_flow_threshold)
+			{
+				if(current_pulser >=  fast_flow_threshold/2 )
+				{
+					fast_flow();
+				}
+				else
+				{
+					slow_flow();
+				}
+			}
+			else
+			{
+				pump_status_ = STATUS_MAMO_REACHED;
+				slow_flow();
+			}
+		  }
+		  else
+		  {
+			  //pulser complete   ---==>> //sales complete...
+			  //---------------------------------------------
+			 pulser_complete = 1;
+			 pump_status_ = STATUS_FILLING_COMP;
+			 stop_flow(); 			  //stop solenoid.
+		  }
+	   }
+	   else
+	   {
+			//not programmed high flow
+			fast_flow();
+	   }
+	 }
+	 else
+	 {
 		  //not filling
 		  pulser_complete = 0;
 		  drive_totaliser1(DEACTIVATE);
@@ -240,7 +254,7 @@ void check_flow(void)
 		  else
 			  fast_flow();
 
-	  }
+	 }
 
 //===============================================================================
 
@@ -258,9 +272,14 @@ void check_flow(void)
 				current_pulser2 = __HAL_TIM_GET_COUNTER(&htim2);
 		#endif
 	    //------------------------------------------------------------------
-		  if (filling2 == 1)
-			{
-			  //....if programmed....
+		 if (filling2 == 1)
+		 {
+			 if(firstTime_filling2 == 1)
+			 {
+				  transaction_period2 = 0;
+				  firstTime_filling2 = 0;
+			 }
+			 //....if programmed....
 			  if(target_pulser2 > 0)
 				{
 				  if(pulser_rem2 > 0)

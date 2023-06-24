@@ -172,6 +172,8 @@ static bool mth_success = false,
 extern float lastSale1,
 	  	  	 lastSale1c;
 
+extern ep1_mt mt_pump[2];
+
 void state_ini(void);
 void states(void);
 void reset_timer(int tm);

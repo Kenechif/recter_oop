@@ -14,14 +14,14 @@ extern "C" {
 
 #include "settings.h"
 
-extern const int8_t totalizerDay_loc;
+extern const int16_t totalizerDay_loc;
 
 int8_t awaiting_masterResponse;
 
 int8_t config_mode,
  	   config_found;
 
-extern char config_buf[pump_rx_bufsize];
+extern char rx_buf[pump_rx_bufsize];
 
 void setup();
 void run();

@@ -20,8 +20,18 @@ extern SPI_HandleTypeDef _W25QXX_SPI;
 
 extern UART_HandleTypeDef huart2;
 
+extern char device_id [];
+
 extern float litre_price1;
-extern int8_t opmode, opmode2;
+extern int8_t opmode,
+			  opmode2,
+			  connected = 0;
+
+extern uint32_t transaction_period,
+				transaction_period2;
+
+extern uint8_t firstTime_filling,
+			   firstTime_filling2;
 
 uint32_t flash_write_id;    //read and write.
 uint32_t flash_read_id;     //address of the flash.
@@ -277,23 +287,16 @@ eSystemState write_flash_state_Handler(void)
 	static int8_t aflag2 = 0;
 	int pg = 0;
 
-//	if(tokenFlag == 0) //if( (tokenFlag == 1) && (ep1b_save.synched_tranx != ep1b_save.total_tranx) )
-//	{
-//		ep_send(ep2);
-//	}
-//	ep_send(ep1a);
-//	ep_send(ep1b);
-//	ep_send(ep5);
-
-//	save_totalTransaction();
-
 	if(operating_sideA)
 	{
-		if(opmode == online)
+		log_a_new.transaction_period = transaction_period;
+	    firstTime_filling = 1;
+
+		if(opmode == AUTO)
 		{
 			log_a_new.autoTranxFlag = 1;
 		}
-		else if(opmode == offline)
+		else if(opmode == MANUAL)
 		{
 			log_a_new.autoTranxFlag = 0;
 		}
@@ -301,15 +304,27 @@ eSystemState write_flash_state_Handler(void)
 
 		pg = flash_infoA.current_loc/w25qxx.PageSize;
 
+		generateTransc_ID(log_a_new.transaction_id);
+
+		log_a_new.timeStamp = RtcToInt_synchedTranx(2019, side_a);
+		strcpy(log_a_new.nozzle_name, pumpName[0].pump_name);
+		strcpy(log_a_new.nozzle_product, settings[0].product_);
+
+		memset(log_a_new.device_id, '\0', sizeof(log_a_new.device_id));
+		strncpy(log_a_new.device_id, device_id, 15);
+
 		W25qxx_WritePage(&log_a_new, pg, 0, sizeof(log_a_new) );
 	}
 	else if(operating_sideB)
 	{
-		if(opmode2 == online)
+		log_b_new.transaction_period = transaction_period2;
+		firstTime_filling2 = 1;
+
+		if(opmode2 == AUTO)
 		{
 			log_b_new.autoTranxFlag = 1;
 		}
-		else if(opmode2 == offline)
+		else if(opmode2 == MANUAL)
 		{
 			log_b_new.autoTranxFlag = 0;
 		}
@@ -317,7 +332,17 @@ eSystemState write_flash_state_Handler(void)
 
 		pg = flash_infoB.current_loc/w25qxx.PageSize;
 
-		 W25qxx_WritePage(&log_b_new,  pg, 0, sizeof(log_b_new));
+		generateTransc_ID(log_b_new.transaction_id);
+
+		log_b_new.timeStamp = RtcToInt_synchedTranx(2019, side_b);
+		strcpy(log_b_new.nozzle_name, pumpName[1].pump_name);
+		strcpy(log_b_new.nozzle_product, settings[0].product_);
+
+		memset(log_b_new.device_id, '\0', sizeof(log_b_new.device_id));
+		strncpy(log_b_new.device_id, device_id, 15);
+
+
+		W25qxx_WritePage(&log_b_new,  pg, 0, sizeof(log_b_new));
 	}
 
 		//-----------------------------------------------------------------------------------
@@ -335,7 +360,7 @@ eSystemState write_flash_state_Handler(void)
 //			 ep1b_save.total_tranxA++;
 			 save_totalTransaction_sides(side_a);
 
-			 if(opmode == online)
+			 if(opmode == AUTO)
 			 {
 				save_totalAutoTransaction_sides(side_a);
 			 }
@@ -344,14 +369,14 @@ eSystemState write_flash_state_Handler(void)
 		  {
 			 uint32_t next_loc =  flash_infoB.current_loc + 256; //sizeof(log_b_new);   //flash_beginB => 0x400000 --> 4,194,304 pg16,384
 			 if (next_loc > flash_endB) next_loc = flash_beginB;  //flash_endB => 0x7FFFFF --> 8,388,607 pg32767.996
-			 flash_infoA.current_loc  =  next_loc;
+			 flash_infoB.current_loc  =  next_loc;
 			 flash_infoB.number_logs  =  flash_infoB.number_logs + 1;
 			 EEPROM_Write(flash_info_sto, flash_stoB, &flash_infoB, sizeof(flash_infoB));
 
 //			 ep1b_save.total_tranxB++;
 			 save_totalTransaction_sides(side_b);
 
-			 if(opmode2 == online)
+			 if(opmode2 == AUTO)
 			 {
 				save_totalAutoTransaction_sides(side_b);
 			 }
@@ -359,27 +384,6 @@ eSystemState write_flash_state_Handler(void)
 		//------------------------------------------------------------------------------------
 		w25qxx.Lock = 0;       // unlock the flash memory.
 		flshw = 0;             // reset the sub state.
-
-//		if( _litre_price == 1)
-//		{
-//			 _litre_price = 0;
-//		}
-//		else if( _litre_price2 == 1)
-//		{
-//			 _litre_price2 = 0;
-//		}
-
-//		epp = ep2;
-
-//		ep_send(ep2);
-
-//		char  bbf[20] = {"hello there!"};
-//		HAL_UART_Transmit(&huart2,bbf, strlen(bbf),2000);
-//
-//		while(1)
-//		{
-//			;
-//		}
 
 		return idle_State;     //write complete go back to idle state.
 //=========================================================================================
@@ -406,18 +410,18 @@ eSystemState write_flash_state_Handler(void)
 	}
 //--------------------------wait for write end -----------------------------
 	if(flshw == 1)
-		{
+	{
 		 HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_RESET);
 		 W25qxx_Spi(0x05);
 		 flshw = 2;
-	    	 return write_flash_state;
-		}
+		 return write_flash_state;
+	}
 
 	if(flshw == 2)
 	{
 		w25qxx.StatusRegister1 = W25qxx_Spi(W25QXX_DUMMY_BYTE);
 		flshw = 3;
-		   return write_flash_state;
+		return write_flash_state;
 	}
 
 	if(flshw == 3)
@@ -425,7 +429,7 @@ eSystemState write_flash_state_Handler(void)
 	    	if ((w25qxx.StatusRegister1 & 0x01) == 0x01)
 			 {
 	    		flshw = 2;
-				  return write_flash_state;
+				return write_flash_state;
 			 }
 	      HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_SET);
 	      flshw = 4;
@@ -569,7 +573,7 @@ void clear_logB(void)
 {
 	flash_infoB.current_loc  =  flash_beginB;
 	flash_infoB.number_logs  =  0;
-	EEPROM_Write(flash_info_sto, flash_stoB, &flash_infoA, sizeof(flash_infoB));
+	EEPROM_Write(flash_info_sto, flash_stoB, &flash_infoB, sizeof(flash_infoB));
 	W25qxx_EraseBlock( 64 );
 	W25qxx_EraseBlock( 65 );
 	W25qxx_EraseBlock( 66 );

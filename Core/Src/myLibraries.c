@@ -481,15 +481,20 @@ void process(int isflt,char* str,int8_t cnv, int row, int col,int n ,int justify
 //-----------------------------
  if (row > 3) return;
 	if(row < 3)
+	{
+		xtercount_max = 8;
+		start = 21 - ( (row-1)*8);
+	}
+	else
+	{
+		xtercount_max = 6;
+		start = 5;
+
+		if(strchr(str, '.') == 1)
 		{
-	    	xtercount_max = 8;
-	    	start = 21 - ( (row-1)*8);
+			start = 4;
 		}
-	  else
-		{
-			xtercount_max = 6;
-			start = 5;
-		}
+	}
 	count = 0; //xtercount_max;
 
     int diff = xtercount_max - cnv;
@@ -615,15 +620,20 @@ void process2(int isflt,char* str,int8_t cnv, int row, int col,int n ,int justif
 //-----------------------------
  if (row > 3) return;
 	if(row < 3)
+	{
+		xtercount_max = 8;
+		start = 21 - ( (row-1)*8);
+	}
+	else
+	{
+		xtercount_max = 6;
+		start = 5;
+
+		if(strchr(str, '.') == 1)
 		{
-	    	xtercount_max = 8;
-	    	start = 21 - ( (row-1)*8);
+			start = 4;
 		}
-	  else
-		{
-			xtercount_max = 6;
-			start = 5;
-		}
+	}
 	count = 0; //xtercount_max;
 
     int diff = xtercount_max - cnv;

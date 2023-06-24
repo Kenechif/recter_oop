@@ -123,6 +123,8 @@ extern uint32_t num2 ;
 
 extern  int16_t _tt2;
 
+extern uint32_t transaction_period2;
+
 //extern float target_pulser , current_pulser ;
 extern sellmode_ sellmode2; //int sellmode2 ;
 
@@ -262,6 +264,8 @@ extern uint32_t pulser_new2;
 uint8_t filling2 = 0;
 bool lock_clr2 = 0;
 
+uint8_t firstTime_filling2 = 1;
+
 extern int8_t auth_from_ctrl2;
 
 extern const uint8_t fast_flow_threshold;
@@ -293,6 +297,8 @@ extern int8_t auth_from_ctrl;
 extern int authorise_flag;
 extern int8_t change_price_flag;
 float set_p;
+
+extern int8_t changeLitrePrice;
 
 int8_t pump_LitreOverflow2 = 0,
 	   display_overflow2 = 0,
@@ -1656,13 +1662,13 @@ eSystemState progstate_Handler2(void)
   					   if (t2 >= 300)
   						 {
   							//send_line1();
-                            if(copy[pump_indx-1].mode == online)
+                            if(copy[pump_indx-1].mode == AUTO)
 								{
-									send_line22(" online ");
+									send_line22(" auto ");
 								}
                                else
 								{
-									send_line22("offline ");
+									send_line22("manual ");
 								}
 
   							 if (pump_indx == 1)
@@ -1694,18 +1700,18 @@ eSystemState progstate_Handler2(void)
   	          	         {
   	          	        	 if (pkey == 'C')  // up key
   	          					{
-  	          	        	      if (copy[pump_indx-1].mode == online) //;
-  	          	        	     	copy[pump_indx-1].mode = offline;
+  	          	        	      if (copy[pump_indx-1].mode == AUTO) //;
+  	          	        	     	copy[pump_indx-1].mode = MANUAL;
   	          	        	      else
-  	          	        	    	copy[pump_indx-1].mode = online;
+  	          	        	    	copy[pump_indx-1].mode = AUTO;
   	          					}
 
   	          	        	 if (pkey == 'B')  // down key
   	          					{
-									if (copy[pump_indx-1].mode == online) //;
-										copy[pump_indx-1].mode = offline;
+									if (copy[pump_indx-1].mode == AUTO) //;
+										copy[pump_indx-1].mode = MANUAL;
 									  else
-										copy[pump_indx-1].mode = online;
+										copy[pump_indx-1].mode = AUTO;
   	          					}
 
   	          	             if (pkey == 'F')  //change pump index.
@@ -2711,7 +2717,12 @@ eSystemState progstate_Handler2(void)
 				{
                     //capture the pulser.
 				  calibr2 = 0;  /// notify the interrupt routine to on the pump
-				  calib_pulser2 = __HAL_TIM_GET_COUNTER(&htim2);  //use hardware counter
+				  #if _USE_SOFT_PULSER == 0
+				  	  calib_pulser2 = __HAL_TIM_GET_COUNTER(&htim2);  //use hardware counter
+				  #else
+				  	  calib_pulser2++; 							// use software counter.
+				  #endif
+//				  calib_pulser2 = __HAL_TIM_GET_COUNTER(&htim2);  //use hardware counter
 				  send_line12("set your");
 				  send_line22("  annt  ");
 				  HAL_Delay(2000);
@@ -3304,6 +3315,12 @@ eSystemState idlestate_Handler2(void)
 		idleState_flag = 1;
 	}
 
+	if(changeLitrePrice == 1)
+	{
+		online_setUnitPrice();
+		changeLitrePrice = 0;
+	}
+
 	if ( (t2 > 500) && (nozzleup_awaitingauth_state_not_timedOut2 == 0) && (pump_LitreOverflow2 == 0) && (_litre_price2 == 0)
 			&& (_auth_p2 == 0) && (_auth_v2 == 0) && (idle_backwardPulse2 == 0) && (idle_forwardPulse2 == 0)
 			&& (flow_loss2 == 0) && (display_overflow2 == 0) )
@@ -3572,7 +3589,7 @@ eSystemState auth_command_Handler2(void)
 	  reset_timer2( timeout_picknozzle);
 	  start_timer2( timeout_picknozzle);
     //-----------------------------------
-	  if(opmode2 == offline)
+	  if(opmode2 == MANUAL)
 	  {
 		  //check if any keypad entry
 		 if(index_2 >= 1)
@@ -3599,7 +3616,7 @@ eSystemState auth_command_Handler2(void)
 				return idle_State;
 		  }
 
-		  // online Mode
+		  // AUTO Mode
 		  //authorise price...
 		  if (change_p == 1)
 			  sellmode2 = P;      //set sell type to price
@@ -3616,14 +3633,14 @@ eSystemState auth_command_Handler2(void)
 //-------------
 eSystemState  nozzleup_waitingforauthState_Handler2(void)
 {
-   	if (settings[operating_side - 1].mode == offline)
+   	if (settings[operating_side - 1].mode == MANUAL)
 		{
-			//send nozzleup command only in offline mode
+			//send nozzleup command only in MANUAL mode
 			return authorised_nozzleup_State;     //idle_State;
 		}
    	else
    	{
-   		// online mode...
+   		// AUTO mode...
    		if (controller_authorise())    // authed by controller...
    		{
    			return  authorised_nozzleup_State;
@@ -3872,7 +3889,7 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 		return idle_State;
 	 }
 
-	 else if(opmode2 == offline)
+	 else if(opmode2 == MANUAL)
 	 {
 		 if(index_2 >= 1)
 		 {
@@ -3931,7 +3948,7 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 		  }
 
 	 }
-	 else if(opmode2 == online)
+	 else if(opmode2 == AUTO)
 	 {
 		  if (change_p == 1)
 		  {
@@ -4281,7 +4298,7 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 //		_auth_v = 1;
 //		return idle_State;
 //	 }
-//	 else if(opmode == offline)
+//	 else if(opmode == MANUAL)
 //	 {
 //		 if(index_ >= 1)
 //		 {
@@ -4339,7 +4356,7 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 //		  }
 //
 //	 }
-//	 else if(opmode == online)
+//	 else if(opmode == AUTO)
 //	 {
 //		  if (change_p == 1)
 //		  {
@@ -5169,11 +5186,17 @@ eSystemState filling_state_Handler2(void)
 
 //======================== @ filling =============================
 	  // get_time2();
-	   	   	   temp = pulser2amt2(current_pulser2);
+	   temp = pulser2amt2(current_pulser2);
 	   amt2 = dp2(temp,dp_amount2);
 
 	   temp = amt2price2(amt2);
 	   price2 = dp2(temp,dp_price2);
+
+//		temp = pulser2amt2_R(current_pulser2);
+//		amt_real2 = dp2(temp,dp_amount2);
+//
+//		temp = amt2price2(amt2);
+//		price_real2 = dp2(temp,dp_price2);
 
 	    make_string2(P,dp2(price2,dp_price2));
 	    make_string2(L,dp2(amt2,dp_amount2));
@@ -5513,6 +5536,9 @@ void state_ini2(void)
 	eNextState2 =  idle_State; //   prog_State; //
 	eLastState2 =  idle_State;
 	index_2 = 0;
+
+//	filling2 = 0;
+//	stop_flow2();
 
 	write_v2(1, "p        ");  send_line12("p        ");
 	write_v2(2, "l        ");  send_line22("l        ");

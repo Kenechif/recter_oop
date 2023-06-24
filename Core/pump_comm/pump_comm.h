@@ -66,18 +66,18 @@ typedef enum
 }pump_status_enum;
 
 
-/* enum for pump status */
-typedef enum
-{
-	STATUS_PUMP_ON = 255,
-
-	STATUS_IDLE = 1,
-	STATUS_NOZZLE_DOWN,
-	STATUS_NOZZLE_UP,
-	STATUS_AUTHORIZED_NOZZLE_DOWN,
-	STATUS_AUTHORIZED_NOZZLE_UP,
-	STATUS_FILLING_
-}pump_status_enum_4G;
+///* enum for pump status */
+//typedef enum
+//{
+//	STATUS_PUMP_ON = 255,
+//
+//	STATUS_IDLE = 1,
+//	STATUS_NOZZLE_DOWN,
+//	STATUS_NOZZLE_UP,
+//	STATUS_AUTHORIZED_NOZZLE_DOWN,
+//	STATUS_AUTHORIZED_NOZZLE_UP,
+//	STATUS_FILLING_
+//}pump_status_enum_4G;
 
 //typedef enum {
 //	AUTH_PUMP_ON_NOZZLE_UP,
@@ -94,8 +94,8 @@ typedef enum{
 
 //for switch between auto mode and transaction mode
 typedef enum{
-	MANUAL, //ATTENDATE_MODE,
-	AUTO, //VOUCHER_MODE,
+//	MANUAL, //ATTENDATE_MODE,
+//	AUTO, //VOUCHER_MODE,
 	AUTO_PERMANENT
 }mode_enum;
 
@@ -225,7 +225,7 @@ void pump_rx();
 extern int8_t  change_p, change_v;
 
 pump_status_enum pump_status_;
-pump_status_enum_4G pump1_status_4G,
+extern pump_status_enum_4G pump1_status_4G,
 					pump2_status_4G;
 
 uint8_t sendState(void);

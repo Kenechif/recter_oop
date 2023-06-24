@@ -11,7 +11,7 @@
 #include "main.h"
 #include "settings.h"
 
-//char config_rx_buf[pump_rx_bufsize] = {0};
+//char uart2_rx_buf[pump_rx_bufsize] = {0};
 //
 //typedef enum
 //{

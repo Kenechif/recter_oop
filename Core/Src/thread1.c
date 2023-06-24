@@ -104,12 +104,15 @@ extern const int lastSynchedFlashA_loc,
 				 synchedTranxB_loc,
 				 synchedTranxB1_loc;
 
-extern const int8_t save_productType_loc,
+extern const int16_t save_productType_loc,
 					save_nozzleId_loc;
 
 //==================================================
 
 extern pump_names pumpName[2];
+
+
+int8_t val;
 
 int t, t2 = 0;
 
@@ -119,8 +122,12 @@ uint16_t _tt = 0,
 		 timer_spi;
 //		 ep2_timer = 0;
 
+uint32_t transaction_period = 0,
+		 transaction_period2 = 0;
+
 int ttt = 0;
 
+int8_t server_message_found = 0;
 
 uint16_t shutdown_timer = 0;
 
@@ -241,7 +248,7 @@ extern operatorfxn_  operatorfxn , operatorfxn2;
  extern uint32_t flash_read_idB;
  extern flash_store_info flash_infoA,flash_infoB;
 
- extern int8_t save_pumpType_loc;
+ extern int16_t save_pumpType_loc;
 
  /* Lookup table for the days of week. */
 //const char *DAYS_OF_WEEK[7] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
@@ -278,14 +285,14 @@ extern UART_HandleTypeDef huart3;
 extern char pump_rx_buf[pump_rx_bufsize];
 extern char pump_buf[pump_rx_bufsize];
 
-extern char config_rx_buf[pump_rx_bufsize];
+extern char uart2_rx_buf[pump_rx_bufsize];
 
 extern bool pump_message_found;
 extern bool pump_msg_ready1 ;
 
 extern bool operating_sideA = true,
 			operating_sideB = false;
-//char config_rx_buf[pump_rx_bufsize] = {0};
+//char uart2_rx_buf[pump_rx_bufsize] = {0};
 
 //=====================================================
 
@@ -953,7 +960,6 @@ void compose_printer()
 	//  set_time();
 	//-----------------------------
 
-//	ep_send(ep0);
 
 //	read_config();
 
@@ -962,7 +968,7 @@ void compose_printer()
 
 //	pump_ini();    // activate the pump communication I/O
 
-	HAL_UART_Receive_IT(&huart2, config_rx_buf, pump_rx_bufsize);
+	HAL_UART_Receive_IT(&huart2, uart2_rx_buf, pump_rx_bufsize);
 
 //		while(1)
 //		{
@@ -1146,23 +1152,72 @@ tmmm:
 //	  settings[0].passwd1 = 0000;
 //	  settings[0].passwd2 = 0000;
 
+
+
+	 //==============================================
+	 //    This step is to compose the settings.
+	 //==============================================
+	 make_settings(side_a);
+	 make_settings(side_b);
+
+	 save_settings();
+//	 save_volumeTotaliser(side_a); //side_a
+//	 save_volumeTotaliser(side_b);
+//	 flash_infoA.current_loc = 0;
+//	 flash_infoA.number_logs = 0;
+//	 EEPROM_Write(flash_info_sto, flash_stoA, &flash_infoA, sizeof(flash_infoA));
+//	 EEPROM_Write(flash_info_sto, flash_stoA, &flash_infoB, sizeof(flash_infoA));
+	 // ===========================================================================
+
+
 	  config_mode = 1;
+
+//	  {"ni":"p17","pn":"pms","dt":"bluesky886n",kt":"bluesky22"}
 
 	  while(config_found == 0);   //Loops idly while configuration is yet to be inputted
 
 	  config_rx_parse();
 	  pumpType_configure();
 
-	  firstTotalizer_day();
+	  // ===========================================================================
 
-	  int firstTime = 0;
-	  EEPROM_Write((totalTranxA_loc), totalTranxA1_loc, &firstTime, sizeof(firstTime));
-	  EEPROM_Write((totalTranxB_loc), totalTranxB1_loc, &firstTime, sizeof(firstTime));
-	  EEPROM_Write((synchedTranxA_loc), synchedTranxA1_loc, &firstTime, sizeof(firstTime));
-	  EEPROM_Write((synchedTranxB_loc), synchedTranxB1_loc, &firstTime, sizeof(firstTime));
 
-	  EEPROM_Write((lastSynchedFlashA_loc), 0, &firstTime, sizeof(firstTime));
-	  EEPROM_Write((lastSynchedFlashB_loc), 0, &firstTime, sizeof(firstTime));
+	  //********************  INITIALIZATIONS ***********************//
+
+	  //----------------------//
+	  //firstTotalizer_day();
+	  //----------------------//
+
+	  uint16_t firstTime = 0;
+
+	  uint16_t flash_beginA_page = 0,            //0x0000
+			   flash_beginB_page = 16384;        //0x4000
+
+	  EEPROM_Write(totalTranxA_loc, totalTranxA1_loc, &firstTime, sizeof(firstTime));
+	  EEPROM_Write(totalTranxB_loc, totalTranxB1_loc, &firstTime, sizeof(firstTime));
+	  EEPROM_Write(synchedTranxA_loc, synchedTranxA1_loc, &firstTime, sizeof(firstTime));
+	  EEPROM_Write(synchedTranxB_loc, synchedTranxB1_loc, &firstTime, sizeof(firstTime));
+
+	  EEPROM_Write(lastSynchedFlashA_loc, 0, &flash_beginA_page, sizeof(flash_beginA_page));
+	  EEPROM_Write(lastSynchedFlashB_loc, 0, &flash_beginB_page, sizeof(flash_beginB_page));
+
+	  clear_volumeTotaliser(side_a);
+	  clear_volumeTotaliser(side_b);
+
+	  clear_amountTotaliser(side_a);
+	  clear_amountTotaliser(side_b);
+
+	  clear_lastSale(side_a);
+	  clear_lastSale(side_b);
+
+	  clear_logA();
+	  clear_logB();
+
+	  W25qxx_EraseChip();
+
+	// ===========================================================================
+
+
 
 
 
@@ -1331,22 +1386,36 @@ skip_test:
     retrieve_settings();         //read pump settings from eeprom.
 
 
-
     // ===========================================================================
 
 
     //********************  PLACE-HOLDERS ***********************//
 
-//      firstTotalizer_day();
+	  //----------------------//
+      //firstTotalizer_day();
+      //----------------------//
+
+//	  uint16_t firstTime = 0;
 //
-//	  int firstTime = 0;
-//	  EEPROM_Write((totalTranxA_loc), totalTranxA1_loc, &firstTime, sizeof(firstTime));
-//	  EEPROM_Write((totalTranxB_loc), totalTranxB1_loc, &firstTime, sizeof(firstTime));
-//	  EEPROM_Write((synchedTranxA_loc), synchedTranxA1_loc, &firstTime, sizeof(firstTime));
-//	  EEPROM_Write((synchedTranxB_loc), synchedTranxB1_loc, &firstTime, sizeof(firstTime));
+//	  uint16_t flash_beginA_page = 0,            //0x0000
+//			   flash_beginB_page = 16384;        //0x4000
 //
-//	  EEPROM_Write((lastSynchedFlashA_loc), 0, &firstTime, sizeof(firstTime));
-//	  EEPROM_Write((lastSynchedFlashB_loc), 0, &firstTime, sizeof(firstTime));
+//	  EEPROM_Write(totalTranxA_loc, totalTranxA1_loc, &firstTime, sizeof(firstTime));
+//	  EEPROM_Write(totalTranxB_loc, totalTranxB1_loc, &firstTime, sizeof(firstTime));
+//	  EEPROM_Write(synchedTranxA_loc, synchedTranxA1_loc, &firstTime, sizeof(firstTime));
+//	  EEPROM_Write(synchedTranxB_loc, synchedTranxB1_loc, &firstTime, sizeof(firstTime));
+//
+//	  EEPROM_Write(lastSynchedFlashA_loc, 0, &flash_beginA_page, sizeof(flash_beginA_page));
+//	  EEPROM_Write(lastSynchedFlashB_loc, 0, &flash_beginB_page, sizeof(flash_beginB_page));
+//
+//	  clear_volumeTotaliser(side_a);
+//	  clear_volumeTotaliser(side_b);
+//
+//	  clear_amountTotaliser(side_a);
+//	  clear_amountTotaliser(side_b);
+//
+//	  clear_lastSale(side_a);
+//	  clear_lastSale(side_b);
 //
 //	  clear_logA();
 //	  clear_logB();
@@ -1354,11 +1423,13 @@ skip_test:
 	// ===========================================================================
 
 
-
 	pumpType_write();
     pumpType_parse();
 
     firstTotalizerDay_write();
+
+//	settings[0].totalizer_day = 14;
+//	settings[1].totalizer_day = 14;
 
 //    clear_logA();
 //    clear_logB();
@@ -1397,8 +1468,8 @@ skip_test:
 //	settings[0].noz_id;
 
 
-    settings[0].mode = offline;
-    settings[1].mode = offline;
+    settings[0].mode = MANUAL;
+    settings[1].mode = MANUAL;
 
 //    operating_side = side_a;
 
@@ -1406,6 +1477,9 @@ skip_test:
     load_settings(side_b);
 
     pumpName_parse();
+
+    strcpy(pumpName[0].pump_name, "P17");
+    strcpy(pumpName[1].pump_name, "P18");
 
     retrieve_volumeTotaliser(side_a);
     retrieve_volumeTotaliser(side_b);
@@ -1432,18 +1506,18 @@ skip_test:
 
     ep0_save.boot_time = RtcToInt(2019);
 
-	day = DS1307_GetDate();
-	if(settings[0].totalizer_day != day)
-	{
+//	day = DS1307_GetDate();
+//	if(settings[0].totalizer_day != day)
+//	{
 //		ep0_save.pump[0].tolalizer_first = totaliser_vol1c;
 //		ep0_save.pump[0].totalizerFirst_timestamp = RtcToInt(2019);
 //		ep0_save.pump[1].tolalizer_first = totaliser_vol2c;
 //		ep0_save.pump[1].totalizerFirst_timestamp = ep0_save.pump[0].totalizerFirst_timestamp;
 
-		ep5_save.firstTotalizer[0].totalizer = totaliser_vol1c;
-		ep5_save.firstTotalizer[1].totalizer = totaliser_vol2c;
-		ep5_save.firstTotalizer[0].timestamp = RtcToInt(2019);
-		ep5_save.firstTotalizer[1].timestamp = ep5_save.firstTotalizer[0].timestamp;
+//		ep5_save.firstTotalizer[0].totalizer = totaliser_vol1c;
+//		ep5_save.firstTotalizer[1].totalizer = totaliser_vol2c;
+//		ep5_save.firstTotalizer[0].timestamp = RtcToInt(2019);
+//		ep5_save.firstTotalizer[1].timestamp = ep5_save.firstTotalizer[0].timestamp;
 //		//============================================//
 //		// 				EP0 ROUTINE SENDING			  //
 //		//============================================//
@@ -1457,9 +1531,9 @@ skip_test:
 //
 //		//============================================//
 
-		settings[0].totalizer_day = day;
-		EEPROM_Write_NUM (totalizerDay_loc, 0, settings[0].totalizer_day);
-	}
+//		settings[0].totalizer_day = day;
+//		EEPROM_Write_NUM (totalizerDay_loc, 0, settings[0].totalizer_day);
+//	}
 
 //	ep_send(ep0);
 
@@ -1586,12 +1660,17 @@ void run()
 	//============================================//
 	// 				EP's ROUTINE SENDING			  //
 	//============================================//
-//	if (HAL_GPIO_ReadPin(network_connected_GPIO_Port, network_connected_Pin) == 1 )
-//	{
-//		epSend_interval();
-//	}
-
+	if (HAL_GPIO_ReadPin(network_connected_GPIO_Port, network_connected_Pin) == 1 )
+	{
+		connected = 1;
+		epSend_interval();
+	}
+	else
+	{
+		connected = 0;
+	}
 	//============================================//
+
 
 	if(operating_sideA)
 	{
@@ -1612,16 +1691,11 @@ void run()
 		 operating_sideB = false;
 	}
 
-	if (HAL_GPIO_ReadPin(data_available_GPIO_Port, data_available_Pin) == 1 )
+	if(server_message_found == 1)
 	{
 		server_rx_parse();
-		config_found = 0;
+		server_message_found = 0;
 	}
-//	if(config_found == 1)
-//	{
-//		server_rx_parse();
-//		config_found = 0;
-//	}
 	else if( (pump_message_found == 1)  && (awaiting_masterResponse == 0) )
 	{
 		 pump_message_found = 0;
@@ -1680,6 +1754,17 @@ int  read_event()
 	          nozzle_flag = readNozzle1();
 
    			  keypress_ = keynew;  //key flag is also set...
+
+
+   			 //--------------------------------------------------
+			  //  totaliser error.
+				if( (totaliser_flag == 0) && (drive1 != ACTIVATE) )
+				{
+					totaliser_flag = 1;
+//					return _tot_error_Event;
+				}
+   			  //--------------------------------------------------
+
 
 
 	 //==========check for long press events.....========
@@ -1762,7 +1847,7 @@ int  read_event()
 					nozzle_flag_old = 1;
 					if (overide_ != overide)
 					{
-								//send nozzleup command only in offline mode
+								//send nozzleup command only in MANUAL mode
 								return _nozzleup_Event;
 					}
 					else 		// NozzlezUp, awaiting authorisation
@@ -1810,11 +1895,11 @@ int  read_event()
 			}                              */
 	  //--------------------------------------------------
 	  //  totaliser error.
-		if( (totaliser_flag == 0) && (drive1 != ACTIVATE) )
-		{
-			totaliser_flag = 1;
-			return _tot_error_Event;
-		}
+//		if( (totaliser_flag == 0) && (drive1 != ACTIVATE) )
+//		{
+//			totaliser_flag = 1;
+//			return _tot_error_Event;
+//		}
 	  //--------------------------------------------------
 	   //filling pulse detection.
 		if ( (pulser_count_old < pulser_new) && ( eNextState == authorised_nozzleup_State ) )
@@ -1861,6 +1946,17 @@ int  read_event2()
 	          nozzle_flag2 = readNozzle2();
 
    			  keypress_2 = keynew2;  //key flag is also set...
+
+
+   			//--------------------------------------------------
+			  //  totaliser error.
+				if( (totaliser_flag2 == 0) && (drive2 != ACTIVATE) )
+				{
+					totaliser_flag2 = 1;
+//					return _tot_error_Event;
+				}
+		    //--------------------------------------------------
+
 
 
 	 //==========check for long press events.....========
@@ -1979,12 +2075,12 @@ int  read_event2()
 				return _key19_Event;
 			}                              */
 	  //--------------------------------------------------
-	  //  totaliser error.
-		if( (totaliser_flag2 == 0) && (drive2 != ACTIVATE) )
-		{
-			totaliser_flag2 = 1;
-			return _tot_error_Event;
-		}
+//	  //  totaliser error.
+//		if( (totaliser_flag2 == 0) && (drive2 != ACTIVATE) )
+//		{
+//			totaliser_flag2 = 1;
+//			return _tot_error_Event;
+//		}
 	  //--------------------------------------------------
 	   //filling pulse detection.
 		if ( (pulser_count_old2 < pulser_new2) && ( eNextState2 == authorised_nozzleup_State ) )
@@ -2013,8 +2109,6 @@ int  read_event2()
 
 void pumpType_configure(void)
 {
-//	  extern uint8_t day;
-
 	  if((settings[0].display__ == LAFNG885) && (settings[0].keypad__ == LAFNG17_K))  //LAFENG885-NormalScreen | LAFENG16-Keypad
 	  {
 		  EEPROM_Write_NUM (save_pumpType_loc, 0, 0b00000001);
@@ -2037,21 +2131,51 @@ void pumpType_configure(void)
 	  }
 
 
-		if(settings[0].product_ == "PMS")
+
+		if(strcmp(settings[0].product_, "PMS") == 0)
 		{
-			EEPROM_Write_NUM (save_pumpType_loc, save_productType_loc, PMS);
+			EEPROM_Write_NUM (save_productType_loc, 0, PMS);
 		}
-		else if(settings[0].product_ == "AGO")
+		else if(strcmp(settings[0].product_, "AGO") == 0)
 		{
-			EEPROM_Write_NUM (save_pumpType_loc, save_productType_loc, AGO);
+			EEPROM_Write_NUM (save_productType_loc, 0, AGO);
 		}
-		else if(settings[0].product_ == "DPK")
+		else if(strcmp(settings[0].product_, "DPK") == 0)
 		{
-			EEPROM_Write_NUM (save_pumpType_loc, save_productType_loc, DPK);
+			EEPROM_Write_NUM (save_productType_loc, 0, DPK);
 		}
 
-		EEPROM_Write_NUM (save_pumpType_loc, save_nozzleId_loc, settings[0].noz_id);
+		EEPROM_Write_NUM (save_nozzleId_loc, 0, settings[0].noz_id);
 }
+
+
+
+
+
+//		if(strcmp(settings[0].product_, "PMS") == 0)
+//		{
+//			val = PMS;
+//			EEPROM_Write (save_productType_loc, 0, val, sz);
+//			EEPROM_Read (save_productType_loc, 0, &val, sz);
+//		}
+//		else if(strcmp(settings[0].product_, "AGO") == 0)
+//		{
+//			val = AGO;
+//			EEPROM_Write (save_productType_loc, 0, val, 1);
+//			EEPROM_Read (save_productType_loc, 0, &val, sz);
+//		}
+//		else if(strcmp(settings[0].product_, "DPK") == 0)
+//		{
+//			vall = DPK;
+//			EEPROM_Write (save_productType_loc, 0, vall, sz);
+//			HAL_Delay(200);
+//			EEPROM_Read (save_productType_loc, 0, &val, sz);
+//		}
+//
+//		id = settings[0].noz_id;
+//		EEPROM_Write (save_nozzleId_loc, 0, id, sz);
+//		EEPROM_Read (save_nozzleId_loc, 0, &val, sz);
+//}
 
 
 void pumpType_parse(void)
@@ -2123,17 +2247,16 @@ void pumpType_write(void)
 }
 
 
+
 void firstTotalizer_day(void)
 {
-	  EEPROM_Write_NUM (totalizerDay_loc, 0, DS1307_GetDate());
+	 EEPROM_Write_NUM (totalizerDay_loc, 0, DS1307_GetDate());
 }
 
 void firstTotalizerDay_write(void)
 {
 	settings[0].totalizer_day = EEPROM_Read_NUM (totalizerDay_loc, 0);
 	settings[1].totalizer_day = EEPROM_Read_NUM (totalizerDay_loc, 0);
-//	settings[0].totalizer_day = 15;
-//	settings[1].totalizer_day = 15;
 }
 
 
@@ -2142,11 +2265,11 @@ void pumpName_parse(void)
 {
 	 	char str[5];
 
-	 	int8_t productType;
+		int8_t productType;
 
-	 	settings[0].noz_id = EEPROM_Read_NUM (save_pumpType_loc, save_nozzleId_loc);
+		settings[0].noz_id = EEPROM_Read_NUM (save_nozzleId_loc, 0);
 
-	 	productType = EEPROM_Read_NUM (save_pumpType_loc, save_productType_loc);
+		productType = EEPROM_Read_NUM (save_productType_loc, 0);
 
 	 	if( productType == PMS)
 	 	{
@@ -2162,18 +2285,18 @@ void pumpName_parse(void)
 		{
 	 		strcpy(settings[0].product_, "AGO");
 
-	 		snprintf(str, 5,"P%d", settings[0].noz_id);
+	 		snprintf(str, 5,"A%d", settings[0].noz_id);
 			strcpy(pumpName[0].pump_name, str);
-			snprintf(str, 5, "P%d", (settings[0].noz_id + 1));
+			snprintf(str, 5, "A%d", (settings[0].noz_id + 1));
 			strcpy(pumpName[1].pump_name, str);
 		}
 		else if( productType == DPK)
 		{
 	 		strcpy(settings[0].product_, "DPK");
 
-	 		snprintf(str, 5,"P%d", settings[0].noz_id);
+	 		snprintf(str, 5,"D%d", settings[0].noz_id);
 			strcpy(pumpName[0].pump_name, str);
-			snprintf(str, 5, "P%d", (settings[0].noz_id + 1));
+			snprintf(str, 5, "D%d", (settings[0].noz_id + 1));
 			strcpy(pumpName[1].pump_name, str);
 		}
 }

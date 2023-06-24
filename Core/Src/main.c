@@ -658,7 +658,7 @@ static void MX_USART2_UART_Init(void)
 
   /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 9600;
+  huart2.Init.BaudRate = 115200;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;
@@ -791,8 +791,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : T1sense_Pin T2sense_Pin network_connected_Pin */
-  GPIO_InitStruct.Pin = T1sense_Pin|T2sense_Pin|network_connected_Pin;
+  /*Configure GPIO pins : T1sense_Pin T2sense_Pin */
+  GPIO_InitStruct.Pin = T1sense_Pin|T2sense_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
@@ -843,6 +843,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(nozzleSW2_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : network_connected_Pin */
+  GPIO_InitStruct.Pin = network_connected_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  HAL_GPIO_Init(network_connected_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : data_available_Pin */
   GPIO_InitStruct.Pin = data_available_Pin;

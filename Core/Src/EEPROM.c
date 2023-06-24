@@ -16,6 +16,9 @@ extern I2C_HandleTypeDef hi2c1;
 
 extern int t;
 
+extern uint32_t transaction_period,
+				transaction_period2;
+
 
 
 /*****************************************************************************************************************************************/

@@ -270,7 +270,13 @@ void USART2_IRQHandler(void)
   HAL_UART_IRQHandler(&huart2);
   /* USER CODE BEGIN USART2_IRQn 1 */
   if( (config_mode == 1)) // || (serverResponse == 1) )
- 	  config_rx();
+  {
+	  config_rx();
+  }
+  else
+  {
+	  server_read();
+  }
   /* USER CODE END USART2_IRQn 1 */
 }
 

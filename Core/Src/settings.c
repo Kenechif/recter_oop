@@ -16,9 +16,18 @@
 #include "stdio.h"
 #include "EEPROM.h"
 
+
+//#######################################
+
+char device_id [] =	"860537064685993";        //"860537064685357";           //"860537064685993";     //"860537064685340";
+
+//#######################################
+
+
+
  const int max_events_per_state = 10;
 
- //const
+int8_t connected;
 
  uint16_t fast_flow_threshold  = 0;  //=  pulser_index_c ;   //140;
 
@@ -37,6 +46,9 @@ extern int t;
 
 extern uint16_t _tt,
 				_tt2;
+
+extern uint32_t transaction_period,
+				transaction_period2;
 
  float price = 0.0;
  float amt = 0.0;
@@ -108,8 +120,8 @@ float lastSale1 = 0.00,
 float lastSale2 = 0.00,
 	  lastSale2c = 0.00;
 
- int8_t opmode  = offline;
- int8_t opmode2 = offline;
+ int8_t opmode  = MANUAL;
+ int8_t opmode2 = MANUAL;
 
  nozzle_overide overide_ = nooveride;
  nozzle_overide overide_2 = nooveride;
@@ -149,10 +161,10 @@ float lastSale2 = 0.00,
 
  const int save_settings1_loc = 0;
  const int save_settings2_loc = 5;
- const int8_t save_pumpType_loc = 2;
- const int8_t save_productType_loc = save_pumpType_loc + 1;
- const int8_t save_nozzleId_loc = save_pumpType_loc + 2;
- const int8_t totalizerDay_loc = 3;  //page 3
+ const int16_t save_pumpType_loc = 400;
+ const int16_t save_productType_loc = save_pumpType_loc + 1;
+ const int16_t save_nozzleId_loc = save_pumpType_loc + 2;
+ const int16_t totalizerDay_loc = 404;
 
  const int8_t lastSale_loc  =  40;
  const int lastSale1_loc =  0;
@@ -337,7 +349,7 @@ void make_settings(pump_sid side)
 
 	    settings[sdd].pi_ = 180;
 	    settings[sdd].pi_c = 180;
-	    settings[sdd].mode = offline;
+	    settings[sdd].mode = MANUAL;
 
 	    settings[sdd].price_ = 120.00;
 
@@ -355,6 +367,8 @@ void make_settings(pump_sid side)
 	    settings[sdd].dp_price     = 2;
 	    settings[sdd].dp_amount    = 2;
 	    settings[sdd].dp_unitprice = 2;
+
+	    settings[sdd].noz = nooveride;
 
 	     /*
 		   if (sdd == side_a)
@@ -385,7 +399,7 @@ void save_settings()
 }
 //==============================================
 /*
- * save totaliser
+ * save volumeTotaliser
  */
 void save_volumeTotaliser(pump_sid side)
 {
@@ -409,7 +423,7 @@ void save_volumeTotaliser(pump_sid side)
 
 //===================================================
 /*
- *  read totaliser
+ *  read volumeTotaliser
  */
 float retrieve_volumeTotaliser(pump_sid side)
 {
@@ -438,6 +452,27 @@ float retrieve_volumeTotaliser(pump_sid side)
 	}
 }
 
+//==============================================
+/*
+ * clear volumeTotaliser
+ */
+void clear_volumeTotaliser(pump_sid side)
+{
+	int sz = sizeof( totaliser_vol_storeA);
+
+	if (side == side_a)
+	  {
+		  totaliser_vol_storeA.totaliserVol_cal = 0.00;
+	  	  totaliser_vol_storeA.totaliserVol_real = 0.00;
+	  	EEPROM_Write(tot_loc, tot1_loc, &totaliser_vol_storeA, sz);
+	  }
+	if (side == side_b)
+	  {
+		  totaliser_vol_storeB.totaliserVol_cal = 0.00;
+	  	  totaliser_vol_storeB.totaliserVol_real = 0.00;
+	  	EEPROM_Write(tot_loc, tot2_loc, &totaliser_vol_storeB, sz);
+	  }
+}
 
 
 //void save_day1stVolTotaliser(pump_sid side)
@@ -545,7 +580,34 @@ float retrieve_lastSale(pump_sid side)
 	}
 }
 
+//===================================================
+/*
+ * clear lastSale
+ */
+void clear_lastSale(pump_sid side)
+{
+	int8_t sz = sizeof(lastSale_storeA);
 
+	if (side == side_a)
+	  {
+		lastSale_storeA.lastSale_real = 0.00;   //    log_a_new.vol_ = amt_real;
+		lastSale_storeA.lastSale_cal = 0.00;   //log_a_new.vol__ = amt;   //calibrated
+	  	EEPROM_Write(lastSale_loc, lastSale1_loc, &lastSale_storeA, sz);
+	  }
+	if (side == side_b)
+	  {
+		lastSale_storeB.lastSale_real = 0.00;   //    log_b_new.vol_ = amt_real2;
+		lastSale_storeB.lastSale_cal = 0.00;   //log_b_new.vol__ = amt2;   //calibrated
+	  	EEPROM_Write(lastSale_loc, lastSale2_loc, &lastSale_storeB, sz);
+	  }
+}
+
+
+
+//==============================================
+/*
+ * save amountTotaliser
+ */
 void save_amountTotaliser(pump_sid side)
 {
 	int sz = sizeof( totaliser_vol_storeA);
@@ -566,7 +628,7 @@ void save_amountTotaliser(pump_sid side)
 
 //===================================================
 /*
- *  read totaliser
+ *  read amountTotaliser
  */
 float retrieve_amountTotaliser(pump_sid side)
 {
@@ -591,6 +653,28 @@ float retrieve_amountTotaliser(pump_sid side)
 	  	if(isnan(totaliser_amt2)) totaliser_amt2 = 0.0;
 
 	}
+}
+
+//==============================================
+/*
+ * clear amountTotaliser
+ */
+void clear_amountTotaliser(pump_sid side)
+{
+	int sz = sizeof( totaliser_vol_storeA);
+
+	if (side == side_a)
+	  {
+		  totaliser_amt_storeA.totaliserVol_cal = 0.00;
+	  	  totaliser_amt_storeA.totaliserVol_real = 0.00;
+	  	  EEPROM_Write(totAmount_loc, totAmount1_loc, &totaliser_amt_storeA, sz);
+	  }
+	if (side == side_b)
+	  {
+		  totaliser_amt_storeB.totaliserVol_cal = 0.00;
+	  	  totaliser_amt_storeB.totaliserVol_real = 0.00;
+	  	  EEPROM_Write(totAmount_loc, totAmount2_loc, &totaliser_amt_storeB, sz);
+	  }
 }
 
 
@@ -629,7 +713,7 @@ int get_auth()
 {
 	auth_flag = 0;
 
-	if(opmode == offline)
+	if(opmode == MANUAL)
 		{
 		  //if (t > 500)
 		  //{
@@ -649,7 +733,7 @@ int get_auth()
 int get_auth2()
 {
 	auth_flag2 = 0;
-	if(opmode2 == offline)
+	if(opmode2 == MANUAL)
 		{
 	       auth_flag2 = 1;
 		}

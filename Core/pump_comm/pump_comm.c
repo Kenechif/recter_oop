@@ -399,7 +399,7 @@ char* getProduct(int ind){}
 //	char di[17] = {0};
 //	char msg[200]={0};              //string msg = "";
 //	char
-	uint8_t tail = 0; ;
+	uint8_t tail = 0;
 //	char
 	uint8_t headr;
 	//char crc[3] = {0};

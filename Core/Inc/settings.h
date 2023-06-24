@@ -20,7 +20,7 @@ extern "C" {
 
 
 //============================================
-#define _USE_SOFT_PULSER            1
+#define _USE_SOFT_PULSER            0
 #define use_internal_rtc			0
 #define sense_power  				1
 #define sense_battery 				1
@@ -49,8 +49,8 @@ extern "C" {
 
  typedef enum
   {
-      online,
-      offline
+      AUTO,
+      MANUAL
   }opmode_;
 
 
@@ -99,8 +99,8 @@ extern "C" {
          uint8_t _mn; // 5
 	}time_;
 
-   typedef struct   //structure for log.
-   {
+typedef struct   //structure for log.
+{
 						//real...
 	 float pr_;    //4
 	 float vol_;   //8
@@ -110,8 +110,8 @@ extern "C" {
 
 	// float pr_d;
 	// float vol_d;
-  //   uint64_t totaliserVol_real;
-  //   uint64_t totaliserVol_cal;
+	//   uint64_t totaliserVol_real;
+	//   uint64_t totaliserVol_cal;
 
 	  float totaliserVol_real; //4
 	  float totaliserVol_cal;	//4  -->8 ---> 24
@@ -129,16 +129,33 @@ extern "C" {
 	 char tag_[18];     // ---> 31 + 18
 	 char tm_[1];       // ---> 31 + 19
 
-     float litre_price_;   // --> 50 + 4
+	 float litre_price_;   // --> 50 + 4
 
 	 float totaliserAmount_real;  //4
 	 float totaliserAmount_cal;	  //4  -->8 ---> 54 + 8
 
 	 uint8_t autoTranxFlag;	  //--> 62 + 1
 
+	 uint32_t transaction_period;  //--> 63 + 4 => 67
+
+	 char transaction_id[20];     //--> 67 + 20 => 87
+
+	 long timeStamp;              //--> 87 + 4 => 91
+
+	 char nozzle_product[6];      //--> 91 + 6 => 97
+
+	 char nozzle_name[5];         //--> 97 + 6 => 103
+
+	 int8_t nozzle_address;       //--> 103 + 1 => 104
+
+	 char storage_loc;            //--> 104 + 1 => 105
+
+	 char device_id[16];          //--> 105 + 16 => 121
+
 	 char voucher_[];
 
-   }log_new;
+}log_new;
+
 
 typedef struct   //structure for log.
 {
@@ -210,7 +227,7 @@ typedef enum
 
 typedef enum
 {
-	PMS,
+	PMS = 1,
 	DPK,
 	AGO,
 }productname;
@@ -291,6 +308,46 @@ typedef struct
 	 int8_t totalizer_day;
 }pump_settings;
 
+
+/* enum for pump status */
+typedef enum
+{
+	STATUS_PUMP_ON = 255,
+
+	STATUS_IDLE = 1,
+	STATUS_NOZZLE_DOWN,
+	STATUS_NOZZLE_UP,
+	STATUS_AUTHORIZED_NOZZLE_DOWN,
+	STATUS_AUTHORIZED_NOZZLE_UP,
+	STATUS_FILLING_
+}pump_status_enum_4G;
+
+
+pump_status_enum_4G pump1_status_4G,
+				    pump2_status_4G;
+
+
+typedef struct
+{
+	 char type[2];
+	 char pumpName[5];
+	 char price[8];
+	 char shutDownDevice[5];
+	 char channelLock[5];
+}ep1_mt;
+
+ep1_mt mt_pump[2];
+
+typedef struct
+{
+	int8_t ct;
+	float ctt_original;
+	float ctt_base;
+	float ctt_effective;
+}calibrate;
+
+calibrate calibrate_ct;
+
  int pump_max_litres,
  	 pump_max_litres2;
 
@@ -303,7 +360,8 @@ typedef struct
  	 	 	 operating_sideB;
 
  int8_t storage_fail,
- 	 	tokenFlag;
+ 	 	tokenFlag,
+		changeLitrePrice;
 
  char keyboard_entry[8];
 
@@ -319,9 +377,15 @@ void save_settings();
 
 void save_volumeTotaliser(pump_sid side);
 float retrieve_volumeTotaliser(pump_sid side);
+void clear_volumeTotaliser(pump_sid side);
+
+void save_amountTotaliser(pump_sid side);
+float retrieve_amountTotaliser(pump_sid side);
+void clear_amountTotaliser(pump_sid side);
 
 void save_lastSale(pump_sid side);
 float retrieve_lastSale(pump_sid side);
+void clear_lastSale(pump_sid side);
 
 void copy_settings(copy_dir dir);
 void load_settings(pump_sid side);
@@ -339,7 +403,7 @@ int8_t dpFlag,
 	   dpFlag2,
 	   dpCount2;
 
-char config_buf[pump_rx_bufsize];
+char rx_buf[pump_rx_bufsize];
 
 
 

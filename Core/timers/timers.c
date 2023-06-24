@@ -31,6 +31,9 @@ extern uint16_t _tt,
 
 extern int ttt;
 
+extern uint32_t transaction_period,
+				transaction_period2;
+
 
 //=====================================================
 void dec_var()
@@ -45,8 +48,14 @@ void dec_var()
 //		if(ttt > 65534) ttt = 0;
 
 		timer_ep++;
+		if(timer_ep > 65534) timer_ep = 0;
 //		ep2_timer++;
-		timer_spi++;
+//		timer_spi++;
+		transaction_period++;
+		if(transaction_period > 4294967294) transaction_period = 0;
+		transaction_period2++;
+		if(transaction_period2 > 4294967294) transaction_period2 = 0;
+
 	}
 //------------------------------------------------------
 

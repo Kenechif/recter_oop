@@ -7,9 +7,9 @@
 
 #include "seriall.h"
 
-char config_rx_buf[pump_rx_bufsize] = {0};
+char uart2_rx_buf[pump_rx_bufsize] = {0};
 
-extern char config_buf[pump_rx_bufsize] = {0};
+extern char rx_buf[pump_rx_bufsize] = {0};
 
 char nozz_id[5] = {0};
 //	 statuss[10] = {0};
@@ -24,7 +24,7 @@ void config_rx(void)
 	  	char tx;
 
 	   int16_t rxcnt = pump_rx_bufsize - huart2.RxXferCount;
-	   tx = (char)(config_rx_buf[rxcnt-1]);
+	   tx = (char)(uart2_rx_buf[rxcnt-1]);
 
 	   if(tx == '{')     // header left square bracket 0x5B, 0d91   STX->0xA5
 	   {
@@ -32,7 +32,7 @@ void config_rx(void)
 		  head_pos = 0;
 
 		  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-			  config_buf[head_pos] = tx;
+			  rx_buf[head_pos] = tx;
 
 		  head_pos++;
 	   }
@@ -46,7 +46,7 @@ void config_rx(void)
 			   	 if(curly_brace != 0 )
 			   	 {
 			   		   if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-							config_buf[head_pos] = tx;
+							rx_buf[head_pos] = tx;
 
 					   curly_brace--;
 
@@ -56,11 +56,11 @@ void config_rx(void)
 			   	 {
 			   		 if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
 
-			   		 config_buf[head_pos] = tx;
+			   		 rx_buf[head_pos] = tx;
 
 					 //  memcpy( pump_buf , pump_rx_buf[head_pos] ,rxcnt ); //transfer to the definitive buffer.
 					 huart2.RxXferCount = pump_rx_bufsize;
-					 huart2.pRxBuffPtr = &config_rx_buf[0]; //reset //config_rx_buf; //
+					 huart2.pRxBuffPtr = &uart2_rx_buf[0]; //reset //uart2_rx_buf; //
 					 header_found = 0;
 					 head_pos = 0;
 					 curly_brace = 0;
@@ -71,7 +71,7 @@ void config_rx(void)
 		   else if(tx == '{')  //ie. if another header character found
 		   {
 			   if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-					config_buf[head_pos] = tx;
+					rx_buf[head_pos] = tx;
 
 			   curly_brace++;
 
@@ -80,7 +80,7 @@ void config_rx(void)
 		   else
 		   {
 			   if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-					config_buf[head_pos] = tx;
+					rx_buf[head_pos] = tx;
 
 			   head_pos++;
 		   }
@@ -106,41 +106,41 @@ void config_rx_parse(void)
 		int8_t head_pos = 0;
 	  	int8_t pos = 0, id = 0, size;
 	  	char rx;
-        size = strlen(config_buf);
+        size = strlen(rx_buf);
 
         config_found = 2;
 
 	   while( (id != 1) && (head_pos < size) )
 	   {
 		   if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-			   rx = config_buf[head_pos];
+			   rx = rx_buf[head_pos];
 
-	//	   {"ni":"p1","pn":"pms","dt":"bluesky886",kt":"bluesky12"}
+//		   {"ni":"p17","pn":"pms","dt":"bluesky886n",kt":"bluesky22"}
 
 		   if(rx == '{')     // header left square bracket 0x5B, 0d91   STX->0xA5
 		   {
 			  head_pos++;
 			  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-				  rx = config_buf[head_pos];
+				  rx = rx_buf[head_pos];
 
 			  if(rx == '"')
 			  {
 				  head_pos++;
 				  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-					  rx = config_buf[head_pos];
+					  rx = rx_buf[head_pos];
 
 				  if(rx == 'n')
 				  {
 					  head_pos++;
 					  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-						  rx = config_buf[head_pos];
+						  rx = rx_buf[head_pos];
 					  if(rx == 'i')
 					  {
 						  head_pos += 4;
 						  do
 						  {
 							  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-								  nozz_id[pos++] = config_buf[head_pos];
+								  nozz_id[pos++] = rx_buf[head_pos];
 
 							  head_pos++;
 
@@ -148,7 +148,7 @@ void config_rx_parse(void)
 								  break;
 
 						  }
-						  while(config_buf[head_pos+1] != ',');
+						  while(rx_buf[head_pos+1] != ',');
 
 						  id = 1;      //nozzle ID obtained
 					  }
@@ -165,7 +165,7 @@ void config_rx_parse(void)
 		   configure_pump(product_name);
 		   configure_pump(disp_type);
 		   configure_pump(keypad_type);
-		   memset(config_buf, 0, sizeof(config_buf));
+		   memset(rx_buf, 0, sizeof(rx_buf));
 	   }
 }
 
@@ -182,14 +182,14 @@ void config_rx_parse(void)
 //	  	int8_t st = 0;
 //	  	char rx;
 //
-//        size = strlen(config_buf);
+//        size = strlen(rx_buf);
 //
 //        config_found = 2;
 //
 //	   while( (st != 1) && (head_pos < size) )
 //	   {
 //		   if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-//			   rx = config_buf[head_pos];
+//			   rx = rx_buf[head_pos];
 //
 //	//	   {"ni":"p1","pn":"pms","dt":"bluesky886",kt":"bluesky12"}
 //
@@ -197,26 +197,26 @@ void config_rx_parse(void)
 //		   {
 //			  head_pos++;
 //			  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-//				  rx = config_buf[head_pos];
+//				  rx = rx_buf[head_pos];
 //
 //			  if(rx == '"')
 //			  {
 //				  head_pos++;
 //				  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-//					  rx = config_buf[head_pos];
+//					  rx = rx_buf[head_pos];
 //
 //				  if(rx == 's')
 //				  {
 //					  head_pos++;
 //					  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-//						  rx = config_buf[head_pos];
+//						  rx = rx_buf[head_pos];
 //					  if(rx == 't')
 //					  {
 //						  head_pos += 3;
 //						  do
 //						  {
 //							  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-//								  statuss[pos++] = config_buf[head_pos++];
+//								  statuss[pos++] = rx_buf[head_pos++];
 //
 ////							  head_pos++;
 //
@@ -224,7 +224,7 @@ void config_rx_parse(void)
 //								  break;
 //
 //						  }
-//						  while(config_buf[head_pos] != ',');
+//						  while(rx_buf[head_pos] != ',');
 //
 //						  st = 1;      //nozzle ID obtained
 //					  }
@@ -243,17 +243,17 @@ void config_rx_parse(void)
 //		   snprintf(strA, sizeof(strA), "%ld", tranxA_token);
 //		   snprintf(strB, sizeof(strB), "%ld", tranxB_token);
 //
-//		   if(strstr(config_buf, strA))
+//		   if(strstr(rx_buf, strA))
 //		   {
 //			   config_mode = 0;
 //			   save_synchedTransaction_sides(side_a);
 //		   }
-//		   else if(strstr(config_buf, strB))
+//		   else if(strstr(rx_buf, strB))
 //		   {
 //			   config_mode = 0;
 //			   save_synchedTransaction_sides(side_b);
 //		   }
-////		   memset(config_buf, 0, sizeof(config_buf));
+////		   memset(rx_buf, 0, sizeof(rx_buf));
 //	   }
 //}
 
@@ -264,7 +264,7 @@ void config_rx_parse(void)
 //{
 //	   for (int8_t i = 0; i < 15; i++)
 //	   {
-////		   if(strstr(config_buf,"p1"))
+////		   if(strstr(rx_buf,"p1"))
 //		   ;
 //	   }
 //}
@@ -298,51 +298,51 @@ void configure_pump(pumpCompPart _case)
 						   break;
 
 
-		case product_name: if(strstr(config_buf,"pms"))
+		case product_name: if(strstr(rx_buf,"pms"))
 		   	   	   	   	   {
 								strcpy(settings[0].product_, "PMS");
 								strcpy(settings[1].product_, "PMS");
 		   	   	   	   	   }
-						   else if(strstr(config_buf,"dpk"))
+						   else if(strstr(rx_buf,"dpk"))
 		   	   	   	   	   {
 								strcpy(settings[0].product_, "DPK");
 								strcpy(settings[1].product_, "DPK");
 		   	   	   	   	   }
-						   else if(strstr(config_buf,"ago"))
+						   else if(strstr(rx_buf,"ago"))
 		   	   	   	   	   {
 								strcpy(settings[0].product_, "AGO");
 								strcpy(settings[1].product_, "AGO");
 		   	   	   	   	   }
 						   break;
 
-		case disp_type:   if(strstr(config_buf,"lafeng885"))
+		case disp_type:   if(strstr(rx_buf,"lafeng885"))
 						   {
 							settings[0].display__ = LAFNG885;
 							settings[1].display__ = LAFNG885;
 						   }
-					   	   else if(strstr(config_buf,"bluesky886n"))
+					   	   else if(strstr(rx_buf,"bluesky886n"))
 						   {
 							settings[0].display__ = BLSKY886_N;
 							settings[1].display__ = BLSKY886_N;
 						   }
-					   	   else if(strstr(config_buf,"bluesky886i"))
+					   	   else if(strstr(rx_buf,"bluesky886i"))
 						   {
 							settings[0].display__ = BLSKY886_IN;
 							settings[1].display__ = BLSKY886_IN;
 						   }
 					   	   break;
 
-		case keypad_type:  if(strstr(config_buf,"lafeng17k"))
+		case keypad_type:  if(strstr(rx_buf,"lafeng17k"))
 						   {
 							settings[0].keypad__ = LAFNG17_K;
 							settings[1].keypad__ = LAFNG17_K;
 						   }
-					   	   else if(strstr(config_buf,"bluesky18k"))
+					   	   else if(strstr(rx_buf,"bluesky18k"))
 						   {
 							settings[0].keypad__ = BLSKY18_K;
 							settings[1].keypad__ = BLSKY18_K;
 						   }
-					   	   else if(strstr(config_buf,"bluesky22"))
+					   	   else if(strstr(rx_buf,"bluesky22"))
 						   {
 							settings[0].keypad__ = BLSKY22;
 							settings[1].keypad__ = BLSKY22;
@@ -351,6 +351,7 @@ void configure_pump(pumpCompPart _case)
 	}
 }
 
+//{"ni":"p17","pn":"pms","dt":"bluesky886n",kt":"bluesky22"}
 
 //Display Type
 //"lafeng885" -> LAFNG885

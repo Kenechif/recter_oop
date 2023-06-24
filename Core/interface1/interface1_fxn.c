@@ -65,7 +65,7 @@
 //	float vol_transaction1 = pump[0].filled_vol;
 //	float vol_transaction2 = pump[1].filled_vol;
 ////===================================================================================
-////check if online activity is onging...
+////check if AUTO activity is onging...
 //	//int indx_p = 0;
 //	if(server_stat != 0)
 //	{
