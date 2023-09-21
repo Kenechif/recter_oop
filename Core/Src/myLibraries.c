@@ -31,7 +31,7 @@ extern pump disp_type1,
             disp_type2;
 
 extern ADC_HandleTypeDef hadc1;
-extern uint16_t motor_tmr,
+extern uint16_t motor_tmr1,
 				motor_tmr2;
 
 void drive_motor1(drive drv);
@@ -134,7 +134,7 @@ int readkey192_state(void)
 //-------------------------------------------------------------------------------
 void slow_flow(void)
 {
-	if (motor_tmr >= 2000)
+	if (motor_tmr1 >= 2000)
 		drive_motor1(ACTIVATE);
 
 	drive_slow_sole1(ACTIVATE);
@@ -143,7 +143,7 @@ void slow_flow(void)
 
 void fast_flow(void)
 {
-	if (motor_tmr >= 2000)
+	if (motor_tmr1 >= 2000)
 		drive_motor1(ACTIVATE);
 
 	drive_slow_sole1(ACTIVATE);
@@ -152,9 +152,10 @@ void fast_flow(void)
 
 void stop_flow(void)
 {
-	drive_motor1(DEACTIVATE);
+//	drive_motor1(DEACTIVATE);
 	drive_slow_sole1(DEACTIVATE);
 	drive_fast_sole1(DEACTIVATE);
+	drive_motor1(DEACTIVATE);
 }
 
 
@@ -389,32 +390,53 @@ uint8_t ToBits(int Input)
 		case 57: return 0b11110110;
 		//case 'c': return 0b00000010;
 		//case 's': return 0b00000000;
-		 case  'a': return(0b11101110);
+		 case  'A': return(0b11101110);
+		 case  'a': return(0b11111010);
+	   	 case  'B': return(0b00111110);
 	   	 case  'b': return(0b00111110);
+	 	 case  'C': return(0b10011100);
 	 	 case  'c': return(0b10011100);
+	 	 case  'D': return(0b01111010);
 	 	 case  'd': return(0b01111010);
-		 case  'e': return(0b10011110);
+		 case  'E': return(0b10011110);
+		 case  'e': return(0b11011110);
+		 case  'F': return(0b10001110);
 		 case  'f': return(0b10001110);
+		 case  'G': return 0b11110110;
 		 case  'g': return 0b11110110;
+		 case  'H': return 0b01101110;
 		 case  'h': return 0b00101110;
 		 case  'i': return(0b00001100);
 		 case  'I': return(0b00001000);
+		 case  'J': return(0b01110000);
 		 case  'j': return(0b01110000);
+		 case  'L': return(0b00011100);
 		 case  'l': return(0b00011100);
+         case  'N': return(0b11101100);
          case  'n': return(0b11101100);
-         case  'o': return(0b11111100);
          case  'O': return(0b00111010);
+         case  'o': return(0b11111100);
+         case  'P': return(0b11001110);
          case  'p': return(0b11001110);
+         case  'R': return(0b10001100);
          case  'r': return(0b10001100);
+         case  'S': return 0b10110110;
          case  's': return 0b10110110;
+         case  'T': return(0b00011110);
          case  't': return(0b00011110);
+	     case  'U': return(0b01111100);
 	     case  'u': return(0b01111100);
+	     case  'V': return(0b01111100);
 	     case  'v': return(0b01111100);
 	     case  'y': return 0b01100110;
 	     case  'Y': return(0b01110110);
 	     case  '.': return(0b00000001);
 	     case  '-': return(0b00000010);
 	     case  '_': return(0b00010000);
+	     case  '?': return(0b11001010);
+	     case  'Z': return(0b11011010);
+	     case  'z': return(0b11011010);
+//	     case  ':': return(0b10010000);
 	     default: return 0;   //0b11111100;
 	}
 
@@ -490,7 +512,7 @@ void process(int isflt,char* str,int8_t cnv, int row, int col,int n ,int justify
 		xtercount_max = 6;
 		start = 5;
 
-		if(strchr(str, '.') == 1)
+		if(strchr(str, '.'))
 		{
 			start = 4;
 		}
@@ -629,7 +651,7 @@ void process2(int isflt,char* str,int8_t cnv, int row, int col,int n ,int justif
 		xtercount_max = 6;
 		start = 5;
 
-		if(strchr(str, '.') == 1)
+		if(strchr(str, '.'))
 		{
 			start = 4;
 		}

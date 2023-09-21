@@ -42,7 +42,10 @@ typedef enum
 	ep2,
 	ep5_side_a, //= 6,
 	ep5_side_b,
-	ep31
+	ep31,
+	ep1a_priceChangeResponse_sideA,
+	ep1a_priceChangeResponse_sideB,
+	ep1a_priceChangeResponse_bothSides
 }ep_;
 
 typedef struct{
@@ -89,7 +92,13 @@ ep0_ ep0_save;
 
 char mt[250];
 
-extern char device_id [];
+extern const char device_id [],
+				  firmware_date [],
+				  firmware_time [],
+				  chip_type [];
+
+extern const uint16_t firmware_version;
+
 
 extern float price,
 			 amt,
@@ -100,7 +109,7 @@ extern float price,
 
 extern pump_names pumpName[2];
 
-extern calibrate calibrate_ct;
+//extern calibrate calibrate_ct;
 
 extern float totaliser_vol1c,
 			 totaliser_vol2c,
@@ -118,6 +127,7 @@ long tranxA_token,
 extern int8_t config_mode;
 
 typedef struct{
+	uint8_t ct;
 	long timestamp;
 	long token;
 	char device_id[16];
@@ -161,24 +171,38 @@ typedef struct{
 
 ep1b_ ep1b_save;
 
-typedef struct
-{
-	char nozzle_name[6];
-	long timestamp;
-	float totalizer;
-	float totalizer_real;
-}firstTotalizer_ep;
+extern ep5_ ep5_save;
 
-typedef struct{
-	long timestamp;
-	long token;
+
+//typedef struct{
+//	long timestamp;
+//	long token;
 //	char device_id[16];
-	firstTotalizer_ep firstTotalizer[2];
-	char sentEntry_count[8];
-}ep5_;
+//	pumps_ep pump[2];
+//	int firmware_version;
+//	char storage_loc;
+//}ep31_;
 
-ep5_ ep5_save;
+//{"ep":31,"di":"864120050705038","tk":1060422946,"tm":161772383,"pumps":[{"nm":"P7","nz":0,"ct":"20|0.5|0.0"},{"nm":"P8","nz":0,"ct":"20|0.5|0.0"}]}
 
+//typedef struct
+//{
+//	char nozzle_name[5];
+//	uint8_t nozzle_id;
+//	calibrate calibrate_ct;
+//}pumps_ep31;
+
+//typedef struct
+//{
+//	int8_t ct;
+//	float ctt_original;
+//	float ctt_baseMinusOriginal;
+//	float ctt_effectiveMinusBase;
+//}calibrate;
+
+//calibrate calibrate_ct;
+
+extern ep31_ ep31_save;
 
 typedef void (*ptrCallBack)(ep_ ep);
 
@@ -197,6 +221,10 @@ LIST list[15];
 //	{},
 //	{}
 //}
+
+char serverTimeStr[16];
+char *remaining;
+long serverTime;
 
 char token_str[12],
      statuss[10];
@@ -283,7 +311,8 @@ extern char uart2_rx_buf[pump_rx_bufsize];
 
 extern pump_settings settings[2];
 
-extern uint8_t day;
+extern uint8_t day,
+			   serverTimeFlag;
 
 extern float litre_price,
 			 price_real,
@@ -294,12 +323,19 @@ extern const int16_t totalizerDay_loc;
 extern flash_store_info flash_infoA, flash_infoB;
 
 extern int8_t config_found,
-			  server_message_found,
-			  connected;
+			  server_message_found;
+//			  connected;
+
+extern uint8_t connected;
 
 extern uint16_t timer_ep,
 				timer_spi;
 //				ep2_timer;
+
+
+uint8_t ep1a_priceChangeFlag1,
+		ep1a_priceChangeFlag2,
+		ep1a_priceChangeFlag_bothSides;
 
 void read_config();
 
@@ -341,11 +377,11 @@ uint8_t ep2Token_push(long token);
 
 uint8_t ep2TokenTrack_array(void);
 
+void ep2MissingTokenArray_get(void);
+
 void ep2TokenArray_parse(void);
 
 void ep2Array_bubbleSort(void);
-
-void ep2MissingTokenArray_get(void);
 
 void save_totalTransaction(void);
 
@@ -371,15 +407,23 @@ void save_synchedEvents(void);
 
 void retrieve_synchedEvents(void);
 
-void online_setUnitPrice(void);
+void online_setUnitPrice1(void);
+void online_setUnitPrice2(void);
 
 void ep1_mtResponse(void);
 
+uint8_t ct_parse(pump_sid side);
+
+uint8_t ep1_ctCheck(void);
 
 
 
 void synchedLog_get(pump_sid ab);
 uint32_t RtcToInt_synchedTranx(uint32_t deviceYear, pump_sid ab);
+
+void ttostr(uint32_t time_integer,uint8_t typ); // typ: 1=> time 2=>date
+
+void serverTime_parse(void);
 
 
 #ifdef __cplusplus

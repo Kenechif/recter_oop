@@ -13,13 +13,21 @@
 #include "string.h"
 #include "stddef.h"
 #include "stdint.h"
+#include "stdlib.h"
 #include "stdio.h"
+#include "math.h"
 #include "EEPROM.h"
 
 
 //#######################################
 
-char device_id [] =	"860537064685993";        //"860537064685357";           //"860537064685993";     //"860537064685340";
+const char device_id [] = "860537064685993";        //"860537064685357";           //"860537064685993";     //"860537064685340";
+
+const char firmware_date [] = "Aug 28 2023";
+const char firmware_time [] = "17:07:30";
+const char chip_type [] = "STM32F4";
+
+const uint16_t firmware_version = 25100;
 
 //#######################################
 
@@ -27,7 +35,9 @@ char device_id [] =	"860537064685993";        //"860537064685357";           //"
 
  const int max_events_per_state = 10;
 
-int8_t connected;
+uint8_t connected;
+
+uint8_t serverTimeFlag = 0;
 
  uint16_t fast_flow_threshold  = 0;  //=  pulser_index_c ;   //140;
 
@@ -38,14 +48,17 @@ extern float auth_v,
 			 auth_p;
 
 extern float amt_real,
-		  	 amt_real2;
-//			 amt,
-//			 amt2;
-
+		  	 amt_real2,
+			 price_real1,
+			 price_real2;
 extern int t;
 
 extern uint16_t _tt,
-				_tt2;
+				_tt2,
+				totalizer1Timer,
+				totalizer2Timer,
+				priceChange_timer1,
+				priceChange_timer2;
 
 extern uint32_t transaction_period,
 				transaction_period2;
@@ -83,20 +96,20 @@ int access_level = non;    //default
 		  totaliser_amt2 = 0.00,
 		  totaliser_amt2c = 0.00;
 
-	float working_volTotaliser = 0;
-	float working_volTotaliserc = 0;
-	float running_volTotaliser = 0;
-	float running_volTotaliserc = 0;
+	float working_volTotaliser1 = 0;
+	float working_volTotaliser1c = 0;
+	float running_volTotaliser1 = 0;
+	float running_volTotaliser1c = 0;
 
 	float working_volTotaliser2 = 0;
 	float working_volTotaliser2c = 0;
 	float running_volTotaliser2 = 0;
 	float running_volTotaliser2c = 0;
 
-	float working_amtTotaliser = 0,
-			working_amtTotaliserc = 0,
-			running_amtTotaliser = 0,
-			running_amtTotaliserc = 0,
+	float working_amtTotaliser1 = 0,
+			working_amtTotaliser1c = 0,
+			running_amtTotaliser1 = 0,
+			running_amtTotaliser1c = 0,
 			working_amtTotaliser2 = 0,
 			working_amtTotaliser2c = 0,
 			running_amtTotaliser2 = 0,
@@ -115,10 +128,16 @@ int access_level = non;    //default
 		dp_unitprice1 = 2,
 		dp_unitprice2 = 2;
 
-float lastSale1 = 0.00,
-      lastSale1c = 0.00;
-float lastSale2 = 0.00,
-	  lastSale2c = 0.00;
+float lastVolumeSale1 = 0.00,
+      lastVolumeSale1c = 0.00;
+float lastVolumeSale2 = 0.00,
+	  lastVolumeSale2c = 0.00;
+
+float lastAmountSale1 = 0.00,
+      lastAmountSale1c = 0.00;
+float lastAmountSale2 = 0.00,
+	  lastAmountSale2c = 0.00;
+
 
  int8_t opmode  = MANUAL;
  int8_t opmode2 = MANUAL;
@@ -166,17 +185,46 @@ float lastSale2 = 0.00,
  const int16_t save_nozzleId_loc = save_pumpType_loc + 2;
  const int16_t totalizerDay_loc = 404;
 
- const int8_t lastSale_loc  =  40;
- const int lastSale1_loc =  0;
- const int lastSale2_loc =  lastSale1_loc + (2+(2*4));  //4bytes*2=8bytes+2 = 10bytes ahead.
+// const int8_t lastSale_loc  =  40;
+// const int lastSale1_loc =  0;
+// const int lastSale2_loc =  lastSale1_loc + (2+(2*4));  //4bytes*2=8bytes+2 = 10bytes ahead.  // 50 -> 60
 
- const int tot_loc  =  10;
- const int tot1_loc =  0;
- const int tot2_loc =  tot1_loc + (2+(2*4));  //4bytes*2=8bytes+2 = 10bytes ahead.
+ const int8_t lastSale_loc = 282;
+ const int lastSale1_loc = 0;
+ const int lastSale2_loc = ( lastSale1_loc + (4*4) );  //4bytes*4=16bytes = 16bytes ahead.  // 298 -> 314
+
+ const int totVol_loc  =  10;
+ const int totVol1_loc =  0;
+ const int totVol2_loc =  totVol1_loc + (2+(2*4));   // 20 -> 30
+
+ const int8_t firstTotVol_loc  =  90;
+ const int8_t firstTotVol1_loc =  0;
+ const int8_t firstTotVol2_loc =  firstTotVol1_loc + (3+(3*4));   // 105 -> 120
 
  const int totAmount_loc  =  230;
  const int totAmount1_loc =  0;
- const int totAmount2_loc =  totAmount1_loc + (2+(2*4));  //4bytes*2=8bytes+2 = 10bytes ahead.
+ const int totAmount2_loc =  totAmount1_loc + (2+(2*4));  // 240 -> 250
+
+
+ const int8_t ct_settings_loc  =  121;
+ const int ct_settings1_loc =  0;
+ const int ct_settings2_loc =  ct_settings1_loc + (1+(3*4));   // 134 -> 147
+
+ const int8_t calib_pulser_loc  =  148;
+ const int calib_pulser1_loc =  0;
+ const int calib_pulser2_loc =  calib_pulser1_loc + (1 + 4);   // 153 -> 158
+
+ const int8_t ctTimed_settings_loc  =  159;
+ const int8_t ctTimed_settings1_loc =  0;
+ const int8_t ctTimed_settings2_loc =  ctTimed_settings1_loc + (1+(3*4));   // 172 -> 185
+
+ const int8_t ctTimed_flag_loc = 186;
+ const int8_t ctTimed_flag1_loc = 0;
+ const int8_t ctTimed_flag2_loc = ctTimed_flag1_loc + 1;   // 187 -> 189
+
+ const int8_t original_pi_c_loc = 190;
+ const int8_t original_pi_c1_loc = 0;
+ const int8_t original_pi_c2_loc = original_pi_c1_loc + (1 + (2 *4));   // 199 -> 208
 
  //--------------------------------------------------------------
  //  eeprom locations of the storage of  flash memory parameters
@@ -209,8 +257,23 @@ totaliser_store totaliser_vol_storeA,
 				totaliser_amt_storeA,
 				totaliser_amt_storeB;
 
+firstTotaliser_store firstTotaliser_vol_storeA,
+					 firstTotaliser_vol_storeB,
+					 firstTtotaliser_amt_storeA,
+					 firstTtotaliser_amt_storeB;
+
 lastSale_store lastSale_storeA,
 			   lastSale_storeB;
+
+ct_settings ct_settingsA,
+			ct_settingsB;
+
+ctTimed_settings ctTimed_settingsA,
+			     ctTimed_settingsB;
+
+_original_pi_c original_pi_c;
+
+ctTimed_flag_ ctTimed_flag;
 
 time_ timeA, timeB;
 date_ dateA, dateB;
@@ -225,7 +288,7 @@ const uint32_t flash_endB   = 0x7fffff;
 //   MENU ITEMS
 
  char* menu1[4]  = {"  tot   ","  log   "};
- char* menu2[16] = {"  nnode ","address "," no22le ","prog.type"," price  ","no flo. t","hi. litre","ch  pass","send cfg","get. cfg ","clr log","clr tot","calibrat.","display ", "  cloc"};
+ char* menu2[16] = {"  nnode ","Address "," Nozzle ","Prog.type","  Price ","no flo. t","Hi. Litre","Ch  Pass","Send cfg","Get. cfg ","Clr log","Clr tot","Calibrat.","Display ", "  Cloc"};
  char* menu3[3]  = {"tmm cfg","flo rate"};
 
 //-------------------------------------
@@ -294,7 +357,7 @@ void load_settings(pump_sid side)
 	    dp_price1 = settings[sdd].dp_price;
 	    dp_amount1 = settings[sdd].dp_amount;
 	    dp_unitprice1 = settings[sdd].dp_unitprice;
-	    pump_max_litres = settings[sdd].max_amt_;
+	    pump_max_litres1 = settings[sdd].max_amt_;
 	   }
 	   else
 	   {
@@ -369,6 +432,7 @@ void make_settings(pump_sid side)
 	    settings[sdd].dp_unitprice = 2;
 
 	    settings[sdd].noz = nooveride;
+	    settings[sdd].max_amt_ = 99999999;   //Maximum pump litres
 
 	     /*
 		   if (sdd == side_a)
@@ -407,17 +471,17 @@ void save_volumeTotaliser(pump_sid side)
 
 	if (side == side_a)
 	  {
-		//EEPROM_Write_NUM(tot_loc, tot1_loc, tot);
+		//EEPROM_Write_NUM(totVol_loc, totVol1_loc, tot);
 		  totaliser_vol_storeA.totaliserVol_cal = totaliser_vol1c;
 	  	  totaliser_vol_storeA.totaliserVol_real = totaliser_vol1;
-	  	EEPROM_Write(tot_loc, tot1_loc, &totaliser_vol_storeA, sz);
+	  	EEPROM_Write(totVol_loc, totVol1_loc, &totaliser_vol_storeA, sz);
 	  }
-	if (side == side_b)
+	else if (side == side_b)
 	  {
-		//EEPROM_Write_NUM(tot_loc, tot2_loc, tot);
+		//EEPROM_Write_NUM(totVol_loc, totVol2_loc, tot);
 		  totaliser_vol_storeB.totaliserVol_cal = totaliser_vol2c;
 	  	  totaliser_vol_storeB.totaliserVol_real = totaliser_vol2;
-	  	EEPROM_Write(tot_loc, tot2_loc, &totaliser_vol_storeB, sz);
+	  	EEPROM_Write(totVol_loc, totVol2_loc, &totaliser_vol_storeB, sz);
 	  }
 }
 
@@ -425,13 +489,13 @@ void save_volumeTotaliser(pump_sid side)
 /*
  *  read volumeTotaliser
  */
-float retrieve_volumeTotaliser(pump_sid side)
+void retrieve_volumeTotaliser(pump_sid side)
 {
   int sz = sizeof( totaliser_vol_storeA);
 	if (side == side_a)
 	{
-		//EEPROM_Read_NUM(tot_loc,tot1_loc);
-		EEPROM_Read(tot_loc, tot1_loc, &totaliser_vol_storeA, sz);
+		//EEPROM_Read_NUM(totVol_loc,totVol1_loc);
+		EEPROM_Read(totVol_loc, totVol1_loc, &totaliser_vol_storeA, sz);
 		totaliser_vol1c =  totaliser_vol_storeA.totaliserVol_cal;
 		totaliser_vol1 = totaliser_vol_storeA.totaliserVol_real;
 
@@ -439,10 +503,10 @@ float retrieve_volumeTotaliser(pump_sid side)
 	  	if(isnan(totaliser_vol1)) totaliser_vol1 = 0.0;
 
 	}
-	if (side == side_b)
+	else if (side == side_b)
 	{
-		//EEPROM_Read_NUM(tot_loc,tot2_loc);
-		EEPROM_Read(tot_loc, tot2_loc, &totaliser_vol_storeB, sz);
+		//EEPROM_Read_NUM(totVol_loc,totVol2_loc);
+		 EEPROM_Read(totVol_loc, totVol2_loc, &totaliser_vol_storeB, sz);
 		 totaliser_vol2c = totaliser_vol_storeB.totaliserVol_cal;
 	  	 totaliser_vol2  = totaliser_vol_storeB.totaliserVol_real;
 
@@ -464,67 +528,97 @@ void clear_volumeTotaliser(pump_sid side)
 	  {
 		  totaliser_vol_storeA.totaliserVol_cal = 0.00;
 	  	  totaliser_vol_storeA.totaliserVol_real = 0.00;
-	  	EEPROM_Write(tot_loc, tot1_loc, &totaliser_vol_storeA, sz);
+	  	EEPROM_Write(totVol_loc, totVol1_loc, &totaliser_vol_storeA, sz);
 	  }
-	if (side == side_b)
+	else if (side == side_b)
 	  {
 		  totaliser_vol_storeB.totaliserVol_cal = 0.00;
 	  	  totaliser_vol_storeB.totaliserVol_real = 0.00;
-	  	EEPROM_Write(tot_loc, tot2_loc, &totaliser_vol_storeB, sz);
+	  	EEPROM_Write(totVol_loc, totVol2_loc, &totaliser_vol_storeB, sz);
 	  }
 }
 
 
-//void save_day1stVolTotaliser(pump_sid side)
-//{
-//	int sz = sizeof( totaliser_vol_storeA);
-//
-//	if (side == side_a)
-//	  {
-//		//EEPROM_Write_NUM(tot_loc, tot1_loc, tot);
-//		  totaliser_vol_storeA.totaliserVol_cal = totaliser_vol1c;
-//	  	  totaliser_vol_storeA.totaliserVol_real = totaliser_vol1;
-//	  	EEPROM_Write(day1stTot_loc, tot1_loc, &totaliser_vol_storeA, sz);
-//	  }
-//	if (side == side_b)
-//	  {
-//		//EEPROM_Write_NUM(tot_loc, tot2_loc, tot);
-//		  totaliser_vol_storeB.totaliserVol_cal = totaliser_vol2c;
-//	  	  totaliser_vol_storeB.totaliserVol_real = totaliser_vol2;
-//	  	EEPROM_Write(day1stTot_loc, tot2_loc, &totaliser_vol_storeB, sz);
-//	  }
-//}
+//==============================================
+/*
+ * save volumeTotaliser, first for the day
+ */
+void save_1stVolTotaliser_day(pump_sid side)
+{
+	int sz = sizeof(firstTotaliser_vol_storeA);
+
+	if (side == side_a)
+	  {
+		  firstTotaliser_vol_storeA.totaliserVol_cal = totaliser_vol1c;
+	  	  firstTotaliser_vol_storeA.totaliserVol_real = totaliser_vol1;
+	  	  firstTotaliser_vol_storeA.timestamp = RtcToInt(2019);
+	  	  EEPROM_Write(firstTotVol_loc, firstTotVol1_loc, &firstTotaliser_vol_storeA, sz);
+	  }
+	else if (side == side_b)
+	  {
+		  firstTotaliser_vol_storeB.totaliserVol_cal = totaliser_vol2c;
+	  	  firstTotaliser_vol_storeB.totaliserVol_real = totaliser_vol2;
+	  	  firstTotaliser_vol_storeB.timestamp = firstTotaliser_vol_storeA.timestamp;
+	  	  EEPROM_Write(firstTotVol_loc, firstTotVol2_loc, &firstTotaliser_vol_storeB, sz);
+	  }
+}
 
 //===================================================
 /*
- *  read totaliser
+ *  read volumetotaliser, firstfor the day
  */
-//float retrieve_day1stVolTotaliser(pump_sid side)
-//{
-//  int sz = sizeof( totaliser_vol_storeA);
-//	if (side == side_a)
-//	{
-//		//EEPROM_Read_NUM(tot_loc,tot1_loc);
-//		EEPROM_Read(day1stTot_loc, tot1_loc, &totaliser_vol_storeA, sz);
-//		firstTotaliser_vol1c =  totaliser_vol_storeA.totaliserVol_cal;
-//		firstTotaliser_vol1 = totaliser_vol_storeA.totaliserVol_real;
-//
-//	  	if(isnan(firstTotaliser_vol1c)) firstTotaliser_vol1c = 0.0;
-//	  	if(isnan(firstTotaliser_vol1)) firstTotaliser_vol1 = 0.0;
-//
-//	}
-//	if (side == side_b)
-//	{
-//		//EEPROM_Read_NUM(tot_loc,tot2_loc);
-//		EEPROM_Read(day1stTot_loc, tot2_loc, &totaliser_vol_storeB, sz);
-//		 firstTotaliser_vol2c = totaliser_vol_storeB.totaliserVol_cal;
-//	  	 firstTotaliser_vol2  = totaliser_vol_storeB.totaliserVol_real;
-//
-//	  	if(isnan(firstTotaliser_vol2c)) firstTotaliser_vol2c = 0.0;
-//	  	if(isnan(firstTotaliser_vol2)) firstTotaliser_vol2 = 0.0;
-//
-//	}
-//}
+void retrieve_1stVolTotaliser_day(pump_sid side)
+{
+  int sz = sizeof(firstTotaliser_vol_storeA);
+	if (side == side_a)
+	{
+		EEPROM_Read(firstTotVol_loc, firstTotVol1_loc, &firstTotaliser_vol_storeA, sz);
+		ep5_save.firstTotalizer[0].totalizer =  firstTotaliser_vol_storeA.totaliserVol_cal;
+		ep5_save.firstTotalizer[0].totalizer_real = firstTotaliser_vol_storeA.totaliserVol_real;
+		ep5_save.firstTotalizer[0].timestamp = firstTotaliser_vol_storeA.timestamp;
+
+		if(isnan(ep5_save.firstTotalizer[0].totalizer)) ep5_save.firstTotalizer[0].totalizer = 0.0;
+		if(isnan(ep5_save.firstTotalizer[0].totalizer_real)) ep5_save.firstTotalizer[0].totalizer_real = 0.0;
+//		if(isnan(ep5_save.firstTotalizer[0].timestamp)) ep5_save.firstTotalizer[0].timestamp = 0;
+
+	}
+	else if (side == side_b)
+	{
+		EEPROM_Read(firstTotVol_loc, firstTotVol2_loc, &firstTotaliser_vol_storeB, sz);
+		ep5_save.firstTotalizer[1].totalizer = firstTotaliser_vol_storeB.totaliserVol_cal;
+		ep5_save.firstTotalizer[1].totalizer_real  = firstTotaliser_vol_storeB.totaliserVol_real;
+	  	ep5_save.firstTotalizer[1].timestamp = firstTotaliser_vol_storeB.timestamp;
+
+	  	if(isnan(ep5_save.firstTotalizer[1].totalizer)) ep5_save.firstTotalizer[1].totalizer = 0.0;
+	  	if(isnan(ep5_save.firstTotalizer[1].totalizer_real)) ep5_save.firstTotalizer[1].totalizer_real = 0.0;
+//	  	if(isnan(ep5_save.firstTotalizer[1].timestamp)) ep5_save.firstTotalizer[1].timestamp = 0;
+
+	}
+}
+
+//==============================================
+/*
+ * clear volumeTotaliser, first of the day
+ */
+void clear_1stvolTotaliser_day(pump_sid side)
+{
+	int sz = sizeof(firstTotaliser_vol_storeA);
+
+	if (side == side_a)
+	  {
+		firstTotaliser_vol_storeA.totaliserVol_cal = 0.00;
+		firstTotaliser_vol_storeA.totaliserVol_real = 0.00;
+		firstTotaliser_vol_storeA.timestamp = 0;
+	  	EEPROM_Write(totVol_loc, totVol1_loc, &firstTotaliser_vol_storeA, sz);
+	  }
+	else if (side == side_b)
+	  {
+		firstTotaliser_vol_storeB.totaliserVol_cal = 0.00;
+		firstTotaliser_vol_storeB.totaliserVol_real = 0.00;
+		firstTotaliser_vol_storeB.timestamp = 0;
+	  	EEPROM_Write(totVol_loc, totVol2_loc, &firstTotaliser_vol_storeB, sz);
+	  }
+}
 
 //===================================================
 /*
@@ -536,46 +630,71 @@ void save_lastSale(pump_sid side)
 
 	if (side == side_a)
 	  {
-		//EEPROM_Write_NUM(tot_loc, tot1_loc, tot);
-		lastSale_storeA.lastSale_real = amt_real;   //    log_a_new.vol_ = amt_real;
-		lastSale_storeA.lastSale_cal = amt;   //log_a_new.vol__ = amt;   //calibrated
+		//EEPROM_Write_NUM(totVol_loc, totVol1_loc, tot);
+		lastSale_storeA.lastVolumeSale_real = amt_real;   //    log_a_new.vol_ = amt_real;
+
+		lastSale_storeA.lastVolumeSale_cal = atof(middle1);   //log_a_new.vol__ = amt;   //calibrated
+		lastSale_storeA.lastVolumeSale_cal += 0.00011;  //make small correction for the inherent rounddown.
+
+		lastSale_storeA.lastAmountSale_real = price_real;  //log_a_new.pr_ = price_real;  //real
+
+		lastSale_storeA.lastAmountSale_cal = atof(upper1);  //log_a_new.pr__ = price;  //calibrated
+		lastSale_storeA.lastAmountSale_cal += 0.00011;  //make small correction for the inherent rounddown.
+
 	  	EEPROM_Write(lastSale_loc, lastSale1_loc, &lastSale_storeA, sz);
 	  }
-	if (side == side_b)
+	else if (side == side_b)
 	  {
-		//EEPROM_Write_NUM(tot_loc, tot2_loc, tot);
-		lastSale_storeB.lastSale_real = amt_real2;   //    log_b_new.vol_ = amt_real2;
-		lastSale_storeB.lastSale_cal = amt2;   //log_b_new.vol__ = amt2;   //calibrated
+		//EEPROM_Write_NUM(totVol_loc, totVol2_loc, tot);
+		lastSale_storeB.lastVolumeSale_real = amt_real2;   //    log_b_new.vol_ = amt_real2;
+
+		lastSale_storeB.lastVolumeSale_cal = atof(middle2);   //log_b_new.vol__ = amt2;   //calibrated
+		lastSale_storeB.lastVolumeSale_cal += 0.00011;  //make small correction for the inherent rounddown.
+
+		lastSale_storeB.lastAmountSale_real = price_real2;   // log_b_new.pr_ = price_real2;  //real
+
+		lastSale_storeB.lastAmountSale_cal = atof(upper2);  // log_b_new.pr__ = price2;  //calibrated
+		lastSale_storeB.lastAmountSale_cal += 0.00011;  //make small correction for the inherent rounddown.
+
 	  	EEPROM_Write(lastSale_loc, lastSale2_loc, &lastSale_storeB, sz);
 	  }
 }
+
 
 //===================================================
 /*
  *  read lastSale
  */
-float retrieve_lastSale(pump_sid side)
+void retrieve_lastSale(pump_sid side)
 {
   int8_t sz = sizeof(lastSale_storeA);
 
 	if (side == side_a)
 	{
 		EEPROM_Read(lastSale_loc, lastSale1_loc, &lastSale_storeA, sz);
-		lastSale1 = lastSale_storeA.lastSale_real;
-		lastSale1c =  lastSale_storeA.lastSale_cal;
+		lastVolumeSale1 = lastSale_storeA.lastVolumeSale_real;
+		lastVolumeSale1c =  lastSale_storeA.lastVolumeSale_cal;
+		lastAmountSale1 = lastSale_storeA.lastAmountSale_real;
+		lastAmountSale1c =  lastSale_storeA.lastAmountSale_cal;
 
-	  	if(isnan(lastSale1)) lastSale1 = 0.0;
-	  	if(isnan(lastSale1c)) lastSale1c = 0.0;
+	  	if(isnan(lastVolumeSale1)) lastVolumeSale1 = 0.0;
+	  	if(isnan(lastVolumeSale1c)) lastVolumeSale1c = 0.0;
+	  	if(isnan(lastAmountSale1)) lastAmountSale1 = 0.0;
+	  	if(isnan(lastAmountSale1c)) lastAmountSale1c = 0.0;
 
 	}
-	if (side == side_b)
+	else if (side == side_b)
 	{
 		EEPROM_Read(lastSale_loc, lastSale2_loc, &lastSale_storeB, sz);
-		lastSale2  = lastSale_storeB.lastSale_real;
-		lastSale2c = lastSale_storeB.lastSale_cal;
+		lastVolumeSale2  = lastSale_storeB.lastVolumeSale_real;
+		lastVolumeSale2c = lastSale_storeB.lastVolumeSale_cal;
+		lastAmountSale2  = lastSale_storeB.lastAmountSale_real;
+		lastAmountSale2c = lastSale_storeB.lastAmountSale_cal;
 
-	  	if(isnan(lastSale2)) lastSale2 = 0.0;
-	  	if(isnan(lastSale2c)) lastSale2c = 0.0;
+	  	if(isnan(lastVolumeSale2)) lastVolumeSale2 = 0.0;
+	  	if(isnan(lastVolumeSale2c)) lastVolumeSale2c = 0.0;
+	  	if(isnan(lastAmountSale2)) lastAmountSale2 = 0.0;
+	  	if(isnan(lastAmountSale2c)) lastAmountSale2c = 0.0;
 
 	}
 }
@@ -590,19 +709,21 @@ void clear_lastSale(pump_sid side)
 
 	if (side == side_a)
 	  {
-		lastSale_storeA.lastSale_real = 0.00;   //    log_a_new.vol_ = amt_real;
-		lastSale_storeA.lastSale_cal = 0.00;   //log_a_new.vol__ = amt;   //calibrated
+		lastSale_storeA.lastVolumeSale_real = 0.00;   //    log_a_new.vol_ = amt_real;
+		lastSale_storeA.lastVolumeSale_cal = 0.00;   //log_a_new.vol__ = amt;   //calibrated
+		lastSale_storeA.lastAmountSale_real = 0.00;
+		lastSale_storeA.lastAmountSale_cal = 0.00;
 	  	EEPROM_Write(lastSale_loc, lastSale1_loc, &lastSale_storeA, sz);
 	  }
-	if (side == side_b)
+	else if (side == side_b)
 	  {
-		lastSale_storeB.lastSale_real = 0.00;   //    log_b_new.vol_ = amt_real2;
-		lastSale_storeB.lastSale_cal = 0.00;   //log_b_new.vol__ = amt2;   //calibrated
+		lastSale_storeB.lastVolumeSale_real = 0.00;   //    log_b_new.vol_ = amt_real2;
+		lastSale_storeB.lastVolumeSale_cal = 0.00;   //log_b_new.vol__ = amt2;   //calibrated
+		lastSale_storeB.lastAmountSale_real = 0.00;
+		lastSale_storeB.lastAmountSale_cal = 0.00;
 	  	EEPROM_Write(lastSale_loc, lastSale2_loc, &lastSale_storeB, sz);
 	  }
 }
-
-
 
 //==============================================
 /*
@@ -618,7 +739,7 @@ void save_amountTotaliser(pump_sid side)
 	  	  totaliser_amt_storeA.totaliserVol_real = totaliser_amt1;
 	  	  EEPROM_Write(totAmount_loc, totAmount1_loc, &totaliser_amt_storeA, sz);
 	  }
-	if (side == side_b)
+	else if (side == side_b)
 	  {
 		  totaliser_amt_storeB.totaliserVol_cal = totaliser_amt2c;
 	  	  totaliser_amt_storeB.totaliserVol_real = totaliser_amt2;
@@ -630,7 +751,7 @@ void save_amountTotaliser(pump_sid side)
 /*
  *  read amountTotaliser
  */
-float retrieve_amountTotaliser(pump_sid side)
+void retrieve_amountTotaliser(pump_sid side)
 {
   int sz = sizeof( totaliser_amt_storeA);
 	if (side == side_a)
@@ -643,7 +764,7 @@ float retrieve_amountTotaliser(pump_sid side)
 	  	if(isnan(totaliser_amt1)) totaliser_amt1 = 0.0;
 
 	}
-	if (side == side_b)
+	else if (side == side_b)
 	{
 		 EEPROM_Read(totAmount_loc, totAmount2_loc, &totaliser_amt_storeB, sz);
 		 totaliser_amt2c = totaliser_amt_storeB.totaliserVol_cal;
@@ -669,7 +790,7 @@ void clear_amountTotaliser(pump_sid side)
 	  	  totaliser_amt_storeA.totaliserVol_real = 0.00;
 	  	  EEPROM_Write(totAmount_loc, totAmount1_loc, &totaliser_amt_storeA, sz);
 	  }
-	if (side == side_b)
+	else if (side == side_b)
 	  {
 		  totaliser_amt_storeB.totaliserVol_cal = 0.00;
 	  	  totaliser_amt_storeB.totaliserVol_real = 0.00;
@@ -677,7 +798,372 @@ void clear_amountTotaliser(pump_sid side)
 	  }
 }
 
+//==============================================
+/*
+ * save ct_settings
+ */
+void save_ctSettings(pump_sid side)
+{
+	int8_t sz = sizeof(ct_settingsA);
 
+	if (side == side_a)
+	  {
+		  vol_effective1 = ( (atof(ep31_save.pump[0].calibrate_ct.ct_effectiveMinusBase) + vol_calibrated1) + 0.00011);
+
+		  ct_settingsA.original = vol_real1;
+		  ct_settingsA.base = vol_calibrated1;
+	  	  ct_settingsA.effective = vol_effective1;
+	  	  EEPROM_Write(ct_settings_loc, ct_settings1_loc, &ct_settingsA, sz);
+	  }
+	else if (side == side_b)
+	  {
+		  vol_effective2 = ( (atof(ep31_save.pump[1].calibrate_ct.ct_effectiveMinusBase) + vol_calibrated2) + 0.00011);
+
+		  ct_settingsB.original = vol_real2;
+		  ct_settingsB.base = vol_calibrated2;
+		  ct_settingsB.effective = vol_effective2;
+	  	  EEPROM_Write(ct_settings_loc, ct_settings2_loc, &ct_settingsB, sz);
+	  }
+}
+
+//===================================================
+/*
+ *  read ct_settings
+ */
+void retrieve_ctSettings(pump_sid side)
+{
+  int8_t sz = sizeof(ct_settingsA);
+
+	if (side == side_a)
+	{
+		EEPROM_Read(ct_settings_loc, ct_settings1_loc, &ct_settingsA, sz);
+
+		vol_real1 =  ct_settingsA.original;
+		vol_calibrated1 = ct_settingsA.base;
+		vol_effective1 = ct_settingsA.effective;
+
+	  	if(isnan(vol_calibrated1)) vol_calibrated1 = 0.0;
+	  	if(isnan(vol_effective1)) vol_effective1 = 0.0;
+
+	}
+	else if (side == side_b)
+	{
+		 EEPROM_Read(ct_settings_loc, ct_settings2_loc, &ct_settingsB, sz);
+
+		 vol_real2 = ct_settingsB.original;
+		 vol_calibrated2  = ct_settingsB.base;
+	  	 vol_effective2 = ct_settingsB.effective;
+
+	  	if(isnan(vol_calibrated2)) vol_calibrated2 = 0.0;
+	  	if(isnan(vol_effective2)) vol_effective2 = 0.0;
+
+	}
+}
+
+//==============================================
+/*
+ * clear ct_settings
+ */
+void clear_ctSettings(pump_sid side)
+{
+	int8_t sz = sizeof(ct_settingsA);
+
+	if (side == side_a)
+	  {
+		  ct_settingsA.original = 0;
+		  ct_settingsA.base = 0.00;
+		  ct_settingsA.effective = 0.00;
+	  	  EEPROM_Write(ct_settings_loc, ct_settings1_loc, &ct_settingsA, sz);
+	  }
+	else if (side == side_b)
+	  {
+		  ct_settingsB.original = 0;
+		  ct_settingsB.base = 0.00;
+		  ct_settingsB.effective = 0.00;
+		  EEPROM_Write(ct_settings_loc, ct_settings2_loc, &ct_settingsB, sz);
+	  }
+}
+
+//==============================================
+/*
+ * save ctTimed_settings
+ */
+void save_ctTimedSettings(pump_sid side)
+{
+	int8_t sz = sizeof(ctTimed_settingsA);
+
+	if (side == side_a)
+	  {
+		  vol_effective1_1 = ( (atof(ep31_save.pump[0].calibrate_ct.ct_effectiveMinusBase) + vol_calibrated1) + 0.00011);
+
+		  ctTimed_settingsA.effective = vol_effective1_1;
+		  ctTimed_settingsA.startTime = atoi(ep31_save.pump[0].calibrate_ct.ct_startTime);
+	  	  ctTimed_settingsA.endTime = atoi(ep31_save.pump[0].calibrate_ct.ct_endTime);
+	  	  EEPROM_Write(ctTimed_settings_loc, ctTimed_settings1_loc, &ctTimed_settingsA, sz);
+	  }
+	else if (side == side_b)
+	  {
+		  vol_effective2_2 = ( (atof(ep31_save.pump[1].calibrate_ct.ct_effectiveMinusBase) + vol_calibrated2) + 0.00011);
+
+		  ctTimed_settingsB.effective = vol_effective2_2;
+		  ctTimed_settingsB.startTime = atoi(ep31_save.pump[1].calibrate_ct.ct_startTime);
+	  	  ctTimed_settingsB.endTime = atoi(ep31_save.pump[1].calibrate_ct.ct_endTime);
+	  	  EEPROM_Write(ctTimed_settings_loc, ctTimed_settings2_loc, &ctTimed_settingsB, sz);
+	  }
+}
+
+//===================================================
+/*
+ *  read ctTimed_settings
+ */
+void retrieve_ctTimedSettings(pump_sid side)
+{
+  int8_t sz = sizeof(ctTimed_settingsA);
+
+	if (side == side_a)
+	{
+		EEPROM_Read(ctTimed_settings_loc, ctTimed_settings1_loc, &ctTimed_settingsA, sz);
+
+		vol_effective1_1 =  ctTimed_settingsA.effective;
+		startTime1 = ctTimed_settingsA.startTime;
+		endTime1 = ctTimed_settingsA.endTime;
+
+	  	if(isnan(vol_effective1_1)) vol_effective1_1 = 0.0;
+
+	}
+	else if (side == side_b)
+	{
+		 EEPROM_Read(ctTimed_settings_loc, ctTimed_settings2_loc, &ctTimed_settingsB, sz);
+
+		 vol_effective2_2 =  ctTimed_settingsB.effective;
+		 startTime2 = ctTimed_settingsB.startTime;
+		 endTime2 = ctTimed_settingsB.endTime;
+
+		 if(isnan(vol_effective2_2)) vol_effective2_2 = 0.0;
+
+	}
+}
+
+//==============================================
+/*
+ * clear ctTimed_settings
+ */
+void clear_ctTimedSettings(pump_sid side)
+{
+	int8_t sz = sizeof(ctTimed_settingsA);
+
+	if (side == side_a)
+	  {
+		  ctTimed_settingsA.effective = 0.0;
+		  ctTimed_settingsA.startTime = 0;
+		  ctTimed_settingsA.endTime = 0;
+	  	  EEPROM_Write(ctTimed_settings_loc, ctTimed_settings1_loc, &ctTimed_settingsA, sz);
+	  }
+	else if (side == side_b)
+	  {
+		  ctTimed_settingsB.effective = 0.0;
+		  ctTimed_settingsB.startTime = 0;
+		  ctTimed_settingsB.endTime = 0;
+		  EEPROM_Write(ctTimed_settings_loc, ctTimed_settings2_loc, &ctTimed_settingsB, sz);
+	  }
+}
+
+//==============================================
+/*
+ * save ctTimedFlag
+ */
+void save_ctTimedFlag(pump_sid side)
+{
+	int8_t sz = sizeof(ctTimed_flag);
+
+	if (side == side_a)
+	  {
+		  ctTimed_flag.ctTimed_flag1 = ctTimed_flag1;
+	  	  EEPROM_Write(ctTimed_flag_loc, ctTimed_flag1_loc, &ctTimed_flag, sz);
+	  }
+	else if (side == side_b)
+	  {
+		  ctTimed_flag.ctTimed_flag2 = ctTimed_flag2;
+	  	  EEPROM_Write(ctTimed_flag_loc, ctTimed_flag2_loc, &ctTimed_flag, sz);
+	  }
+}
+
+//===================================================
+/*
+ *  read ctTimedFlag
+ */
+void retrieve_ctTimedFlag(pump_sid side)
+{
+  int8_t sz = sizeof(ctTimed_flag);
+
+	if (side == side_a)
+	{
+		EEPROM_Read(ctTimed_flag_loc, ctTimed_flag1_loc, &ctTimed_flag, sz);
+
+		ctTimed_flag1 = ctTimed_flag.ctTimed_flag1;
+	}
+	else if (side == side_b)
+	{
+		 EEPROM_Write(ctTimed_flag_loc, ctTimed_flag2_loc, &ctTimed_flag, sz);
+
+		 ctTimed_flag2 = ctTimed_flag.ctTimed_flag2;
+	}
+}
+
+//==============================================
+/*
+ * clear ctTimedFlag
+ */
+void clear_ctTimedFlag(pump_sid side)
+{
+	int8_t sz = sizeof(ctTimed_flag);
+
+	if (side == side_a)
+	  {
+		  ctTimed_flag.ctTimed_flag1 = 0;
+		  EEPROM_Write(ctTimed_flag_loc, ctTimed_flag1_loc, &ctTimed_flag, sz);
+	  }
+	else if (side == side_b)
+	  {
+		  ctTimed_flag.ctTimed_flag2 = 0;
+		  EEPROM_Write(ctTimed_flag_loc, ctTimed_flag2_loc, &ctTimed_flag, sz);
+	  }
+}
+
+//==============================================
+/*
+ * save originalPi_c
+ */
+void save_originalPi_c(pump_sid side)
+{
+	int8_t sz = sizeof(original_pi_c.original_pi_c1);
+
+	if (side == side_a)
+	  {
+		  original_pi_c.original_pi_c1 = settings[0].pi_c;
+	  	  EEPROM_Write(original_pi_c_loc, original_pi_c1_loc, &original_pi_c.original_pi_c1, sz);
+	  }
+	else if (side == side_b)
+	  {
+		  original_pi_c.original_pi_c2 = settings[1].pi_c;
+	  	  EEPROM_Write(original_pi_c_loc, original_pi_c2_loc, &original_pi_c.original_pi_c1, sz);
+	  }
+}
+
+//===================================================
+/*
+ *  read ctTimedFlag
+ */
+void retrieve_originalPi_c(pump_sid side)
+{
+  int8_t sz = sizeof(original_pi_c.original_pi_c1);
+
+	if (side == side_a)
+	{
+		EEPROM_Read(original_pi_c_loc, original_pi_c1_loc, &original_pi_c.original_pi_c1, sz);
+
+		settings[0].pi_c = original_pi_c.original_pi_c1;
+	}
+	else if (side == side_b)
+	{
+		 EEPROM_Write(original_pi_c_loc, original_pi_c2_loc, &original_pi_c.original_pi_c1, sz);
+
+		 settings[1].pi_c = original_pi_c.original_pi_c2;
+	}
+}
+
+//==============================================
+/*
+ * clear ctTimedFlag
+ */
+void clear_originalPi_c(pump_sid side)
+{
+	int8_t sz = sizeof(original_pi_c.original_pi_c1);
+
+	if (side == side_a)
+	  {
+		    original_pi_c.original_pi_c2 = settings[0].pi_c;
+			EEPROM_Write(original_pi_c_loc, original_pi_c1_loc, &original_pi_c.original_pi_c1, sz);
+	  }
+	else if (side == side_b)
+	  {
+			original_pi_c.original_pi_c2 = settings[1].pi_c;
+		    EEPROM_Write(original_pi_c_loc, original_pi_c2_loc, &original_pi_c.original_pi_c1, sz);
+	  }
+}
+
+//==============================================
+/*
+ * save calibrationPulser
+ */
+void save_calibrationPulser(pump_sid side)
+{
+	int8_t sz = sizeof(calib_pulser1);
+
+	  if (side == side_a)
+	  {
+		  EEPROM_Write(calib_pulser_loc, calib_pulser1_loc, &calib_pulser1, sz);
+	  }
+	  else if (side == side_b)
+	  {
+	  	  EEPROM_Write(calib_pulser_loc, calib_pulser2_loc, &calib_pulser2, sz);
+	  }
+}
+
+//===================================================
+/*
+ *  read calibrationPulser
+ */
+void retrieve_calibrationPulser(pump_sid side)
+{
+  int8_t sz = sizeof(calib_pulser1);
+  uint32_t calib_pulser;
+
+	if (side == side_a)
+	{
+		EEPROM_Read(calib_pulser_loc, calib_pulser1_loc, &calib_pulser1, sz);
+		calib_pulser =  (settings[0].pi_c * vol_calibrated1);
+		if (calib_pulser != calib_pulser1)
+		{
+//			settings[0].pi_c = (calib_pulser1 / vol_calibrated1);
+//			save_settings();   //save to eeprom
+//			load_settings(side_a); //load the settings into the internal variables
+		}
+	}
+	else if (side == side_b)
+	{
+		EEPROM_Read(calib_pulser_loc, calib_pulser2_loc, &calib_pulser2, sz);
+		calib_pulser =  (settings[1].pi_c * vol_calibrated2);
+		if (calib_pulser != calib_pulser2)
+		{
+//			settings[1].pi_c = (calib_pulser2 / vol_calibrated2);
+//			save_settings();   //save to eeprom
+//			load_settings(side_b); //load the settings into the internal variables
+		}
+	}
+
+
+}
+
+//==============================================
+/*
+ * clear calibrationPulser
+ */
+void clear_calibrationPulser(pump_sid side)
+{
+	int8_t sz = sizeof(calib_pulser1);
+	calib_pulser1 = 0;
+	calib_pulser2 = 0;
+
+	  if (side == side_a)
+	  {
+		  EEPROM_Write(calib_pulser_loc, calib_pulser1_loc, &calib_pulser1, sz);
+	  }
+	  else if (side == side_b)
+	  {
+		  EEPROM_Write(calib_pulser_loc, calib_pulser2_loc, &calib_pulser2, sz);
+	  }
+}
 //===================================================
 
 //===================================================
@@ -748,7 +1234,7 @@ int get_auth2()
 char lafeng_keypad[17] =
 {
 	'-',	//0
-	'A',	//1
+	'A',	//1   //Back
 	'1',	//2
 	'5',	//3
 	'3',	//4
@@ -758,18 +1244,19 @@ char lafeng_keypad[17] =
 	'7',	//8
 	'6',	//9
 	'9',	//10
-	'B',	//11
-	'C',	//12
-	'D',	//13
+	'B',	//11   //Up-Key
+	'C',	//12   //Down-Key
+	'D',	//13	//Select-Key
 	'.',	//14
-	'F',    //15
+	'F',    //15    //clear
 	'0'     //16
 };
+
 
 char bluesky_keypad[22] =     //bluesky 12pin
 {
 	'-',	//0
-	'*',	//1
+	'B',	//1  // */+           Up-key
 	'1',	//2
 	'5',	//3
 	'3',	//4
@@ -779,19 +1266,65 @@ char bluesky_keypad[22] =     //bluesky 12pin
 	'7',	//8
 	'6',	//9
 	'9',	//10
-	'B',	//11
+	'C',	//11  //P/L / -        Down-key
 	'D',	//12  //start / enter
-	'C',	//13  //stop
+	'A',	//13  //stop / exit
 	'.',	//14
 	'F',    //15   clear
-	'B',    //16   f3 key  up
-	'A',    //17   f1 key   mapped for back
-	'C',    //18   f2 key   down
-	'-',    //19   f4 key  PROG key.
+	'E',    //16   f3 key  up
+	'G',    //17   f1 key   mapped for back
+	'H',    //18   f2 key   down
+	'I',    //19   f4 key  PROG key.
 	'0',    //20
-	'-',    //21   //print totaliser view.
+	'J',    //21   //print totaliser view.
 };
 
+//char lafeng_keypad[17] =
+//{
+//	'-',	//0
+//	'A',	//1
+//	'1',	//2
+//	'5',	//3
+//	'3',	//4
+//	'8',	//5
+//	'2',	//6
+//	'4',	//7
+//	'7',	//8
+//	'6',	//9
+//	'9',	//10
+//	'B',	//11
+//	'C',	//12
+//	'D',	//13
+//	'.',	//14
+//	'F',    //15
+//	'0'     //16
+//};
+
+//char bluesky_keypad[22] =     //bluesky 12pin
+//{
+//	'-',	//0
+//	'*',	//1
+//	'1',	//2
+//	'5',	//3
+//	'3',	//4
+//	'8',	//5
+//	'2',	//6
+//	'4',	//7
+//	'7',	//8
+//	'6',	//9
+//	'9',	//10
+//	'B',	//11
+//	'D',	//12  //start / enter
+//	'C',	//13  //stop
+//	'.',	//14
+//	'F',    //15   clear
+//	'B',    //16   f3 key  up
+//	'A',    //17   f1 key   mapped for back
+//	'C',    //18   f2 key   down
+//	'-',    //19   f4 key  PROG key.
+//	'0',    //20
+//	'-',    //21   //print totaliser view.
+//};
 
 float sellPrice_max_dp(int8_t amount_dp)
 {

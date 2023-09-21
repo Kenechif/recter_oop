@@ -119,7 +119,13 @@ int t, t2 = 0;
 uint16_t _tt = 0,
 		 _tt2 = 0,
 		 timer_ep = 0,
-		 timer_spi;
+		 timer_spi,
+		 totalizer1Timer = 0,
+		 totalizer2Timer = 0,
+		 priceChange_timer1 = 0,
+		 priceChange_timer2 = 0,
+		 timer_config1 = 0,
+		 timer_config2 = 0;
 //		 ep2_timer = 0;
 
 uint32_t transaction_period = 0,
@@ -180,7 +186,7 @@ int retn;
  extern char keyboard_entry[8] , keyboard_entry2[7];
  extern int keypress_ , keypress_2;
  extern int index_ , index_2;
- extern char upper[10] , upper2[10];
+ extern char upper1[10] , upper2[10];
  extern uint32_t target_pulser , current_pulser ,target_pulser2 , current_pulser2;
  extern float key_value ,key_value2;
  extern int index2 , index2;
@@ -210,20 +216,27 @@ extern float totaliser_amt1,
 			totaliser_amt2,
 			totaliser_amt2c;
 
-extern float working_volTotaliser;
-extern float working_volTotaliserc;
+extern float working_volTotaliser1;
+extern float working_volTotaliser1c;
 
 extern float working_volTotaliser2;
 extern float working_volTotaliser2c;
 
-extern float working_amtTotaliser;
-extern float working_amtTotaliserc;
+extern float working_amtTotaliser1;
+extern float working_amtTotaliser1c;
 
 extern float working_amtTotaliser2;
 extern float working_amtTotaliser2c;
 
-int tot_longpress_flag,log_longpress_flag,key_longpress_flag = 0;
-int tot_longpress_flag2,log_longpress_flag2,key_longpress_flag2 = 0;
+int tot_longpress_flag,
+	log_longpress_flag,
+	key_longpress_flag = 0,
+	progExit_longpress_flag = 0;
+
+int tot_longpress_flag2,
+	log_longpress_flag2,
+	key_longpress_flag2 = 0,
+	progExit_longpress_flag2 = 0;
 
 extern operatorfxn_  operatorfxn , operatorfxn2;
 
@@ -1005,7 +1018,20 @@ void compose_printer()
 ////	HAL_GPIO_WritePin(T1output_GPIO_Port,T1output_Pin, GPIO_PIN_RESET);
 ////	HAL_Delay(2500);
 //}
+//	 float temp;
+//	while(1){
+////		float floatt = 70.402;
+//		auth_p = 70.402;
+//		litre_price2 = 120.0;
+//		 price2 = dp2(auth_p, 2);
+//		 float temp = amt2price2(65.12);
+//		 HAL_Delay(2000);
+//	}
 
+//	while(1){
+//		drive_totaliser1(ACTIVATE);
+//		HAL_Delay(2000);
+//	}
 //===================================================================
 
     clear_prn();
@@ -1023,7 +1049,7 @@ void compose_printer()
 	//start_timer(15);
 
    //======= initialize ========
-   eNextState = idle_State;
+   eNextState1 = idle_State;
    eNextState2 = idle_State;
 
 //   state_ini();
@@ -1185,7 +1211,7 @@ tmmm:
 	  //********************  INITIALIZATIONS ***********************//
 
 	  //----------------------//
-	  //firstTotalizer_day();
+	  firstTotalizer_day();
 	  //----------------------//
 
 	  uint16_t firstTime = 0;
@@ -1210,6 +1236,15 @@ tmmm:
 	  clear_lastSale(side_a);
 	  clear_lastSale(side_b);
 
+	  clear_1stvolTotaliser_day(side_a);
+	  clear_1stvolTotaliser_day(side_b);
+
+	  clear_ctSettings(side_a);
+	  clear_ctSettings(side_b);
+
+	  clear_calibrationPulser(side_a);
+	  clear_calibrationPulser(side_b);
+
 	  clear_logA();
 	  clear_logB();
 
@@ -1218,6 +1253,38 @@ tmmm:
 	// ===========================================================================
 
 
+	  // ===========================================================================
+		 //==============================================
+		 //    This step is to compose the settings.
+		 //==============================================
+		 make_settings(side_a);
+		 make_settings(side_b);
+
+
+		 vol_real1 = 20;
+		 vol_real2 = 20;
+		 vol_calibrated1 = 21.0;
+		 vol_calibrated2 = 21.0;
+		 vol_effective1 = 21.0;
+		 vol_effective2 = 21.0;
+
+		 calib_pulser1 =  (settings[0].pi_c * vol_calibrated1);
+		 calib_pulser2 =  (settings[1].pi_c * vol_calibrated2);
+
+		 save_settings();
+
+		 save_ctSettings(side_a);
+		 save_ctSettings(side_b);
+		 save_calibrationPulser(side_a);
+		 save_calibrationPulser(side_b);
+
+	//	 save_volumeTotaliser(side_a); //side_a
+	//	 save_volumeTotaliser(side_b);
+	//	 flash_infoA.current_loc = 0;
+	//	 flash_infoA.number_logs = 0;
+	//	 EEPROM_Write(flash_info_sto, flash_stoA, &flash_infoA, sizeof(flash_infoA));
+	//	 EEPROM_Write(flash_info_sto, flash_stoA, &flash_infoB, sizeof(flash_infoA));
+	 // ===========================================================================
 
 
 
@@ -1417,8 +1484,23 @@ skip_test:
 //	  clear_lastSale(side_a);
 //	  clear_lastSale(side_b);
 //
+//      clear_1stvolTotaliser_day(side_a);
+//   	  clear_1stvolTotaliser_day(side_b);
+//
+//   	  clear_ctSettings(side_a);
+//   	  clear_ctSettings(side_b);
+//
+//   	  clear_calibrationPulser(side_a);
+//   	  clear_calibrationPulser(side_b);
+//
+//		clear_ctTimedFlag(side_b);
+//		clear_ctTimedFlag(side_b);
+//
+//
 //	  clear_logA();
 //	  clear_logB();
+//
+//    W25qxx_EraseChip();
 
 	// ===========================================================================
 
@@ -1468,10 +1550,21 @@ skip_test:
 //	settings[0].noz_id;
 
 
-    settings[0].mode = MANUAL;
-    settings[1].mode = MANUAL;
+    settings[0].mode = MANUAL;  //AUTO;  //MANUAL;
+    settings[1].mode = MANUAL;  //AUTO;   //MANUAL;
 
-//    operating_side = side_a;
+
+    // ===========================================================================
+
+
+    //********************  MAKE SETTINGS ***********************//
+//		settings[0].max_amt_ = 1000;
+//		settings[1].max_amt_ = 1000;
+//		make_settings(side_a);
+//		make_settings(side_b);
+    // ===========================================================================
+
+//    settings[0].price_ = 121;
 
     load_settings(side_a); //load the settings into the internal variables.
     load_settings(side_b);
@@ -1500,11 +1593,43 @@ skip_test:
     retrieve_synchedAutoTransaction_sides(side_a);
     retrieve_synchedAutoTransaction_sides(side_b);
 
+    retrieve_1stVolTotaliser_day(side_a);
+    retrieve_1stVolTotaliser_day(side_b);
+
+    retrieve_ctSettings(side_a);
+    retrieve_ctSettings(side_b);
+
+    retrieve_calibrationPulser(side_a);
+    retrieve_calibrationPulser(side_b);
+
+    retrieve_ctTimedSettings(side_a);
+    retrieve_ctTimedSettings(side_b);
+
+    retrieve_ctTimedFlag(side_a);
+    retrieve_ctTimedFlag(side_b);
+
+
+
+//	settings[0].max_amt_ = 1000;
+//	settings[1].max_amt_ = 1000;
+////	settings[0].pi_ = 180;
+////	settings[0].pi_c = 180;
+//	make_settings(side_a);
+//	make_settings(side_b);
+
+
 
 //    retrieve_totalEvents();
 //    retrieve_synchedEvents();
 
     ep0_save.boot_time = RtcToInt(2019);
+
+//    vol_real1 = 20;
+//    vol_real2 = 20;
+//    vol_calibrated1 = 21.0;
+//    vol_calibrated2 = 21.0;
+//    vol_effective1 = 21.0;
+//    vol_effective2 = 21.0;
 
 //	day = DS1307_GetDate();
 //	if(settings[0].totalizer_day != day)
@@ -1656,6 +1781,7 @@ void run()
 			   }
 		*/
 
+//	epSend_interval();
 
 	//============================================//
 	// 				EP's ROUTINE SENDING			  //
@@ -1761,7 +1887,7 @@ int  read_event()
 				if( (totaliser_flag == 0) && (drive1 != ACTIVATE) )
 				{
 					totaliser_flag = 1;
-//					return _tot_error_Event;
+					return _tot_error_Event;
 				}
    			  //--------------------------------------------------
 
@@ -1774,6 +1900,7 @@ int  read_event()
    			tot_longpress_flag = long_press_tot();
    			log_longpress_flag = long_press_log();
    			key_longpress_flag = long_press_key();
+   			progExit_longpress_flag = long_press_progExit();
 
    			  if(tot_longpress_flag == 1)
 			  {
@@ -1781,27 +1908,43 @@ int  read_event()
 				   return _operator_Event;
 			  }
 
-   			  if(log_longpress_flag == 1)
+   			  else if(log_longpress_flag == 1)
 			  {
 				   operatorfxn = log_view;
 				   return _operator_Event;
 			  }
-   			  if(key_longpress_flag == 1)
-				  {
-   				    //if not previously activated,
-   				     if (key_longpress_status == 0)
-					 {
-						key_longpress_status = 1;
-						prog_entry = 1;   //variable used to clear the var. states in settings menu.
-						return _keyup_Event;
-					 }
-					 else
-					 {
-						key_longpress_status = 0;
-						prog_entry = 0;
-						return _keydown_Event;
-					 }
-				}
+   			  else if(key_longpress_flag == 1)
+			  {
+				//if not previously activated,
+//				 if (key_longpress_status == 0)
+//				 {
+//					key_longpress_status = 1;
+					prog_entry = 1;   //variable used to clear the var. states in settings menu.
+					return _keyup_Event;
+//				 }
+//				 else
+//				 {
+//					key_longpress_status = 0;
+//					prog_entry = 0;
+//					return _keydown_Event;
+//				 }
+			  }
+   			  else if(progExit_longpress_flag == 1)
+			  {
+				//if not previously activated,
+//				 if (key_longpress_status == 0)
+//				 {
+//					key_longpress_status = 1;
+//					prog_entry = 1;   //variable used to clear the var. states in settings menu.
+//					return _keyup_Event;
+//				 }
+//				 else
+//				 {
+//					key_longpress_status = 0;
+					prog_entry = 0;
+					return _keydown_Event;
+//				 }
+			  }
 
        //--------------------------------------------------
 	   //          error clear flag...
@@ -1829,7 +1972,7 @@ int  read_event()
 				auth_cmd_flag = 0;
 					//---------------------------------------------
 					//                nozzle-up overide
-					if (eNextState == authorised_nozzledown_State)
+					if (eNextState1 == authorised_nozzledown_State)
 					{
 						if (overide_ == overide)
 						{
@@ -1902,7 +2045,7 @@ int  read_event()
 //		}
 	  //--------------------------------------------------
 	   //filling pulse detection.
-		if ( (pulser_count_old < pulser_new) && ( eNextState == authorised_nozzleup_State ) )
+		if ( (pulser_count_old < pulser_new) && ( eNextState1 == authorised_nozzleup_State ) )
 			{
 				pulser_count_old = pulser_new;
 				lock_clr = 0;
@@ -1953,7 +2096,7 @@ int  read_event2()
 				if( (totaliser_flag2 == 0) && (drive2 != ACTIVATE) )
 				{
 					totaliser_flag2 = 1;
-//					return _tot_error_Event;
+					return _tot_error_Event;
 				}
 		    //--------------------------------------------------
 
@@ -1966,34 +2109,51 @@ int  read_event2()
    			tot_longpress_flag2 = long_press_tot2();
    			log_longpress_flag2 = long_press_log2();
    			key_longpress_flag2 = long_press_key2();
+   			progExit_longpress_flag2 = long_press_progExit2();
 
-   			  if(tot_longpress_flag2 == 1)
-				  {
-					   operatorfxn2 = totaliser_view;
-					   return _operator_Event;
-				  }
+   		  if(tot_longpress_flag2 == 1)
+		  {
+			   operatorfxn2 = totaliser_view;
+			   return _operator_Event;
+		  }
 
-   			  if(log_longpress_flag2 == 1)
-				  {
-					   operatorfxn2 = log_view;
-					   return _operator_Event;
-				  }
-   			  if(key_longpress_flag2 == 1)
-				  {
-   				    //if not previously activated,
-   				     if (key_longpress_status2 == 0)
-   				    	 {
-   				    	    key_longpress_status2 = 1;
-   				    	    prog_entry2 = 1;   //variable used to clear the var. states in settings menu.
-   				    	    return _keyup_Event;
-   				    	 }
-   				        else
-   				    	 {
-   				    	    key_longpress_status2 = 0;
-   				    	    prog_entry2 = 0;
-   				    	    return _keydown_Event;
-   				    	 }
-				  }
+   		  else if(log_longpress_flag2 == 1)
+		  {
+			   operatorfxn2 = log_view;
+			   return _operator_Event;
+		  }
+   		  else if(key_longpress_flag2 == 1)
+		  {
+				//if not previously activated,
+//				 if (key_longpress_status2 == 0)
+//				 {
+//					key_longpress_status2 = 1;
+					prog_entry2 = 1;   //variable used to clear the var. states in settings menu.
+					return _keyup_Event;
+//				 }
+//				 else
+//				 {
+//					key_longpress_status2 = 0;
+//					prog_entry2 = 0;
+//					return _keydown_Event;
+//				 }
+		  }
+   		  else if(progExit_longpress_flag2 == 1)
+		  {
+				//if not previously activated,
+//				 if (key_longpress_status2 == 0)
+//				 {
+//					key_longpress_status2 = 1;
+//					prog_entry2 = 1;   //variable used to clear the var. states in settings menu.
+//					return _keyup_Event;
+//				 }
+//				 else
+//				 {
+//					key_longpress_status2 = 0;
+					prog_entry2 = 0;
+					return _keydown_Event;
+//				 }
+		  }
 
        //--------------------------------------------------
 	   //          error clear flag...
@@ -2250,7 +2410,7 @@ void pumpType_write(void)
 
 void firstTotalizer_day(void)
 {
-	 EEPROM_Write_NUM (totalizerDay_loc, 0, DS1307_GetDate());
+	 EEPROM_Write_NUM (totalizerDay_loc, 0, (DS1307_GetDate() - 1));
 }
 
 void firstTotalizerDay_write(void)

@@ -276,6 +276,8 @@ uint32_t RtcToInt(uint32_t deviceYear)
 
 	if (deviceYear <= 2016) deviceYear = 2000;
 
+	deviceYear += 4;
+
 	uint32_t tmInt = (second & 0x3f) | ((minute & 0x3f) << TM_BITS_SEC)
 					| ((hour & 0x1f) << TM_BITS_MIN)
 					| ((day & 0x1f) << TM_BITS_HOUR)

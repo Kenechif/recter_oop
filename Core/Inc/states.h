@@ -75,6 +75,7 @@ typedef enum
 	_filling_pulse_Event,
 	_error_clear_Event,
 	_operator_Event,
+	_function_key_Event,
     _no_Event
 } eSystemEvent;
 
@@ -109,7 +110,7 @@ typedef struct
 } sStateEventMachine;
 //-----------------------------------------------
 eSystemEvent eNewEvent;
-eSystemState eNextState, eLastState, ePrevState;
+eSystemState eNextState1, eLastState1, ePrevState;
 
 typedef enum
 {
@@ -169,10 +170,12 @@ static bool mth_success = false,
 //int8_t pump_LitreOverflow = 0;
 //static int8_t idleState_flag = 1;
 
-extern float lastSale1,
-	  	  	 lastSale1c;
+extern float lastVolumeSale1,
+	  	  	 lastVolumeSale1c;
 
 extern ep1_mt mt_pump[2];
+
+extern ctTimed_settings ctTimed_settingsA;
 
 void state_ini(void);
 void states(void);
@@ -180,14 +183,24 @@ void reset_timer(int tm);
 void stop_timer(void);
 void start_timer(int tm);
 
-
+uint32_t price2pulser(float price);
+uint32_t amt2pulser(float amt);
+float pulser2price(uint32_t pulse_);
+float amt2price(float amt_);
+float pulser2amt(uint32_t pulse_);
+float pulser2amt_R(uint32_t pulse_);
+void make_string(sellmode_ sll,float pr);
 
 uint8_t long_press_key();
+uint8_t long_press_progExit();
+
 uint8_t long_press_log();
 uint8_t long_press_tot();
 
 bool leapYear_calc(int8_t year);
 void save_date(int8_t _entri);
+
+uint16_t get_ctTime1(void);
 
 #ifdef __cplusplus
 }

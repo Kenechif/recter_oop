@@ -11,11 +11,13 @@
 
 extern int tot_buttonpress_tmr;
 extern int log_buttonpress_tmr;
-extern int key_buttonpress_tmr;
+extern int key_buttonpress_tmr,
+		   progExit_buttonpress_tmr1;
 
 extern int tot_buttonpress_tmr2;
 extern int log_buttonpress_tmr2;
-extern int key_buttonpress_tmr2;
+extern int key_buttonpress_tmr2,
+		   progExit_buttonpress_tmr2;
 
 extern uint16_t shutdown_timer;
 
@@ -26,7 +28,13 @@ extern int t, t2; //ttt;
 extern uint16_t _tt,
 				_tt2,
 				timer_ep,
-				timer_spi;
+				timer_spi,
+				totalizer1Timer,
+				totalizer2Timer,
+				priceChange_timer1,
+				priceChange_timer2,
+				timer_config1,
+				timer_config2;
 //				ep2_timer;
 
 extern int ttt;
@@ -45,6 +53,24 @@ void dec_var()
 		if(_tt > 65534) _tt = 0;
 		if(_tt2 > 65534) _tt2 = 0;
 		ttt++;
+
+		priceChange_timer1++;
+		priceChange_timer2++;
+		if(priceChange_timer1 > 65534) priceChange_timer1 = 0;
+		if(priceChange_timer2 > 65534) priceChange_timer2 = 0;
+
+		timer_config1++;
+		timer_config2++;
+		if(timer_config1 > 65534) timer_config1 = 0;
+		if(timer_config2 > 65534) timer_config2 = 0;
+
+
+		totalizer1Timer++;
+		totalizer2Timer++;
+
+		if(totalizer1Timer > 65534) totalizer1Timer = 0;
+		if(totalizer2Timer > 65534) totalizer2Timer = 0;
+
 //		if(ttt > 65534) ttt = 0;
 
 		timer_ep++;
@@ -95,11 +121,13 @@ void toggle_led(void)
 	     tot_buttonpress_tmr++;
 	     log_buttonpress_tmr++;
 	     key_buttonpress_tmr++;
+	     progExit_buttonpress_tmr1++;
 
 	     dec_timer2();   //decrement the events timer.
 		 tot_buttonpress_tmr2++;
 		 log_buttonpress_tmr2++;
 		 key_buttonpress_tmr2++;
+		 progExit_buttonpress_tmr2++;
 	 }
 }
 

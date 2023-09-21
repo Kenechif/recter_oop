@@ -22,6 +22,9 @@ int8_t _15SecIncrementer,
 	  ep2_justSent = 0,
 	  ep1a_justSent = 0;
 
+float new_price1 = 0.000,
+	  new_price2 = 0.000;
+
 transaction tranx_save, tranx_serverResponse;
 
 extern RNG_HandleTypeDef hrng;
@@ -36,7 +39,8 @@ extern uint8_t hour,
 
 //extern pump_names pumpName[2];
 
-extern int8_t changeLitrePrice = 0;
+extern int8_t changeLitrePrice1 = 0,
+			  changeLitrePrice2 = 0;
 
 void read_config()
 {
@@ -51,39 +55,39 @@ char ep_message[400] = {0},
 	 ep_message_rcvd[400] = {0},
 	 sndd[500] = {0};
 
-const int totalTranx_loc  =  60;
+const int totalTranx_loc  =  61;
 const int totalTranx1_loc =  0;
-const int synchedTranx_loc  =  65;
+const int synchedTranx_loc  =  66;
 const int synchedTranx1_loc =  0;
-const int totalAutoTranx_loc  =  70;
+const int totalAutoTranx_loc  =  71;
 const int totalAutoTranx1_loc =  0;
-const int synchedAutoTranx_loc  =  75;
+const int synchedAutoTranx_loc  =  76;
 const int synchedAutoTranx1_loc =  0;
-const int totalEvents_loc  =  80;
+const int totalEvents_loc  =  81;
 const int totalEvents1_loc =  0;
-const int synchedEvents_loc  =  85;
+const int synchedEvents_loc  =  86;    // 86 -> 91
 const int synchedEvents1_loc =  0;
 
-const int totalTranxA_loc  =  250,
+const int totalTranxA_loc  =  251,
 		  totalTranxA1_loc =  0,
-		  totalTranxB_loc  =  253,
+		  totalTranxB_loc  =  254,
 		  totalTranxB1_loc =  0,
-		  synchedTranxA_loc  =  256,
+		  synchedTranxA_loc  =  257,
 		  synchedTranxA1_loc =  0,
-		  synchedTranxB_loc  =  259,
+		  synchedTranxB_loc  =  260,    // 260 -> 263
 		  synchedTranxB1_loc =  0;
 
-const int totalAutoTranxA_loc  =  270,
+const int totalAutoTranxA_loc  =  263,
 		  totalAutoTranxA1_loc =  0,
-		  totalAutoTranxB_loc  =  273,
+		  totalAutoTranxB_loc  =  266,
 		  totalAutoTranxB1_loc =  0,
-		  synchedAutoTranxA_loc  =  276,
+		  synchedAutoTranxA_loc  =  269,
 		  synchedAutoTranxA1_loc =  0,
-		  synchedAutoTranxB_loc  =  279,
+		  synchedAutoTranxB_loc  =  272,
 		  synchedAutoTranxB1_loc =  0;
 
-const int lastSynchedFlashA_loc = 262;
-const int lastSynchedFlashB_loc = 265;
+const int lastSynchedFlashA_loc = 275;
+const int lastSynchedFlashB_loc = 278;   // 278 -> 281
 
 static int8_t sendEp5 = 0,
 			  sending = 0,
@@ -91,13 +95,16 @@ static int8_t sendEp5 = 0,
 
 int8_t ep0_sent = 0,
 	   ep5a_sent = 0,
-	   ep5b_sent = 0;
+	   ep5b_sent = 0,
+	   ep31_sent = 0;
 
-const int8_t token_loc = 80;  //token15_loc = 150; -> 154
-const int8_t rootToken_loc = 155;
-const long array_loc = 160;   //array15_loc = 174;
-const int8_t arrayCount_loc = 176;  //up to 190
-const int unsynchedFlash_loc = 191;   //up to 225
+extern int8_t recalibration_request = 0;
+
+//const int8_t token_loc = 80;  //token15_loc = 150; -> 154
+//const int8_t rootToken_loc = 155;
+//const long array_loc = 160;   //array15_loc = 174;
+//const int8_t arrayCount_loc = 176;  //up to 190
+//const int unsynchedFlash_loc = 191;   //up to 225
 
 uint8_t token_array[15],
 		ep2token_array[3],
@@ -108,6 +115,8 @@ long token_track[15] = {0};
 
 void ep_send(ep_ designation)
 {
+	memset(ep_message, '\0', sizeof(ep_message));
+
 	switch(designation)
 	{
 		case ep0: 	ep0_save.timestamp = RtcToInt(2019);
@@ -118,10 +127,6 @@ void ep_send(ep_ designation)
 					ep0_save.pump[0].totalizerFirst_timestamp = ep5_save.firstTotalizer[0].timestamp;
 					ep0_save.pump[1].tolalizer_first = ep5_save.firstTotalizer[1].totalizer;
 					ep0_save.pump[1].totalizerFirst_timestamp = ep0_save.pump[0].totalizerFirst_timestamp;
-
-//						ep5_save.firstTotalizer[0].totalizer = ep0_save.pump[0].tolalizer_first;
-//						ep5_save.firstTotalizer[1].totalizer = ep0_save.pump[1].tolalizer_first;
-//						ep5_save.firstTotalizer[0].timestamp = ep0_save.pump[0].totalizerFirst_timestamp;
 
 					ep0_save.pump[0].status = pump1_status_4G;
 					ep0_save.pump[0].totalizer = totaliser_vol1c;
@@ -155,8 +160,8 @@ void ep_send(ep_ designation)
 					ep1a_save.pump[0].nozzle_id = settings[0].noz_id;
 					ep1a_save.pump[0].totalizer_real = totaliser_vol1;
 					ep1a_save.pump[0].tolalizerReal_first = ep5_save.firstTotalizer[0].totalizer_real;
-
 					strcpy(ep1a_save.pump[0].nozzle_name, pumpName[0].pump_name);
+
 					ep1a_save.pump[1].status = pump2_status_4G;
 					ep1a_save.pump[1].totalizer = totaliser_vol2c;
 					ep1a_save.pump[1].tolalizer_first = ep5_save.firstTotalizer[1].totalizer;
@@ -166,7 +171,7 @@ void ep_send(ep_ designation)
 					ep1a_save.pump[1].totalizer_real = totaliser_vol2;
 					ep1a_save.pump[1].tolalizerReal_first = ep5_save.firstTotalizer[1].totalizer_real;
 
-					ep1a_save.firmware_version = 2023;
+					ep1a_save.firmware_version = firmware_version;
 					ep1a_save.storage_loc = 'i';
 
 					sprintf(ep_message,
@@ -181,8 +186,6 @@ void ep_send(ep_ designation)
 							ep1a_save.firmware_version, ep1a_save.storage_loc);
 
 					list_push(ep1a_save.token, ep1a);
-
-//					{"ep":1,"di":"864120050705038","tk":1060422946,"tm":161772383,"pumps":[{"st":2,"tz":638449.375,"ft":638449.375,"fttm":161771979,"nm":"P7","nz":0,"toz":638449.375,"fot":638449.375},{"st":2,"tz":303126.875,"ft":303126.875,"fttm":161771978,"nm":"P8","nz":0,"toz":303126.875,"fot":303126.875}],"fv":20461}
 
 					server_write(ep_message);
 
@@ -205,23 +208,33 @@ void ep_send(ep_ designation)
 					ep1b_save.total_tranx = (ep1b_save.total_tranxA + ep1b_save.total_tranxB);
 					ep1b_save.synched_tranx = (ep1b_save.synched_tranxA + ep1b_save.synched_tranxB);
 
-					ep1b_save.total_events = 0;
-					ep1b_save.synched_events = 0;
-					strcpy(ep1b_save.firmware_date, "Nov 28 2020");
-					strcpy(ep1b_save.firmware_time, "17:07:30");
+					ep1b_save.pump[0].nozzle_id = (settings[0].noz_id);
+					ep1b_save.pump[0].totalizer_real = totaliser_vol1;
+					ep1b_save.pump[0].tolalizerReal_first = ep5_save.firstTotalizer[0].totalizer_real;
+					ep1b_save.pump[1].nozzle_id = (settings[0].noz_id + 1);
+					ep1b_save.pump[1].totalizer_real = totaliser_vol2;
+					ep1b_save.pump[1].tolalizerReal_first = ep5_save.firstTotalizer[1].totalizer_real;
+
+					ep1b_save.total_events = (ep1b_save.total_tranx + ep1b_save.total_autoTranx);
+					ep1b_save.synched_events = (ep1b_save.synched_tranx + ep1b_save.synched_autoTranx);
+					strcpy(ep1b_save.firmware_date, firmware_date);
+					strcpy(ep1b_save.firmware_time, firmware_time);
 					ep1b_save.mem_usage = 0.000;
-					strcpy(ep1b_save.chip_type, "STM32F4");
+					strcpy(ep1b_save.chip_type, chip_type);
 					ep1b_save.mem_usage_auto = 0.000;
 					ep1b_save.boot_time = ep0_save.timestamp;
-					ep1b_save.firmware_version = 2023;
+					ep1b_save.firmware_version = firmware_version;
 					ep1b_save.storage_loc = 'i';
 
 					sprintf(ep_message,
-							"{\"ep\":1,\"di\":\"%s\",\"tk\":%ld,\"pumps\":[{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\"},{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\"}],\"tt\":%d,\"st\":%d,\"tta\":%d,\"sta\":%d,\"se\":%d,\"te\":%d,\"fwd\":\"%s\",\"fwt\":\"%s\",\"mu\":%0.3f,\"ch\":\"%s\",\"mua\":%0.3f,\"bt\":%ld,\"tm\":%ld,\"fv\":%d,\"sl\":\'%c\'}",
+//							"{\"ep\":1,\"di\":\"%s\",\"tk\":%ld,\"pumps\":[{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\"},{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\"}],\"tt\":%d,\"st\":%d,\"tta\":%d,\"sta\":%d,\"se\":%d,\"te\":%d,\"fwd\":\"%s\",\"fwt\":\"%s\",\"mu\":%0.3f,\"ch\":\"%s\",\"mua\":%0.3f,\"bt\":%ld,\"tm\":%ld,\"fv\":%d,\"sl\":\'%c\'}",
+							"{\"ep\":1,\"di\":\"%s\",\"tk\":%ld,\"pumps\":[{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\",\"nz\":%d,\"toz\":%0.3f,\"fot\":%0.3f},{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\",\"nz\":%d,\"toz\":%0.3f,\"fot\":%0.3f}],\"tt\":%d,\"st\":%d,\"tta\":%d,\"sta\":%d,\"se\":%d,\"te\":%d,\"fwd\":\"%s\",\"fwt\":\"%s\",\"mu\":%0.3f,\"ch\":\"%s\",\"mua\":%0.3f,\"bt\":%ld,\"tm\":%ld,\"fv\":%d,\"sl\":\'%c\'}",
 							device_id, ep1b_save.token, ep1b_save.pump[0].status, ep1b_save.pump[0].totalizer,
 							ep1b_save.pump[0].tolalizer_first, ep1b_save.pump[0].totalizerFirst_timestamp, ep1b_save.pump[0].nozzle_name,
+							ep1b_save.pump[0].nozzle_id, ep1b_save.pump[0].totalizer_real, ep1b_save.pump[0].tolalizerReal_first,
 							ep1b_save.pump[1].status, ep1b_save.pump[1].totalizer, ep1b_save.pump[1].tolalizer_first,
-							ep1b_save.pump[1].totalizerFirst_timestamp, ep1b_save.pump[1].nozzle_name, ep1b_save.total_tranx,
+							ep1b_save.pump[1].totalizerFirst_timestamp, ep1b_save.pump[1].nozzle_name, ep1b_save.pump[1].nozzle_id,
+							ep1b_save.pump[1].totalizer_real, ep1b_save.pump[1].tolalizerReal_first, ep1b_save.total_tranx,
 							ep1b_save.synched_tranx, ep1b_save.total_autoTranx, ep1b_save.synched_autoTranx, ep1b_save.synched_events,
 							ep1b_save.total_events,
 							ep1b_save.firmware_date, ep1b_save.firmware_time, ep1b_save.mem_usage, ep1b_save.chip_type,
@@ -235,7 +248,7 @@ void ep_send(ep_ designation)
 
 	case ep2:   	tranx_save.transaction_type = 'a';
 					tranx_save.storage_loc = 'i';
-					strcpy(tranx_save.tag, "4jrt0v");
+					strcpy(tranx_save.tag, "null");
 
 					sprintf(ep_message,
 							"{\"ep\":2,\"di\":\"%s\",\"tk\":%ld,\"tm\":%ld,\"ti\":\"%s\",\"ta\":%0.3f,\"tv\":%0.3f,\"pl\":%0.3f,\"tz\":%0.3f,\"pm\":\"%s\",\"pa\":%d,\"pr\":\"%s\",\"tt\":\'%c\',\"tp\":%d,\"sl\":\'%c\',\"tg\":\"%s\"}",
@@ -263,7 +276,6 @@ void ep_send(ep_ designation)
 								ep5_save.firstTotalizer[0].nozzle_name, ep5_save.firstTotalizer[0].timestamp,
 								ep5_save.firstTotalizer[0].totalizer, ep5_save.firstTotalizer[0].totalizer_real, ep5_save.timestamp);
 
-//							{"ep":5,"di":"864120050705038","tk":1357409195,"tm":161772324,"cn":"0|0","FT":[{"pn":"P8","tm":161637818,"tz":299990.969,"toz":299990.969}]}
 							list_push(ep5_save.token, ep5_side_a);
 							server_write(ep_message);
 							break;
@@ -273,10 +285,9 @@ void ep_send(ep_ designation)
 
 							strcpy(ep5_save.sentEntry_count, "0|0");
 							strcpy(ep5_save.firstTotalizer[1].nozzle_name, pumpName[1].pump_name);
-	//						ep5_save.firstTotalizer.totalizer[1] = totaliser_vol2c;
 
 							sprintf(ep_message,
-								"{\"ep\":5,\"di\":\"%s\",\"tk\":%ld,\"cn\":\"%s\",\"FT\":[{\"pn\":\"%s\",\"tm\":%ld,\"tz\":%0.3f}],\"tm\":%ld}",
+								"{\"ep\":5,\"di\":\"%s\",\"tk\":%ld,\"cn\":\"%s\",\"FT\":[{\"pn\":\"%s\",\"tm\":%ld,\"tz\":%0.3f,\"toz\":%0.3f}],\"tm\":%ld}",
 								device_id, ep5_save.token, ep5_save.sentEntry_count,
 								ep5_save.firstTotalizer[1].nozzle_name, ep5_save.firstTotalizer[1].timestamp,
 								ep5_save.firstTotalizer[1].totalizer, ep5_save.firstTotalizer[1].totalizer_real, ep5_save.timestamp);
@@ -285,11 +296,167 @@ void ep_send(ep_ designation)
 							server_write(ep_message);
 						    break;
 
-//		case ep31 :			 {"ep":31,"di":"864120050705038","tk":1060422946,"tm":161772383,"pumps":[{"nm":"P7","nz":0,"ct":"20|0.5|0.0"},{"nm":"P8","nz":0,}]}
-//							"{\"ep\":31,\"di\":\"%s\",\"tk\":%ld,\"tm\":%ld,\"pumps\":[{\"nm\":\"%s\",\"nz\":%d,\"ct\":\"%0.1f|%0.1f|%0.1f'}",
+		case ep31 :			ep31_save.timestamp = RtcToInt(2019);
+							ep31_save.token = generate_tk();
+							ep31_save.pump[0].nozzle_id = (settings[0].noz_id);
+							ep31_save.pump[1].nozzle_id = (settings[0].noz_id + 1);
+							memset(ep31_save.pump[0].nozzle_name, '\0', sizeof(ep31_save.pump[0].nozzle_name));
+							strcpy(ep31_save.pump[0].nozzle_name, pumpName[0].pump_name);
+							memset(ep31_save.pump[1].nozzle_name, '\0', sizeof(ep31_save.pump[1].nozzle_name));
+							strcpy(ep31_save.pump[1].nozzle_name, pumpName[1].pump_name);
 
+							sprintf(ep_message,
+								"{\"ep\":31,\"di\":\"%s\",\"tk\":%ld,\"tm\":%ld,\"pumps\":[{\"nm\":\"%s\",\"nz\":%d,\"ct\":\"%s|%s|%s\"},{\"nm\":\"%s\",\"nz\":%d,\"ct\":\"%s|%s|%s\"}]}",
+								device_id, ep31_save.token, ep31_save.timestamp, ep31_save.pump[0].nozzle_name, ep31_save.pump[0].nozzle_id,
+								ep31_save.pump[0].calibrate_ct.ct_original, ep31_save.pump[0].calibrate_ct.ct_baseMinusOriginal,
+								ep31_save.pump[0].calibrate_ct.ct_effectiveMinusBase, ep31_save.pump[1].nozzle_name, ep31_save.pump[1].nozzle_id,
+								ep31_save.pump[1].calibrate_ct.ct_original, ep31_save.pump[1].calibrate_ct.ct_baseMinusOriginal,
+								ep31_save.pump[1].calibrate_ct.ct_effectiveMinusBase);
+
+							list_push(ep31_save.token, ep31);
+							server_write(ep_message);
+							break;
+
+
+		case ep1a_priceChangeResponse_sideA :
+					        ep1a_save.timestamp = RtcToInt(2019);
+							ep1a_save.token = generate_tk();
+
+							ep1a_save.pump[0].status = pump1_status_4G;
+							ep1a_save.pump[0].totalizer = totaliser_vol1c;
+							ep1a_save.pump[0].tolalizer_first = ep5_save.firstTotalizer[0].totalizer;
+							ep1a_save.pump[0].totalizerFirst_timestamp = ep5_save.firstTotalizer[0].timestamp;
+							ep1a_save.pump[0].nozzle_id = settings[0].noz_id;
+							ep1a_save.pump[0].totalizer_real = totaliser_vol1;
+							ep1a_save.pump[0].tolalizerReal_first = ep5_save.firstTotalizer[0].totalizer_real;
+							strcpy(ep1a_save.pump[0].nozzle_name, pumpName[0].pump_name);
+
+							ep1a_save.pump[1].status = pump2_status_4G;
+							ep1a_save.pump[1].totalizer = totaliser_vol2c;
+							ep1a_save.pump[1].tolalizer_first = ep5_save.firstTotalizer[1].totalizer;
+							ep1a_save.pump[1].totalizerFirst_timestamp = ep5_save.firstTotalizer[0].timestamp;
+							strcpy(ep1a_save.pump[1].nozzle_name, pumpName[1].pump_name);
+							ep1a_save.pump[1].nozzle_id = (settings[0].noz_id + 1);
+							ep1a_save.pump[1].totalizer_real = totaliser_vol2;
+							ep1a_save.pump[1].tolalizerReal_first = ep5_save.firstTotalizer[1].totalizer_real;
+
+							new_price1 = atof(mt_pump[0].price);
+							new_price1 += 0.00011;
+
+							ep1a_save.firmware_version = firmware_version;
+							ep1a_save.storage_loc = 'i';
+
+							sprintf(ep_message,
+									"{\"ep\":1,\"di\":\"%s\",\"tk\":%ld,\"tm\":%ld,\"pumps\":[{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\",\"nz\":%d},{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\",\"nz\":%d}],\"mt\":{\"ty\":0,\"pn\":\"%s\",\"pr\":%0.3f,\"sh\":0,\"tg\":\"p|%s\"},\"fv\":%d}",
+
+									device_id, ep1a_save.token,  ep1a_save.timestamp, ep1a_save.pump[0].status,
+									ep1a_save.pump[0].totalizer, ep1a_save.pump[0].tolalizer_first,
+									ep1a_save.pump[0].totalizerFirst_timestamp, ep1a_save.pump[0].nozzle_name,
+									ep1a_save.pump[0].nozzle_id,
+									ep1a_save.pump[1].status, ep1a_save.pump[1].totalizer, ep1a_save.pump[1].tolalizer_first,
+									ep1a_save.pump[1].totalizerFirst_timestamp, ep1a_save.pump[1].nozzle_name, ep1a_save.pump[1].nozzle_id,
+									ep1a_save.pump[0].nozzle_name, new_price1, ep1a_save.pump[0].nozzle_name,
+									ep1a_save.firmware_version);
+
+							server_write(ep_message);
+
+							break;
+
+
+		case ep1a_priceChangeResponse_sideB :
+					        ep1a_save.timestamp = RtcToInt(2019);
+							ep1a_save.token = generate_tk();
+
+							ep1a_save.pump[0].status = pump1_status_4G;
+							ep1a_save.pump[0].totalizer = totaliser_vol1c;
+							ep1a_save.pump[0].tolalizer_first = ep5_save.firstTotalizer[0].totalizer;
+							ep1a_save.pump[0].totalizerFirst_timestamp = ep5_save.firstTotalizer[0].timestamp;
+							ep1a_save.pump[0].nozzle_id = settings[0].noz_id;
+							ep1a_save.pump[0].totalizer_real = totaliser_vol1;
+							ep1a_save.pump[0].tolalizerReal_first = ep5_save.firstTotalizer[0].totalizer_real;
+							strcpy(ep1a_save.pump[0].nozzle_name, pumpName[0].pump_name);
+
+							ep1a_save.pump[1].status = pump2_status_4G;
+							ep1a_save.pump[1].totalizer = totaliser_vol2c;
+							ep1a_save.pump[1].tolalizer_first = ep5_save.firstTotalizer[1].totalizer;
+							ep1a_save.pump[1].totalizerFirst_timestamp = ep5_save.firstTotalizer[0].timestamp;
+							strcpy(ep1a_save.pump[1].nozzle_name, pumpName[1].pump_name);
+							ep1a_save.pump[1].nozzle_id = (settings[0].noz_id + 1);
+							ep1a_save.pump[1].totalizer_real = totaliser_vol2;
+							ep1a_save.pump[1].tolalizerReal_first = ep5_save.firstTotalizer[1].totalizer_real;
+
+							new_price2 = atof(mt_pump[1].price);
+							new_price2 += 0.00011;
+
+							ep1a_save.firmware_version = firmware_version;
+							ep1a_save.storage_loc = 'i';
+
+							sprintf(ep_message,
+									"{\"ep\":1,\"di\":\"%s\",\"tk\":%ld,\"tm\":%ld,\"pumps\":[{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\",\"nz\":%d},{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\",\"nz\":%d}],\"mt\":{\"ty\":0,\"pn\":\"%s\",\"pr\":%0.3f,\"sh\":0,\"tg\":\"p|%s\"},\"fv\":%d}",
+
+									device_id, ep1a_save.token,  ep1a_save.timestamp, ep1a_save.pump[0].status,
+									ep1a_save.pump[0].totalizer, ep1a_save.pump[0].tolalizer_first,
+									ep1a_save.pump[0].totalizerFirst_timestamp, ep1a_save.pump[0].nozzle_name,
+									ep1a_save.pump[0].nozzle_id,
+									ep1a_save.pump[1].status, ep1a_save.pump[1].totalizer, ep1a_save.pump[1].tolalizer_first,
+									ep1a_save.pump[1].totalizerFirst_timestamp, ep1a_save.pump[1].nozzle_name, ep1a_save.pump[1].nozzle_id,
+									ep1a_save.pump[1].nozzle_name, new_price2, ep1a_save.pump[1].nozzle_name,
+									ep1a_save.firmware_version);
+
+							server_write(ep_message);
+
+							break;
+
+		case ep1a_priceChangeResponse_bothSides :
+							        ep1a_save.timestamp = RtcToInt(2019);
+									ep1a_save.token = generate_tk();
+
+									ep1a_save.pump[0].status = pump1_status_4G;
+									ep1a_save.pump[0].totalizer = totaliser_vol1c;
+									ep1a_save.pump[0].tolalizer_first = ep5_save.firstTotalizer[0].totalizer;
+									ep1a_save.pump[0].totalizerFirst_timestamp = ep5_save.firstTotalizer[0].timestamp;
+									ep1a_save.pump[0].nozzle_id = settings[0].noz_id;
+									ep1a_save.pump[0].totalizer_real = totaliser_vol1;
+									ep1a_save.pump[0].tolalizerReal_first = ep5_save.firstTotalizer[0].totalizer_real;
+									strcpy(ep1a_save.pump[0].nozzle_name, pumpName[0].pump_name);
+
+									ep1a_save.pump[1].status = pump2_status_4G;
+									ep1a_save.pump[1].totalizer = totaliser_vol2c;
+									ep1a_save.pump[1].tolalizer_first = ep5_save.firstTotalizer[1].totalizer;
+									ep1a_save.pump[1].totalizerFirst_timestamp = ep5_save.firstTotalizer[0].timestamp;
+									strcpy(ep1a_save.pump[1].nozzle_name, pumpName[1].pump_name);
+									ep1a_save.pump[1].nozzle_id = (settings[0].noz_id + 1);
+									ep1a_save.pump[1].totalizer_real = totaliser_vol2;
+									ep1a_save.pump[1].tolalizerReal_first = ep5_save.firstTotalizer[1].totalizer_real;
+
+									new_price1 = atof(mt_pump[0].price);
+									new_price1 += 0.00011;
+
+									new_price2 = atof(mt_pump[1].price);
+									new_price2 += 0.00011;
+
+									ep1a_save.firmware_version = firmware_version;
+									ep1a_save.storage_loc = 'i';
+
+									sprintf(ep_message,
+											"{\"ep\":1,\"di\":\"%s\",\"tk\":%ld,\"tm\":%ld,\"pumps\":[{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\",\"nz\":%d},{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\",\"nz\":%d}],\"mt\":[{\"ty\":0,\"pn\":\"%s\",\"pr\":%0.3f,\"sh\":0,\"tg\":\"p|%s\"},{\"ty\":0,\"pn\":\"%s\",\"pr\":%0.3f,\"sh\":0,\"tg\":\"p|%s\"}],\"fv\":%d}",
+
+											device_id, ep1a_save.token,  ep1a_save.timestamp, ep1a_save.pump[0].status,
+											ep1a_save.pump[0].totalizer, ep1a_save.pump[0].tolalizer_first,
+											ep1a_save.pump[0].totalizerFirst_timestamp, ep1a_save.pump[0].nozzle_name,
+											ep1a_save.pump[0].nozzle_id,
+											ep1a_save.pump[1].status, ep1a_save.pump[1].totalizer, ep1a_save.pump[1].tolalizer_first,
+											ep1a_save.pump[1].totalizerFirst_timestamp, ep1a_save.pump[1].nozzle_name, ep1a_save.pump[1].nozzle_id,
+											ep1a_save.pump[0].nozzle_name, new_price1, ep1a_save.pump[0].nozzle_name,
+											ep1a_save.pump[1].nozzle_name, new_price2, ep1a_save.pump[1].nozzle_name,
+											ep1a_save.firmware_version);
+
+									server_write(ep_message);
+
+									break;
 	}
 }
+
 
 
 void epSend_interval(void)
@@ -318,6 +485,10 @@ void epSend_interval(void)
 	int flash_locc,
 		pg;
 
+	float baseMinusOriginal1,
+		  baseMinusOriginal2,
+		  effectiveMinusBase1,
+		  effectiveMinusBase2;
 
 //	epochTime_present = RtcToInt(2019);
 	epochTime_present = timer_ep;
@@ -335,7 +506,7 @@ void epSend_interval(void)
 
 
 	//============================================//
-	// 			EP0 & EP5 ROUTINES SENDING	      //
+	// 		EP0, EP5 & EP31 ROUTINES SENDING	      //
 	//============================================//
 
 	if(time_interval >= 15000)    //15 sec interval
@@ -343,15 +514,18 @@ void epSend_interval(void)
 //		send_ep0_ep5();
 
 
-//		settings[0].totalizer_day = 22;
+//		settings[0].totalizer_day = 17;
 //		ep0_sent = 1;
+//		ep5a_sent = 1;
+//		ep5b_sent = 1;
+//		ep31_sent = 1;
 
 		//============================================//
 		// 				EP5 ROUTINE SENDING			  //
 		//============================================//
 
 		day = DS1307_GetDate();
-//		day = 22;
+//		day = 0;
 		if(settings[0].totalizer_day == day)
 		{
 			ep5a_sent = 1;
@@ -360,16 +534,24 @@ void epSend_interval(void)
 
 		if(settings[0].totalizer_day != day)
 		{
-			ep5_save.firstTotalizer[0].totalizer = totaliser_vol1c;
-			ep5_save.firstTotalizer[1].totalizer = totaliser_vol2c;
-			ep5_save.firstTotalizer[0].timestamp = RtcToInt(2019);
-			ep5_save.firstTotalizer[1].timestamp = ep5_save.firstTotalizer[0].timestamp;
+//			ep5_save.firstTotalizer[0].totalizer = totaliser_vol1c;
+//			ep5_save.firstTotalizer[1].totalizer = totaliser_vol2c;
+//			ep5_save.firstTotalizer[0].totalizer_real = totaliser_vol1;
+//			ep5_save.firstTotalizer[1].totalizer_real = totaliser_vol2;
+//			ep5_save.firstTotalizer[0].timestamp = RtcToInt(2019);
+//			ep5_save.firstTotalizer[1].timestamp = ep5_save.firstTotalizer[0].timestamp;
 
-			if(ep5a_sent == 0)
+			save_1stVolTotaliser_day(side_a);
+			save_1stVolTotaliser_day(side_b);
+
+			retrieve_1stVolTotaliser_day(side_a);
+			retrieve_1stVolTotaliser_day(side_b);
+
+			if( (ep5a_sent == 0) || ((ep5a_sent == 1) && (ep5b_sent == 1)) )
 			{
 				ep_send(ep5_side_a);
 			}
-			else if(ep5b_sent == 0)
+			else if ( (ep5b_sent == 0) || ((ep5a_sent == 1) && (ep5b_sent == 1)) )
 			{
 				ep_send(ep5_side_b);
 			}
@@ -391,7 +573,78 @@ void epSend_interval(void)
 		//============================================//
 
 
-		if ( (ep0_sent == 0) || (ep5a_sent == 0) || (ep5b_sent == 0) )
+		//================================================//
+		// 				EP31 ROUTINE SENDING			  //
+		//================================================//
+		else if (ep31_sent == 0)
+		{
+			char str[6];
+
+			baseMinusOriginal1 = (vol_calibrated1 - vol_real1);
+
+			if(vol_effective1 != 0.0)
+				effectiveMinusBase1 = (vol_effective1 - vol_calibrated1);
+			else
+				effectiveMinusBase1 = 0.0;
+
+			baseMinusOriginal2 = (vol_calibrated2 - vol_real2);
+
+			if(vol_effective2 != 0.0)
+				effectiveMinusBase2 = (vol_effective2 - vol_calibrated2);
+			else
+				effectiveMinusBase2 = 0.0;
+
+
+			sprintf(str, "%d", vol_real1);
+			strncpy(ep31_save.pump[0].calibrate_ct.ct_original, str, sizeof(str));
+			memset(str, '\0', sizeof(str));
+			sprintf(str, "%0.1f", baseMinusOriginal1);
+			strncpy(ep31_save.pump[0].calibrate_ct.ct_baseMinusOriginal, str, sizeof(str));
+			memset(str, '\0', sizeof(str));
+			sprintf(str, "%0.1f", effectiveMinusBase1);
+			strncpy(ep31_save.pump[0].calibrate_ct.ct_effectiveMinusBase, str, sizeof(str));
+			memset(str, '\0', sizeof(str));
+			sprintf(str, "%d", vol_real2);
+			strncpy(ep31_save.pump[1].calibrate_ct.ct_original, str, sizeof(str));
+			memset(str, '\0', sizeof(str));
+			sprintf(str, "%0.1f", baseMinusOriginal2);
+			strncpy(ep31_save.pump[1].calibrate_ct.ct_baseMinusOriginal, str, sizeof(str));
+			memset(str, '\0', sizeof(str));
+			sprintf(str, "%0.1f", effectiveMinusBase2);
+			strncpy(ep31_save.pump[1].calibrate_ct.ct_effectiveMinusBase, str, sizeof(str));
+
+			ep_send(ep31);
+		}
+
+		//============================================//
+
+
+
+		//====================================================================//
+		// 				EP1A PRICECHANGE-FEEDBACK ROUTINE SENDING			  //
+		//====================================================================//
+		else if (ep1a_priceChangeFlag1 == 1)
+		{
+			ep_send(ep1a_priceChangeResponse_sideA);
+			ep1a_priceChangeFlag1 = 0;
+		}
+		else if (ep1a_priceChangeFlag2 == 1)
+		{
+			ep_send(ep1a_priceChangeResponse_sideB);
+			ep1a_priceChangeFlag2 = 0;
+		}
+		else if (ep1a_priceChangeFlag_bothSides == 1)
+		{
+			ep_send(ep1a_priceChangeResponse_bothSides);
+			ep1a_priceChangeFlag_bothSides = 0;
+		}
+		//====================================================================//
+
+
+
+		if ( (ep0_sent == 0) || (ep5a_sent == 0) || (ep5b_sent == 0) || ep31_sent == 0
+			|| (ep1a_priceChangeFlag1 == 1) || (ep1a_priceChangeFlag2 == 1) ||
+			(ep1a_priceChangeFlag_bothSides == 1) )
 		{
 			sending_busy = 1;
 		}
@@ -423,7 +676,7 @@ void epSend_interval(void)
 	//============================================//
 	// 				EP2 ROUTINE SENDING			  //
 	//============================================//
-	if(_15SecIncrementer == 2) //&& (sending_busy == 0) )  //30 sec interval
+	if(_15SecIncrementer == 2)   //30 sec interval
 	{
 		_30SecIncrementer++;
 		_15SecIncrementer = 0;
@@ -433,7 +686,7 @@ void epSend_interval(void)
 			if(firstTime_ep2 == 1)
 			{
 
-				if(ep1b_save.synched_tranxA != ep1b_save.total_tranxA) //&& (ep2a_justSent == 0) )
+				if(ep1b_save.synched_tranxA != ep1b_save.total_tranxA)
 				{
 					ep2_send(side_a);
 				}
@@ -476,7 +729,7 @@ void epSend_interval(void)
 	//============================================//
 	// 			  EP1A ROUTINE SENDING		      //
 	//============================================//
-	if( (_30SecIncrementer == 2) || (_75seconds == 1) ) //&& (sending_busy == 0) )     //1 min interval
+	if( (_30SecIncrementer == 2) || (_75seconds == 1) )      //1 min interval
 	{
 		if(_30SecIncrementer == 2)
 		{
@@ -509,21 +762,6 @@ void epSend_interval(void)
 				}
 			}
 		}
-
-
-
-
-
-//		//============================================//
-//		// 			EP0 & EP5 ROUTINES SENDING	      //
-//		//============================================//
-//
-//		if(firstTyme == 0)
-//		{
-//			send_ep0_ep5();
-//		}
-
-		//============================================//
 	}
 
 
@@ -622,24 +860,40 @@ void serverResponse_parse(ep_ ep)
 {
 	char strA[12], strB[12];
 
-	int8_t header_found = 0,
-		   indexx = 0;
-
-	int head_pos = 0;
-
-	char rx;
+	uint8_t ct_type;
 
 	switch(ep)
 	{
 //		case ep0:  return;
 //
-		case ep1a: 	   ep1_mtResponse();
+		case ep1a :    ep1_mtResponse();
+					   if(ep1_ctCheck() == 1)
+					   {
+						   recalibration_request = 1;
+						   ep31_sent = 0;
+					   }
+					   if(serverTimeFlag == 1)
+					   {
+						   serverTime_parse();
+						   serverTime = strtol(serverTimeStr, &remaining, 10);
+
+						   ttostr(serverTime, 1);
+						   ttostr(serverTime, 2);
+						   serverTimeFlag = 0;
+					   }
+					   memset(rx_buf, '\0', sizeof(rx_buf));
 					   break;
 //
-		case ep1b:     ep1_mtResponse();
+		case ep1b :    ep1_mtResponse();
+					   if(ep1_ctCheck() == 1)
+					   {
+						   recalibration_request = 1;
+						   ep31_sent = 0;
+					   }
+					   memset(rx_buf, '\0', sizeof(rx_buf));
 					   break;
 
-		case ep2:	   snprintf(strA, sizeof(strA), "%ld", tranxA_token);
+		case ep2 :	   snprintf(strA, sizeof(strA), "%ld", tranxA_token);
 					   snprintf(strB, sizeof(strB), "%ld", tranxB_token);
 
 					   if(strcmp(token_str, strA) == 0)
@@ -652,10 +906,50 @@ void serverResponse_parse(ep_ ep)
 						   config_mode = 0;
 						   save_synchedTransaction_sides(side_b);
 					   }
-					//		   memset(rx_buf, 0, sizeof(rx_buf));
+					   memset(rx_buf, '\0', sizeof(rx_buf));
 					   break;
 
 //		case ep5: return;
+
+		case ep31 :    ct_type = ct_parse(side_a);
+
+					   if(ct_type == 2)
+					   {
+						  save_ctTimedSettings(side_a);
+						  ctTimed_flag1 = 1;
+
+					   }
+					   else if(ct_type == 1)
+					   {
+						  save_ctSettings(side_a);
+						  ctTimed_flag1 = 0;
+					   }
+
+					   ct_type = ct_parse(side_b);
+
+					   if(ct_type == 2)
+					   {
+						  save_ctTimedSettings(side_b);
+						  ctTimed_flag2 = 1;
+					   }
+					   else if(ct_type == 1)
+					   {
+						  save_ctSettings(side_b);
+						  ctTimed_flag2 = 0;
+					   }
+
+//					   retrieve_ctSettings(side_a);
+//					   retrieve_ctSettings(side_b);
+
+					   save_ctTimedFlag(side_a);
+					   save_ctTimedFlag(side_b);
+
+//					   retrieve_ctTimedFlag(side_a);
+//					   retrieve_ctTimedFlag(side_b);
+
+					   ep31_sent = 1;
+					   memset(rx_buf, '\0', sizeof(rx_buf));
+					   break;
 	}
 }
 
@@ -735,12 +1029,16 @@ void server_rx_parse(void)
 
         size = strlen(rx_buf);
 
+//        static uint8_t serverTimeFlag = 0;
+
        statuss[1] = 0;
 
 	   while( (st != 0) && (head_pos < size) )
 	   {
 		   if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
 			   rx = rx_buf[head_pos];
+
+		   //	   res: ep:1a. {"st":0,"tk":24404,"ud":0,"tm":37424857,"am":0.0,"mt":{"ty":3,"pn":"all","pr":590.0,"sh":null,"fg":0,"tg":"p|all"},"pv":0.0,"wv":0.0,"sa":0.0,"bal":0.0,"dc":null,"wb":null,"ft":null}
 
 		   if(rx == '{')     // header left square bracket 0x5B, 0d91   STX->0xA5
 		   {
@@ -774,7 +1072,7 @@ void server_rx_parse(void)
 						  while(rx_buf[head_pos] != ',');
 						  statuss[pos] = 0;
 
-						  st = 0;      //nozzle ID obtained
+						  st = 0;
 					  }
 				  }
 			  }
@@ -782,11 +1080,15 @@ void server_rx_parse(void)
 			}
 		   head_pos++;
 	   }
-
-	   if(st == 0)    //Successful Response --> status=0
+//	   res: ep:1a. {"st":0,"tk":24404,"ud":0,"tm":37424857,"am":0.0,"mt":{"ty":3,"pn":"all","pr":590.0,"sh":null,"fg":0,"tg":"p|all"},"pv":0.0,"wv":0.0,"sa":0.0,"bal":0.0,"dc":null,"wb":null,"ft":null}
+	   if(st == 0)    //Successful Response --> status = 0
 	   {
 		   for(int8_t i = 0; i < 15; i++)
 		   	{
+//			    list[0].token = 1060422946;
+//			    list[0].ep = ep1a;
+//			    list[0].ptrMessgResp_callBack = serverResponse_parse;
+
 			    snprintf(token_str, sizeof(token_str), "%ld", list[i].token);
 		   		if(strstr(rx_buf, token_str))
 		   		{
@@ -801,6 +1103,7 @@ void server_rx_parse(void)
 		   				if(list[i].ep == ep0)
 		   				{
 		   					ep0_sent = 1;
+		   					serverTimeFlag = 1;
 		   				}
 		   				else if(list[i].ep == ep5_side_a)
 		   				{
@@ -1185,30 +1488,48 @@ void server_read(void)
 
 
 
-void online_setUnitPrice(void)
+void online_setUnitPrice1(void)
 {
 	settings[0].price_ = atof(mt_pump[0].price);
-	settings[1].price_ = atof(mt_pump[1].price);
+	settings[0].price_  += 0.00011;  //make small correction for the inherent rounddown.
+
 	save_settings();   //save to eeprom
 	load_settings(side_a); //load the settings into the internal variables
-	load_settings(side_b);
+}
+
+void online_setUnitPrice2(void)
+{
+	settings[1].price_ = atof(mt_pump[1].price);
+	settings[1].price_  += 0.00011;  //make small correction for the inherent rounddown.
+
+	save_settings();   //save to eeprom
+	load_settings(side_b); //load the settings into the internal variables
 }
 
 
 
 void ep1_mtResponse(void)
 {
-	int8_t header_found = 0,
-		   indexx = 0;
+	int8_t header_found = 0;
+	uint8_t indexx = 0;
 
 	int head_pos = 0;
 
+	float price_change1,
+		  price_change2;
+
 	char rx;
+
+	memset(mt, '\0', sizeof(mt));
 
 	while( (indexx < 249) && (head_pos < pump_rx_bufsize) )
 	{
 	   if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) && (indexx < 249) )
 		   rx = rx_buf[head_pos];
+
+//	   res: di:860537064685993,ep:1. {"st":0,"tk":31290,"ud":0,"tm":37427375,"am":0.0,"mt":{"ty":3,"pn":"all","pr":590.0,"sh":null,"fg":0,"tg":"p|all"},"pv":0.0,"wv":0.0,"sa":0.0,"bal":0.0,"dc":null,"wb":null,"ft":null}
+
+//	   mt":{"ty":3,"pn":"all","pr":590.0,"sh":null,"fg":0,"tg":"p|all"}
 
 //     [{"ty":3,"pn":"P9","pr":185.0,"sh":null,"fg":0,"tg":"p|P9"},{"ty":3,"pn":"P10","pr":850.0,"sh":null,"fg":0,"tg":"p|P10"}]
 
@@ -1228,100 +1549,166 @@ void ep1_mtResponse(void)
 			   mt[indexx] = '\0';
 			   if(indexx > 6)
 			   {
-				   int8_t str_len;
-
-				   mt_pump[0].type[0] = mt[7];
-				   mt_pump[0].pumpName[0] = mt[(7 + 8)];
-
-				   head_pos = 16;
-				   indexx = 1;
-				   while(mt[head_pos] != '"')
+				   if(indexx > 100)
 				   {
-					   if(indexx < 5)
-						   mt_pump[0].pumpName[indexx++] = mt[head_pos++];
-				   }
+//					   int8_t str_len;
 
-				   head_pos = head_pos + 7;
-				   indexx = 0;
-				   do
+					   mt_pump[0].type[0] = mt[7];
+					   mt_pump[0].pumpName[0] = mt[(7 + 8)];
+
+					   head_pos = 16;
+					   indexx = 1;
+					   while(mt[head_pos] != '"')
+					   {
+						   if(indexx < 5)
+							   mt_pump[0].pumpName[indexx++] = mt[head_pos++];
+					   }
+
+					   head_pos = head_pos + 7;
+					   indexx = 0;
+					   memset(mt_pump[0].price, '\0', sizeof(mt_pump[0].price) );
+					   do
+					   {
+						  mt_pump[0].price[indexx++] = mt[head_pos++];
+					   }
+					   while(mt[head_pos] != ',');
+
+					   while(mt[head_pos++] != '{');
+					   mt_pump[1].type[0] = (mt[head_pos + 5]);
+					   mt_pump[1].pumpName[0] = mt[head_pos + (5+8)];
+
+					   head_pos = head_pos + (13 + 1);
+					   indexx = 1;
+					   while(mt[head_pos] != '"')
+					   {
+						   if(indexx < 5)
+							   mt_pump[1].pumpName[indexx++] = mt[head_pos++];
+					   }
+
+					   head_pos = head_pos + 7;
+					   indexx = 0;
+					   memset(mt_pump[1].price, '\0', sizeof(mt_pump[1].price) );
+					   do
+					   {
+						  mt_pump[1].price[indexx++] = mt[head_pos++];
+					   }
+					   while(mt[head_pos] != ',');
+
+					   price_change1 = atof(mt_pump[0].price);
+					   price_change1  += 0.00011;  //make small correction for the inherent rounddown.
+
+					   price_change2 = atof(mt_pump[1].price);
+					   price_change2  += 0.00011;  //make small correction for the inherent rounddown.
+
+					   if( (mt_pump[0].type[0] == '3') && (price_change1 != settings[0].price_) )
+					   {
+						   changeLitrePrice1 = 1;
+					   }
+					   else
+					   {
+						   ep1a_priceChangeFlag1 = 1;
+					   }
+
+					   if( (mt_pump[1].type[0] == '3') && (price_change2 != settings[1].price_) )
+					   {
+						   changeLitrePrice2 = 1;
+					   }
+					   else
+					   {
+						   ep1a_priceChangeFlag2 = 1;
+					   }
+
+					   head_pos = 0;
+					   return;
+				   }
+				   else
 				   {
-					  mt_pump[0].price[indexx++] = mt[head_pos++];
-				   }
-				   while(mt[head_pos] != ',');
 
-				   while(mt[head_pos++] != '{');
-				   mt_pump[1].type[0] = (mt[head_pos + 5]);
-				   mt_pump[1].pumpName[0] = mt[head_pos + (5+8)];
+//					   int8_t str_len;
+						if(strstr(mt, pumpName[0].pump_name))
+						{
+						   mt_pump[0].type[0] = mt[7];
+						   mt_pump[0].pumpName[0] = mt[(7 + 8)];
 
-				   head_pos = head_pos + (13 + 1);
-				   indexx = 1;
-				   while(mt[head_pos] != '"')
-				   {
-					   if(indexx < 5)
-						   mt_pump[1].pumpName[indexx++] = mt[head_pos++];
-				   }
+						   head_pos = 16;
+						   indexx = 1;
+						   while(mt[head_pos] != '"')
+						   {
+							   if(indexx < 5)
+								   mt_pump[0].pumpName[indexx++] = mt[head_pos++];
+						   }
 
-				   head_pos = head_pos + 7;
-				   indexx = 0;
-				   do
-				   {
-					  mt_pump[1].price[indexx++] = mt[head_pos++];
-				   }
-				   while(mt[head_pos] != ',');
+						   head_pos = head_pos + 7;
+						   indexx = 0;
+						   memset(mt_pump[0].price, '\0', sizeof(mt_pump[0].price) );
+						   do
+						   {
+							  mt_pump[0].price[indexx++] = mt[head_pos++];
+						   }
+						   while(mt[head_pos] != ',');
 
-				   if(mt_pump[0].type[0] == '3')
-				   {
-					   changeLitrePrice = 1;
+						   price_change1 = atof(mt_pump[0].price);
+						   price_change1  += 0.00011;  //make small correction for the inherent rounddown.
+
+						   if( (mt_pump[0].type[0] == '3') && (price_change1 != settings[0].price_) )
+						   {
+							   changeLitrePrice1 = 1;
+						   }
+						   else
+						   {
+							   ep1a_priceChangeFlag1 = 1;
+						   }
+
+
+						   head_pos = 0;
+						   return;
+						}
+						else if (strstr(mt, pumpName[1].pump_name))
+						{
+						   mt_pump[1].type[0] = mt[7];
+						   mt_pump[1].pumpName[0] = mt[(7 + 8)];
+
+						   head_pos = 16;
+						   indexx = 1;
+						   while(mt[head_pos] != '"')
+						   {
+							   if(indexx < 5)
+								   mt_pump[1].pumpName[indexx++] = mt[head_pos++];
+						   }
+
+						   head_pos = head_pos + 7;
+						   indexx = 0;
+						   memset(mt_pump[1].price, '\0', sizeof(mt_pump[1].price) );
+						   do
+						   {
+							  mt_pump[1].price[indexx++] = mt[head_pos++];
+						   }
+						   while(mt[head_pos] != ',');
+
+						   price_change2 = atof(mt_pump[1].price);
+						   price_change2  += 0.00011;  //make small correction for the inherent rounddown.
+
+						   if( (mt_pump[1].type[0] == '3') && (price_change2 != settings[1].price_) )
+						   {
+							   changeLitrePrice2 = 1;
+						   }
+						   else
+						   {
+							   ep1a_priceChangeFlag2 = 1;
+						   }
+						   head_pos = 0;
+						   return;
+						}
 				   }
-				   return;
+			   }
+			   else
+			   {
+				   indexx = 250;
 			   }
 		   }
 	   }
 	   head_pos++;
 	}
-}
-
-uint8_t ct_get(void)
-{
-	int head_pos = 0;
-
-	char rx;
-
-	while(head_pos < pump_rx_bufsize)
-	{
-	   if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-		   rx = rx_buf[head_pos];
-
-	   if(rx == 'c')
-	   {
-		  head_pos++;
-		  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-			  rx = rx_buf[head_pos];
-
-		  if(rx == 't')
-		  {
-			  head_pos++;
-			  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-				  rx = rx_buf[head_pos];
-
-			  if(rx == ':')
-			  {
-				  head_pos++;
-				  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-					  rx = rx_buf[head_pos];
-				  calibrate_ct.ct = (int) rx;
-
-				  if(rx == '0')
-					  return 0;
-				  else if(rx == '1')
-					  return 1;
-			   }
-		  }
-	   }
-
-	   head_pos++;
-	 }
-		return 0;
 }
 
 void ep2_send(pump_sid side)
@@ -1333,7 +1720,7 @@ void ep2_send(pump_sid side)
 		tranxA_token = generate_tk();
 		tranx_save.token = 	tranxA_token;
 
-		tranx_save.timestamp = synchedLog_a_new.timeStamp;
+		tranx_save.timestamp = synchedLog_a_new.timestamp;
 		strcpy(tranx_save.device_id, synchedLog_a_new.device_id);
 		strcpy(tranx_save.transaction_id, synchedLog_a_new.transaction_id);
 		tranx_save.transaction_price = synchedLog_a_new.pr__;
@@ -1353,7 +1740,7 @@ void ep2_send(pump_sid side)
 
 		tranx_save.token = tranxB_token;
 
-		tranx_save.timestamp = synchedLog_b_new.timeStamp;
+		tranx_save.timestamp = synchedLog_b_new.timestamp;
 		strcpy(tranx_save.device_id, synchedLog_b_new.device_id);
 		strcpy(tranx_save.transaction_id, synchedLog_b_new.transaction_id);
 		tranx_save.transaction_price = synchedLog_b_new.pr__;
@@ -1428,7 +1815,465 @@ void send_ep0_ep5(void)
 
 }
 
+//{"st":0,"tk":1060422946,,"pumps":[{"nm":"P7","nz":0,"ctt":2,"ct":"1500|20|0.5|0.4|2005},{"nm":"P8","nz":0,"ctt":2, "ct":"2310|20|0.5|0.0|0559"}]}
 
+uint8_t ct_parse(pump_sid side)
+{
+	int head_pos = 0;
+	uint8_t pipe_found = 0,
+			i = 0,
+			ct_gotten = 0,
+			pipeCounter = 0,
+			curlyBracket = 0;
+
+	char rx;
+
+	if(side == side_a){
+
+		while( (head_pos < pump_rx_bufsize) && (ct_gotten == 0) )
+		{
+		   if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+			   rx = rx_buf[head_pos];
+
+		   if(rx == 'c')
+		   {
+			  head_pos++;
+			  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+				  rx = rx_buf[head_pos];
+
+			  if(rx == 't')
+			  {
+				  head_pos++;
+				  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+					  rx = rx_buf[head_pos];
+
+				  if(rx == 't')
+				  {
+					  head_pos += 2;
+					  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+						  rx = rx_buf[head_pos];
+
+					  if(rx == ':')
+					  {
+						  head_pos++;
+						  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+							  rx = rx_buf[head_pos];
+						  ep31_save.pump[0].calibrate_ct.ctt = (int)(rx); //atoi(rx);
+						  ep31_save.pump[0].calibrate_ct.ctt -= 48;
+						  if(rx == '0')
+							  return 0;
+						  else if(rx == '1')
+						  {
+	//						  [{"nm":"P7","nz":0,"ctt":1,"ct":"20|0.5|0.4},{"nm":
+							  while( (head_pos < pump_rx_bufsize) && (ct_gotten == 0) )
+							  {
+								  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+									 rx = rx_buf[head_pos];
+								  if( (rx == '|') && (pipe_found == 0) )
+								  {
+	//						    	  head_pos++;
+									  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+										  rx = rx_buf[head_pos];
+									  pipe_found = 1;
+	//								  pipeCounter++;
+								  }
+								  else if (pipe_found == 1)
+								  {
+									   if(rx == '|')
+									   {
+	//										 if(pipeCounter == 2)
+	//										 {
+										 do
+										 {
+											 head_pos++;
+											 if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+												   rx = rx_buf[head_pos];
+
+											   if(rx != '}')
+												   ep31_save.pump[0].calibrate_ct.ct_effectiveMinusBase[i++] = rx;
+										 }
+										 while(rx != '}');
+										 ct_gotten = 1;
+									   }
+								  }
+								  head_pos++;
+							  }
+	//						   return 1;
+						  }
+						  else if(rx == '2')
+						  {
+	//						  ctt":2,"ct":"1500|20|0.5|0.4|2005}
+							  head_pos += 7;
+							  i = 0;
+
+							  memset(ep31_save.pump[0].calibrate_ct.ct_startTime,'\0', 6);
+							  do
+							  {
+								 head_pos++;
+								 if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+									   rx = rx_buf[head_pos];
+
+								   if(rx != '|')
+									   ep31_save.pump[0].calibrate_ct.ct_startTime[i++] = rx;
+							  }
+							  while(rx != '|');
+
+	//						      pipe_found = 0;
+
+							  pipeCounter = 0;
+							  while(pipeCounter != 2)
+							  {
+								 head_pos++;
+								 if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+									   rx = rx_buf[head_pos];
+								 if(rx == '|')
+									  pipeCounter++;
+	//								 if(pipeCounter == 2);
+							  }
+							  i = 0;
+							  memset(ep31_save.pump[0].calibrate_ct.ct_effectiveMinusBase,'\0', 6);
+							  do
+							  {
+								 head_pos++;
+								 if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+									   rx = rx_buf[head_pos];
+
+								   if(rx != '|')
+									   ep31_save.pump[0].calibrate_ct.ct_effectiveMinusBase[i++] = rx;
+							  }
+							  while(rx != '|');
+							  i = 0;
+							  memset(ep31_save.pump[0].calibrate_ct.ct_endTime,'\0', 6);
+							  do
+							  {
+								 head_pos++;
+								 if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+									   rx = rx_buf[head_pos];
+
+								   if(rx != '}')
+									   ep31_save.pump[0].calibrate_ct.ct_endTime[i++] = rx;
+							  }
+							  while(rx != '}');
+
+		//							  ctt":2,"ct":"1500|20|0.5|0.4|2005},{"nm":"P8","nz":0,"ctt":2, "ct":"2310|20|0.5|0.0|0559"}]}
+								  return 2;
+						  }
+						  else
+						  {
+							  return 0;
+						  }
+					   }
+				  	  }
+			  	  }
+		   	   }
+		   	   head_pos++;
+			}
+		}
+
+		else if(side == side_b){
+
+		  while(curlyBracket == 0)
+		  {
+			 head_pos++;
+			 if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+				   rx = rx_buf[head_pos];
+			 if(rx == '}')
+				 curlyBracket = 1;
+		  }
+		  curlyBracket = 0;
+		//	  i = 0;
+
+		//	{"st":0,"tk":1060422946,,"pumps":[{"nm":"P7","nz":0,"ctt":1,"ct":"20|0.5|0.4},{"nm":"P8","nz":0,"ctt":1, "ct":"20|0.5|0.0"}]}
+
+			while( (head_pos < pump_rx_bufsize) && (ct_gotten == 0)  )
+			{
+			   if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+				   rx = rx_buf[head_pos];
+
+			   if(rx == 'c')
+			   {
+				  head_pos++;
+				  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+					  rx = rx_buf[head_pos];
+
+				  if(rx == 't')
+				  {
+					  head_pos++;
+					  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+						  rx = rx_buf[head_pos];
+
+					  if(rx == 't')
+					  {
+						  head_pos += 2;
+						  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+							  rx = rx_buf[head_pos];
+
+						  if(rx == ':')
+						  {
+							  head_pos++;
+							  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+								  rx = rx_buf[head_pos];
+							  ep31_save.pump[1].calibrate_ct.ctt = (int)(rx);
+							  ep31_save.pump[1].calibrate_ct.ctt -= 48;
+							  if(rx == '0')
+								  return 0;
+							  else if(rx == '1')
+							  {
+		//						  [{"nm":"P7","nz":0,"ctt":1,"ct":"20|0.5|0.4},{"nm":
+								  while( (head_pos < pump_rx_bufsize) && (ct_gotten == 0) )
+								  {
+									  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+										 rx = rx_buf[head_pos];
+									  if( (rx == '|') && (pipe_found == 0) )
+									  {
+										  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+											  rx = rx_buf[head_pos];
+										  pipe_found = 1;
+									  }
+									  else if (pipe_found == 1)
+									  {
+										   if(rx == '|')
+										   {
+											 do
+											 {
+												 head_pos++;
+												 if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+													   rx = rx_buf[head_pos];
+
+												   if(rx != '"')
+													   ep31_save.pump[1].calibrate_ct.ct_effectiveMinusBase[i++] = rx;
+											 }
+											 while(rx != '"');
+											 ct_gotten = 1;
+										   }
+									  }
+									  head_pos++;
+								  }
+								   return 1;
+							  }
+
+		//{"st":0,"tk":1060422946,,"pumps":[{"nm":"P7","nz":0,"ctt":2,"ct":"1500|20|0.5|0.4|2005},{"nm":"P8","nz":0,"ctt":2, "ct":"2310|20|0.5|0.0|0559"}]}
+
+							  else if(rx == '2')
+							  {
+								  while(rx != ':')
+								  {
+									 head_pos++;
+									 if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+										   rx = rx_buf[head_pos];
+								  }
+
+					//						  ctt":2,"ct":"1500|20|0.5|0.4|2005}
+								  head_pos += 1;
+								  i = 0;
+								  memset(ep31_save.pump[1].calibrate_ct.ct_startTime,'\0', 6);
+								  do
+								  {
+									 head_pos++;
+									 if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+										   rx = rx_buf[head_pos];
+
+									   if(rx != '|')
+										   ep31_save.pump[1].calibrate_ct.ct_startTime[i++] = rx;
+								  }
+								  while(rx != '|');
+
+					//						      pipe_found = 0;
+
+								  pipeCounter = 0;
+								  while(pipeCounter != 2)
+								  {
+									 head_pos++;
+									 if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+										   rx = rx_buf[head_pos];
+									 if(rx == '|')
+										  pipeCounter++;
+				//								 if(pipeCounter == 2);
+								  }
+								  i = 0;
+								  memset(ep31_save.pump[1].calibrate_ct.ct_effectiveMinusBase,'\0', 6);
+								  do
+								  {
+									 head_pos++;
+									 if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+										   rx = rx_buf[head_pos];
+
+									   if(rx != '|')
+										   ep31_save.pump[1].calibrate_ct.ct_effectiveMinusBase[i++] = rx;
+								  }
+								  while(rx != '|');
+								  i = 0;
+								  memset(ep31_save.pump[1].calibrate_ct.ct_endTime,'\0', 6);
+								  do
+								  {
+									 head_pos++;
+									 if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+										   rx = rx_buf[head_pos];
+
+									   if(rx != '"')
+										   ep31_save.pump[1].calibrate_ct.ct_endTime[i++] = rx;
+								  }
+								  while(rx != '"');
+								  return 2;
+							  }
+							  else
+							  {
+								  return 0;
+							  }
+						   }
+					  }
+				  }
+			   }
+			   head_pos++;
+			 }
+		}
+}
+
+
+uint8_t ep1_ctCheck(void)
+{
+	uint8_t len,
+		   curlyBracket = 0;
+
+	int head_pos = 0;
+
+	char rx;
+
+   if(strstr(rx_buf, "\"ct\":"))
+   {
+	   len = strlen(rx_buf);
+
+	   while( (head_pos < len) && (curlyBracket == 0) )
+	   {
+		 head_pos++;
+		 if( (head_pos >= 0) && (head_pos < len) )
+			   rx = rx_buf[head_pos];
+		 if(rx == '}')
+			 curlyBracket = 1;
+	   }
+
+	   head_pos--;
+	   ep1a_save.ct = (int) (rx_buf[head_pos]);
+	   ep1a_save.ct = (ep1a_save.ct - 48);
+	   return ep1a_save.ct;
+   }
+   else
+	   return 0;
+}
+
+void ttostr(uint32_t time_integer,uint8_t typ) // typ: 1=> time 2=>date
+{
+	u32 yearShift = 27;
+	u32 mnmask = 0x1f;
+	u32 deviceYear = 2018+5;
+
+	  if (deviceYear <= 2016)
+		{
+			deviceYear = 2000;
+		}
+
+	  if(typ == 1)
+	  {
+		DS1307_SetHour((time_integer >> 12) & 0x1f);
+		DS1307_SetMinute((time_integer >> 6) & 0x3f);
+		DS1307_SetSecond(00);
+
+
+		hour = DS1307_GetHour();
+		minute = DS1307_GetMinute();
+		second = DS1307_GetSecond();
+	  }
+	  else if(typ == 2)
+	  {
+		DS1307_SetDate((time_integer >> 17) & 0x1f);
+		DS1307_SetMonth((time_integer >> 22) & mnmask);
+		DS1307_SetYear(((time_integer >> yearShift) & 0x1f) + (deviceYear-2000)); //5 bit
+
+		day = DS1307_GetDate();
+		month = DS1307_GetMonth();
+		year = DS1307_GetYear();
+
+	  }
+}
+
+
+
+void serverTime_parse(void)
+{
+	int head_pos = 0;
+	uint8_t serverTime_gotten = 0,
+			i = 0;
+
+//	res => ep:1a. {"st":0,"tk":31290,"ud":0,"tm":37427375,"am":0.0,"mt":{"ty":3,"pn":"all","pr":590.0,"sh":null,"fg":0,"tg":"p|all"},"pv":0.0,"wv":0.0,"sa":0.0,"bal":0.0,"dc":null,"wb":null,"ft":null}
+
+	char rx;
+
+	while( (head_pos < pump_rx_bufsize) && (serverTime_gotten == 0) )
+	{
+	   if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+		   rx = rx_buf[head_pos];
+
+	   if(rx == 't')
+	   {
+		  head_pos++;
+		  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+			  rx = rx_buf[head_pos];
+
+		  if(rx == 'm')
+		  {
+			  head_pos += 2;
+			  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+				  rx = rx_buf[head_pos];
+
+			  if(rx == ':')
+			  {
+				  i = 0;
+				  memset(serverTimeStr, '\0', sizeof(serverTimeStr));
+				  do
+				  {
+					 head_pos++;
+					 if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+						   rx = rx_buf[head_pos];
+
+					   if( (rx != ',') && (i < 15) )
+						   serverTimeStr[i++] = rx;
+				  }
+				  while(rx != ',');
+				  serverTime_gotten = 1;
+			  }
+		   }
+		}
+		head_pos++;
+	}
+}
+
+
+//void ttostr(u32 time_integer,u8 typ) // typ: 1=> time 2=>date
+//{
+//	u32 yearShift = 27;
+//	u32 mnmask = 0x1f;
+//	u32 deviceYear = 2018+5;
+//	 EatRtc_st* sysRtc;
+//
+//	  if (deviceYear <= 2016)
+//		{
+//			deviceYear = 2000;
+//		}
+//
+//	  if(typ == 1)
+//	  {
+//		sysRtc->min = ((time_integer >> 6) & 0x3f );
+//		sysRtc->hour = ((time_integer >> 12) & 0x1f );
+//		sprintf(tmmstr,"%d:%02d",sysRtc->hour,sysRtc->min);
+//	  }
+//	  else if(typ == 2)
+//	  {
+//		sysRtc->day = ((time_integer >> 17) & 0x1f );
+//		sysRtc->mon = ((time_integer >> 22) & mnmask );
+//		sysRtc->year = (((time_integer >> yearShift) & 0x1f ) + (deviceYear-2000)); //5 bit
+//		sprintf(tmmstr,"%02d/%02d/%02d",sysRtc->day,sysRtc->mon,sysRtc->year);
+//	  }
+//}
 
 //void server_write(char* write_string)
 //{

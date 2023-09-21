@@ -20,12 +20,14 @@ extern SPI_HandleTypeDef _W25QXX_SPI;
 
 extern UART_HandleTypeDef huart2;
 
-extern char device_id [];
+extern const char device_id [];
 
 extern float litre_price1;
 extern int8_t opmode,
-			  opmode2,
-			  connected = 0;
+			  opmode2;
+//			  connected = 0;
+
+extern uint8_t connected = 0;
 
 extern uint32_t transaction_period,
 				transaction_period2;
@@ -58,6 +60,12 @@ extern log_new log_a_new,
 
 extern log_new1 log_a_new1,
 				log_b_new1;
+
+//=== screen Arrays ====
+extern char upper1[10],
+			middle1[10],
+			upper2[10],
+			middle2[10];
 
 extern const uint32_t flash_beginA;
 extern const uint32_t flash_endA;
@@ -99,8 +107,10 @@ extern uint8_t hour,minute,second,day,month,year,dayofweek;
 extern time_ timeA, timeB;
 extern date_ dateA, dateB;
 
-extern int8_t _litre_price,
-			  _litre_price2;
+extern uint8_t _litre_price1,
+			  _litre_price2,
+			  _pump_max_litres1,
+			  _pump_max_litres2;
 
 //extern ep_ epp;
 
@@ -124,10 +134,21 @@ void update_info()       //save_log( )
       //  }
         //====================================
         //        price and volume
-        log_a_new.pr_ = price_real;  //real
+
+//	    memset(log_a_new.pr__ , '0', sizeof(log_a_new.pr__) ); //calibrated
+//	    memset(log_a_new.vol__ , '0', sizeof(log_a_new.pr__) );
+//	    strncpy(log_a_new.pr__ , upper1, sizeof(log_a_new.pr__) );
+//	    strncpy(log_a_new.vol__ , middle1, sizeof(log_a_new.vol__) );
+
+	    log_a_new.pr__ = atof(upper1);  //calibrated
+	    log_a_new.pr__  += 0.00011;  //make small correction for the inherent rounddown.
+	    log_a_new.vol__ = atof(middle1);
+	    log_a_new.vol__ += 0.00011;  //make small correction for the inherent rounddown.
+
+	    log_a_new.pr_ = price_real;  //real
         log_a_new.vol_ = amt_real;
-        log_a_new.pr__ = price;  //calibrated
-        log_a_new.vol__ = amt;
+//        log_a_new.pr__ = price;  //calibrated
+//        log_a_new.vol__ = amt;
        // log_a_new.pr_d = 0; //price_;
        // log_a_new.pr_d = 0; //amt_;
 
@@ -164,8 +185,15 @@ void update_info()       //save_log( )
            //        price and volume
            log_b_new.pr_ = price_real2;  //real
            log_b_new.vol_ = amt_real2;
-           log_b_new.pr__ = price2;  //calibrated
-           log_b_new.vol__ = amt2;
+//           log_b_new.pr__ = price2;  //calibrated
+//           log_b_new.vol__ = amt2;
+
+           log_b_new.pr__ = atof(upper2);  //calibrated
+		   log_b_new.pr__  += 0.00011;  //make small correction for the inherent rounddown.
+		   log_b_new.vol__ = atof(middle2);
+		   log_b_new.vol__ += 0.00011;  //make small correction for the inherent rounddown.
+
+
           // log_a_new.pr_d = 0; //price_;
           // log_a_new.pr_d = 0; //amt_;
 
@@ -306,7 +334,7 @@ eSystemState write_flash_state_Handler(void)
 
 		generateTransc_ID(log_a_new.transaction_id);
 
-		log_a_new.timeStamp = RtcToInt_synchedTranx(2019, side_a);
+		log_a_new.timestamp = RtcToInt_synchedTranx(2019, side_a);
 		strcpy(log_a_new.nozzle_name, pumpName[0].pump_name);
 		strcpy(log_a_new.nozzle_product, settings[0].product_);
 
@@ -334,7 +362,7 @@ eSystemState write_flash_state_Handler(void)
 
 		generateTransc_ID(log_b_new.transaction_id);
 
-		log_b_new.timeStamp = RtcToInt_synchedTranx(2019, side_b);
+		log_b_new.timestamp = RtcToInt_synchedTranx(2019, side_b);
 		strcpy(log_b_new.nozzle_name, pumpName[1].pump_name);
 		strcpy(log_b_new.nozzle_product, settings[0].product_);
 

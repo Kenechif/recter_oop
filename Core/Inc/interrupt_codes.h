@@ -34,6 +34,34 @@ union strr
 	uint8_t rx[25];                    // receive buffer
 }rxdata;  */
 
+
+extern float working_volTotaliser1,
+			 working_volTotaliser1c,
+			 running_volTotaliser1,
+			 running_volTotaliser1c,
+			 working_volTotaliser2,
+			 working_volTotaliser2c,
+			 running_volTotaliser2,
+			 running_volTotaliser2c;
+
+extern float working_amtTotaliser1,
+			 working_amtTotaliser1c,
+			 running_amtTotaliser1,
+			 running_amtTotaliser1c,
+			 working_amtTotaliser2,
+			 working_amtTotaliser2c,
+			 running_amtTotaliser2,
+			 running_amtTotaliser2c;
+
+extern uint32_t  r_volTotaliser,
+		         old_r_volTotaliser;
+
+extern uint16_t countar,
+				countar2;
+
+extern float r_amtTotaliser,
+	         old_r_amtTotaliser;
+
 static int rcv_count = 0;
 
 //uint8_t rx_[25];

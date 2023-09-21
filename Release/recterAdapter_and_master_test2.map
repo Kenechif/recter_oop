@@ -194,9 +194,9 @@ datar1              0x32              ./Core/Src/thread1.o
 errno               0x4               c:/st/stm32cubeide_1.8.0/stm32cubeide/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.9-2020-q2-update.win32_2.0.0.202105311346/tools/bin/../lib/gcc/arm-none-eabi/9.3.1/../../../../arm-none-eabi/lib/thumb/v7e-m+fp/hard\libc_nano.a(lib_a-reent.o)
 settings            0x68              ./Core/Src/settings.o
 ePrevState          0x1               ./Core/Src/interrupt_codes.o
-eLastState          0x1               ./Core/Src/interrupt_codes.o
+eLastState1          0x1               ./Core/Src/interrupt_codes.o
 mamo_update         0x4               ./Core/dart_protocol/drt.o
-eNextState          0x1               ./Core/Src/interrupt_codes.o
+eNextState1          0x1               ./Core/Src/interrupt_codes.o
 r_total_volume      0xf               ./Core/dart_protocol/drt.o
 dpamo               0x1               ./Core/dart_protocol/drt.o
 lng                 0x1               ./Core/dart_protocol/drt.o
@@ -400,11 +400,11 @@ Discarded input sections
                 0x0000000000000000        0x4 ./Core/Src/settings.o
  .rodata.save_settings2_loc
                 0x0000000000000000        0x4 ./Core/Src/settings.o
- .rodata.tot1_loc
+ .rodata.totVol1_loc
                 0x0000000000000000        0x4 ./Core/Src/settings.o
- .rodata.tot2_loc
+ .rodata.totVol2_loc
                 0x0000000000000000        0x4 ./Core/Src/settings.o
- .rodata.tot_loc
+ .rodata.totVol_loc
                 0x0000000000000000        0x4 ./Core/Src/settings.o
  .text          0x0000000000000000        0x0 ./Core/Src/states.o
  .data          0x0000000000000000        0x0 ./Core/Src/states.o
@@ -3711,12 +3711,12 @@ LOAD c:/st/stm32cubeide_1.8.0/stm32cubeide/plugins/com.st.stm32cube.ide.mcu.exte
                 0x0000000020000794                operating_side
  .bss.price     0x0000000020000798        0x4 ./Core/Src/settings.o
                 0x0000000020000798                price
- .bss.running_volTotaliser
+ .bss.running_volTotaliser1
                 0x000000002000079c        0x4 ./Core/Src/settings.o
-                0x000000002000079c                running_volTotaliser
- .bss.running_volTotaliserc
+                0x000000002000079c                running_volTotaliser1
+ .bss.running_volTotaliser1c
                 0x00000000200007a0        0x4 ./Core/Src/settings.o
-                0x00000000200007a0                running_volTotaliserc
+                0x00000000200007a0                running_volTotaliser1c
  .bss.sellmode  0x00000000200007a4        0x1 ./Core/Src/settings.o
                 0x00000000200007a4                sellmode
  *fill*         0x00000000200007a5        0x3 
@@ -3732,12 +3732,12 @@ LOAD c:/st/stm32cubeide_1.8.0/stm32cubeide/plugins/com.st.stm32cube.ide.mcu.exte
  .bss.totaliser_vol2c
                 0x00000000200007b4        0x4 ./Core/Src/settings.o
                 0x00000000200007b4                totaliser_vol2c
- .bss.working_volTotaliser
+ .bss.working_volTotaliser1
                 0x00000000200007b8        0x4 ./Core/Src/settings.o
-                0x00000000200007b8                working_volTotaliser
- .bss.working_volTotaliserc
+                0x00000000200007b8                working_volTotaliser1
+ .bss.working_volTotaliser1c
                 0x00000000200007bc        0x4 ./Core/Src/settings.o
-                0x00000000200007bc                working_volTotaliserc
+                0x00000000200007bc                working_volTotaliser1c
  .bss._index    0x00000000200007c0        0x4 ./Core/Src/states.o
                 0x00000000200007c0                _index
  .bss.access.12413
@@ -3749,9 +3749,9 @@ LOAD c:/st/stm32cubeide_1.8.0/stm32cubeide/plugins/com.st.stm32cube.ide.mcu.exte
  .bss.auth      0x00000000200007d0        0x1 ./Core/Src/states.o
                 0x00000000200007d0                auth
  *fill*         0x00000000200007d1        0x3 
- .bss.calib_pulser
+ .bss.calib_pulser1
                 0x00000000200007d4        0x4 ./Core/Src/states.o
-                0x00000000200007d4                calib_pulser
+                0x00000000200007d4                calib_pulser1
  .bss.calibr    0x00000000200007d8        0x4 ./Core/Src/states.o
                 0x00000000200007d8                calibr
  .bss.chg_pw.12464
@@ -3827,8 +3827,8 @@ LOAD c:/st/stm32cubeide_1.8.0/stm32cubeide/plugins/com.st.stm32cube.ide.mcu.exte
                 0x000000002000085c        0x4 ./Core/Src/states.o
  .bss.loop_.12365
                 0x0000000020000860        0x4 ./Core/Src/states.o
- .bss.middle    0x0000000020000864        0xa ./Core/Src/states.o
-                0x0000000020000864                middle
+ .bss.middle1    0x0000000020000864        0xa ./Core/Src/states.o
+                0x0000000020000864                middle1
  *fill*         0x000000002000086e        0x2 
  .bss.old_r_volTotaliser
                 0x0000000020000870        0x4 ./Core/Src/states.o
@@ -3877,8 +3877,8 @@ LOAD c:/st/stm32cubeide_1.8.0/stm32cubeide/plugins/com.st.stm32cube.ide.mcu.exte
  .bss.tot_buttonpress_tmr
                 0x00000000200008b8        0x4 ./Core/Src/states.o
                 0x00000000200008b8                tot_buttonpress_tmr
- .bss.upper     0x00000000200008bc        0xa ./Core/Src/states.o
-                0x00000000200008bc                upper
+ .bss.upper1     0x00000000200008bc        0xa ./Core/Src/states.o
+                0x00000000200008bc                upper1
  *fill*         0x00000000200008c6        0x2 
  .bss.volume_flag
                 0x00000000200008c8        0x4 ./Core/Src/states.o
@@ -3946,8 +3946,8 @@ LOAD c:/st/stm32cubeide_1.8.0/stm32cubeide/plugins/com.st.stm32cube.ide.mcu.exte
  *(COMMON)
  COMMON         0x0000000020000924        0x4 ./Core/Src/interrupt_codes.o
                 0x0000000020000924                ePrevState
-                0x0000000020000925                eLastState
-                0x0000000020000926                eNextState
+                0x0000000020000925                eLastState1
+                0x0000000020000926                eNextState1
                 0x0000000020000927                eNewEvent
  COMMON         0x0000000020000928      0x140 ./Core/Src/settings.o
                 0x0000000020000928                settings

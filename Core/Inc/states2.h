@@ -147,20 +147,37 @@ void reset_timer2(int tm);
 void stop_timer2(void);
 void start_timer2(int tm);
 
+uint32_t price2pulser2(float price);
+uint32_t amt2pulser2(float amt);
+float pulser2price2(uint32_t pulse_);
+float amt2price2(float amt_);
+float pulser2amt2(uint32_t pulse_);
+float pulser2amt_R2(uint32_t pulse_);
+void make_string2(sellmode_ sll,float pr);
 
-int long_press_key2();
-int long_press_log2();
-int long_press_tot2();
+
+uint8_t long_press_key2();
+uint8_t long_press_progExit2();
+
+uint8_t long_press_log2();
+uint8_t long_press_tot2();
 
 
 static bool mth_success2 = false,
 			clock_save2 = false;
 
-extern float lastSale2,
-	  	  	 lastSale2c;
+extern float lastVolumeSale2,
+	  	  	 lastVolumeSale2c;
+
+extern ctTimed_settings ctTimed_settingsB;
 
 bool leapYear_calc2(int8_t year);
 void save_date2(int8_t _entri);
+
+uint16_t get_ctTime2(void);
+
+float dp2(float flt,int n);
+float amt2price2(float amt_);
 
 
 #ifdef __cplusplus

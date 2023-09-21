@@ -32,7 +32,8 @@ extern uint8_t buff[30] ;
 
 extern int tot_buttonpress_tmr;
 extern int log_buttonpress_tmr;
-extern int key_buttonpress_tmr;
+extern int key_buttonpress_tmr,
+		   progExit_buttonpress_tmr1;
 
 extern uint8_t filling;
 extern uint8_t pulser_complete;
@@ -48,11 +49,14 @@ extern uint32_t transaction_period,
 extern uint8_t firstTime_filling,
 			   firstTime_filling2;
 
+uint16_t countar3 = 0;
+
 //===============================================
 
 extern int tot_buttonpress_tmr2;
 extern int log_buttonpress_tmr2;
-extern int key_buttonpress_tmr2;
+extern int key_buttonpress_tmr2,
+		   progExit_buttonpress_tmr2;
 
 extern uint8_t filling2;
 extern uint8_t pulser_complete2;
@@ -60,7 +64,10 @@ extern int pulser_rem2;
 //extern const uint8_t fast_flow_threshold;
 extern int calibr2;
 
-uint16_t motor_tmr = 0,
+extern uint16_t totalizer1Timer,
+				totalizer2Timer;
+
+uint16_t motor_tmr1 = 0,
 		 motor_tmr2 = 0;
 
 /*
@@ -166,10 +173,10 @@ else
 
 void check_flow(void)
 {
-	motor_tmr++;
+	motor_tmr1++;
 	motor_tmr2++;
 
-	if(motor_tmr > 3000) motor_tmr = 3000;
+	if(motor_tmr1 > 3000) motor_tmr1 = 3000;
 	if(motor_tmr2 > 3000) motor_tmr2 = 3000;
 
 	extern float pulser_index_c;
@@ -192,7 +199,13 @@ void check_flow(void)
 		 }
 	  }
 	#else
-			current_pulser = __HAL_TIM_GET_COUNTER(&htim5);
+		  if(pulser_rem > 0)
+		  {
+			  current_pulser = __HAL_TIM_GET_COUNTER(&htim5);
+		  }
+
+//		  current_pulser = __HAL_TIM_GET_COUNTER(&htim5);
+
 	#endif
     //------------------------------------------------------------------
 	if (filling == 1)
@@ -212,7 +225,13 @@ void check_flow(void)
 		  {
 			pulser_complete = 0;
 			pulser_rem = target_pulser - current_pulser;
-			if(pulser_rem >= fast_flow_threshold)
+
+			if(pulser_rem <= 0)
+			{
+				stop_flow();
+			}
+
+			else if(pulser_rem >= fast_flow_threshold)
 			{
 				if(current_pulser >=  fast_flow_threshold/2 )
 				{
@@ -243,12 +262,44 @@ void check_flow(void)
 			//not programmed high flow
 			fast_flow();
 	   }
+
+	  //============================================================
+	  //         for totaliser toggle.
+//	  	  r_volTotaliser 	  = floor( running_volTotaliser1c );
+//	  	  r_amtTotaliser 	  = floor(running_amtTotaliser1c);
+
+	  	if(r_volTotaliser != old_r_volTotaliser)
+	  	{
+	  		totalizer1Timer = 0;
+	  //			then toggle the totaliser harware I/O.
+	  		drive_totaliser1(ACTIVATE);
+//	  		countar++;
+	  	}
+	  	else
+	  	{
+	  		//deactivate totaliser output...
+	  		if(totalizer1Timer > 200)
+	  		{
+	  			drive_totaliser1(DEACTIVATE);
+//	  			countar2++;
+	  		}
+
+	  	}
+	  	  old_r_volTotaliser = r_volTotaliser;   //update...
+//	  	  old_r_amtTotaliser = r_amtTotaliser;
 	 }
 	 else
 	 {
 		  //not filling
 		  pulser_complete = 0;
-		  drive_totaliser1(DEACTIVATE);
+
+		  //deactivate totaliser output...
+		  if(totalizer1Timer > 200)
+		  {
+			drive_totaliser1(DEACTIVATE);
+			countar3++;
+		  }
+
 		  if( calibr == 0)
 			  stop_flow();
 		  else
@@ -323,7 +374,12 @@ void check_flow(void)
 		  {
 			  //not filling
 			  pulser_complete2 = 0;
-			  drive_totaliser2(DEACTIVATE);
+
+			  //deactivate totaliser output...
+			  if(totalizer2Timer > 300)
+			  {
+				drive_totaliser2(DEACTIVATE);
+			  }
 			  if( calibr2 == 0)
 				  stop_flow2();
 			  else
