@@ -5,4 +5,4 @@ thread1.c:567:7:led_pin_out	32	static
 thread1.c:308:7:setup	16	static
 thread1.c:587:7:house_keeping	8	static
 thread1.c:601:6:run	8	static
-thread1.c:634:6:read_event	32	static
+thread1.c:634:6:read_event1	32	static

@@ -28,7 +28,7 @@ states.c:329:6:reset_timer	8	static
 states.c:337:6:start_timer	0	static
 states.c:343:6:dec_timer	0	static
 states.c:359:6:stop_timer	4	static
-states.c:476:6:clear_buffer	0	static
+states.c:476:6:clear_buffer1	0	static
 states.c:503:5:long_press_key	0	static
 states.c:531:5:long_press_log	8	static
 states.c:552:5:long_press_tot	0	static

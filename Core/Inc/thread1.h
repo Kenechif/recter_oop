@@ -28,7 +28,7 @@ void run();
 
 void dec_var(void);
 
-int  read_event(void);
+int  read_event1(void);
 
 void get_time(void);
 

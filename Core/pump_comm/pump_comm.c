@@ -21,7 +21,7 @@
 
 //pump_   pump[2];
 
-extern uint8_t filling;
+extern uint8_t filling1;
 uint8_t nozzle_bit = 0;
 uint8_t stop_fueling_bit = 0;
 
@@ -101,7 +101,7 @@ uint8_t sendState(void)
 
 	uint8_t pump_status__ = 0;
 
-	if(filling == 1)
+	if(filling1 == 1)
 	{
 		pump_status__ = (pump_status__ | 0b00000010);
 	}

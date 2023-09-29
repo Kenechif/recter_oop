@@ -116,7 +116,7 @@ int8_t val;
 
 int t, t2 = 0;
 
-uint16_t _tt = 0,
+uint16_t _tt1 = 0,
 		 _tt2 = 0,
 		 timer_ep = 0,
 		 timer_spi,
@@ -131,11 +131,13 @@ uint16_t _tt = 0,
 uint32_t transaction_period = 0,
 		 transaction_period2 = 0;
 
-int ttt = 0;
+unsigned int ttt1 = 0,
+			 ttt2 = 0;
 
 int8_t server_message_found = 0;
 
-uint16_t shutdown_timer = 0;
+uint16_t shutdown_timer1 = 0,
+		 shutdown_timer2 = 0;
 
 char key_lcd[10], key_lcd2[10]  = {0};
 uint8_t buff[30], buff2[30]  = {0};
@@ -168,7 +170,7 @@ int retn;
 
  int key_longpress_status,key_longpress_status2 = 0;
 
- extern uint8_t filling , filling2;
+ extern uint8_t filling1 , filling2;
 
  extern int auth_flag , auth_flag2;
  extern int lat_cnt , lat_cnt2;
@@ -177,7 +179,7 @@ int retn;
  int keypress__ , keypress__2 = 1;
  char wrt_[10],wrt_2[10]  = {0};
 
- uint8_t prog_entry, prog_entry2 = 0;
+ uint8_t prog_entry1, prog_entry2 = 0;
 
  char keyboard[7], keyboard2[7];
  //reference variables
@@ -187,7 +189,7 @@ int retn;
  extern int keypress_ , keypress_2;
  extern int index_ , index_2;
  extern char upper1[10] , upper2[10];
- extern uint32_t target_pulser , current_pulser ,target_pulser2 , current_pulser2;
+ extern uint32_t target_pulser1 , current_pulser1 ,target_pulser2 , current_pulser2;
  extern float key_value ,key_value2;
  extern int index2 , index2;
  extern char keypad_pw[10],keypad_pw2[10];
@@ -908,7 +910,7 @@ void compose_printer()
 	extern const uint32_t flash_beginB;
 	extern const uint32_t flash_endB;
 
-	extern uint8_t prog_entry;
+	extern uint8_t prog_entry1;
 	extern uint8_t prog_entry2;
 
 	    sprintf(print_struct_.name,"RECTER");
@@ -976,7 +978,7 @@ void compose_printer()
 
 //	read_config();
 
-	clear_screen();         //	clear_screen2();  //nextion1_ini();
+	clear_screen1();         //	clear_screen2();  //nextion1_ini();
 	clear_screen2();
 
 //	pump_ini();    // activate the pump communication I/O
@@ -1078,7 +1080,7 @@ void compose_printer()
 
 
    //int t =
-  //	clear_screen();
+  //	clear_screen1();
  //  HAL_UART_Receive_DMA(&huart1,  &dat_str.buf[0] , 30);   //activate the fifo dma receiver.
 
 
@@ -1214,18 +1216,27 @@ tmmm:
 	  firstTotalizer_day();
 	  //----------------------//
 
-	  uint16_t firstTime = 0;
+//	  uint16_t firstTime = 0;
+//
+//	  uint16_t flash_beginA_page = 0,            //0x0000
+//			   flash_beginB_page = 16384;        //0x4000
 
-	  uint16_t flash_beginA_page = 0,            //0x0000
-			   flash_beginB_page = 16384;        //0x4000
+//	  EEPROM_Write(totalTranxA_loc, totalTranxA1_loc, &firstTime, sizeof(firstTime));
+//	  EEPROM_Write(totalTranxB_loc, totalTranxB1_loc, &firstTime, sizeof(firstTime));
+//	  EEPROM_Write(synchedTranxA_loc, synchedTranxA1_loc, &firstTime, sizeof(firstTime));
+//	  EEPROM_Write(synchedTranxB_loc, synchedTranxB1_loc, &firstTime, sizeof(firstTime));
+//
+//	  EEPROM_Write(lastSynchedFlashA_loc, 0, &flash_beginA_page, sizeof(flash_beginA_page));
+//	  EEPROM_Write(lastSynchedFlashB_loc, 0, &flash_beginB_page, sizeof(flash_beginB_page));
 
-	  EEPROM_Write(totalTranxA_loc, totalTranxA1_loc, &firstTime, sizeof(firstTime));
-	  EEPROM_Write(totalTranxB_loc, totalTranxB1_loc, &firstTime, sizeof(firstTime));
-	  EEPROM_Write(synchedTranxA_loc, synchedTranxA1_loc, &firstTime, sizeof(firstTime));
-	  EEPROM_Write(synchedTranxB_loc, synchedTranxB1_loc, &firstTime, sizeof(firstTime));
+	  clear_totalTransaction_sides(side_a);
+	  clear_totalTransaction_sides(side_b);
 
-	  EEPROM_Write(lastSynchedFlashA_loc, 0, &flash_beginA_page, sizeof(flash_beginA_page));
-	  EEPROM_Write(lastSynchedFlashB_loc, 0, &flash_beginB_page, sizeof(flash_beginB_page));
+	  clear_synchedTransaction_sides(side_a);
+	  clear_synchedTransaction_sides(side_b);
+
+	  clear_totalAutoTransaction_sides(side_a);
+	  clear_totalAutoTransaction_sides(side_b);
 
 	  clear_volumeTotaliser(side_a);
 	  clear_volumeTotaliser(side_b);
@@ -1347,7 +1358,7 @@ skip:
 
 /* while(1)
  {
-	   current_pulser = __HAL_TIM_GET_COUNTER(&htim5);
+	   current_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);
  } */
 
 goto skip_test;
@@ -1585,11 +1596,13 @@ skip_test:
 
     retrieve_totalTransaction_sides(side_a);
     retrieve_totalTransaction_sides(side_b);
+
     retrieve_synchedTransaction_sides(side_a);
     retrieve_synchedTransaction_sides(side_b);
 
     retrieve_totalAutoTransaction_sides(side_a);
     retrieve_totalAutoTransaction_sides(side_b);
+
     retrieve_synchedAutoTransaction_sides(side_a);
     retrieve_synchedAutoTransaction_sides(side_b);
 
@@ -1757,7 +1770,7 @@ void house_keeping2()
 void run()
 {
 /*
- *	//fast_flow();
+ *	//fast_flow1();
 	//drive_pump1(ACTIVATE);
 //	drive_solenoid1(ACTIVATE);
 //		int drv = 0;
@@ -1827,7 +1840,7 @@ void run()
 		 pump_message_found = 0;
 		 uint8_t res = msg_parse_pump( pump_buf );
 		 awaiting_masterResponse = 1;
-		 _tt = 0;
+		 _tt1 = 0;
 	}
 	else if( (pump_message_found == 1)  && (awaiting_masterResponse == 1) )
 	{
@@ -1837,7 +1850,7 @@ void run()
 	}
 	else if(awaiting_masterResponse == 1)
 	{
-		 if(_tt > 2000)
+		 if(_tt1 > 2000)
 			 send_line3("err5 ");
 	}
 
@@ -1862,7 +1875,7 @@ void run()
 }
 
 //==============================================================
-int  read_event()
+int  read_event1()
 {
 	extern bool lock_clr;
 		 	   key19_flag = 0;
@@ -1919,13 +1932,13 @@ int  read_event()
 //				 if (key_longpress_status == 0)
 //				 {
 //					key_longpress_status = 1;
-					prog_entry = 1;   //variable used to clear the var. states in settings menu.
+					prog_entry1 = 1;   //variable used to clear the var. states in settings menu.
 					return _keyup_Event;
 //				 }
 //				 else
 //				 {
 //					key_longpress_status = 0;
-//					prog_entry = 0;
+//					prog_entry1 = 0;
 //					return _keydown_Event;
 //				 }
 			  }
@@ -1935,13 +1948,13 @@ int  read_event()
 //				 if (key_longpress_status == 0)
 //				 {
 //					key_longpress_status = 1;
-//					prog_entry = 1;   //variable used to clear the var. states in settings menu.
+//					prog_entry1 = 1;   //variable used to clear the var. states in settings menu.
 //					return _keyup_Event;
 //				 }
 //				 else
 //				 {
 //					key_longpress_status = 0;
-					prog_entry = 0;
+					prog_entry1 = 0;
 					return _keydown_Event;
 //				 }
 			  }
@@ -1952,7 +1965,7 @@ int  read_event()
 		 {
 			error_clr_flag = 0;
 
-			filling = 0;
+			filling1 = 0;
 
 			return _error_clear_Event;
 		 }
@@ -2044,7 +2057,7 @@ int  read_event()
 //			return _tot_error_Event;
 //		}
 	  //--------------------------------------------------
-	   //filling pulse detection.
+	   //filling1 pulse detection.
 		if ( (pulser_count_old < pulser_new) && ( eNextState1 == authorised_nozzleup_State ) )
 			{
 				pulser_count_old = pulser_new;
@@ -2059,7 +2072,7 @@ int  read_event()
 		{
 				  timer_flag_old = 1;
 
-				  filling = 0;
+				  filling1 = 0;
 
 			  return _timeout_Event;
 		}
@@ -2242,7 +2255,7 @@ int  read_event2()
 //			return _tot_error_Event;
 //		}
 	  //--------------------------------------------------
-	   //filling pulse detection.
+	   //filling1 pulse detection.
 		if ( (pulser_count_old2 < pulser_new2) && ( eNextState2 == authorised_nozzleup_State ) )
 			{
 				pulser_count_old2 = pulser_new2;

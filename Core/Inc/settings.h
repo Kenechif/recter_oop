@@ -21,8 +21,15 @@ extern "C" {
 #include "math.h"
 
 
+//:::::::::::::::::::::::::::::::::::::::::::://
+
+//      #define DEV_MODE
+
+//:::::::::::::::::::::::::::::::::::::::::::://
+
+
 //============================================
-#define _USE_SOFT_PULSER            1
+#define _USE_SOFT_PULSER            0
 #define use_internal_rtc			0
 #define sense_power  				1
 #define sense_battery 				1
@@ -39,6 +46,8 @@ extern "C" {
 #define keypad_delay				100
 
 #define pump_rx_bufsize  1000
+
+
 
 //#define  fast_flow_threshold       ( 140 )
 //============================================
@@ -526,6 +535,15 @@ uint32_t calib_pulser1,
          calib_pulser2;
 
 int8_t recalibration_request;
+
+uint8_t firstTime_nozz1,
+		firstTime_nozz2;
+
+uint32_t pulser_benchMark1,
+		 pulser_benchMark2;
+
+uint8_t calibrationCan_measure1,
+		calibrationCan_measure2;
 
 float temppp_;
 

@@ -52,7 +52,7 @@ unsigned char pumpno;			//pump no i.e. which pump nozzle
 		/* Variables for usable raw data from the pump */
 		unsigned char r_vol[4];
 		unsigned char r_amo[4];
-		unsigned char r_filling_price[3];		//filling price
+		unsigned char r_filling_price[3];		//filling1 price
 		unsigned char r_MAMO[4];
 		unsigned char r_pump_id[5];
 		unsigned char r_total_volume[15];		//total volume

@@ -19,13 +19,14 @@ extern int log_buttonpress_tmr2;
 extern int key_buttonpress_tmr2,
 		   progExit_buttonpress_tmr2;
 
-extern uint16_t shutdown_timer;
+extern uint16_t shutdown_timer1,
+				shutdown_timer2;
 
 uint16_t printer_time = 0;
 uint8_t server_time = 0;
 
-extern int t, t2; //ttt;
-extern uint16_t _tt,
+extern int t, t2; //ttt1;
+extern uint16_t _tt1,
 				_tt2,
 				timer_ep,
 				timer_spi,
@@ -37,7 +38,8 @@ extern uint16_t _tt,
 				timer_config2;
 //				ep2_timer;
 
-extern int ttt;
+extern unsigned int ttt1,
+		   	   	    ttt2;
 
 extern uint32_t transaction_period,
 				transaction_period2;
@@ -49,10 +51,10 @@ void dec_var()
 		t++; t2++; server_time++;
 		if (server_time > 7) server_time = 7;
 
-		_tt++; _tt2++;
-		if(_tt > 65534) _tt = 0;
+		_tt1++; _tt2++;
+		if(_tt1 > 65534) _tt1 = 0;
 		if(_tt2 > 65534) _tt2 = 0;
-		ttt++;
+		ttt1++; ttt2++;
 
 		priceChange_timer1++;
 		priceChange_timer2++;
@@ -71,7 +73,8 @@ void dec_var()
 		if(totalizer1Timer > 65534) totalizer1Timer = 0;
 		if(totalizer2Timer > 65534) totalizer2Timer = 0;
 
-//		if(ttt > 65534) ttt = 0;
+		if(ttt1 > 65534) ttt1 = 0;
+		if(ttt2 > 65534) ttt2 = 0;
 
 		timer_ep++;
 		if(timer_ep > 65534) timer_ep = 0;
@@ -106,9 +109,12 @@ void toggle_led(void)
 	 {
 		 //=====================//
 		 // shutdown timer
-		   shutdown_timer++;
-		   if (shutdown_timer >= 300)  // 5 minutes
-			      shutdown_timer = 300;
+		   shutdown_timer1++;
+		   if (shutdown_timer1 >= 300)  // 5 minutes
+			      shutdown_timer1 = 300;
+		   shutdown_timer2++;
+		   if (shutdown_timer2 >= 300)  // 5 minutes
+		 			      shutdown_timer2 = 300;
 		 //=====================
 		 count = 0;
 		 HAL_GPIO_TogglePin(led_GPIO_Port, led_Pin);  // Toggle LED

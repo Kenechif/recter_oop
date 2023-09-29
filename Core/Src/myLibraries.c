@@ -132,7 +132,7 @@ int readkey192_state(void)
     return(  (HAL_GPIO_ReadPin(pin19K2_GPIO_Port, pin19K2_Pin ) == 0)? 1:0  );
 }
 //-------------------------------------------------------------------------------
-void slow_flow(void)
+void slow_flow1(void)
 {
 	if (motor_tmr1 >= 2000)
 		drive_motor1(ACTIVATE);
@@ -141,7 +141,7 @@ void slow_flow(void)
 	drive_fast_sole1(DEACTIVATE);
 }
 
-void fast_flow(void)
+void fast_flow1(void)
 {
 	if (motor_tmr1 >= 2000)
 		drive_motor1(ACTIVATE);
@@ -150,7 +150,7 @@ void fast_flow(void)
 	drive_fast_sole1(ACTIVATE);
 }
 
-void stop_flow(void)
+void stop_flow1(void)
 {
 //	drive_motor1(DEACTIVATE);
 	drive_slow_sole1(DEACTIVATE);
@@ -226,7 +226,7 @@ void drive_fast_sole2(drive drv)
 }
 //---------------------------------------------------------------
 
- void clear_screen()
+ void clear_screen1()
   {
      for(int i = 0; i < 22;i++)
      {
@@ -414,7 +414,8 @@ uint8_t ToBits(int Input)
 		 case  'l': return(0b00011100);
          case  'N': return(0b11101100);
          case  'n': return(0b11101100);
-         case  'O': return(0b00111010);
+         case  'O': return(0b11111100);
+//         case  'o': return(0b00111010);
          case  'o': return(0b11111100);
          case  'P': return(0b11001110);
          case  'p': return(0b11001110);

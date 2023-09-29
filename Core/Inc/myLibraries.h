@@ -52,7 +52,7 @@ void printDisp_c(char* num, int row, int col,int n,justify_ jst,clear_ cl);
 void process(int isflt,char* str,int8_t cnv, int row, int col,int n ,int justify ,int clear );
 void _Delay(int v);
 
-void clear_screen();
+void clear_screen1();
 uint8_t ToBits(int Input);
 uint8_t ToInt(char c);
 
@@ -88,9 +88,9 @@ void drive_totaliser1(drive drv);
 void drive_solenoid1(drive drv);
 void drive_pump1(drive drv);
 
-void slow_flow(void);
-void fast_flow(void);
-void stop_flow(void);
+void slow_flow1(void);
+void fast_flow1(void);
+void stop_flow1(void);
 
 //=================================
 int readNozzle2(void);

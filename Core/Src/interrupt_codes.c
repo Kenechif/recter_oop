@@ -35,21 +35,27 @@ extern int log_buttonpress_tmr;
 extern int key_buttonpress_tmr,
 		   progExit_buttonpress_tmr1;
 
-extern uint8_t filling;
-extern uint8_t pulser_complete;
-extern int pulser_rem;
+extern uint8_t filling1;
+extern uint8_t pulser_complete1;
+extern int pulser_rem1;
 extern const uint16_t fast_flow_threshold;
-extern int calibr;
+extern int calibr1;
 
 extern uint8_t buff[30] ;
 
 extern uint32_t transaction_period,
 				transaction_period2;
 
-extern uint8_t firstTime_filling,
+extern uint8_t firstTime_filling1,
 			   firstTime_filling2;
 
+extern uint8_t fastFlow1,
+			   fastFlow2;
+
 uint16_t countar3 = 0;
+
+extern uint16_t countar,
+		 	 	countar2;
 
 //===============================================
 
@@ -171,6 +177,7 @@ else
 //huart1.pRxBuffPtr = &packet;
 }
 
+
 void check_flow(void)
 {
 	motor_tmr1++;
@@ -180,100 +187,134 @@ void check_flow(void)
 	if(motor_tmr2 > 3000) motor_tmr2 = 3000;
 
 	extern float pulser_index_c;
-	extern uint32_t target_pulser, current_pulser;
-	extern int t, ttt;
 
-	extern uint32_t target_pulser2, current_pulser2;
-		extern int t2;
+	extern uint32_t target_pulser1,
+					current_pulser1;
+	extern int t,
+//			   ttt1,
+			   t2;
+//			   ttt2;
 
-	if ( pulser_complete == 1 ) stop_flow();
+	extern unsigned int ttt1,
+			   	   	    ttt2;
+
+	extern uint32_t target_pulser2,
+					current_pulser2;
+
+//		extern int t2;
+
+	if ( pulser_complete1 == 1 ) stop_flow1();
+//	if ( pulser_complete2 == 1 ) stop_flow2();
 
 	#if (_USE_SOFT_PULSER == 1)
 //	  if ( (t > 50)&&(t < 90) ) // 200
-		  if (ttt>1)
+
+	  if(fastFlow1 == 1)
 	  {
-		 if(filling == 1)
-		 {
-			current_pulser++;   //transfer this to the interrupt routine..
-			ttt=0;
-		 }
+//		  if (ttt1 > 1)
+		  if ( (t > 50) && (t < 99) )
+		  {
+			 if(filling1 == 1)
+			 {
+				current_pulser1++;   //transfer this to the interrupt routine..
+//				ttt1 = 0;
+			 }
+		  }
+	  }
+	  else
+	  {
+		  if ( (t > 50) && (t < 54) ) // 200
+		  {
+			 if(filling1 == 1)
+			 {
+				current_pulser1++;   //transfer this to the interrupt routine..
+			 }
+		  }
 	  }
 	#else
-		  if(pulser_rem > 0)
+		  if(pulser_rem1 > 0)
 		  {
-			  current_pulser = __HAL_TIM_GET_COUNTER(&htim5);
+			  current_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);
 		  }
 
-//		  current_pulser = __HAL_TIM_GET_COUNTER(&htim5);
+//		  current_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);
 
 	#endif
     //------------------------------------------------------------------
-	if (filling == 1)
+	if (filling1 == 1)
 	{
 //	  static int8_t firstTime = 1;
 
-	  if(firstTime_filling == 1)
+	  if(firstTime_filling1 == 1)
 	  {
 		  transaction_period = 0;
-		  firstTime_filling = 0;
+		  firstTime_filling1 = 0;
 	  }
 
 	  //....if programmed....
-	  if(target_pulser > 0)
+	  if(target_pulser1 > 0)
 	  {
-		  if(pulser_rem > 0)
+		  if(pulser_rem1 > 0)
 		  {
-			pulser_complete = 0;
-			pulser_rem = target_pulser - current_pulser;
+			pulser_complete1 = 0;
+			pulser_rem1 = target_pulser1 - current_pulser1;
 
-			if(pulser_rem <= 0)
+			if(pulser_rem1 <= 0)
 			{
-				stop_flow();
+				stop_flow1();
 			}
 
-			else if(pulser_rem >= fast_flow_threshold)
+			else if(pulser_rem1 >= fast_flow_threshold)
 			{
-				if(current_pulser >=  fast_flow_threshold/2 )
+				if(current_pulser1 >=  fast_flow_threshold/2 )
 				{
-					fast_flow();
+					fast_flow1();
+
+					fastFlow1 = 1;
 				}
 				else
 				{
-					slow_flow();
+					slow_flow1();
+
+					fastFlow1 = 0;
 				}
 			}
 			else
 			{
 				pump_status_ = STATUS_MAMO_REACHED;
-				slow_flow();
+				slow_flow1();
+
+				fastFlow1 = 0;
 			}
 		  }
 		  else
 		  {
 			  //pulser complete   ---==>> //sales complete...
 			  //---------------------------------------------
-			 pulser_complete = 1;
+			 pulser_complete1 = 1;
 			 pump_status_ = STATUS_FILLING_COMP;
-			 stop_flow(); 			  //stop solenoid.
+			 stop_flow1(); 			  //stop solenoid.
 		  }
 	   }
 	   else
 	   {
 			//not programmed high flow
-			fast_flow();
+			fast_flow1();
+
+			fastFlow1 = 1;
 	   }
 
 	  //============================================================
 	  //         for totaliser toggle.
-//	  	  r_volTotaliser 	  = floor( running_volTotaliser1c );
+//	  	  r_volTotaliser1 	  = floor( running_volTotaliser1c );
 //	  	  r_amtTotaliser 	  = floor(running_amtTotaliser1c);
 
-	  	if(r_volTotaliser != old_r_volTotaliser)
+	  	if(r_volTotaliser1 != old_r_volTotaliser1)
 	  	{
 	  		totalizer1Timer = 0;
 	  //			then toggle the totaliser harware I/O.
 	  		drive_totaliser1(ACTIVATE);
-//	  		countar++;
+	  		countar++;
 	  	}
 	  	else
 	  	{
@@ -285,13 +326,12 @@ void check_flow(void)
 	  		}
 
 	  	}
-	  	  old_r_volTotaliser = r_volTotaliser;   //update...
-//	  	  old_r_amtTotaliser = r_amtTotaliser;
+	  	  old_r_volTotaliser1 = r_volTotaliser1;   //update...
 	 }
 	 else
 	 {
-		  //not filling
-		  pulser_complete = 0;
+		  //not filling1
+		  pulser_complete1 = 0;
 
 		  //deactivate totaliser output...
 		  if(totalizer1Timer > 200)
@@ -300,10 +340,14 @@ void check_flow(void)
 			countar3++;
 		  }
 
-		  if( calibr == 0)
-			  stop_flow();
+		  if( calibr1 == 0)
+			  stop_flow1();
 		  else
-			  fast_flow();
+		  {
+			  fast_flow1();
+
+			  fastFlow1 = 1;
+		  }
 
 	 }
 
@@ -312,13 +356,29 @@ void check_flow(void)
 		if ( pulser_complete2 == 1 ) stop_flow2();
 
 		#if (_USE_SOFT_PULSER == 1)
-		  if ( (t2 > 50)&&(t2 < 90) ) // 200
-			{
-			  if(filling2 == 1)
+
+		  if(fastFlow2 == 1)
+		  {
+			  if (ttt2 > 1)
+			  {
+				 if(filling2 == 1)
 				 {
-				    current_pulser2++;   //transfer this to the interrupt routine..
-			     }
-			}
+					current_pulser2++;   //transfer this to the interrupt routine..
+					ttt2 = 0;
+				 }
+			  }
+		  }
+		  else
+		  {
+			  if ( (t2 > 50) && (t2 < 56) ) // 200
+			  {
+				 if(filling2 == 1)
+				 {
+					current_pulser2++;   //transfer this to the interrupt routine..
+				 }
+			  }
+		  }
+
 		#else
 				current_pulser2 = __HAL_TIM_GET_COUNTER(&htim2);
 		#endif
@@ -337,53 +397,343 @@ void check_flow(void)
 					{
 					  pulser_complete2 = 0;
 						pulser_rem2 = target_pulser2 - current_pulser2;
-						  if(pulser_rem2 >= fast_flow_threshold)
+
+						if(pulser_rem2 <= 0)
+						{
+							stop_flow2();
+						}
+						else if(pulser_rem2 >= fast_flow_threshold)
+						{
+							if(current_pulser2 >=  fast_flow_threshold/2 )
 							{
-								if(current_pulser2 >=  fast_flow_threshold/2 )
-								{
-									fast_flow2();
-								}
-								else
-								{
-									slow_flow2();
-								}
+								fast_flow2();
+
+								fastFlow2 = 1;
 							}
 							else
 							{
-								pump_status_ = STATUS_MAMO_REACHED;
 								slow_flow2();
-							}
-					}
 
-				  else
-				  {
-					  //pulser complete   ---==>> //sales complete...
-					  //---------------------------------------------
-					 pulser_complete2 = 1;
-					 pump_status_ = STATUS_FILLING_COMP;
-					 stop_flow2(); 			  //stop solenoid.
-				  }
-				}
-					else
-				{
+								fastFlow2 = 0;
+							}
+						}
+						else
+						{
+							pump_status_ = STATUS_MAMO_REACHED;
+							slow_flow2();
+
+							fastFlow2 = 0;
+						}
+					  }
+					  else
+					  {
+						  //pulser complete   ---==>> //sales complete...
+						  //---------------------------------------------
+						 pulser_complete2 = 1;
+						 pump_status_ = STATUS_FILLING_COMP;
+						 stop_flow2(); 			  //stop solenoid.
+					  }
+				   }
+			  else
+			   {
 					//not programmed high flow
 					fast_flow2();
-				}
-			}
-		  else
-		  {
-			  //not filling
-			  pulser_complete2 = 0;
 
-			  //deactivate totaliser output...
-			  if(totalizer2Timer > 300)
-			  {
-				drive_totaliser2(DEACTIVATE);
-			  }
-			  if( calibr2 == 0)
-				  stop_flow2();
-			  else
-				  fast_flow2();
+					fastFlow2 = 1;
+			   }
 
-		  }
+			  //============================================================
+			  //         for totaliser toggle.
+		//	  	  r_volTotaliser1 	  = floor( running_volTotaliser1c );
+		//	  	  r_amtTotaliser 	  = floor(running_amtTotaliser1c);
+
+			  	if(r_volTotaliser2 != old_r_volTotaliser2)
+			  	{
+			  		totalizer2Timer = 0;
+			  //			then toggle the totaliser harware I/O.
+			  		drive_totaliser2(ACTIVATE);
+		//	  		countar++;
+			  	}
+			  	else
+			  	{
+			  		//deactivate totaliser output...
+			  		if(totalizer2Timer > 200)
+			  		{
+			  			drive_totaliser2(DEACTIVATE);
+		//	  			countar2++;
+			  		}
+
+			  	}
+			  	  old_r_volTotaliser2 = r_volTotaliser2;   //update...
+			 }
+			 else
+			 {
+				  //not filling1
+				  pulser_complete2 = 0;
+
+				  //deactivate totaliser output...
+				  if(totalizer2Timer > 200)
+				  {
+					drive_totaliser2(DEACTIVATE);
+					countar3++;
+				  }
+
+				  if( calibr2 == 0)
+					  stop_flow2();
+				  else
+				  {
+					  fast_flow2();
+
+					  fastFlow2 = 1;
+				  }
+			 }
 }
+
+
+
+
+//void check_flow(void)
+//{
+//	motor_tmr1++;
+//	motor_tmr2++;
+//
+//	if(motor_tmr1 > 3000) motor_tmr1 = 3000;
+//	if(motor_tmr2 > 3000) motor_tmr2 = 3000;
+//
+//	extern float pulser_index_c;
+//
+//	extern uint32_t target_pulser1,
+//					current_pulser1;
+//	extern int t,
+//			   ttt1;
+//
+//	extern uint32_t target_pulser2, current_pulser2;
+//		extern int t2;
+//
+//	if ( pulser_complete1 == 1 ) stop_flow1();
+//
+//	#if (_USE_SOFT_PULSER == 1)
+////	  if ( (t > 50)&&(t < 90) ) // 200
+//
+//	  if(fastFlow1 == 1)
+//	  {
+//		  if (ttt1 > 1)
+//		  {
+//			 if(filling1 == 1)
+//			 {
+//				current_pulser1++;   //transfer this to the interrupt routine..
+//				ttt1 = 0;
+//			 }
+//		  }
+//	  }
+//	  else
+//	  {
+//		  if ( (t > 50) && (t < 56) ) // 200
+//		  {
+//			 if(filling1 == 1)
+//			 {
+//				current_pulser1++;   //transfer this to the interrupt routine..
+//			 }
+//		  }
+//	  }
+//	#else
+//		  if(pulser_rem1 > 0)
+//		  {
+//			  current_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);
+//		  }
+//
+////		  current_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);
+//
+//	#endif
+//    //------------------------------------------------------------------
+//	if (filling1 == 1)
+//	{
+////	  static int8_t firstTime = 1;
+//
+//	  if(firstTime_filling1 == 1)
+//	  {
+//		  transaction_period = 0;
+//		  firstTime_filling1 = 0;
+//	  }
+//
+//	  //....if programmed....
+//	  if(target_pulser1 > 0)
+//	  {
+//		  if(pulser_rem1 > 0)
+//		  {
+//			pulser_complete1 = 0;
+//			pulser_rem1 = target_pulser1 - current_pulser1;
+//
+//			if(pulser_rem1 <= 0)
+//			{
+//				stop_flow1();
+//			}
+//
+//			else if(pulser_rem1 >= fast_flow_threshold)
+//			{
+//				if(current_pulser1 >=  fast_flow_threshold/2 )
+//				{
+//					fast_flow1();
+//
+//					fastFlow1 = 1;
+//				}
+//				else
+//				{
+//					slow_flow1();
+//
+//					fastFlow1 = 0;
+//				}
+//			}
+//			else
+//			{
+//				pump_status_ = STATUS_MAMO_REACHED;
+//				slow_flow1();
+//
+//				fastFlow1 = 0;
+//			}
+//		  }
+//		  else
+//		  {
+//			  //pulser complete   ---==>> //sales complete...
+//			  //---------------------------------------------
+//			 pulser_complete1 = 1;
+//			 pump_status_ = STATUS_FILLING_COMP;
+//			 stop_flow1(); 			  //stop solenoid.
+//		  }
+//	   }
+//	   else
+//	   {
+//			//not programmed high flow
+//			fast_flow1();
+//
+//			fastFlow1 = 1;
+//	   }
+//
+//	  //============================================================
+//	  //         for totaliser toggle.
+////	  	  r_volTotaliser1 	  = floor( running_volTotaliser1c );
+////	  	  r_amtTotaliser 	  = floor(running_amtTotaliser1c);
+//
+//	  	if(r_volTotaliser1 != old_r_volTotaliser1)
+//	  	{
+//	  		totalizer1Timer = 0;
+//	  //			then toggle the totaliser harware I/O.
+//	  		drive_totaliser1(ACTIVATE);
+////	  		countar++;
+//	  	}
+//	  	else
+//	  	{
+//	  		//deactivate totaliser output...
+//	  		if(totalizer1Timer > 200)
+//	  		{
+//	  			drive_totaliser1(DEACTIVATE);
+////	  			countar2++;
+//	  		}
+//
+//	  	}
+//	  	  old_r_volTotaliser1 = r_volTotaliser1;   //update...
+////	  	  old_r_amtTotaliser = r_amtTotaliser;
+//	 }
+//	 else
+//	 {
+//		  //not filling1
+//		  pulser_complete1 = 0;
+//
+//		  //deactivate totaliser output...
+//		  if(totalizer1Timer > 200)
+//		  {
+//			drive_totaliser1(DEACTIVATE);
+//			countar3++;
+//		  }
+//
+//		  if( calibr1 == 0)
+//			  stop_flow1();
+//		  else
+//		  {
+//			  fast_flow1();
+//
+//			  fastFlow1 = 1;
+//		  }
+//
+//	 }
+//
+////===============================================================================
+//
+//		if ( pulser_complete2 == 1 ) stop_flow2();
+//
+//		#if (_USE_SOFT_PULSER == 1)
+//		  if ( (t2 > 50)&&(t2 < 90) ) // 200
+//			{
+//			  if(filling2 == 1)
+//				 {
+//				    current_pulser2++;   //transfer this to the interrupt routine..
+//			     }
+//			}
+//		#else
+//				current_pulser2 = __HAL_TIM_GET_COUNTER(&htim2);
+//		#endif
+//	    //------------------------------------------------------------------
+//		 if (filling2 == 1)
+//		 {
+//			 if(firstTime_filling2 == 1)
+//			 {
+//				  transaction_period2 = 0;
+//				  firstTime_filling2 = 0;
+//			 }
+//			 //....if programmed....
+//			  if(target_pulser2 > 0)
+//				{
+//				  if(pulser_rem2 > 0)
+//					{
+//					  pulser_complete2 = 0;
+//						pulser_rem2 = target_pulser2 - current_pulser2;
+//						  if(pulser_rem2 >= fast_flow_threshold)
+//							{
+//								if(current_pulser2 >=  fast_flow_threshold/2 )
+//								{
+//									fast_flow2();
+//								}
+//								else
+//								{
+//									slow_flow2();
+//								}
+//							}
+//							else
+//							{
+//								pump_status_ = STATUS_MAMO_REACHED;
+//								slow_flow2();
+//							}
+//					}
+//
+//				  else
+//				  {
+//					  //pulser complete   ---==>> //sales complete...
+//					  //---------------------------------------------
+//					 pulser_complete2 = 1;
+//					 pump_status_ = STATUS_FILLING_COMP;
+//					 stop_flow2(); 			  //stop solenoid.
+//				  }
+//				}
+//					else
+//				{
+//					//not programmed high flow
+//					fast_flow2();
+//				}
+//			}
+//		  else
+//		  {
+//			  //not filling1
+//			  pulser_complete2 = 0;
+//
+//			  //deactivate totaliser output...
+//			  if(totalizer2Timer > 300)
+//			  {
+//				drive_totaliser2(DEACTIVATE);
+//			  }
+//			  if( calibr2 == 0)
+//				  stop_flow2();
+//			  else
+//				  fast_flow2();
+//
+//		  }
+//}

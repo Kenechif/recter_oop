@@ -53,8 +53,10 @@ extern float working_amtTotaliser1,
 			 running_amtTotaliser2,
 			 running_amtTotaliser2c;
 
-extern uint32_t  r_volTotaliser,
-		         old_r_volTotaliser;
+extern uint32_t  r_volTotaliser1,
+		         old_r_volTotaliser1,
+				 r_volTotaliser2,
+		         old_r_volTotaliser2;
 
 extern uint16_t countar,
 				countar2;

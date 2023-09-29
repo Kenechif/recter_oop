@@ -167,7 +167,9 @@ static bool mth_success2 = false,
 			clock_save2 = false;
 
 extern float lastVolumeSale2,
-	  	  	 lastVolumeSale2c;
+	  	  	 lastVolumeSale2c,
+			 lastAmountSale2,
+			 lastAmountSale2c;
 
 extern ctTimed_settings ctTimed_settingsB;
 

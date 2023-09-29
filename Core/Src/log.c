@@ -32,7 +32,7 @@ extern uint8_t connected = 0;
 extern uint32_t transaction_period,
 				transaction_period2;
 
-extern uint8_t firstTime_filling,
+extern uint8_t firstTime_filling1,
 			   firstTime_filling2;
 
 uint32_t flash_write_id;    //read and write.
@@ -83,8 +83,8 @@ uint32_t flash_read_idA = 0;
 uint32_t flash_read_idB = 0;
 
 extern int operating_side;
-extern float price_real, price_real2,
-			 amt_real, amt_real2,
+extern float price_real1, price_real2,
+			 amt_real1, amt_real2,
 			 price, price2,
 			 amt, amt2,
 			 totaliser_vol1, totaliser_vol1c,
@@ -145,8 +145,8 @@ void update_info()       //save_log( )
 	    log_a_new.vol__ = atof(middle1);
 	    log_a_new.vol__ += 0.00011;  //make small correction for the inherent rounddown.
 
-	    log_a_new.pr_ = price_real;  //real
-        log_a_new.vol_ = amt_real;
+	    log_a_new.pr_ = price_real1;  //real
+        log_a_new.vol_ = amt_real1;
 //        log_a_new.pr__ = price;  //calibrated
 //        log_a_new.vol__ = amt;
        // log_a_new.pr_d = 0; //price_;
@@ -318,7 +318,7 @@ eSystemState write_flash_state_Handler(void)
 	if(operating_sideA)
 	{
 		log_a_new.transaction_period = transaction_period;
-	    firstTime_filling = 1;
+	    firstTime_filling1 = 1;
 
 		if(opmode == AUTO)
 		{
@@ -392,8 +392,10 @@ eSystemState write_flash_state_Handler(void)
 			 {
 				save_totalAutoTransaction_sides(side_a);
 			 }
+
+//			 ep2_send(side_a);
 		  }
-		  if (operating_side == side_b)
+		  else if (operating_side == side_b)
 		  {
 			 uint32_t next_loc =  flash_infoB.current_loc + 256; //sizeof(log_b_new);   //flash_beginB => 0x400000 --> 4,194,304 pg16,384
 			 if (next_loc > flash_endB) next_loc = flash_beginB;  //flash_endB => 0x7FFFFF --> 8,388,607 pg32767.996

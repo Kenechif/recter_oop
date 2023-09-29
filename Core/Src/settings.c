@@ -47,13 +47,13 @@ extern int8_t change_p,
 extern float auth_v,
 			 auth_p;
 
-extern float amt_real,
+extern float amt_real1,
 		  	 amt_real2,
 			 price_real1,
 			 price_real2;
 extern int t;
 
-extern uint16_t _tt,
+extern uint16_t _tt1,
 				_tt2,
 				totalizer1Timer,
 				totalizer2Timer,
@@ -137,6 +137,11 @@ float lastAmountSale1 = 0.00,
       lastAmountSale1c = 0.00;
 float lastAmountSale2 = 0.00,
 	  lastAmountSale2c = 0.00;
+
+float price_upper1,
+	  amt_middle1,
+	  price_upper2,
+	  amt_middle2;
 
 
  int8_t opmode  = MANUAL;
@@ -631,15 +636,17 @@ void save_lastSale(pump_sid side)
 	if (side == side_a)
 	  {
 		//EEPROM_Write_NUM(totVol_loc, totVol1_loc, tot);
-		lastSale_storeA.lastVolumeSale_real = amt_real;   //    log_a_new.vol_ = amt_real;
+		lastSale_storeA.lastVolumeSale_real = amt_real1;   //    log_a_new.vol_ = amt_real1;
 
-		lastSale_storeA.lastVolumeSale_cal = atof(middle1);   //log_a_new.vol__ = amt;   //calibrated
-		lastSale_storeA.lastVolumeSale_cal += 0.00011;  //make small correction for the inherent rounddown.
+//		lastSale_storeA.lastVolumeSale_cal = atoff(amt_middle1);   //log_a_new.vol__ = amt;   //calibrated
+		lastSale_storeA.lastVolumeSale_cal = amt_middle1;   //log_a_new.vol__ = amt;   //calibrated
+//		lastSale_storeA.lastVolumeSale_cal += 0.00011;  //make small correction for the inherent rounddown.
 
-		lastSale_storeA.lastAmountSale_real = price_real;  //log_a_new.pr_ = price_real;  //real
+		lastSale_storeA.lastAmountSale_real = price_real1;  //log_a_new.pr_ = price_real1;  //real
 
-		lastSale_storeA.lastAmountSale_cal = atof(upper1);  //log_a_new.pr__ = price;  //calibrated
-		lastSale_storeA.lastAmountSale_cal += 0.00011;  //make small correction for the inherent rounddown.
+//		lastSale_storeA.lastAmountSale_cal = atoff(price_upper1);  //log_a_new.pr__ = price;  //calibrated
+		lastSale_storeA.lastAmountSale_cal = price_upper1;  //log_a_new.pr__ = price;  //calibrated
+//		lastSale_storeA.lastAmountSale_cal += 0.00011;  //make small correction for the inherent rounddown.
 
 	  	EEPROM_Write(lastSale_loc, lastSale1_loc, &lastSale_storeA, sz);
 	  }
@@ -648,13 +655,15 @@ void save_lastSale(pump_sid side)
 		//EEPROM_Write_NUM(totVol_loc, totVol2_loc, tot);
 		lastSale_storeB.lastVolumeSale_real = amt_real2;   //    log_b_new.vol_ = amt_real2;
 
-		lastSale_storeB.lastVolumeSale_cal = atof(middle2);   //log_b_new.vol__ = amt2;   //calibrated
-		lastSale_storeB.lastVolumeSale_cal += 0.00011;  //make small correction for the inherent rounddown.
+//		lastSale_storeB.lastVolumeSale_cal = atof(middle2);   //log_b_new.vol__ = amt2;   //calibrated
+		lastSale_storeB.lastVolumeSale_cal = amt_middle2;   //log_b_new.vol__ = amt2;   //calibrated
+//		lastSale_storeB.lastVolumeSale_cal += 0.00011;  //make small correction for the inherent rounddown.
 
 		lastSale_storeB.lastAmountSale_real = price_real2;   // log_b_new.pr_ = price_real2;  //real
 
-		lastSale_storeB.lastAmountSale_cal = atof(upper2);  // log_b_new.pr__ = price2;  //calibrated
-		lastSale_storeB.lastAmountSale_cal += 0.00011;  //make small correction for the inherent rounddown.
+//		lastSale_storeB.lastAmountSale_cal = atof(upper2);  // log_b_new.pr__ = price2;  //calibrated
+		lastSale_storeB.lastAmountSale_cal = price_upper2;  // log_b_new.pr__ = price2;  //calibrated
+//		lastSale_storeB.lastAmountSale_cal += 0.00011;  //make small correction for the inherent rounddown.
 
 	  	EEPROM_Write(lastSale_loc, lastSale2_loc, &lastSale_storeB, sz);
 	  }
@@ -709,7 +718,7 @@ void clear_lastSale(pump_sid side)
 
 	if (side == side_a)
 	  {
-		lastSale_storeA.lastVolumeSale_real = 0.00;   //    log_a_new.vol_ = amt_real;
+		lastSale_storeA.lastVolumeSale_real = 0.00;   //    log_a_new.vol_ = amt_real1;
 		lastSale_storeA.lastVolumeSale_cal = 0.00;   //log_a_new.vol__ = amt;   //calibrated
 		lastSale_storeA.lastAmountSale_real = 0.00;
 		lastSale_storeA.lastAmountSale_cal = 0.00;

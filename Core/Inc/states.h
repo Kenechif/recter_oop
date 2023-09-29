@@ -161,7 +161,7 @@ enum
 	setclock
 };
 
-float price_real, amt_real;
+float price_real1, amt_real1;
 float amt_, price_;
 
 static bool mth_success = false,
@@ -171,7 +171,9 @@ static bool mth_success = false,
 //static int8_t idleState_flag = 1;
 
 extern float lastVolumeSale1,
-	  	  	 lastVolumeSale1c;
+	  	  	 lastVolumeSale1c,
+			 lastAmountSale1,
+			 lastAmountSale1c;
 
 extern ep1_mt mt_pump[2];
 

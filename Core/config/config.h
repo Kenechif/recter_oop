@@ -315,8 +315,8 @@ extern uint8_t day,
 			   serverTimeFlag;
 
 extern float litre_price,
-			 price_real,
-			 amt_real;
+			 price_real1,
+			 amt_real1;
 
 extern const int16_t totalizerDay_loc;
 
@@ -387,17 +387,29 @@ void save_totalTransaction(void);
 
 void retrieve_totalTransaction(void);
 
+void clear_totalTransaction_sides(pump_sid ab);
+
 void save_synchedTransaction(void);
 
 void retrieve_synchedTransaction(void);
+
+void clear_synchedTransaction_sides(pump_sid ab);
 
 void save_totalAutoTranx(void);
 
 void retrieve_totalAutoTranx(void);
 
-void save_synchedAutoTranx(void);
+void clear_totalAutoTransaction_sides(pump_sid ab);
 
-void retrieve_synchedAutoTranx(void);
+//void save_synchedAutoTranx(void);
+//
+//void retrieve_synchedAutoTranx(void);
+
+void save_synchedAutoTransaction_sides(pump_sid ab);
+
+void retrieve_synchedAutoTransaction_sides(pump_sid ab);
+
+void clear_synchedAutoTransaction_sides(pump_sid ab);
 
 void save_totalEvents(void);
 

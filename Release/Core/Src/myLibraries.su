@@ -4,9 +4,9 @@ myLibraries.c:39:5:readpwr	8	static
 myLibraries.c:44:6:drive_power	0	static
 myLibraries.c:52:5:battery_read	8	static
 myLibraries.c:59:6:drive_totaliser1	0	static
-myLibraries.c:64:6:slow_flow	8	static
-myLibraries.c:70:6:fast_flow	8	static
-myLibraries.c:76:6:stop_flow	8	static
+myLibraries.c:64:6:slow_flow1	8	static
+myLibraries.c:70:6:fast_flow1	8	static
+myLibraries.c:76:6:stop_flow1	8	static
 myLibraries.c:82:6:drive_solenoid1	0	static
 myLibraries.c:88:6:drive_pump1	0	static
 myLibraries.c:93:5:readsettingskey_state	8	static
@@ -14,7 +14,7 @@ myLibraries.c:98:5:readkey19_state	8	static
 myLibraries.c:112:10:_Delay	0	static
 myLibraries.c:122:6:byteRead	0	static
 myLibraries.c:128:6:shiftOut	24	static
-myLibraries.c:103:7:clear_screen	16	static
+myLibraries.c:103:7:clear_screen1	16	static
 myLibraries.c:173:9:ToBits	0	static
 myLibraries.c:217:9:ToInt	0	static
 myLibraries.c:223:9:Multiplex	16	static

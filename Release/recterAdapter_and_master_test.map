@@ -209,7 +209,7 @@ copy                0x68              ./Core/Src/settings.o
 ctrl                0x1               ./Core/dart_protocol/drt.o
 nozzle_flag         0x4               ./Core/Src/thread1.o
 flash_write_id      0x4               ./Core/Src/log.o
-target_pulser       0x4               ./Core/Src/states.o
+target_pulser1       0x4               ./Core/Src/states.o
 month               0x1               ./Core/ds1307/ds1307_for_stm32_hal.o
 full_msg_arr        0xc8              ./Core/dart_protocol/drt.o
 command             0x1               ./Core/dart_protocol/drt.o
@@ -245,7 +245,7 @@ bytes_temp          0x4               ./Core/Src/EEPROM.o
 hour                0x1               ./Core/ds1307/ds1307_for_stm32_hal.o
 r_pump_id           0x5               ./Core/dart_protocol/drt.o
 rd_buffer           0x4               ./Core/Src/log.o
-price_real          0x4               ./Core/Src/states.o
+price_real1          0x4               ./Core/Src/states.o
 timeB               0x2               ./Core/Src/settings.o
 flash_infoA         0x8               ./Core/Src/settings.o
 hrtc                0x40              ./Core/Src/main.o
@@ -420,7 +420,7 @@ Discarded input sections
                 0x0000000000000000       0x14 ./Core/Src/states.o
  .text.stop_timer
                 0x0000000000000000       0x24 ./Core/Src/states.o
- .text.clear_buffer
+ .text.clear_buffer1
                 0x0000000000000000       0x38 ./Core/Src/states.o
  .text.key_available
                 0x0000000000000000       0x14 ./Core/Src/states.o
@@ -2305,15 +2305,15 @@ LOAD c:/st/stm32cubeide_1.8.0/stm32cubeide/plugins/com.st.stm32cube.ide.mcu.exte
  .text.drive_totaliser1
                 0x0000000008001ef0       0x10 ./Core/Src/myLibraries.o
                 0x0000000008001ef0                drive_totaliser1
- .text.slow_flow
+ .text.slow_flow1
                 0x0000000008001f00       0x20 ./Core/Src/myLibraries.o
-                0x0000000008001f00                slow_flow
- .text.fast_flow
+                0x0000000008001f00                slow_flow1
+ .text.fast_flow1
                 0x0000000008001f20       0x20 ./Core/Src/myLibraries.o
-                0x0000000008001f20                fast_flow
- .text.stop_flow
+                0x0000000008001f20                fast_flow1
+ .text.stop_flow1
                 0x0000000008001f40       0x20 ./Core/Src/myLibraries.o
-                0x0000000008001f40                stop_flow
+                0x0000000008001f40                stop_flow1
  .text.readsettingskey_state
                 0x0000000008001f60       0x18 ./Core/Src/myLibraries.o
                 0x0000000008001f60                readsettingskey_state
@@ -2328,9 +2328,9 @@ LOAD c:/st/stm32cubeide_1.8.0/stm32cubeide/plugins/com.st.stm32cube.ide.mcu.exte
  .text.shiftOut
                 0x0000000008001fa4       0xa0 ./Core/Src/myLibraries.o
                 0x0000000008001fa4                shiftOut
- .text.clear_screen
+ .text.clear_screen1
                 0x0000000008002044       0x20 ./Core/Src/myLibraries.o
-                0x0000000008002044                clear_screen
+                0x0000000008002044                clear_screen1
  .text.ToInt    0x0000000008002064        0x4 ./Core/Src/myLibraries.o
                 0x0000000008002064                ToInt
  .text.Multiplex
@@ -2587,9 +2587,9 @@ LOAD c:/st/stm32cubeide_1.8.0/stm32cubeide/plugins/com.st.stm32cube.ide.mcu.exte
                 0x000000000800601c                house_keeping
  .text.run      0x0000000008006054       0x10 ./Core/Src/thread1.o
                 0x0000000008006054                run
- .text.read_event
+ .text.read_event1
                 0x0000000008006064      0x200 ./Core/Src/thread1.o
-                0x0000000008006064                read_event
+                0x0000000008006064                read_event1
  .text._write   0x0000000008006264        0x4 ./Core/Src/write__.o
                 0x0000000008006264                _write
  .text.Reset_Handler
@@ -3733,8 +3733,8 @@ LOAD c:/st/stm32cubeide_1.8.0/stm32cubeide/plugins/com.st.stm32cube.ide.mcu.exte
                 0x00000000200004ac                _index
  .bss.access.12413
                 0x00000000200004b0        0x4 ./Core/Src/states.o
- .bss.amt_real  0x00000000200004b4        0x4 ./Core/Src/states.o
-                0x00000000200004b4                amt_real
+ .bss.amt_real1  0x00000000200004b4        0x4 ./Core/Src/states.o
+                0x00000000200004b4                amt_real1
  .bss.attempts.12407
                 0x00000000200004b8        0x4 ./Core/Src/states.o
  .bss.auth      0x00000000200004bc        0x1 ./Core/Src/states.o
@@ -3743,20 +3743,20 @@ LOAD c:/st/stm32cubeide_1.8.0/stm32cubeide/plugins/com.st.stm32cube.ide.mcu.exte
  .bss.calib_pulser1
                 0x00000000200004c0        0x4 ./Core/Src/states.o
                 0x00000000200004c0                calib_pulser1
- .bss.calibr    0x00000000200004c4        0x4 ./Core/Src/states.o
-                0x00000000200004c4                calibr
+ .bss.calibr1    0x00000000200004c4        0x4 ./Core/Src/states.o
+                0x00000000200004c4                calibr1
  .bss.chg_pw.12464
                 0x00000000200004c8        0x4 ./Core/Src/states.o
- .bss.current_pulser
+ .bss.current_pulser1
                 0x00000000200004cc        0x4 ./Core/Src/states.o
-                0x00000000200004cc                current_pulser
+                0x00000000200004cc                current_pulser1
  .bss.data_size
                 0x00000000200004d0        0x4 ./Core/Src/states.o
                 0x00000000200004d0                data_size
  .bss.dp_.12415
                 0x00000000200004d4        0x4 ./Core/Src/states.o
- .bss.filling   0x00000000200004d8        0x1 ./Core/Src/states.o
-                0x00000000200004d8                filling
+ .bss.filling1   0x00000000200004d8        0x1 ./Core/Src/states.o
+                0x00000000200004d8                filling1
  *fill*         0x00000000200004d9        0x3 
  .bss.flash_loc.12368
                 0x00000000200004dc        0x4 ./Core/Src/states.o
@@ -3795,9 +3795,9 @@ LOAD c:/st/stm32cubeide_1.8.0/stm32cubeide/plugins/com.st.stm32cube.ide.mcu.exte
                 0x0000000020000518        0xa ./Core/Src/states.o
                 0x0000000020000518                keypad_buf
  *fill*         0x0000000020000522        0x2 
- .bss.keypad_pw_xter
+ .bss.keypad_pw_xter1
                 0x0000000020000524        0xa ./Core/Src/states.o
-                0x0000000020000524                keypad_pw_xter
+                0x0000000020000524                keypad_pw_xter1
  *fill*         0x000000002000052e        0x2 
  .bss.keypress_
                 0x0000000020000530        0x4 ./Core/Src/states.o
@@ -3821,9 +3821,9 @@ LOAD c:/st/stm32cubeide_1.8.0/stm32cubeide/plugins/com.st.stm32cube.ide.mcu.exte
  .bss.middle1    0x0000000020000550        0xa ./Core/Src/states.o
                 0x0000000020000550                middle1
  *fill*         0x000000002000055a        0x2 
- .bss.old_r_volTotaliser
+ .bss.old_r_volTotaliser1
                 0x000000002000055c        0x4 ./Core/Src/states.o
-                0x000000002000055c                old_r_volTotaliser
+                0x000000002000055c                old_r_volTotaliser1
  .bss.operatorfxn
                 0x0000000020000560        0x1 ./Core/Src/states.o
                 0x0000000020000560                operatorfxn
@@ -3839,18 +3839,18 @@ LOAD c:/st/stm32cubeide_1.8.0/stm32cubeide/plugins/com.st.stm32cube.ide.mcu.exte
                 0x0000000020000570        0x4 ./Core/Src/states.o
  .bss.progg     0x0000000020000574        0x4 ./Core/Src/states.o
                 0x0000000020000574                progg
- .bss.pulser_complete
+ .bss.pulser_complete1
                 0x0000000020000578        0x1 ./Core/Src/states.o
-                0x0000000020000578                pulser_complete
+                0x0000000020000578                pulser_complete1
  *fill*         0x0000000020000579        0x3 
- .bss.pulser_rem
+ .bss.pulser_rem1
                 0x000000002000057c        0x4 ./Core/Src/states.o
-                0x000000002000057c                pulser_rem
+                0x000000002000057c                pulser_rem1
  .bss.pw1.12465
                 0x0000000020000580        0x4 ./Core/Src/states.o
- .bss.r_volTotaliser
+ .bss.r_volTotaliser1
                 0x0000000020000584        0x4 ./Core/Src/states.o
-                0x0000000020000584                r_volTotaliser
+                0x0000000020000584                r_volTotaliser1
  .bss.sav.12494
                 0x0000000020000588        0x4 ./Core/Src/states.o
  .bss.scroll.12374
@@ -3905,16 +3905,16 @@ LOAD c:/st/stm32cubeide_1.8.0/stm32cubeide/plugins/com.st.stm32cube.ide.mcu.exte
  .bss.nozzle_flag_old
                 0x00000000200005e8        0x4 ./Core/Src/thread1.o
                 0x00000000200005e8                nozzle_flag_old
- .bss.prog_entry
+ .bss.prog_entry1
                 0x00000000200005ec        0x1 ./Core/Src/thread1.o
-                0x00000000200005ec                prog_entry
+                0x00000000200005ec                prog_entry1
  *fill*         0x00000000200005ed        0x3 
  .bss.pulser_new
                 0x00000000200005f0        0x4 ./Core/Src/thread1.o
                 0x00000000200005f0                pulser_new
- .bss.shutdown_timer
+ .bss.shutdown_timer1
                 0x00000000200005f4        0x2 ./Core/Src/thread1.o
-                0x00000000200005f4                shutdown_timer
+                0x00000000200005f4                shutdown_timer1
  *fill*         0x00000000200005f6        0x2 
  .bss.stop_flag
                 0x00000000200005f8        0x4 ./Core/Src/thread1.o
@@ -3963,8 +3963,8 @@ LOAD c:/st/stm32cubeide_1.8.0/stm32cubeide/plugins/com.st.stm32cube.ide.mcu.exte
                 0x0000000020000a60                totaliser_vol_storeA
  COMMON         0x0000000020000a68       0x10 ./Core/Src/states.o
                 0x0000000020000a68                price_
-                0x0000000020000a6c                target_pulser
-                0x0000000020000a70                price_real
+                0x0000000020000a6c                target_pulser1
+                0x0000000020000a70                price_real1
                 0x0000000020000a74                amt_
  COMMON         0x0000000020000a78       0xd0 ./Core/Src/thread1.o
                 0x0000000020000a78                t

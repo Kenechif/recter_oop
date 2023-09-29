@@ -144,8 +144,8 @@ typedef struct
 		double amo_totalizer;
 		float filled_vol;
 		float filled_amo;
-		int filling_start_time;		//time at the start of filling
-		int filling_duration;		//time it takes to complete a filling process
+		int filling_start_time;		//time at the start of filling1
+		int filling_duration;		//time it takes to complete a filling1 process
 		int nozzle_num;
 
 		bool  setPriceFlag;			//used to alert the protocol interface to set the price to a new price
@@ -186,7 +186,7 @@ typedef struct
 		typedef enum
 		{
 			NOZZLE_BIT = 0x40,	// == 1? nozzle up, 0? nozzle down
-			FILLING_BIT = 0x01, // == 1 ? filling state
+			FILLING_BIT = 0x01, // == 1 ? filling1 state
 			STATE_BIT = 0x02, // == 1? idle state
 		}state_bit_mask;
 //============================================================

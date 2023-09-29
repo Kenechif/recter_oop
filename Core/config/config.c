@@ -525,7 +525,9 @@ void epSend_interval(void)
 		//============================================//
 
 		day = DS1307_GetDate();
-//		day = 0;
+
+//		day = 17;
+
 		if(settings[0].totalizer_day == day)
 		{
 			ep5a_sent = 1;
@@ -1203,6 +1205,28 @@ void retrieve_totalTransaction_sides(pump_sid ab)
 	}
 }
 
+
+void clear_totalTransaction_sides(pump_sid ab)
+{
+	int8_t sz;
+
+	uint16_t totalTransaction;
+
+	if(ab == side_a)
+	{
+		sz = sizeof(ep1b_save.total_tranxA);
+		ep1b_save.total_tranxA = 0;
+		EEPROM_Write(totalTranxA_loc, totalTranxA1_loc, &ep1b_save.total_tranxA, sz);
+	}
+	else if(ab == side_b)
+	{
+		sz = sizeof(++ep1b_save.total_tranxB);
+		ep1b_save.total_tranxB = 0;
+		EEPROM_Write(totalTranxB_loc, totalTranxB1_loc, &ep1b_save.total_tranxB, sz);
+	}
+}
+
+
 void save_synchedTransaction_sides(pump_sid ab)
 {
 	int8_t sz;
@@ -1303,6 +1327,39 @@ void retrieve_synchedTransaction_sides(pump_sid ab)
 	}
 }
 
+
+void clear_synchedTransaction_sides(pump_sid ab)
+{
+	int8_t sz;
+
+	uint16_t flash_beginA_page = 0,            //0x0000
+			 flash_beginB_page = 16384;        //0x4000
+
+	if(ab == side_a)
+	{
+		sz = sizeof(ep1b_save.synched_tranxA);
+		ep1b_save.synched_tranxA = 0;
+
+		EEPROM_Write(synchedTranxA_loc, synchedTranxA1_loc, &ep1b_save.synched_tranxA, sz);
+		EEPROM_Write((lastSynchedFlashA_loc), 0, flash_beginA_page, sizeof(ep1b_save.synched_flashA));
+
+		ep1b_save.synched_autoTranxA = 0;
+		EEPROM_Write(synchedAutoTranxA_loc, synchedAutoTranxA1_loc, &ep1b_save.synched_autoTranxA, sz);
+	}
+	else if(ab == side_b)
+	{
+		sz = sizeof(ep1b_save.synched_tranxB);
+		ep1b_save.synched_tranxB = 0;
+
+		EEPROM_Write(synchedTranxB_loc, synchedTranxB1_loc, &ep1b_save.synched_tranxB, sz);
+		EEPROM_Write((lastSynchedFlashB_loc), 0, &flash_beginB_page, sizeof(ep1b_save.synched_flashB));
+
+		ep1b_save.synched_autoTranxB = 0;
+		EEPROM_Write(synchedAutoTranxB_loc, synchedAutoTranxB1_loc, &ep1b_save.synched_autoTranxB, sz);
+	}
+}
+
+
 void save_totalAutoTransaction_sides(pump_sid ab)
 {
 	int8_t sz;
@@ -1339,6 +1396,24 @@ void retrieve_totalAutoTransaction_sides(pump_sid ab)
 	}
 }
 
+void clear_totalAutoTransaction_sides(pump_sid ab)
+{
+	int8_t sz;
+
+	if(ab == side_a)
+	{
+		sz = sizeof(ep1b_save.total_autoTranxA);
+		ep1b_save.total_autoTranxA = 0;
+		EEPROM_Write(totalAutoTranxA_loc, totalAutoTranxA1_loc, &ep1b_save.total_autoTranxA, sz);
+	}
+	else if(ab == side_b)
+	{
+		sz = sizeof(++ep1b_save.total_autoTranxB);
+		ep1b_save.total_autoTranxB = 0;
+		EEPROM_Write(totalAutoTranxB_loc, totalAutoTranxB1_loc, &ep1b_save.total_autoTranxB, sz);
+	}
+}
+
 void save_synchedAutoTransaction_sides(pump_sid ab)
 {
 	int8_t sz;
@@ -1372,6 +1447,24 @@ void retrieve_synchedAutoTransaction_sides(pump_sid ab)
 	{
 		EEPROM_Read(synchedAutoTranxB_loc, synchedAutoTranxB1_loc, &synchedAutoTranx, sz);
 		ep1b_save.synched_autoTranxB = synchedAutoTranx;
+	}
+}
+
+void clear_synchedAutoTransaction_sides(pump_sid ab)
+{
+	int8_t sz;
+
+	if(ab == side_a)
+	{
+		sz = sizeof(ep1b_save.synched_autoTranxA);
+		ep1b_save.synched_autoTranxA = 0;
+		EEPROM_Write(synchedAutoTranxA_loc, synchedAutoTranxA1_loc, &ep1b_save.synched_autoTranxA, sz);
+	}
+	else if(ab == side_b)
+	{
+		sz = sizeof(++ep1b_save.synched_autoTranxB);
+		ep1b_save.synched_autoTranxA = 0;
+		EEPROM_Write(synchedAutoTranxB_loc, synchedAutoTranxB1_loc, &ep1b_save.synched_autoTranxB, sz);
 	}
 }
 
@@ -1594,11 +1687,11 @@ void ep1_mtResponse(void)
 					   }
 					   while(mt[head_pos] != ',');
 
-					   price_change1 = atof(mt_pump[0].price);
-					   price_change1  += 0.00011;  //make small correction for the inherent rounddown.
+					   price_change1 = atoff(mt_pump[0].price);
+//					   price_change1  += 0.00011;  //make small correction for the inherent rounddown.
 
-					   price_change2 = atof(mt_pump[1].price);
-					   price_change2  += 0.00011;  //make small correction for the inherent rounddown.
+					   price_change2 = atoff(mt_pump[1].price);
+//					   price_change2  += 0.00011;  //make small correction for the inherent rounddown.
 
 					   if( (mt_pump[0].type[0] == '3') && (price_change1 != settings[0].price_) )
 					   {
@@ -1647,8 +1740,8 @@ void ep1_mtResponse(void)
 						   }
 						   while(mt[head_pos] != ',');
 
-						   price_change1 = atof(mt_pump[0].price);
-						   price_change1  += 0.00011;  //make small correction for the inherent rounddown.
+						   price_change1 = atoff(mt_pump[0].price);
+//						   price_change1  += 0.00011;  //make small correction for the inherent rounddown.
 
 						   if( (mt_pump[0].type[0] == '3') && (price_change1 != settings[0].price_) )
 						   {
@@ -1685,8 +1778,8 @@ void ep1_mtResponse(void)
 						   }
 						   while(mt[head_pos] != ',');
 
-						   price_change2 = atof(mt_pump[1].price);
-						   price_change2  += 0.00011;  //make small correction for the inherent rounddown.
+						   price_change2 = atoff(mt_pump[1].price);
+//						   price_change2  += 0.00011;  //make small correction for the inherent rounddown.
 
 						   if( (mt_pump[1].type[0] == '3') && (price_change2 != settings[1].price_) )
 						   {
