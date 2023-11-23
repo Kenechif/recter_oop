@@ -39,6 +39,11 @@
 
 #include "pump_comm.h"
 
+//#include "../otp/sha1.h"
+#include "../otp/_otp.h"
+#include "stdlib.h"
+
+
 //uint8_t MSG[200] = {0};
 extern int8_t change_p, change_v;
 
@@ -62,6 +67,8 @@ extern pump pump_type,
 extern drive drive1,
 			 drive2;
 
+extern uint8_t hmacKey[];
+
 //===================================================
 #define DEV_ADDR 0xa0
 uint8_t dataw1[] = "hello world from EEPROM";
@@ -81,10 +88,12 @@ RTC_DateTypeDef gDate;
 RTC_TimeTypeDef gTime;
 #endif
 //-----------------------------------
-char time[10];
+char time_e[10];
 char date[10];
 char buffer[100] = { 0 };
 char buffer1[300] = { 0 };
+
+extern char otp_code[7] = { 0 };
 
 int8_t ttime[3],
 	   ddate[4],
@@ -119,6 +128,7 @@ int t, t2 = 0;
 uint16_t _tt1 = 0,
 		 _tt2 = 0,
 		 timer_ep = 0,
+//		 timer_ep1 = 0,
 		 timer_spi,
 		 totalizer1Timer = 0,
 		 totalizer2Timer = 0,
@@ -128,13 +138,17 @@ uint16_t _tt1 = 0,
 		 timer_config2 = 0;
 //		 ep2_timer = 0;
 
+uint32_t timer_ep1;
+
 uint32_t transaction_period = 0,
 		 transaction_period2 = 0;
 
 unsigned int ttt1 = 0,
 			 ttt2 = 0;
 
-int8_t server_message_found = 0;
+int8_t server_message_found = 0,
+	   card1_message_found = 0,
+	   card2_message_found = 0;
 
 uint16_t shutdown_timer1 = 0,
 		 shutdown_timer2 = 0;
@@ -274,6 +288,9 @@ const char *MONTHS[12] = {"JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP",
 
 extern float litre_price , litre_price1 , litre_price2;
 extern float amt , price;
+
+extern uint8_t ep20_available1,
+			   ep20_available2;
 
 void led_pin_out(void);
 
@@ -916,7 +933,7 @@ void compose_printer()
 	    sprintf(print_struct_.name,"RECTER");
 		sprintf(print_struct_.adr,"Ilupeju Bypass Ilupeju, Lagos");
 		sprintf(print_struct_.date_,"Thur Oct ,%d , 2022",log_a_new.date._dd);
-		sprintf(print_struct_.time_," %d : %d ",log_a_new.time._hh,log_a_new.time._mn);
+		sprintf(print_struct_.time_," %d : %d ", log_a_new.time_e._hh, log_a_new.time_e._mn);
 		sprintf(print_struct_.transaction_type,"USSD");
 		sprintf(print_struct_.voucher_,"0a2345ba");
 		sprintf(print_struct_.product_,"AGO");
@@ -957,6 +974,9 @@ void compose_printer()
 //		 }
 //	 }
 
+
+//	srand(time(NULL));
+
     keypad_lcd(2,"0");                      //keypad_lcd(0,"0");
     keypad_lcd2(2,"0");
 
@@ -985,6 +1005,13 @@ void compose_printer()
 
 	HAL_UART_Receive_IT(&huart2, uart2_rx_buf, pump_rx_bufsize);
 
+	HAL_UART_Receive_IT(&huart3, uart3_rx_buf, pump_rx_bufsize);
+
+	HAL_UART_Receive_IT(&huart5, uart5_rx_buf, pump_rx_bufsize);
+
+	otp(hmacKey, 10, pump_SN);
+//	otp2(hmacKey, 10);
+
 //		while(1)
 //		{
 ////			//check_interface1();
@@ -995,7 +1022,26 @@ void compose_printer()
 ////	      HAL_UART_Receive(&huart1,&pump_rx_buf, 10,10000);
 //		}
 
+
+//unsigned long otp_seed1 = 9071;  //1000;
+////long otp_preseed2 = 1234567890,
+////     otp_seed = 0;
 //
+//while(1)
+//{
+////	otp_preseed1 = otp_preseed1 + 1;
+////
+////	otp_seed = otp_preseed1 + otp_preseed2;
+////	otp_codeInt1 = getCode(otp_seed1++);
+//	otp_codeInt1 = getCode(otp_seed1);
+////	strcpy(code, *newCode);
+//
+//	sprintf(otp_code1, "%06ld", otp_codeInt1);
+//
+//	HAL_Delay(2000);
+//
+//}
+
 //while(1)
 //{
 ////	HAL_GPIO_WritePin(clockPin_GPIO_Port, clockPin_Pin, GPIO_PIN_SET);
@@ -1057,13 +1103,13 @@ void compose_printer()
 //   state_ini();
 //   state_ini2();
 
-   clr_screen();
+   clr_screen1();
    clr_screen2();
 
 #if test_battery == 1
 //   while(1)
 //   {
-////	   clr_screen();
+////	   clr_screen1();
 //
 //	   char st__[10] = {0};
 //	   float batt_val = battery_read();
@@ -1200,7 +1246,9 @@ tmmm:
 
 	  config_mode = 1;
 
-//	  {"ni":"p17","pn":"pms","dt":"bluesky886n",kt":"bluesky22"}
+//	  {"ni":"p17","pn":"pms","dt":"bluesky886n","kt":"bluesky22"}
+
+//	  {"ni":"p17","pn":"pms","dt":"bluesky886i","kt":"bluesky22"}
 
 	  while(config_found == 0);   //Loops idly while configuration is yet to be inputted
 
@@ -1255,6 +1303,9 @@ tmmm:
 
 	  clear_calibrationPulser(side_a);
 	  clear_calibrationPulser(side_b);
+
+	  clear_sessionId(side_a);
+	  clear_sessionId(side_b);
 
 	  clear_logA();
 	  clear_logB();
@@ -1621,6 +1672,18 @@ skip_test:
     retrieve_ctTimedFlag(side_a);
     retrieve_ctTimedFlag(side_b);
 
+//    clear_sessionId(side_a);
+//    clear_sessionId(side_b);
+    retrieve_sessionId(side_a);
+    retrieve_sessionId(side_b);
+
+//    clear_volumeTotaliser_startShift(side_a);
+//    clear_volumeTotaliser_startShift(side_b);
+    retrieve_volumeTotaliser_startShift(side_a);
+    retrieve_volumeTotaliser_startShift(side_b);
+//    startShiftTotaliser_vol1c = 500;
+//    startShiftTotaliser_amt1c = 500;
+
 
 
 //	settings[0].max_amt_ = 1000;
@@ -1636,6 +1699,8 @@ skip_test:
 //    retrieve_synchedEvents();
 
     ep0_save.boot_time = RtcToInt(2019);
+
+//    calib_pulser1 = 15800;
 
 //    vol_real1 = 20;
 //    vol_real2 = 20;
@@ -1794,7 +1859,38 @@ void run()
 			   }
 		*/
 
+
+	if(server_message_found == 1)
+	{
+		server_rx_parse();
+		server_message_found = 0;
+	}
+	if(card1_message_found == 1)
+	{
+		card1_rx_parse();
+		card1_message_found = 0;
+	}
+	else if(card2_message_found == 1)
+	{
+		card2_rx_parse();
+		card2_message_found = 0;
+	}
 //	epSend_interval();
+
+	if ( (ep20_available1 == 1) || (ep20_available2 == 1) )
+	{
+		if (ep20_available1 == 1)
+		{
+			ep20_send(side_a);
+		}
+		else if (ep20_available2 == 1)
+		{
+			ep20_send(side_b);
+		}
+
+//		ep20_available = 0;
+
+	}
 
 	//============================================//
 	// 				EP's ROUTINE SENDING			  //
@@ -1834,6 +1930,16 @@ void run()
 	{
 		server_rx_parse();
 		server_message_found = 0;
+	}
+	if(card1_message_found == 1)
+	{
+		card1_rx_parse();
+		card1_message_found = 0;
+	}
+	else if(card2_message_found == 1)
+	{
+		card2_rx_parse();
+		card2_message_found = 0;
 	}
 	else if( (pump_message_found == 1)  && (awaiting_masterResponse == 0) )
 	{

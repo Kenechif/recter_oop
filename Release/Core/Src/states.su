@@ -35,7 +35,7 @@ states.c:552:5:long_press_tot	0	static
 states.c:1032:9:key_available	0	static
 states.c:1040:8:read_keypad	12	static
 states.c:577:14:operator_State_Handler	104	static
-states.c:1111:6:clr_screen	8	static
+states.c:1111:6:clr_screen1	8	static
 states.c:1118:14:progstate_Handler	40	static
 states.c:2937:10:price2pulser	8	static
 states.c:2874:14:authorised_nozzledown_State_Handler	32	static

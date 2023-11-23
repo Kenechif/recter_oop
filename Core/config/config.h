@@ -45,8 +45,15 @@ typedef enum
 	ep31,
 	ep1a_priceChangeResponse_sideA,
 	ep1a_priceChangeResponse_sideB,
-	ep1a_priceChangeResponse_bothSides
+	ep1a_priceChangeResponse_bothSides,
+	ep20_side_a,
+	ep20_side_b
 }ep_;
+
+
+extern _card attendant1, attendant2, customer;
+
+extern ep20_ ep20_save;
 
 typedef struct{
 	long timestamp;
@@ -64,11 +71,32 @@ typedef struct{
 	char device_id[16];
 	char tag[12];
 	char storage_loc;
+	char session_id[9];
 }transaction;
+
+//typedef struct
+//{
+//	char card_pin[5];
+//	char card_id[9];
+//}_attendant1;
+//
+//_attendant1 attendant1;
+
+//typedef struct
+//{
+//  uint8_t user_id[5];
+//  char user_pin[5];
+//  uint8_t type[4];
+//  char user_name[16];
+//  char bal[16];
+//  char typ;
+//  uint8_t login_state;
+//}_card;
+//
+//_card attendant1, attendant2, customer;
 
 typedef struct
 {
-	int8_t status;
 	float totalizer;
 	float totalizer_real;
 	float tolalizer_first;
@@ -76,6 +104,7 @@ typedef struct
 	long totalizerFirst_timestamp;
 	char nozzle_name[5];
 	uint8_t nozzle_id;
+	uint8_t status;
 }pumps_ep;
 
 typedef struct{
@@ -84,7 +113,7 @@ typedef struct{
 	char device_id[16];
 	pumps_ep pump[2];
 	long boot_time;
-	int8_t reboot_cause;
+	uint8_t reboot_cause;
 }ep0_;
 
 ep0_ ep0_save;
@@ -92,10 +121,18 @@ ep0_ ep0_save;
 
 char mt[250];
 
+uint8_t  UART_BUFF1[128],
+		 UART_BUFF2[128];
+
+char card1_rx_buf[pump_rx_bufsize],
+	 card2_rx_buf[pump_rx_bufsize];
+
 extern const char device_id [],
 				  firmware_date [],
 				  firmware_time [],
 				  chip_type [];
+
+extern char session_id[9];
 
 extern const uint16_t firmware_version;
 
@@ -115,6 +152,16 @@ extern float totaliser_vol1c,
 			 totaliser_vol2c,
 			 totaliser_vol1,
 			 totaliser_vol2;
+
+extern float startShiftTotaliser_vol1,
+		  	 startShiftTotaliser_vol1c,
+		  	 startShiftTotaliser_vol2,
+			 startShiftTotaliser_vol2c;
+
+extern float startShiftTotaliser_amt1,
+			 startShiftTotaliser_amt1c,
+			 startShiftTotaliser_amt2,
+			 startShiftTotaliser_amt2c;
 
 extern log_new log_a_new,
 			   log_b_new,
@@ -222,12 +269,22 @@ LIST list[15];
 //	{}
 //}
 
-char serverTimeStr[16];
+char serverTimeStr[16],
+	 sessionIdStr[9];
 char *remaining;
 long serverTime;
 
 char token_str[12],
      statuss[10];
+
+uint8_t data_length1,
+		data_length2;
+
+uint16_t check_sum1,
+		 check_sum2;
+
+char card1_buf[100],
+	 card2_buf[100];
 
 extern char rx_buf[pump_rx_bufsize];
 
@@ -255,8 +312,8 @@ typedef struct
 	int16_t msg_type;
 	uint32_t gib_mode;
 	char gid[17];             // Interface id goes here.
-	char atag[20];			 // Attendant 1 tag is supplied here.
-	char atag2[20];			 // Attendant 2 tag is supplied here.
+	char atag[20];			 // attendant1 1 tag is supplied here.
+	char atag2[20];			 // attendant1 2 tag is supplied here.
 	int8_t inh;
 }config_others;
 
@@ -304,10 +361,14 @@ extern "C" {
 
 
 extern UART_HandleTypeDef huart2;
+extern UART_HandleTypeDef huart3;
+extern UART_HandleTypeDef huart5;
 
 extern SPI_HandleTypeDef hspi2;
 
 extern char uart2_rx_buf[pump_rx_bufsize];
+extern char uart3_rx_buf[pump_rx_bufsize];
+extern char uart5_rx_buf[pump_rx_bufsize];
 
 extern pump_settings settings[2];
 
@@ -323,19 +384,34 @@ extern const int16_t totalizerDay_loc;
 extern flash_store_info flash_infoA, flash_infoB;
 
 extern int8_t config_found,
-			  server_message_found;
+			  server_message_found,
+			  card1_message_found,
+			  card2_message_found;
 //			  connected;
 
 extern uint8_t connected;
 
 extern uint16_t timer_ep,
+//				timer_ep1,
 				timer_spi;
 //				ep2_timer;
+
+extern uint32_t timer_ep1;
 
 
 uint8_t ep1a_priceChangeFlag1,
 		ep1a_priceChangeFlag2,
 		ep1a_priceChangeFlag_bothSides;
+
+uint8_t TSTA1,
+		WSTA1,
+		LSTA1,
+		card_writeOp1,
+		TSTA2,
+		WSTA2,
+		LSTA2,
+		card_writeOp2;
+//		verifyResponse;
 
 void read_config();
 
@@ -344,6 +420,8 @@ void ep_send(ep_ designation);
 void epSend_interval(void);
 
 void ep2_send(pump_sid side);
+
+void ep20_send(pump_sid side);
 
 void send_ep0_ep5(void);
 
@@ -360,6 +438,9 @@ void server_read(void);
 void spi_rx(void);
 
 uint16_t generate_tk(void);
+
+uint16_t generate_otpVariable1(void);
+uint16_t generate_otpVariable2(void);
 
 void generateTransc_ID(char* ti);
 
@@ -427,6 +508,20 @@ void ep1_mtResponse(void);
 uint8_t ct_parse(pump_sid side);
 
 uint8_t ep1_ctCheck(void);
+
+uint16_t checksum1(uint8_t* data, uint8_t len);
+uint16_t checksum2(uint8_t* data, uint8_t len);
+
+void sendReply1(void);
+void sendReply2(void);
+
+void card1_read(void);
+void card2_read(void);
+
+void card1_rx_parse(void);
+void card2_rx_parse(void);
+
+void sessionId_parse(pump_sid side);
 
 
 

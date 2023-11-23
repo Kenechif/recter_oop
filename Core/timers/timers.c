@@ -29,6 +29,7 @@ extern int t, t2; //ttt1;
 extern uint16_t _tt1,
 				_tt2,
 				timer_ep,
+				timer_ep1,
 				timer_spi,
 				totalizer1Timer,
 				totalizer2Timer,
@@ -78,6 +79,8 @@ void dec_var()
 
 		timer_ep++;
 		if(timer_ep > 65534) timer_ep = 0;
+		timer_ep1++;
+		if(timer_ep1 > 85534) timer_ep1 = 0;
 //		ep2_timer++;
 //		timer_spi++;
 		transaction_period++;

@@ -22,6 +22,8 @@ extern UART_HandleTypeDef huart2;
 
 extern const char device_id [];
 
+extern char session_id[9];
+
 extern float litre_price1;
 extern int8_t opmode,
 			  opmode2;
@@ -162,8 +164,8 @@ void update_info()       //save_log( )
 
         //=====================================
         //==========   date ==========
-         log_a_new.time._hh = hour;
-         log_a_new.time._mn = minute;
+         log_a_new.time_e._hh = hour;
+         log_a_new.time_e._mn = minute;
 
          //=========  time  ==========
          log_a_new.date._yy = year;
@@ -207,8 +209,8 @@ void update_info()       //save_log( )
 
            //=====================================
            //==========   date ==========
-            log_b_new.time._hh = hour;
-            log_b_new.time._mn = minute;
+            log_b_new.time_e._hh = hour;
+            log_b_new.time_e._mn = minute;
 
             //=========  time  ==========
             log_b_new.date._yy = year;
@@ -341,6 +343,9 @@ eSystemState write_flash_state_Handler(void)
 		memset(log_a_new.device_id, '\0', sizeof(log_a_new.device_id));
 		strncpy(log_a_new.device_id, device_id, 15);
 
+		memset(log_a_new.session_id, '\0', sizeof(log_a_new.session_id));
+//		strncpy(log_a_new.session_id, session_id1, strlen(session_id1));
+
 		W25qxx_WritePage(&log_a_new, pg, 0, sizeof(log_a_new) );
 	}
 	else if(operating_sideB)
@@ -369,6 +374,9 @@ eSystemState write_flash_state_Handler(void)
 		memset(log_b_new.device_id, '\0', sizeof(log_b_new.device_id));
 		strncpy(log_b_new.device_id, device_id, 15);
 
+		memset(log_b_new.session_id, '\0', sizeof(log_b_new.session_id));
+//	    strncpy(log_b_new.session_id, session_id2, strlen(session_id2));
+
 
 		W25qxx_WritePage(&log_b_new,  pg, 0, sizeof(log_b_new));
 	}
@@ -393,7 +401,21 @@ eSystemState write_flash_state_Handler(void)
 				save_totalAutoTransaction_sides(side_a);
 			 }
 
-//			 ep2_send(side_a);
+//
+//			//============================================//
+//			// 				EP2 ROUTINE SENDING			  //
+//			//============================================//
+//			if (HAL_GPIO_ReadPin(network_connected_GPIO_Port, network_connected_Pin) == 1 )
+//			{
+//				connected = 1;
+//				ep2_send(side_a);
+//			}
+//			else
+//			{
+//				connected = 0;
+//			}
+//			//============================================//
+
 		  }
 		  else if (operating_side == side_b)
 		  {
@@ -410,6 +432,21 @@ eSystemState write_flash_state_Handler(void)
 			 {
 				save_totalAutoTransaction_sides(side_b);
 			 }
+
+//			//============================================//
+//			// 				EP2 ROUTINE SENDING			  //
+//			//============================================//
+//			if (HAL_GPIO_ReadPin(network_connected_GPIO_Port, network_connected_Pin) == 1 )
+//			{
+//				connected = 1;
+//				ep2_send(side_b);
+//			}
+//			else
+//			{
+//				connected = 0;
+//			}
+//			//============================================//
+
 		  }
 		//------------------------------------------------------------------------------------
 		w25qxx.Lock = 0;       // unlock the flash memory.

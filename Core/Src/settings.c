@@ -19,7 +19,7 @@
 #include "EEPROM.h"
 
 
-//#######################################
+//##################################################
 
 const char device_id [] = "860537064685993";        //"860537064685357";           //"860537064685993";     //"860537064685340";
 
@@ -29,11 +29,17 @@ const char chip_type [] = "STM32F4";
 
 const uint16_t firmware_version = 25100;
 
-//#######################################
+uint16_t  pump_SN = 77;
+char session_id[9] = {0};
+
+//##################################################
 
 
 
  const int max_events_per_state = 10;
+
+ // The shared secret is FdelOnwuka
+ uint8_t hmacKey[] = {0x46, 0x64, 0x65, 0x6C, 0x4F, 0x6E, 0x77, 0x75, 0x6B, 0x61};
 
 uint8_t connected;
 
@@ -63,6 +69,12 @@ extern uint16_t _tt1,
 extern uint32_t transaction_period,
 				transaction_period2;
 
+extern float display_minimumCentilitre1,
+			 display_minimumCentilitre2;
+
+extern uint8_t calibrationCan_measure1,
+			   calibrationCan_measure2;
+
  float price = 0.0;
  float amt = 0.0;
  int auth_flag = 0;
@@ -81,10 +93,10 @@ int access_level = non;    //default
     sellmode_ sellmode = P;
     sellmode_ sellmode2 = P;
 
-	float totaliser_vol1 = 0.00;
-	float totaliser_vol1c = 0.00;
-	float totaliser_vol2 = 0.00;
-	float totaliser_vol2c = 0.00;
+	float totaliser_vol1 = 0.00,
+	      totaliser_vol1c = 0.00,
+	      totaliser_vol2 = 0.00,
+		  totaliser_vol2c = 0.00;
 
 	float firstTotaliser_vol1 = 0.00,
 		  firstTotaliser_vol1c = 0.00,
@@ -95,6 +107,16 @@ int access_level = non;    //default
 		  totaliser_amt1c = 0.00,
 		  totaliser_amt2 = 0.00,
 		  totaliser_amt2c = 0.00;
+
+	float startShiftTotaliser_vol1 = 0.00,
+		  startShiftTotaliser_vol1c = 0.00,
+		  startShiftTotaliser_vol2 = 0.00,
+		  startShiftTotaliser_vol2c = 0.00;
+
+	float startShiftTotaliser_amt1 = 0.00,
+		  startShiftTotaliser_amt1c = 0.00,
+		  startShiftTotaliser_amt2 = 0.00,
+		  startShiftTotaliser_amt2c = 0.00;
 
 	float working_volTotaliser1 = 0;
 	float working_volTotaliser1c = 0;
@@ -178,13 +200,32 @@ float price_upper1,
 
  int max_dp = 3;
 //================================
-  uint32_t password_level1 = 1234;
-  uint32_t password_level2 = 12345678;
+  char password_level1[9] = {'0', '0', '0', '0', '\0'};
+  char password_level2[9] = {'0', '0', '0', '0', '\0'};
+  char password_level3[9] = {'0', '0', '0', '0', '\0'};
+
+//  uint32_t password_level1 = 1234;
+//  uint32_t password_level2 = 12; // 12345678;
+//  uint32_t password_level3 = 13;  //12345678;
 
  int log_max = 50;
 
- const int save_settings1_loc = 0;
- const int save_settings2_loc = 5;
+// const int save_settings1_loc = 0;
+// const int save_settings2_loc = 5;
+ const int save_settings1_loc = 500;
+ const int save_settings2_loc = 581;   //581 --> 660
+ const int sessionId_loc = 661,
+		   sessionId1_loc = 0,
+		   sessionId2_loc = 669;  ////669 --> 677
+
+ const int startShiftTotVol_loc  =  678,
+ 	 	   startShiftTotVol1_loc =  0,
+ 	 	   startShiftTotVol2_loc =  startShiftTotVol1_loc + (2+(2*4));   // 688 -> 697
+
+ const int startShiftTotAmount_loc  =  698,
+ 	 	   startShiftTotAmount1_loc =  0,
+ 	 	   startShiftTotAmount2_loc =  startShiftTotAmount1_loc + (2+(2*4));  // 708 -> 717
+
  const int16_t save_pumpType_loc = 400;
  const int16_t save_productType_loc = save_pumpType_loc + 1;
  const int16_t save_nozzleId_loc = save_pumpType_loc + 2;
@@ -260,7 +301,11 @@ flash_store_info flash_infoA,flash_infoB;
 totaliser_store totaliser_vol_storeA,
 				totaliser_vol_storeB,
 				totaliser_amt_storeA,
-				totaliser_amt_storeB;
+				totaliser_amt_storeB,
+				startShiftTotaliser_vol_storeA,
+				startShiftTotaliser_vol_storeB,
+				startShiftTotaliser_amt_storeA,
+				startShiftTotaliser_amt_storeB;
 
 firstTotaliser_store firstTotaliser_vol_storeA,
 					 firstTotaliser_vol_storeB,
@@ -269,6 +314,8 @@ firstTotaliser_store firstTotaliser_vol_storeA,
 
 lastSale_store lastSale_storeA,
 			   lastSale_storeB;
+
+_sessionId sessionId[2];
 
 ct_settings ct_settingsA,
 			ct_settingsB;
@@ -296,13 +343,24 @@ const uint32_t flash_endB   = 0x7fffff;
  char* menu2[16] = {"  nnode ","Address "," Nozzle ","Prog.type","  Price ","no flo. t","Hi. Litre","Ch  Pass","Send cfg","Get. cfg ","Clr log","Clr tot","Calibrat.","Display ", "  Cloc"};
  char* menu3[3]  = {"tmm cfg","flo rate"};
 
+ char* menu_level1[4] = {"Shft. Tot ", "  Price ", "  Cloc"};
+ char* menu_level2[18] = {"  nnode ", "Address ", " Nozzle ", "Disp.Styl", "  Price ", "no flo. t", "Hi. Litre", "Ch  Pass", "Calibrat.", "DP Count", "  Cloc", "Sides No", "Start CL", "Calib.Can", "Shift.Typ", "Shift No", "  Tone  "};
+ char* menu_level3[20] = {"  nnode ", "Address ", " Nozzle ", "Disp.Styl", "  Price ", "no flo. t", "Hi. Litre", "Ch  Pass", "Calibrat.", "DP Count", "  Cloc", "Sides No", "Start CL", "Calib.Can", "Shift.Typ", "Shift No", "  Tone  ", "Calib.Typ", "Conn.Card"};
+
+ char* pass[4] = {" pass 1 ", " pass 2 ", " pass 3 "};
+ char* ch_pass[4] = {"pass.1", "pass.2", "pass.3"};
+
+ char* login_type[4] = {"[ None ]", "[ Code ]", "[ Card ]"};
+
 //-------------------------------------
 void retrieve_settings()
 {
-	extern const int save_settings1_loc;
-	extern const int save_settings2_loc;
-
-   int sz = sizeof(copy[0]);
+   extern const int save_settings1_loc;
+   extern const int save_settings2_loc;
+   int sz;
+//   sz = sizeof(settings[0].display_mode);  // PL/LP   ==> default : PL  // Level 2
+//   sz = sizeof(settings[0]);
+   sz = sizeof(copy[0]);
 
    if( EEPROM_Read(save_settings1_loc, 0, &settings[0], sz) );
    else
@@ -352,49 +410,67 @@ void load_settings(pump_sid side)
 
 	    timeout_picknozzle = 30;
 	    timeout_dispense   = 60;
-	    timeout_noflow = settings[sdd].noflow_;
+	    timeout_noflow = settings[sdd].noFlow_timeOut;
 
 	    pump_type = settings[sdd].pump_type_;
 
-	    password_level1 = settings[sdd].passwd1;
-	    password_level2 = settings[sdd].passwd2;
+	    strncpy(password_level1, settings[sdd].passwd1, sizeof(password_level1) );
+	    strncpy(password_level2, settings[sdd].passwd2, sizeof(password_level2) );
+	    strncpy(password_level3, settings[sdd].passwd3, sizeof(password_level3) );
+//	    password_level2 = settings[sdd].passwd2;
+//	    password_level3 = settings[sdd].passwd3;
 
 	    dp_price1 = settings[sdd].dp_price;
 	    dp_amount1 = settings[sdd].dp_amount;
 	    dp_unitprice1 = settings[sdd].dp_unitprice;
 	    pump_max_litres1 = settings[sdd].max_amt_;
-	   }
-	   else
-	   {
-		   sdd = 1;
 
-		        litre_price2 = settings[1].price_;
-		        sellmode2 = settings[sdd].def_t;
-			    //totaliser_vol1 = 57638694.00;
+//	    settings[sdd].side_size = 2;   // 1/2    ==> default : 2   // Level 2
+//		settings[sdd].display_mode = PL;  // PL/LP   ==> default : PL  // Level 2
+//		settings[sdd].keypress_tone = Yes;  // Yes/No   ==> default : No   // Level 2
 
-			    overide_2 = settings[sdd].noz;
+		display_minimumCentilitre1 = settings[sdd].startUp_suppressVol;  // (0 - 10) cL   ==> default : 4cL  // Level 2
+		calibrationCan_measure1 = settings[sdd].calibration_measureCan;  // 10L/20L   ==> default : 20L  // Level 2
 
-			    pulser_index2 = settings[sdd].pi_;
-			    pulser_index_c2 = settings[sdd].pi_c;
-			    opmode2  = settings[sdd].mode;
+   }
+   else
+   {
+	    sdd = 1;
 
-			   // litre_price  = settings[sdd].price_;
-			    litre_price2 = settings[sdd].price_;
+		litre_price2 = settings[1].price_;
+		sellmode2 = settings[sdd].def_t;
+		//totaliser_vol1 = 57638694.00;
 
-			    timeout_picknozzle = 30;
-			    timeout_dispense   = 60;
-			    timeout_noflow = settings[sdd].noflow_;
+		overide_2 = settings[sdd].noz;
 
-			    pump_type = settings[sdd].pump_type_;
+		pulser_index2 = settings[sdd].pi_;
+		pulser_index_c2 = settings[sdd].pi_c;
+		opmode2  = settings[sdd].mode;
 
-			    password_level1 = settings[sdd].passwd1;
-			    password_level2 = settings[sdd].passwd2;
+	   // litre_price  = settings[sdd].price_;
+		litre_price2 = settings[sdd].price_;
 
-			    dp_price2 = settings[sdd].dp_price;
-			    dp_amount2 = settings[sdd].dp_amount;
-			    dp_unitprice2 = settings[sdd].dp_unitprice;
-			    pump_max_litres2 = settings[sdd].max_amt_;
-	   }
+		timeout_picknozzle = 30;
+		timeout_dispense   = 60;
+		timeout_noflow = settings[sdd].noFlow_timeOut;
+
+		pump_type = settings[sdd].pump_type_;
+
+		strncpy(password_level1, settings[sdd].passwd1, sizeof(password_level1) );
+		strncpy(password_level2, settings[sdd].passwd2, sizeof(password_level2) );
+		strncpy(password_level3, settings[sdd].passwd3, sizeof(password_level3) );
+//		password_level1 = settings[sdd].passwd1;
+//		password_level2 = settings[sdd].passwd2;
+//		password_level3 = settings[sdd].passwd3;
+
+		dp_price2 = settings[sdd].dp_price;
+		dp_amount2 = settings[sdd].dp_amount;
+		dp_unitprice2 = settings[sdd].dp_unitprice;
+		pump_max_litres2 = settings[sdd].max_amt_;
+
+		display_minimumCentilitre2 = settings[sdd].startUp_suppressVol;  // (0 - 10) cL   ==> default : 4cL  // Level 2
+		calibrationCan_measure2 = settings[sdd].calibration_measureCan;  // 10L/20L   ==> default : 20L  // Level 2
+   }
 }
 //========================================
 /*
@@ -415,22 +491,23 @@ void make_settings(pump_sid side)
    }
 	     settings[sdd].def_t = P;
 
-	    settings[sdd].pi_ = 180;
-	    settings[sdd].pi_c = 180;
-	    settings[sdd].mode = MANUAL;
+	    settings[sdd].pi_ = 798.35;
+	    settings[sdd].pi_c = 760.33;
+	    settings[sdd].mode = AUTO;
 
 	    settings[sdd].price_ = 120.00;
 
 	    timeout_picknozzle = 30;
 	    timeout_dispense   = 60;
 
-	    settings[sdd].noflow_ = 30;
+	    settings[sdd].noFlow_timeOut = 30;
 
 //	    settings[sdd].pump_type_ = bluesky;    // lafeng;
 //	    settings[sdd].pump_type_ = pump_type;
 
-	    settings[sdd].passwd1 = 1234;
-	    settings[sdd].passwd2 = 12345678;
+	    strncpy(settings[sdd].passwd1, "0000", 9);
+	    strncpy(settings[sdd].passwd2, "0000", 9);
+	    strncpy(settings[sdd].passwd3, "0000", 9);
 
 	    settings[sdd].dp_price     = 2;
 	    settings[sdd].dp_amount    = 2;
@@ -438,6 +515,17 @@ void make_settings(pump_sid side)
 
 	    settings[sdd].noz = nooveride;
 	    settings[sdd].max_amt_ = 99999999;   //Maximum pump litres
+
+	    settings[sdd].side_size = 2;   // 1/2    ==> default : 2   // Level 2
+	    settings[sdd].display_mode = PL;  // PL/LP   ==> default : PL  // Level 2
+	    settings[sdd].keypress_tone = No;  // Yes/No   ==> default : No   // Level 2
+
+		settings[sdd].startUp_suppressVol = 0.04;  // (0 - 10) cL   ==> default : 4cL  // Level 2
+		settings[sdd].calibration_measureCan = 20;  // 10L/20L   ==> default : 20L  // Level 2
+	    settings[sdd].shift_login_type = None_; // None_/Code_/Card_   ==> default : None_  // Level 2
+
+	    settings[sdd].commCard_enforced = true;  // Yes/No   ==> default : Yes   // Level 3
+	    settings[sdd].calibration_type = Wizard; // Wizard/Manual_calib   ==> default : Wizard   // Level 3
 
 	     /*
 		   if (sdd == side_a)
@@ -466,6 +554,8 @@ void save_settings()
 	   EEPROM_Write(save_settings2_loc, 0, &settings[1], sz);
   // }
 }
+
+
 //==============================================
 /*
  * save volumeTotaliser
@@ -1174,6 +1264,221 @@ void clear_calibrationPulser(pump_sid side)
 	  }
 }
 //===================================================
+
+
+//==============================================
+/*
+ * save sessionId
+ */
+void save_sessionId(pump_sid side)
+{
+	int sz = sizeof(sessionId[0]);
+
+	if (side == side_a)
+	{
+		strncpy(sessionId[0].session_id, attendant1.session_id, sizeof(sessionId[0].session_id) );
+	  	EEPROM_Write(sessionId_loc, sessionId1_loc, &sessionId[0], sz);
+	}
+	else if (side == side_b)
+	{
+		strncpy(sessionId[1].session_id, attendant2.session_id, sizeof(sessionId[1].session_id) );
+	  	EEPROM_Write(sessionId_loc, sessionId2_loc, &sessionId[1], sz);
+	}
+}
+
+//===================================================
+/*
+ *  read sessionId
+ */
+void retrieve_sessionId(pump_sid side)
+{
+  int sz = sizeof(sessionId[0]);
+	if (side == side_a)
+	{
+		EEPROM_Read(sessionId_loc, sessionId1_loc, &sessionId[0], sz);
+		strncpy(attendant1.session_id, sessionId[0].session_id, sizeof(attendant1.session_id) );
+	}
+	else if (side == side_b)
+	{
+	  	 EEPROM_Read(sessionId_loc, sessionId2_loc, &sessionId[1], sz);
+		 strncpy(attendant2.session_id, sessionId[1].session_id, sizeof(attendant2.session_id) );
+	}
+}
+
+//==============================================
+/*
+ * clear sessionId
+ */
+void clear_sessionId(pump_sid side)
+{
+	int sz = sizeof(sessionId[0]);
+
+	if (side == side_a)
+	  {
+		  memset(sessionId[0].session_id, '\0', sizeof(sessionId[0].session_id) );
+		  EEPROM_Write(sessionId_loc, sessionId1_loc, &sessionId[0], sz);
+	  }
+	else if (side == side_b)
+	  {
+		  memset(sessionId[1].session_id, '\0', sizeof(sessionId[1].session_id) );
+		  EEPROM_Write(sessionId_loc, sessionId2_loc, &sessionId[1], sz);
+	  }
+}
+
+
+
+
+//==============================================
+/*
+ * save Start-Shift volumeTotaliser
+ */
+void save_volumeTotaliser_startShift(pump_sid side)
+{
+	int sz = sizeof(startShiftTotaliser_vol_storeA);
+
+	if (side == side_a)
+	  {
+//		EEPROM_Write_NUM(totVol_loc, totVol1_loc, tot);
+		startShiftTotaliser_vol_storeA.totaliserVol_cal = totaliser_vol1c;
+		startShiftTotaliser_vol_storeA.totaliserVol_real = totaliser_vol1;
+	  	EEPROM_Write(startShiftTotVol_loc, startShiftTotVol1_loc, &startShiftTotaliser_vol_storeA, sz);
+	  }
+	else if (side == side_b)
+	  {
+		//EEPROM_Write_NUM(totVol_loc, totVol2_loc, tot);
+		startShiftTotaliser_vol_storeB.totaliserVol_cal = totaliser_vol2c;
+		startShiftTotaliser_vol_storeB.totaliserVol_real = totaliser_vol2;
+	  	EEPROM_Write(startShiftTotVol_loc, startShiftTotVol2_loc, &startShiftTotaliser_vol_storeB, sz);
+	  }
+}
+
+//===================================================
+/*
+ *  read Start-Shift volumeTotaliser
+ */
+void retrieve_volumeTotaliser_startShift(pump_sid side)
+{
+  int sz = sizeof(startShiftTotaliser_vol_storeA);
+	if (side == side_a)
+	{
+		//EEPROM_Read_NUM(totVol_loc,totVol1_loc);
+		EEPROM_Read(startShiftTotVol_loc, startShiftTotVol1_loc, &startShiftTotaliser_vol_storeA, sz);
+		startShiftTotaliser_vol1c =  startShiftTotaliser_vol_storeA.totaliserVol_cal;
+		startShiftTotaliser_vol1 = startShiftTotaliser_vol_storeA.totaliserVol_real;
+
+	  	if(isnan(startShiftTotaliser_vol1c)) startShiftTotaliser_vol1c = 0.0;
+	  	if(isnan(startShiftTotaliser_vol1)) startShiftTotaliser_vol1 = 0.0;
+
+	}
+	else if (side == side_b)
+	{
+		//EEPROM_Read_NUM(totVol_loc,totVol2_loc);
+		 EEPROM_Read(startShiftTotVol_loc, startShiftTotVol2_loc, &startShiftTotaliser_vol_storeB, sz);
+		 startShiftTotaliser_vol2c = startShiftTotaliser_vol_storeB.totaliserVol_cal;
+		 startShiftTotaliser_vol2  = startShiftTotaliser_vol_storeB.totaliserVol_real;
+
+	  	if(isnan(startShiftTotaliser_vol2c)) startShiftTotaliser_vol2c = 0.0;
+	  	if(isnan(startShiftTotaliser_vol2)) startShiftTotaliser_vol2 = 0.0;
+
+	}
+}
+
+//==============================================
+/*
+ * clear Start-Shift volumeTotaliser
+ */
+void clear_volumeTotaliser_startShift(pump_sid side)
+{
+	int sz = sizeof(startShiftTotaliser_vol_storeA);
+
+	if (side == side_a)
+	  {
+		startShiftTotaliser_vol_storeA.totaliserVol_cal = 0.00;
+		startShiftTotaliser_vol_storeA.totaliserVol_real = 0.00;
+	  	EEPROM_Write(startShiftTotVol_loc, startShiftTotVol1_loc, &startShiftTotaliser_vol_storeA, sz);
+	  }
+	else if (side == side_b)
+	  {
+		startShiftTotaliser_vol_storeB.totaliserVol_cal = 0.00;
+		startShiftTotaliser_vol_storeB.totaliserVol_real = 0.00;
+	  	EEPROM_Write(startShiftTotVol_loc, startShiftTotVol2_loc, &startShiftTotaliser_vol_storeB, sz);
+	  }
+}
+
+
+//==============================================
+/*
+ * save Start-Shift amountTotaliser
+ */
+void save_amountTotaliser_startShift(pump_sid side)
+{
+	int sz = sizeof(startShiftTotaliser_vol_storeA);
+
+	if (side == side_a)
+	  {
+		  startShiftTotaliser_amt_storeA.totaliserVol_cal = startShiftTotaliser_amt1c;
+		  startShiftTotaliser_amt_storeA.totaliserVol_real = startShiftTotaliser_amt1;
+	  	  EEPROM_Write(startShiftTotAmount_loc, startShiftTotAmount1_loc, &startShiftTotaliser_amt_storeA, sz);
+	  }
+	else if (side == side_b)
+	  {
+		  startShiftTotaliser_amt_storeB.totaliserVol_cal = startShiftTotaliser_amt2c;
+		  startShiftTotaliser_amt_storeB.totaliserVol_real = startShiftTotaliser_amt2;
+	  	  EEPROM_Write(startShiftTotAmount_loc, startShiftTotAmount2_loc, &startShiftTotaliser_amt_storeB, sz);
+	  }
+}
+
+//===================================================
+/*
+ *  read Start-Shift amountTotaliser
+ */
+void retrieve_amountTotaliser_startShift(pump_sid side)
+{
+  int sz = sizeof(startShiftTotaliser_amt_storeA);
+	if (side == side_a)
+	{
+		EEPROM_Read(startShiftTotAmount_loc, startShiftTotAmount1_loc, &startShiftTotaliser_amt_storeA, sz);
+		startShiftTotaliser_amt1c =  startShiftTotaliser_amt_storeA.totaliserVol_cal;
+		startShiftTotaliser_amt1 = startShiftTotaliser_amt_storeA.totaliserVol_real;
+
+	  	if(isnan(startShiftTotaliser_amt1c)) startShiftTotaliser_amt1c = 0.0;
+	  	if(isnan(startShiftTotaliser_amt1)) startShiftTotaliser_amt1 = 0.0;
+
+	}
+	else if (side == side_b)
+	{
+		 EEPROM_Read(totAmount_loc, startShiftTotAmount2_loc, &startShiftTotaliser_amt_storeB, sz);
+		 startShiftTotaliser_amt2c = startShiftTotaliser_amt_storeB.totaliserVol_cal;
+		 startShiftTotaliser_amt2  = startShiftTotaliser_amt_storeB.totaliserVol_real;
+
+	  	if(isnan(startShiftTotaliser_amt2c)) startShiftTotaliser_amt2c = 0.0;
+	  	if(isnan(startShiftTotaliser_amt2)) startShiftTotaliser_amt2 = 0.0;
+
+	}
+}
+
+//==============================================
+/*
+ * clear Start-Shift amountTotaliser
+ */
+void clear_amountTotaliser_startShift(pump_sid side)
+{
+	int sz = sizeof(startShiftTotaliser_vol_storeA);
+
+	if (side == side_a)
+	  {
+		  startShiftTotaliser_amt_storeA.totaliserVol_cal = 0.00;
+		  startShiftTotaliser_amt_storeA.totaliserVol_real = 0.00;
+	  	  EEPROM_Write(startShiftTotAmount_loc, startShiftTotAmount1_loc, &startShiftTotaliser_amt_storeA, sz);
+	  }
+	else if (side == side_b)
+	  {
+		  startShiftTotaliser_amt_storeB.totaliserVol_cal = 0.00;
+		  startShiftTotaliser_amt_storeB.totaliserVol_real = 0.00;
+	  	  EEPROM_Write(startShiftTotAmount_loc, startShiftTotAmount2_loc, &startShiftTotaliser_amt_storeB, sz);
+	  }
+}
+
 
 //===================================================
 /*

@@ -299,6 +299,17 @@ void shiftOut(uint8_t data_byte,uint8_t lat)
 			//set clock pin high
 			HAL_GPIO_WritePin(clockPin_GPIO_Port, clockPin_Pin, GPIO_PIN_SET);
       }
+      else if( (disp_type1 == DIN_BLSKY18K ) || (disp_type1 == DIN_BLSKY22 ) )
+	  {
+			if ( byteRead(data_byte, i) == 0 )
+				HAL_GPIO_WritePin(dataPin_GPIO_Port, dataPin_Pin, GPIO_PIN_RESET);
+			else	//if low set dp low
+				HAL_GPIO_WritePin(dataPin_GPIO_Port, dataPin_Pin, GPIO_PIN_SET);
+
+			//set clock pin high
+			HAL_GPIO_WritePin(clockPin_GPIO_Port, clockPin_Pin, GPIO_PIN_SET);
+	  }
+
 //      else if(disp_type1 == LAFNG885 )
       else if(disp_type1 == DN_LAFNG17K)
          {
@@ -347,6 +358,17 @@ void shiftOut2(uint8_t data_byte,uint8_t lat)
 			//set clock pin high
 			HAL_GPIO_WritePin(clockPin2_GPIO_Port, clockPin2_Pin, GPIO_PIN_SET);
       }
+      else if( (disp_type2 == DIN_BLSKY18K ) || (disp_type2 == DIN_BLSKY22 ) )
+	  {
+			if ( byteRead(data_byte, i) == 0 )
+				HAL_GPIO_WritePin(dataPin_GPIO_Port, dataPin_Pin, GPIO_PIN_RESET);
+			else	//if low set dp low
+				HAL_GPIO_WritePin(dataPin_GPIO_Port, dataPin_Pin, GPIO_PIN_SET);
+
+			//set clock pin high
+			HAL_GPIO_WritePin(clockPin_GPIO_Port, clockPin_Pin, GPIO_PIN_SET);
+	  }
+
 //      else if(disp_type2 == LAFNG885 )
     	 else if(disp_type2 == DN_LAFNG17K)
          {
@@ -393,6 +415,7 @@ uint8_t ToBits(int Input)
 		 case  'A': return(0b11101110);
 		 case  'a': return(0b11111010);
 	   	 case  'B': return(0b00111110);
+//	   	 case  'B': return 0b11111110;
 	   	 case  'b': return(0b00111110);
 	 	 case  'C': return(0b10011100);
 	 	 case  'c': return(0b10011100);
@@ -407,7 +430,7 @@ uint8_t ToBits(int Input)
 		 case  'H': return 0b01101110;
 		 case  'h': return 0b00101110;
 		 case  'i': return(0b00001100);
-		 case  'I': return(0b00001000);
+		 case  'I': return(0b00001100);
 		 case  'J': return(0b01110000);
 		 case  'j': return(0b01110000);
 		 case  'L': return(0b00011100);
@@ -424,6 +447,7 @@ uint8_t ToBits(int Input)
          case  'S': return 0b10110110;
          case  's': return 0b10110110;
          case  'T': return(0b00011110);
+//         case  'T': return(0b10001100);
          case  't': return(0b00011110);
 	     case  'U': return(0b01111100);
 	     case  'u': return(0b01111100);
@@ -431,13 +455,16 @@ uint8_t ToBits(int Input)
 	     case  'v': return(0b01111100);
 	     case  'y': return 0b01100110;
 	     case  'Y': return(0b01110110);
+	     case  'Z': return(0b11011010);
+	     case  'z': return(0b11011010);
+	     case  '=': return(0b00010010);
+	     case  ':': return(0b10010000);
+	     case  '[': return(0b10011100);
+	     case  ']': return(0b11110000);
 	     case  '.': return(0b00000001);
 	     case  '-': return(0b00000010);
 	     case  '_': return(0b00010000);
 	     case  '?': return(0b11001010);
-	     case  'Z': return(0b11011010);
-	     case  'z': return(0b11011010);
-//	     case  ':': return(0b10010000);
 	     default: return 0;   //0b11111100;
 	}
 

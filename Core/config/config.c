@@ -13,7 +13,7 @@ config_struct config_data;
 ////			transaction_temp[2];
 
 
-int8_t _15SecIncrementer,
+uint8_t _15SecIncrementer,
 	  _30SecIncrementer,
 	  _60SecIncrementer,
 	  _45seconds,
@@ -21,6 +21,9 @@ int8_t _15SecIncrementer,
 	  _615seconds,
 	  ep2_justSent = 0,
 	  ep1a_justSent = 0;
+
+uint8_t ep20_available1 = 0,
+		ep20_available2 = 0;
 
 float new_price1 = 0.000,
 	  new_price2 = 0.000;
@@ -51,7 +54,7 @@ ep_ ep;
 
 time_t epochTime_present;
 
-char ep_message[400] = {0},
+char ep_message[650] = {0},
 	 ep_message_rcvd[400] = {0},
 	 sndd[500] = {0};
 
@@ -93,10 +96,13 @@ static int8_t sendEp5 = 0,
 			  sending = 0,
 			  firstTyme = 1;
 
-int8_t ep0_sent = 0,
+uint8_t ep0_sent = 0,
 	   ep5a_sent = 0,
 	   ep5b_sent = 0,
 	   ep31_sent = 0;
+
+uint8_t verifyResponse1 = 0,
+		verifyResponse2 = 0;
 
 extern int8_t recalibration_request = 0;
 
@@ -248,17 +254,19 @@ void ep_send(ep_ designation)
 
 	case ep2:   	tranx_save.transaction_type = 'a';
 					tranx_save.storage_loc = 'i';
+//					strcpy(tranx_save.session_id, " ");
+
 					strcpy(tranx_save.tag, "null");
 
 					sprintf(ep_message,
-							"{\"ep\":2,\"di\":\"%s\",\"tk\":%ld,\"tm\":%ld,\"ti\":\"%s\",\"ta\":%0.3f,\"tv\":%0.3f,\"pl\":%0.3f,\"tz\":%0.3f,\"pm\":\"%s\",\"pa\":%d,\"pr\":\"%s\",\"tt\":\'%c\',\"tp\":%d,\"sl\":\'%c\',\"tg\":\"%s\"}",
+							"{\"ep\":2,\"di\":\"%s\",\"tk\":%ld,\"tm\":%ld,\"ti\":\"%s\",\"ta\":%0.3f,\"tv\":%0.3f,\"pl\":%0.3f,\"tz\":%0.3f,\"pm\":\"%s\",\"pa\":%d,\"pr\":\"%s\",\"tt\":\'%c\',\"tp\":%d,\"sl\":\'%c\',\"tg\":\"%s\",\"ci\":\"%s\"}",
 							tranx_save.device_id, tranx_save.token, tranx_save.timestamp,
 							tranx_save.transaction_id, tranx_save.transaction_price,
 							tranx_save.transaction_vol, tranx_save.litre_price,
 							tranx_save.totalizer, tranx_save.nozzle_name,
 							tranx_save.nozzle_address, tranx_save.nozzle_product,
 							tranx_save.transaction_type, tranx_save.transaction_period,
-							tranx_save.storage_loc, tranx_save.tag);
+							tranx_save.storage_loc, tranx_save.tag, tranx_save.session_id);
 
 					list_push(tranx_save.token, ep2);
 					server_write(ep_message);
@@ -295,6 +303,33 @@ void ep_send(ep_ designation)
 							list_push(ep5_save.token, ep5_side_b);
 							server_write(ep_message);
 						    break;
+
+
+		case ep20_side_a :
+							ep20_save.timestamp = RtcToInt(2019);
+							ep20_save.token = generate_tk();
+
+							sprintf(ep_message,
+								"{\"ep\":20,\"di\":\"%s\",\"tk\":%ld,\"tm\":%ld,\"ci\":\"%s\",\"pin\":\"%s\"}",
+								device_id, ep20_save.token, ep20_save.timestamp, ep20_save.pump[0].user_id, ep20_save.pump[0].user_pin);
+
+							list_push(ep20_save.token, ep20_side_a);
+							server_write(ep_message);
+							break;
+
+
+		case ep20_side_b :
+							ep20_save.timestamp = RtcToInt(2019);
+							ep20_save.token = generate_tk();
+
+							sprintf(ep_message,
+								"{\"ep\":20,\"di\":\"%s\",\"tk\":%ld,\"tm\":%ld,\"ci\":\"%s\",\"pin\":\"%s\"}",
+								device_id, ep20_save.token, ep20_save.timestamp, ep20_save.pump[0].user_id, ep20_save.pump[0].user_pin);
+
+							list_push(ep20_save.token, ep20_side_b);
+							server_write(ep_message);
+							break;
+
 
 		case ep31 :			ep31_save.timestamp = RtcToInt(2019);
 							ep31_save.token = generate_tk();
@@ -462,25 +497,14 @@ void ep_send(ep_ designation)
 void epSend_interval(void)
 {
 	static int8_t aflag = 0,
-//				  halfMinuteIncrementer = 0,
 				  firstTime = 1,
 				  firstTime_ep2 = 1,
 				  sending_busy = 0;
-//				  _15SecIncrementer,
-//				  _30SecIncrementer,
-//				  _60SecIncrementer,
-//				  _75seconds,
-//				  _615seconds,
-//				  ep2_justSent = 0,
-//				  ep1a_justSent = 0;
+
 
 	uint8_t array_count = 0;
 
 	static uint16_t epochTime_past = 0;
-
-	uint16_t epochTime_present;
-
-	uint16_t time_interval;
 
 	int flash_locc,
 		pg;
@@ -490,31 +514,35 @@ void epSend_interval(void)
 		  effectiveMinusBase1,
 		  effectiveMinusBase2;
 
-//	epochTime_present = RtcToInt(2019);
-	epochTime_present = timer_ep;
 
-	if(aflag == 0)
+	//================================================//
+	// 		   EP0, EP5 & EP31 ROUTINES SENDING	      //
+	//================================================//
+
+	if ( (ep20_available1 == 1) || (ep20_available2 == 1) )
 	{
-		epochTime_past = epochTime_present;
+		if (ep20_available1 == 1)
+		{
+			ep20_send(side_a);
+		}
+		else if (ep20_available2 == 1)
+		{
+			ep20_send(side_b);
+		}
 
-		aflag = 1;
+//		ep20_available = 0;
+
 	}
 
-	time_interval = epochTime_present - epochTime_past;
+	//================================================//
+	// 	      EP0, EP5 & EP31 ROUTINES SENDING	      //
+	//================================================//
 
-
-
-
-	//============================================//
-	// 		EP0, EP5 & EP31 ROUTINES SENDING	      //
-	//============================================//
-
-	if(time_interval >= 15000)    //15 sec interval
+	if( (timer_ep >= 3000) && ( (ep0_sent == 0) || (ep5a_sent == 0) || (ep5b_sent == 0) || (ep31_sent == 0) ) )
 	{
 //		send_ep0_ep5();
 
 
-//		settings[0].totalizer_day = 17;
 //		ep0_sent = 1;
 //		ep5a_sent = 1;
 //		ep5b_sent = 1;
@@ -527,6 +555,7 @@ void epSend_interval(void)
 		day = DS1307_GetDate();
 
 //		day = 17;
+//		settings[0].totalizer_day = day;
 
 		if(settings[0].totalizer_day == day)
 		{
@@ -536,13 +565,6 @@ void epSend_interval(void)
 
 		if(settings[0].totalizer_day != day)
 		{
-//			ep5_save.firstTotalizer[0].totalizer = totaliser_vol1c;
-//			ep5_save.firstTotalizer[1].totalizer = totaliser_vol2c;
-//			ep5_save.firstTotalizer[0].totalizer_real = totaliser_vol1;
-//			ep5_save.firstTotalizer[1].totalizer_real = totaliser_vol2;
-//			ep5_save.firstTotalizer[0].timestamp = RtcToInt(2019);
-//			ep5_save.firstTotalizer[1].timestamp = ep5_save.firstTotalizer[0].timestamp;
-
 			save_1stVolTotaliser_day(side_a);
 			save_1stVolTotaliser_day(side_b);
 
@@ -558,10 +580,7 @@ void epSend_interval(void)
 				ep_send(ep5_side_b);
 			}
 		}
-
 		//============================================//
-
-
 
 
 		//============================================//
@@ -571,7 +590,6 @@ void epSend_interval(void)
 		{
 			ep_send(ep0);
 		}
-
 		//============================================//
 
 
@@ -618,14 +636,19 @@ void epSend_interval(void)
 			ep_send(ep31);
 		}
 
+		timer_ep = 0;
+
 		//============================================//
+	}
 
-
+	else if( (timer_ep >= 2000) && ( (ep1a_priceChangeFlag1 == 1) || (ep1a_priceChangeFlag2 == 1) ||
+			(ep1a_priceChangeFlag_bothSides == 1) ) )
+	{
 
 		//====================================================================//
 		// 				EP1A PRICECHANGE-FEEDBACK ROUTINE SENDING			  //
 		//====================================================================//
-		else if (ep1a_priceChangeFlag1 == 1)
+		if (ep1a_priceChangeFlag1 == 1)
 		{
 			ep_send(ep1a_priceChangeResponse_sideA);
 			ep1a_priceChangeFlag1 = 0;
@@ -642,166 +665,83 @@ void epSend_interval(void)
 		}
 		//====================================================================//
 
-
-
-		if ( (ep0_sent == 0) || (ep5a_sent == 0) || (ep5b_sent == 0) || ep31_sent == 0
-			|| (ep1a_priceChangeFlag1 == 1) || (ep1a_priceChangeFlag2 == 1) ||
-			(ep1a_priceChangeFlag_bothSides == 1) )
-		{
-			sending_busy = 1;
-		}
-		else
-		{
-			sending_busy = 0;
-		}
-
-		aflag = 0;
-		_15SecIncrementer++;
-
-		if(ep2_justSent == 1)
-		{
-			_75seconds = 1;
-		}
-		else if(ep1a_justSent == 1)
-		{
-			_615seconds = 1;
-		}
+		timer_ep = 0;
 	}
 
-	//============================================//
-
-
-
-
-
+//	else if( (timer_ep >= 2000) &&
+//			( (ep0_sent != 0) || (ep5a_sent != 0) && (ep5b_sent != 0) && (ep31_sent != 0)
+//			|| (ep1a_priceChangeFlag1 != 1) || (ep1a_priceChangeFlag2 != 1) ||
+//			(ep1a_priceChangeFlag_bothSides != 1) ) )
+	else if( (timer_ep >= 1000) &&
+				!( (ep0_sent == 0) || (ep5a_sent == 0) || (ep5b_sent == 0) || (ep31_sent == 0)
+				|| (ep1a_priceChangeFlag1 == 1) || (ep1a_priceChangeFlag2 == 1) ||
+				(ep1a_priceChangeFlag_bothSides == 1) ) )
+	{
 
 	//============================================//
 	// 				EP2 ROUTINE SENDING			  //
 	//============================================//
-	if(_15SecIncrementer == 2)   //30 sec interval
-	{
-		_30SecIncrementer++;
-		_15SecIncrementer = 0;
-
-		if(sending_busy == 0)
+		if(firstTime_ep2 == 1)
 		{
-			if(firstTime_ep2 == 1)
+
+			if(ep1b_save.synched_tranxA != ep1b_save.total_tranxA)
 			{
-
-				if(ep1b_save.synched_tranxA != ep1b_save.total_tranxA)
-				{
-					ep2_send(side_a);
-				}
-				else if(ep1b_save.synched_tranxB != ep1b_save.total_tranxB)
-				{
-					ep2_send(side_b);
-				}
-
-				firstTime_ep2 = 0;
+				ep2_send(side_a);
+				timer_ep = 0;
+			}
+			else if(ep1b_save.synched_tranxB != ep1b_save.total_tranxB)
+			{
+				ep2_send(side_b);
+				timer_ep = 0;
 			}
 
-			else if(firstTime_ep2 == 0)
-			{
-				if(ep1b_save.synched_tranxB != ep1b_save.total_tranxB) //&& (ep2a_justSent == 0) )
-				{
-					ep2_send(side_b);
-				}
-				else if(ep1b_save.synched_tranxA != ep1b_save.total_tranxA)
-				{
-					ep2_send(side_a);
-				}
-
-				firstTime_ep2 = 1;
-			}
-
-
-			if(_30SecIncrementer == 2)
-			{
-				ep2_justSent = 1;
-			}
-
+			firstTime_ep2 = 0;
 		}
-	}
-	//============================================//
 
-
-
-
-
-	//============================================//
-	// 			  EP1A ROUTINE SENDING		      //
-	//============================================//
-	if( (_30SecIncrementer == 2) || (_75seconds == 1) )      //1 min interval
-	{
-		if(_30SecIncrementer == 2)
+		else if(firstTime_ep2 == 0)
 		{
+			if(ep1b_save.synched_tranxB != ep1b_save.total_tranxB) //&& (ep2a_justSent == 0) )
+			{
+				ep2_send(side_b);
+				timer_ep = 0;
+			}
+			else if(ep1b_save.synched_tranxA != ep1b_save.total_tranxA)
+			{
+				ep2_send(side_a);
+				timer_ep = 0;
+			}
+
+			firstTime_ep2 = 1;
+		}
+
+	//============================================//
+	}
+
+	if( ((timer_ep1 >= 60000)    //60 sec interval
+		&& (timer_ep >= 3000))  //Allows some breather, in case ep2 just got sent out
+		&& !( (ep0_sent == 0) || (ep5a_sent == 0) || (ep5b_sent == 0) || (ep31_sent == 0)
+		|| (ep1a_priceChangeFlag1 == 1) || (ep1a_priceChangeFlag2 == 1) ||
+		(ep1a_priceChangeFlag_bothSides == 1) ) )
+	{
+
+	//====================================================//
+	// 			  EP1A & EP1B ROUTINE SENDING		      //
+	//====================================================//
+
 			_60SecIncrementer++;
-			_30SecIncrementer = 0;
-
-			if( (sending_busy == 0) && (ep2_justSent == 0) )
-			{
-				ep_send(ep1a);
-
-				if(_60SecIncrementer == 10)
-				{
-					ep1a_justSent = 1;
-				}
-			}
-		}
-		else if(_75seconds == 1)
-		{
-			_75seconds = 0;
-
-			if( (sending_busy == 0) && (ep2_justSent == 1) )
-			{
-				ep_send(ep1a);
-
-				ep2_justSent = 0;
-
-				if(_60SecIncrementer == 10)
-				{
-					ep1a_justSent = 1;
-				}
-			}
-		}
-	}
+			timer_ep1 = 0;
 
 
-	//============================================//
-
-
-
-
-
-	//============================================//
-	// 			 EP1B ROUTINE SENDING			  //
-	//============================================//
-	if( (_60SecIncrementer == 10) || (_615seconds == 1) ) //&& (sending_busy == 0) )     //10 min interval
-	{
 			if(_60SecIncrementer == 10)
 			{
 				_60SecIncrementer = 0;
-
-				if( (sending_busy == 0) && (ep1a_justSent == 0) )
-				{
-					ep_send(ep1b);
-
-				}
+				ep_send(ep1b);
+				return;
 			}
-			else if(_615seconds == 1)
-			{
-				_615seconds = 0;
 
-				if( (sending_busy == 0) && (ep1a_justSent == 1) )
-				{
-					ep_send(ep1b);
-
-					ep1a_justSent = 0;
-				}
-			}
+			ep_send(ep1a);
+		//============================================//
 	}
-
-	//============================================//
 }
 
 
@@ -833,8 +773,8 @@ uint32_t RtcToInt_synchedTranx(uint32_t deviceYear, pump_sid ab)
 		 day = synchedLog_a_new.date._dd;
 		 month = synchedLog_a_new.date._mm;
 		 year = synchedLog_a_new.date._yy;
-		 hour = synchedLog_a_new.time._hh;
-		 minute = synchedLog_a_new.time._mn;
+		 hour = synchedLog_a_new.time_e._hh;
+		 minute = synchedLog_a_new.time_e._mn;
 		 second = DS1307_GetSecond();
 	 }
 	 else if(ab == side_b)
@@ -842,8 +782,8 @@ uint32_t RtcToInt_synchedTranx(uint32_t deviceYear, pump_sid ab)
 		 day = synchedLog_a_new.date._dd;
 		 month = synchedLog_b_new.date._mm;
 		 year = synchedLog_b_new.date._yy;
-		 hour = synchedLog_b_new.time._hh;
-		 minute = synchedLog_b_new.time._mn;
+		 hour = synchedLog_b_new.time_e._hh;
+		 minute = synchedLog_b_new.time_e._mn;
 		 second = DS1307_GetSecond();
 	 }
 
@@ -912,6 +852,23 @@ void serverResponse_parse(ep_ ep)
 					   break;
 
 //		case ep5: return;
+
+		case ep20_side_a :
+						   sessionId_parse(side_a);
+						   save_sessionId(side_a);
+						   save_volumeTotaliser_startShift(side_a);
+
+						   memset(rx_buf, '\0', sizeof(rx_buf));
+						   break;
+
+		case ep20_side_b :
+						   sessionId_parse(side_b);
+						   save_sessionId(side_b);
+						   save_volumeTotaliser_startShift(side_b);
+
+						   memset(rx_buf, '\0', sizeof(rx_buf));
+						   break;
+
 
 		case ep31 :    ct_type = ct_parse(side_a);
 
@@ -1042,6 +999,8 @@ void server_rx_parse(void)
 
 		   //	   res: ep:1a. {"st":0,"tk":24404,"ud":0,"tm":37424857,"am":0.0,"mt":{"ty":3,"pn":"all","pr":590.0,"sh":null,"fg":0,"tg":"p|all"},"pv":0.0,"wv":0.0,"sa":0.0,"bal":0.0,"dc":null,"wb":null,"ft":null}
 
+//		   {"st":0,"tk":36685,"sn":"MANAGER MANAGER","bn":"Efuel","ba":"18 Illupeju, lagos, Lagos, Nigeria","cn":"Demonstration Limited","si":"JL32814"}
+
 		   if(rx == '{')     // header left square bracket 0x5B, 0d91   STX->0xA5
 		   {
 			  head_pos++;
@@ -1082,14 +1041,18 @@ void server_rx_parse(void)
 			}
 		   head_pos++;
 	   }
-//	   res: ep:1a. {"st":0,"tk":24404,"ud":0,"tm":37424857,"am":0.0,"mt":{"ty":3,"pn":"all","pr":590.0,"sh":null,"fg":0,"tg":"p|all"},"pv":0.0,"wv":0.0,"sa":0.0,"bal":0.0,"dc":null,"wb":null,"ft":null}
+
+	   //	   res: ep:1a. {"st":0,"tk":24404,"ud":0,"tm":37424857,"am":0.0,"mt":{"ty":3,"pn":"all","pr":590.0,"sh":null,"fg":0,"tg":"p|all"},"pv":0.0,"wv":0.0,"sa":0.0,"bal":0.0,"dc":null,"wb":null,"ft":null}
+
+	   //	   {"st":0,"tk":36685,"sn":"MANAGER MANAGER","bn":"Efuel","ba":"18 Illupeju, lagos, Lagos, Nigeria","cn":"Demonstration Limited","si":"JL32814"}
+
 	   if(st == 0)    //Successful Response --> status = 0
 	   {
 		   for(int8_t i = 0; i < 15; i++)
 		   	{
-//			    list[0].token = 1060422946;
-//			    list[0].ep = ep1a;
-//			    list[0].ptrMessgResp_callBack = serverResponse_parse;
+			    list[0].token = 36685;
+			    list[0].ep = ep20_side_a;
+			    list[0].ptrMessgResp_callBack = serverResponse_parse;
 
 			    snprintf(token_str, sizeof(token_str), "%ld", list[i].token);
 		   		if(strstr(rx_buf, token_str))
@@ -1134,6 +1097,7 @@ void server_rx_parse(void)
 }
 
 
+
 uint16_t generate_tk(void)
 {
 	uint16_t tk_int_;
@@ -1152,6 +1116,43 @@ uint16_t generate_tk(void)
 }
 
 //token = generate_tk();
+
+
+uint16_t generate_otpVariable1(void)
+{
+	uint16_t tk_int_;
+	uint32_t tk_int;
+	uint64_t tk_;
+
+	generate_4Rand :
+
+		HAL_RNG_GenerateRandomNumber(&hrng,  &tk_int);
+		tk_int_ = (uint16_t)tk_int;
+		if( (tk_int_ < 1000) || (tk_int_ > 9999) )
+		{
+			goto generate_4Rand;
+		}
+
+	return tk_int_;
+}
+
+uint16_t generate_otpVariable2(void)
+{
+	uint16_t tk_int_;
+	uint32_t tk_int;
+	uint64_t tk_;
+
+	generate_4Rand :
+
+		HAL_RNG_GenerateRandomNumber(&hrng,  &tk_int);
+		tk_int_ = (uint16_t)tk_int;
+		if( (tk_int_ < 1000) || (tk_int_ > 9999) )
+		{
+			goto generate_4Rand;
+		}
+
+	return tk_int_;
+}
 
 
 void generateTransc_ID(char* ti)
@@ -1580,6 +1581,608 @@ void server_read(void)
 }
 
 
+//{00}{FF}{14}{F9}{1D}    //
+//{7C}
+//{6B}{AA}{6B}{0B}{7D}
+//{7C}
+//{34}{33}{32}{31}
+//{7C}
+//{46}{49}{44}{45}{4C}
+//{7C}
+//{41}
+//{7C}
+//{00}{FF}
+
+
+void card1_read(void)
+{
+	  	static uint16_t head_pos = 0;
+
+	  	static uint8_t header_found = 0,
+					  zero_found = 0;
+	  	int rx_int;
+	  	char rx;
+
+	   uint16_t rxcnt = pump_rx_bufsize - huart3.RxXferCount;
+	   rx = (char)(uart3_rx_buf[rxcnt-1]);
+	   rx_int = (int)(rx);
+
+
+	   if( (rx_int == 0x00) && (zero_found == 0) )    //
+	   {
+		  zero_found = 1;
+		  head_pos = 0;
+		  memset(card1_rx_buf, '\0', sizeof(card1_rx_buf));
+	   }
+	   else if( (rx_int == 0xFF) && (zero_found == 1) && (card1_rx_buf[0] == 0))
+	   {
+		  header_found = 1;
+	   }
+
+	   //-------------------------------------------------------
+	   else if (header_found == 1)
+	   {
+		   if( (rx_int == 0x00) && (zero_found == 1) )
+		   {
+			   zero_found = 0;
+		   }
+		   else if( (rx_int == 0xFF) && (zero_found == 0) )
+		   {
+			   	 if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+			   		card1_rx_buf[head_pos] = rx;
+
+				 huart3.RxXferCount = pump_rx_bufsize;
+				 huart3.pRxBuffPtr = &uart3_rx_buf[0];
+				 header_found = 0;
+				 zero_found = 0;
+				 head_pos = 0;
+				 card1_message_found = 1;
+		   }
+		   else
+		   {
+//			   if( (rx == '\0') && (head_pos > 5) )
+//			   {
+//					 huart2.RxXferCount = pump_rx_bufsize;
+//					 huart2.pRxBuffPtr = &uart2_rx_buf[0]; //reset //uart2_rx_buf; //
+//					 header_found = 0;
+//					 zero_found = 0;
+//					 head_pos = 0;
+//			   }
+
+			   if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+				   card1_rx_buf[head_pos] = rx;
+
+			   head_pos++;
+		   }
+	   }
+}
+
+void card2_read(void)
+ {
+	  	static uint16_t head_pos = 0;
+
+	  	static uint8_t header_found = 0,
+					   zero_found = 0;
+	  	int rx_int;
+	  	char rx;
+
+	   uint16_t rxcnt = pump_rx_bufsize - huart5.RxXferCount;
+	   rx = (char)(uart5_rx_buf[rxcnt-1]);
+	   rx_int = (int)(rx);
+
+	   if( (rx_int == 0x00) && (zero_found == 0) )    //
+	   {
+		  zero_found = 1;
+		  head_pos = 0;
+		  memset(card2_rx_buf, '\0', sizeof(card2_rx_buf));
+	   }
+	   else if( (rx_int == 0xFF) && (zero_found == 1) && (card2_rx_buf[0] == 0))
+	   {
+		  header_found = 1;
+	   }
+
+	   //-------------------------------------------------------
+	   else if (header_found == 1)
+	   {
+		   if( (rx_int == 0x00) && (zero_found == 1) )
+		   {
+			   zero_found = 0;
+		   }
+		   else if( (rx_int == 0xFF) && (zero_found == 0) )
+		   {
+			   	 if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+			   		card2_rx_buf[head_pos] = rx;
+
+				 huart5.RxXferCount = pump_rx_bufsize;
+				 huart5.pRxBuffPtr = &uart5_rx_buf[0];
+				 header_found = 0;
+				 zero_found = 0;
+				 head_pos = 0;
+				 card2_message_found = 1;
+		   }
+		   else
+		   {
+			   if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+				   card2_rx_buf[head_pos] = rx;
+
+			   head_pos++;
+		   }
+	   }
+}
+
+
+void card1_rx_parse(void)
+ {
+		int head_pos = 0,
+			pos = 0,
+			size;
+
+	  	int8_t i = 0;
+	  	static uint8_t namePicked = 0;
+
+	  	char rx;
+
+	  	uint16_t _check_sum;
+
+       data_length1 = (int)(card1_rx_buf[0]);
+
+       check_sum1 = (uint8_t)(card1_rx_buf[1]);
+
+       check_sum1 = (check_sum1 << 8);
+
+       check_sum1 = ( check_sum1 + ((uint8_t)(card1_rx_buf[2])) );
+
+       //		   "\tüJ¤|ªk\v}|\001|ÿ"
+
+       memset(card1_buf, '\0', sizeof(card1_buf));
+       do
+       {
+    	   card1_buf[i] = card1_rx_buf[i + 3];
+
+    	   if( (i > 1) && (i <= 5) )
+    		   attendant1.user_id[i - 2] = card1_rx_buf[i + 3];
+    	   if(verifyResponse1 == 0)
+    	   {
+			   if( (i > 6) && (i <= 10) )
+				   attendant1.user_pin[i - 7] = card1_rx_buf[i + 3];
+
+			   if( (i > 11) && (namePicked == 0) )
+			   {
+				   if(card1_rx_buf[i + 3] == '|')
+				   {
+					   namePicked = 1;
+					   continue;
+				   }
+				   attendant1.user_name[i - 12] = card1_rx_buf[i + 3];
+			   }
+           }
+    	   else if(verifyResponse1 == 1)
+    	   {
+    		   if (i == 7)
+    		  	 WSTA1 = card1_rx_buf[i + 3];
+    	   }
+    	   i++;
+       }
+       while(card1_rx_buf[i + 3] != 0xFF);
+
+       //		   "\tüJ¤|ªk\v}|\001|ÿ"
+
+       _check_sum = checksum1(card1_buf, data_length1);
+
+	   if(verifyResponse1 == 0)
+	   {
+		   if( (_check_sum == check_sum1) && (settings[0].shift_login_type == Card_) )
+		   {
+			   TSTA1 = 1;
+		   }
+		   else
+		   {
+			   TSTA1 = 0;
+		   }
+		   if(attendant1.session_id[0] == NULL)
+		   {
+			   LSTA1 = 0;
+		   }
+		   else
+		   {
+			   LSTA1 = 1;
+		   }
+
+		   memset(card1_rx_buf, '\0', sizeof(card1_rx_buf));
+		   sendReply1();
+	   }
+	   else if(verifyResponse1 == 1)
+	   {
+		   if(_check_sum == check_sum1)
+		   {
+			   if(WSTA1 == 1)
+			   {
+				   card_writeOp1 = _success;
+
+				   if(attendant1.session_id[0] != NULL)
+				   	{
+					  memset(attendant1.session_id, '\0', sizeof(attendant1.session_id));
+					  clear_sessionId(side_a);
+					  ep20_available1 = 0;
+				   	}
+				   else
+				   {
+//				   save_sessionId(side_a);
+					   ep20_available1 = 1;
+				   }
+			   }
+			   else if(WSTA1 == 0)
+			   {
+				   card_writeOp1 = _failed;
+				   ep20_available1 = 0;
+			   }
+		   }
+		   else
+		   {
+			   card_writeOp1 = _failed;
+			   ep20_available1 = 0;
+		   }
+
+//		   "\tüJ¤|ªk\v}|\001|ÿ"
+
+		   verifyResponse1 = 0;
+
+		   memset(card1_rx_buf, '\0', sizeof(card1_rx_buf));
+	   }
+
+//       ¢ = 0xA2
+//       ÿ = 0xFF
+
+////		   "\024øè |ªk\v}|4321|FIDEL|A|ÿ"
+//       "\024øè |ªk\v}|4321|FIDEL|A|ÿ"
+}
+
+void card2_rx_parse(void)
+ {
+		int head_pos = 0,
+			pos = 0,
+			size;
+
+	  	int8_t i = 0;
+	  	static uint8_t namePicked = 0;
+
+	  	char rx;
+
+	  	uint16_t _check_sum;
+
+       data_length2 = (int)(card2_rx_buf[0]);
+
+       check_sum2 = (uint8_t)(card2_rx_buf[1]);
+
+       check_sum2 = (check_sum2 << 8);
+
+       check_sum2 = ( check_sum2 + ((uint8_t)(card2_rx_buf[2])) );
+
+       //		   "\tüJ¤|ªk\v}|\001|ÿ"
+
+       memset(card2_buf, '\0', sizeof(card2_buf));
+       do
+       {
+    	   card2_buf[i] = card2_rx_buf[i + 3];
+
+    	   if( (i > 1) && (i <= 5) )
+    		   attendant2.user_id[i - 2] = card2_rx_buf[i + 3];
+    	   if(verifyResponse2 == 0)
+    	   {
+			   if( (i > 6) && (i <= 10) )
+				   attendant2.user_pin[i - 7] = card2_rx_buf[i + 3];
+
+			   if( (i > 11) && (namePicked == 0) )
+			   {
+				   if(card2_rx_buf[i + 3] == '|')
+				   {
+					   namePicked = 1;
+					   continue;
+				   }
+				   attendant2.user_name[i - 12] = card2_rx_buf[i + 3];
+			   }
+           }
+    	   else if(verifyResponse2 == 1)
+    	   {
+    		   if (i == 7)
+    		  	 WSTA2 = card2_rx_buf[i + 3];
+    	   }
+    	   i++;
+       }
+       while(card2_rx_buf[i + 3] != 0xFF);
+
+       //		   "\tüJ¤|ªk\v}|\001|ÿ"
+
+       _check_sum = checksum2(card2_buf, data_length2);
+
+	   if(verifyResponse2 == 0)
+	   {
+		   if( (_check_sum == check_sum2) && (settings[1].shift_login_type == Card_) )
+		   {
+			   TSTA2 = 1;
+		   }
+		   else
+		   {
+			   TSTA2 = 0;
+		   }
+		   if(attendant2.session_id[0] == NULL)
+		   {
+			   LSTA2 = 0;
+		   }
+		   else
+		   {
+			   LSTA2 = 1;
+		   }
+
+		   memset(card2_rx_buf, '\0', sizeof(card2_rx_buf));
+		   sendReply2();
+	   }
+	   else if(verifyResponse2 == 1)
+	   {
+		   if(_check_sum == check_sum2)
+		   {
+			   if(WSTA2 == 1)
+			   {
+				   card_writeOp2 = _success;
+
+				   if(attendant2.session_id[0] != NULL)
+				   {
+					  memset(attendant2.session_id, '\0', sizeof(attendant2.session_id));
+					  clear_sessionId(side_b);
+					  ep20_available2 = 0;
+				   }
+				   else
+				   {
+  //				   save_sessionId(side_b);
+					   ep20_available2 = 1;
+				   }
+			   }
+			   else if(WSTA2 == 0)
+			   {
+				   card_writeOp2 = _failed;
+				   ep20_available2 = 0;
+			   }
+		   }
+		   else
+		   {
+			   card_writeOp2 = _failed;
+			   ep20_available2 = 0;
+		   }
+
+		   verifyResponse2 = 0;
+
+		   memset(card2_rx_buf, '\0', sizeof(card2_rx_buf));
+	   }
+}
+
+
+uint16_t checksum1(uint8_t* data, uint8_t len)
+{
+	uint16_t ret = 0;
+	for(int i = 0; i < len; i++)
+	{
+		ret += data[i];
+	}
+    ret = 0x10000 - ret;
+	return ret;
+}
+
+uint16_t checksum2(uint8_t* data, uint8_t len)
+{
+	uint16_t ret = 0;
+	for(int i = 0; i < len; i++)
+	{
+		ret += data[i];
+	}
+    ret = 0x10000 - ret;
+	return ret;
+}
+
+void sendReply1(void){
+	uint8_t pos = 0, byte;
+	uint16_t chk = 0;
+
+	verifyResponse1 = 1;
+
+	memset( UART_BUFF1, 0, sizeof( UART_BUFF1));
+	 UART_BUFF1[1] = '|';
+	memcpy( (UART_BUFF1 + 2), attendant1.user_id, 4);
+	 UART_BUFF1[6] = '|';
+	 UART_BUFF1[7] = TSTA1;  //(char)(TSTA);   //TSTA
+	 UART_BUFF1[8] = '|';
+	 UART_BUFF1[9] = LSTA1;  //'1';   //0x01;   //LSTA
+	 UART_BUFF1[10] = '|';
+
+	 UART_BUFF1[0] = 0xA2;
+	pos = 11;
+
+	chk = checksum1( UART_BUFF1, pos);
+	byte = 0x00;
+	HAL_UART_Transmit (&huart3, (uint8_t *)&byte, 1, 10);
+	byte = 0xFF;
+	HAL_UART_Transmit (&huart3, (uint8_t *)&byte, 1, 10);
+	HAL_UART_Transmit (&huart3, (uint8_t *)&pos, 1, 10);
+	byte = (uint8_t)(chk >> 8);
+	HAL_UART_Transmit (&huart3, (uint8_t *)&byte, 1, 10);
+	byte = (uint8_t)(chk & 0xFF);
+	HAL_UART_Transmit (&huart3, (uint8_t *)&byte, 1, 10);
+
+	HAL_UART_Transmit (&huart3,  UART_BUFF1, pos, 10);
+	byte = 0x00;
+	HAL_UART_Transmit (&huart3, (uint8_t *)&byte, 1, 10);
+	byte = 0xFF;
+	HAL_UART_Transmit (&huart3, (uint8_t *)&byte, 1, 10);
+}
+
+
+
+void sendReply2(void){
+	uint8_t pos = 0, byte;
+	uint16_t chk = 0;
+
+	verifyResponse2 = 1;
+	memset( UART_BUFF2, 0, sizeof( UART_BUFF2));
+	 UART_BUFF1[1] = '|';
+	memcpy( (UART_BUFF2 + 2), attendant2.user_id, 4);
+	 UART_BUFF2[6] = '|';
+	 UART_BUFF2[7] = TSTA2;  //(char)(TSTA);   //TSTA
+	 UART_BUFF2[8] = '|';
+	 UART_BUFF2[9] = LSTA2;  //'1';   //0x01;   //LSTA
+	 UART_BUFF2[10] = '|';
+
+	 UART_BUFF2[0] = 0xA2;
+	pos = 11;
+
+	chk = checksum2( UART_BUFF1, pos);
+	byte = 0x00;
+	HAL_UART_Transmit (&huart5, (uint8_t *)&byte, 1, 10);
+	byte = 0xFF;
+	HAL_UART_Transmit (&huart5, (uint8_t *)&byte, 1, 10);
+	HAL_UART_Transmit (&huart5, (uint8_t *)&pos, 1, 10);
+	byte = (uint8_t)(chk >> 8);
+	HAL_UART_Transmit (&huart5, (uint8_t *)&byte, 1, 10);
+	byte = (uint8_t)(chk & 0xFF);
+	HAL_UART_Transmit (&huart5, (uint8_t *)&byte, 1, 10);
+
+	HAL_UART_Transmit (&huart5,  UART_BUFF2, pos, 10);
+	byte = 0x00;
+	HAL_UART_Transmit (&huart5, (uint8_t *)&byte, 1, 10);
+	byte = 0xFF;
+	HAL_UART_Transmit (&huart5, (uint8_t *)&byte, 1, 10);
+}
+
+
+//¢ = 0xA2
+//¢ = 0xA2
+//      ÿ = 0xFF
+//memset(sndd, 0, sizeof(sndd));
+//sprintf(sndd, "((((((|1|0|%d%s))\r\n", id, write_string);
+
+//HAL_UART_Transmit (&huart2, sndd, strlen(sndd), 1000);
+
+
+//void sendCardData(){
+//  uint8_t pos = 0;
+//  uint16_t chk = 0;
+////  Serial.println("Sending card details");
+//  memset( UART_BUFF1, 0, sizeof( UART_BUFF1));
+//  memcpy( UART_BUFF1, attendant1.user_id, 4);
+//   UART_BUFF1[4] = '|';
+//  memcpy( UART_BUFF1+5,  attendant1.user_pin, 4);
+//   UART_BUFF1[9] = '|';
+//  sprintf( UART_BUFF1+10,  attendant1.user_name);
+//  pos = 10 + strlen(attendant1.user_name);
+//   UART_BUFF1[pos] = '|';
+//  pos++;
+////  if(card.type[0] == 0xFE && card.type[1] ==  0xFC && card.type[2] ==  0xFA && card.type[3] ==  0xF0)
+////  { //attendant1 card
+//     UART_BUFF1[pos] = 'A';
+//    pos++;
+//     UART_BUFF1[pos] = '|';
+//    card.typ = 'A';
+//    pos++;
+//    memmove( UART_BUFF1+2,  UART_BUFF1, pos);
+//     UART_BUFF1[0] = 0xA0;
+//     UART_BUFF1[0] = '|';
+//    pos+=2;
+////  }
+////  else if(card.type[0] == 0xF0 && card.type[1] ==  0xFE && card.type[2] ==  0xF4 && card.type[3] ==  0xFA)
+////  {//Payment card
+////     UART_BUFF1[pos] = 'P';
+////    pos++;
+////     UART_BUFF1[pos] = '|';
+////    pos++;
+////    sprintf( UART_BUFF1+pos,  card.bal);
+////    pos += strlen(card.bal);
+////     UART_BUFF1[pos++] = '|';
+////    card.typ = 'P';
+////    pos++;
+////    memmove( UART_BUFF1+2,  UART_BUFF1, pos);
+////     UART_BUFF1[0] = 0xA1;
+////     UART_BUFF1[0] = '|';
+////    pos+=2;
+////  }
+////  else Serial.println("Unknown card type");
+//  chk = checksum( UART_BUFF1, pos);
+//  Serial.write(0x00);
+//  Serial.write(0xff);
+//  Serial.write(pos);
+//  Serial.write((uint8_t)(chk >> 8));
+//  Serial.write((uint8_t)(chk & 0xff));
+//  for(int i =0; i < pos; i++){
+//    Serial.write( UART_BUFF1[i]);
+//  }
+//  Serial.write(0x00);
+//  Serial.write(0xff);
+//}
+
+//void card_read(void)
+// {
+//	  	static uint16_t head_pos = 0;
+//
+//	  	static uint8_t curly_brace = 0,
+//	  				  header_found = 0,
+//					  zero_found = 0;
+//	  	char rx;
+//
+//	   uint16_t rxcnt = pump_rx_bufsize - huart5.RxXferCount;
+//	   rx = (char)(uart5_rx_buf[rxcnt-1]);
+//
+//	   if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+//
+//	   				 rx_buf[head_pos++] = rx;
+//
+////	   if( (rxcnt == 0x00) && (zero_found == 0) )    //
+////	   {
+////		  zero_found = 1;
+////		  head_pos = 0;
+////		  memset(rx_buf, '\0', sizeof(rx_buf));
+////	   }
+////	   else if( (rxcnt == 0xFF) && (zero_found == 1) && (rx_buf[0] == 0))
+////	   {
+////		  header_found = 1;
+////	   }
+////
+////	   //-------------------------------------------------------
+////	   else if (header_found == 1)
+////	   {
+////		   if( (rxcnt == 0x00) && (zero_found == 1) )
+////		   {
+////			   zero_found = 0;
+////		   }
+////		   else if( (rxcnt == 0xFF) && (zero_found == 0) )
+////		   {
+////			   	 if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+////
+////				 rx_buf[head_pos] = rx;
+////
+////				 huart5.RxXferCount = pump_rx_bufsize;
+////				 huart5.pRxBuffPtr = &uart5_rx_buf[0];
+////				 header_found = 0;
+////				 zero_found = 0;
+////				 head_pos = 0;
+////				 card1_message_found = 1;
+////		   }
+////		   else
+////		   {
+//////			   if( (rx == '\0') && (head_pos > 10) )
+//////			   {
+//////					 huart2.RxXferCount = pump_rx_bufsize;
+//////					 huart2.pRxBuffPtr = &uart2_rx_buf[0]; //reset //uart2_rx_buf; //
+//////					 header_found = 0;
+//////					 head_pos = 0;
+//////					 curly_brace = 0;
+//////			   }
+////
+////			   if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+////				   rx_buf[head_pos] = rx;
+////
+////			   head_pos++;
+////		   }
+////	   }
+//}
+
+
 
 void online_setUnitPrice1(void)
 {
@@ -1824,6 +2427,7 @@ void ep2_send(pump_sid side)
 		tranx_save.nozzle_address = 1;
 		strcpy(tranx_save.nozzle_product, synchedLog_a_new.nozzle_product);
 		tranx_save.transaction_period = synchedLog_a_new.transaction_period;
+		strncpy(tranx_save.session_id, attendant1.session_id, 9);
 	}
 	else if(side == side_b)
 	{
@@ -1844,9 +2448,27 @@ void ep2_send(pump_sid side)
 		tranx_save.nozzle_address = 2;
 		strcpy(tranx_save.nozzle_product, synchedLog_b_new.nozzle_product);
 		tranx_save.transaction_period = synchedLog_b_new.transaction_period;
+		strncpy(tranx_save.session_id, attendant2.session_id, 9);
 
 	}
 	ep_send(ep2);
+}
+
+
+void ep20_send(pump_sid side)
+{
+	if(side == side_a)
+	{
+		strcpy(ep20_save.pump[0].user_id, attendant1.user_id);
+		strcpy(ep20_save.pump[0].user_pin, attendant1.user_pin);
+		ep_send(ep20_side_a);
+	}
+	else if(side == side_b)
+	{
+		strcpy(ep20_save.pump[1].user_id, attendant2.user_id);
+		strcpy(ep20_save.pump[1].user_pin, attendant2.user_pin);
+		ep_send(ep20_side_b);
+	}
 }
 
 
@@ -2341,6 +2963,69 @@ void serverTime_parse(void)
 }
 
 
+void sessionId_parse(pump_sid side)
+{
+	int head_pos = 0;
+	uint8_t sessionId_gotten = 0,
+			i = 0;
+
+//	res => ep:1a. {"st":0,"tk":31290,"ud":0,"tm":37427375,"am":0.0,"mt":{"ty":3,"pn":"all","pr":590.0,"sh":null,"fg":0,"tg":"p|all"},"pv":0.0,"wv":0.0,"sa":0.0,"bal":0.0,"dc":null,"wb":null,"ft":null}
+
+//	{"st":0,"tk":36685,"sn":"MANAGER MANAGER","bn":"Efuel","ba":"18 Illupeju, lagos, Lagos, Nigeria","cn":"Demonstration Limited","si":"JL32814"}
+
+	char rx;
+
+	while( (head_pos < pump_rx_bufsize) && (sessionId_gotten == 0) )
+	{
+	   if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+		   rx = rx_buf[head_pos];
+
+	   if(rx == 's')
+	   {
+		  head_pos++;
+		  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+			  rx = rx_buf[head_pos];
+
+		  if(rx == 'i')
+		  {
+			  head_pos += 2;
+			  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+				  rx = rx_buf[head_pos];
+
+			  if(rx == ':')
+			  {
+				  i = 0;
+				  head_pos += 1;
+				  memset(sessionIdStr, '\0', sizeof(sessionIdStr));
+				  do
+				  {
+					 head_pos++;
+					 if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+						   rx = rx_buf[head_pos];
+
+					   if( (rx != '"') && (i < 9) )
+						   sessionIdStr[i++] = rx;
+				  }
+				  while(rx != '"');
+				  sessionId_gotten = 1;
+				  if(side == side_a)
+				  {
+					 strncpy(attendant1.session_id, sessionIdStr, sizeof(sessionIdStr));
+//					 save_sessionId(side_a);
+				  }
+				  else if (side == side_b)
+				  {
+					  strncpy(attendant2.session_id, sessionIdStr, sizeof(sessionIdStr));
+//					  save_sessionId(side_b);
+				  }
+			  }
+		   }
+		}
+		head_pos++;
+	}
+}
+
+
 //void ttostr(u32 time_integer,u8 typ) // typ: 1=> time 2=>date
 //{
 //	u32 yearShift = 27;
@@ -2528,6 +3213,357 @@ void serverTime_parse(void)
 //		   timer_spi = 0;
 //		 }
 //	}
+//}
+//
+//
+
+
+
+//void epSend_interval(void)
+//{
+//	static int8_t aflag = 0,
+////				  halfMinuteIncrementer = 0,
+//				  firstTime = 1,
+//				  firstTime_ep2 = 1,
+//				  sending_busy = 0;
+////				  _15SecIncrementer,
+////				  _30SecIncrementer,
+////				  _60SecIncrementer,
+////				  _75seconds,
+////				  _615seconds,
+////				  ep2_justSent = 0,
+////				  ep1a_justSent = 0;
+//
+//	uint8_t array_count = 0;
+//
+//	static uint16_t epochTime_past = 0;
+//
+//	uint16_t epochTime_present;
+//
+//	uint16_t time_interval;
+//
+//	int flash_locc,
+//		pg;
+//
+//	float baseMinusOriginal1,
+//		  baseMinusOriginal2,
+//		  effectiveMinusBase1,
+//		  effectiveMinusBase2;
+//
+////	epochTime_present = RtcToInt(2019);
+//	epochTime_present = timer_ep;
+//
+//	if(aflag == 0)
+//	{
+//		epochTime_past = epochTime_present;
+//
+//		aflag = 1;
+//	}
+//
+//	time_interval = epochTime_present - epochTime_past;
+//
+//
+//
+//
+//	//============================================//
+//	// 		EP0, EP5 & EP31 ROUTINES SENDING	      //
+//	//============================================//
+//
+//	if(time_interval >= 15000)    //15 sec interval
+//
+////	if( (time_interval >= 2500) && ( (ep0_sent == 0) || (ep5a_sent == 0) || (ep5b_sent == 0) || (ep31_sent == 0) ) )
+//	{
+////		send_ep0_ep5();
+//
+//
+////		settings[0].totalizer_day = 17;
+////		ep0_sent = 1;
+////		ep5a_sent = 1;
+////		ep5b_sent = 1;
+////		ep31_sent = 1;
+//
+//		//============================================//
+//		// 				EP5 ROUTINE SENDING			  //
+//		//============================================//
+//
+//		day = DS1307_GetDate();
+//
+////		day = 17;
+//
+//		if(settings[0].totalizer_day == day)
+//		{
+//			ep5a_sent = 1;
+//			ep5b_sent = 1;
+//		}
+//
+//		if(settings[0].totalizer_day != day)
+//		{
+////			ep5_save.firstTotalizer[0].totalizer = totaliser_vol1c;
+////			ep5_save.firstTotalizer[1].totalizer = totaliser_vol2c;
+////			ep5_save.firstTotalizer[0].totalizer_real = totaliser_vol1;
+////			ep5_save.firstTotalizer[1].totalizer_real = totaliser_vol2;
+////			ep5_save.firstTotalizer[0].timestamp = RtcToInt(2019);
+////			ep5_save.firstTotalizer[1].timestamp = ep5_save.firstTotalizer[0].timestamp;
+//
+//			save_1stVolTotaliser_day(side_a);
+//			save_1stVolTotaliser_day(side_b);
+//
+//			retrieve_1stVolTotaliser_day(side_a);
+//			retrieve_1stVolTotaliser_day(side_b);
+//
+//			if( (ep5a_sent == 0) || ((ep5a_sent == 1) && (ep5b_sent == 1)) )
+//			{
+//				ep_send(ep5_side_a);
+//			}
+//			else if ( (ep5b_sent == 0) || ((ep5a_sent == 1) && (ep5b_sent == 1)) )
+//			{
+//				ep_send(ep5_side_b);
+//			}
+//		}
+//
+//		//============================================//
+//
+//
+//
+//
+//		//============================================//
+//		// 				EP0 ROUTINE SENDING			  //
+//		//============================================//
+//		else if (ep0_sent == 0)
+//		{
+//			ep_send(ep0);
+//		}
+//
+//		//============================================//
+//
+//
+//		//================================================//
+//		// 				EP31 ROUTINE SENDING			  //
+//		//================================================//
+//		else if (ep31_sent == 0)
+//		{
+//			char str[6];
+//
+//			baseMinusOriginal1 = (vol_calibrated1 - vol_real1);
+//
+//			if(vol_effective1 != 0.0)
+//				effectiveMinusBase1 = (vol_effective1 - vol_calibrated1);
+//			else
+//				effectiveMinusBase1 = 0.0;
+//
+//			baseMinusOriginal2 = (vol_calibrated2 - vol_real2);
+//
+//			if(vol_effective2 != 0.0)
+//				effectiveMinusBase2 = (vol_effective2 - vol_calibrated2);
+//			else
+//				effectiveMinusBase2 = 0.0;
+//
+//
+//			sprintf(str, "%d", vol_real1);
+//			strncpy(ep31_save.pump[0].calibrate_ct.ct_original, str, sizeof(str));
+//			memset(str, '\0', sizeof(str));
+//			sprintf(str, "%0.1f", baseMinusOriginal1);
+//			strncpy(ep31_save.pump[0].calibrate_ct.ct_baseMinusOriginal, str, sizeof(str));
+//			memset(str, '\0', sizeof(str));
+//			sprintf(str, "%0.1f", effectiveMinusBase1);
+//			strncpy(ep31_save.pump[0].calibrate_ct.ct_effectiveMinusBase, str, sizeof(str));
+//			memset(str, '\0', sizeof(str));
+//			sprintf(str, "%d", vol_real2);
+//			strncpy(ep31_save.pump[1].calibrate_ct.ct_original, str, sizeof(str));
+//			memset(str, '\0', sizeof(str));
+//			sprintf(str, "%0.1f", baseMinusOriginal2);
+//			strncpy(ep31_save.pump[1].calibrate_ct.ct_baseMinusOriginal, str, sizeof(str));
+//			memset(str, '\0', sizeof(str));
+//			sprintf(str, "%0.1f", effectiveMinusBase2);
+//			strncpy(ep31_save.pump[1].calibrate_ct.ct_effectiveMinusBase, str, sizeof(str));
+//
+//			ep_send(ep31);
+//		}
+//
+//		//============================================//
+//
+//
+//
+//		//====================================================================//
+//		// 				EP1A PRICECHANGE-FEEDBACK ROUTINE SENDING			  //
+//		//====================================================================//
+//		else if (ep1a_priceChangeFlag1 == 1)
+//		{
+//			ep_send(ep1a_priceChangeResponse_sideA);
+//			ep1a_priceChangeFlag1 = 0;
+//		}
+//		else if (ep1a_priceChangeFlag2 == 1)
+//		{
+//			ep_send(ep1a_priceChangeResponse_sideB);
+//			ep1a_priceChangeFlag2 = 0;
+//		}
+//		else if (ep1a_priceChangeFlag_bothSides == 1)
+//		{
+//			ep_send(ep1a_priceChangeResponse_bothSides);
+//			ep1a_priceChangeFlag_bothSides = 0;
+//		}
+//		//====================================================================//
+//
+//
+//
+//		if ( (ep0_sent == 0) || (ep5a_sent == 0) || (ep5b_sent == 0) || ep31_sent == 0
+//			|| (ep1a_priceChangeFlag1 == 1) || (ep1a_priceChangeFlag2 == 1) ||
+//			(ep1a_priceChangeFlag_bothSides == 1) )
+//		{
+//			sending_busy = 1;
+//		}
+//		else
+//		{
+//			sending_busy = 0;
+//		}
+//
+//		aflag = 0;
+//		_15SecIncrementer++;
+//
+//		if(ep2_justSent == 1)
+//		{
+//			_75seconds = 1;
+//		}
+//		else if(ep1a_justSent == 1)
+//		{
+//			_615seconds = 1;
+//		}
+//	}
+//
+//	//============================================//
+//
+//
+//
+//
+//
+//
+//	//============================================//
+//	// 				EP2 ROUTINE SENDING			  //
+//	//============================================//
+//	if(_15SecIncrementer == 2)   //30 sec interval
+//	{
+//		_30SecIncrementer++;
+//		_15SecIncrementer = 0;
+//
+//		if(sending_busy == 0)
+//		{
+//			if(firstTime_ep2 == 1)
+//			{
+//
+//				if(ep1b_save.synched_tranxA != ep1b_save.total_tranxA)
+//				{
+//					ep2_send(side_a);
+//				}
+//				else if(ep1b_save.synched_tranxB != ep1b_save.total_tranxB)
+//				{
+//					ep2_send(side_b);
+//				}
+//
+//				firstTime_ep2 = 0;
+//			}
+//
+//			else if(firstTime_ep2 == 0)
+//			{
+//				if(ep1b_save.synched_tranxB != ep1b_save.total_tranxB) //&& (ep2a_justSent == 0) )
+//				{
+//					ep2_send(side_b);
+//				}
+//				else if(ep1b_save.synched_tranxA != ep1b_save.total_tranxA)
+//				{
+//					ep2_send(side_a);
+//				}
+//
+//				firstTime_ep2 = 1;
+//			}
+//
+//
+//			if(_30SecIncrementer == 2)
+//			{
+//				ep2_justSent = 1;
+//			}
+//
+//		}
+//	}
+//	//============================================//
+//
+//
+//
+//
+//
+//	//============================================//
+//	// 			  EP1A ROUTINE SENDING		      //
+//	//============================================//
+//	if( (_30SecIncrementer == 2) || (_75seconds == 1) )      //1 min interval
+//	{
+//		if(_30SecIncrementer == 2)
+//		{
+//			_60SecIncrementer++;
+//			_30SecIncrementer = 0;
+//
+//			if( (sending_busy == 0) && (ep2_justSent == 0) )
+//			{
+//				ep_send(ep1a);
+//
+//				if(_60SecIncrementer == 10)
+//				{
+//					ep1a_justSent = 1;
+//				}
+//			}
+//		}
+//		else if(_75seconds == 1)
+//		{
+//			_75seconds = 0;
+//
+//			if( (sending_busy == 0) && (ep2_justSent == 1) )
+//			{
+//				ep_send(ep1a);
+//
+//				ep2_justSent = 0;
+//
+//				if(_60SecIncrementer == 10)
+//				{
+//					ep1a_justSent = 1;
+//				}
+//			}
+//		}
+//	}
+//
+//
+//	//============================================//
+//
+//
+//
+//
+//
+//	//============================================//
+//	// 			 EP1B ROUTINE SENDING			  //
+//	//============================================//
+//	if( (_60SecIncrementer == 10) || (_615seconds == 1) ) //&& (sending_busy == 0) )     //10 min interval
+//	{
+//			if(_60SecIncrementer == 10)
+//			{
+//				_60SecIncrementer = 0;
+//
+//				if( (sending_busy == 0) && (ep1a_justSent == 0) )
+//				{
+//					ep_send(ep1b);
+//
+//				}
+//			}
+//			else if(_615seconds == 1)
+//			{
+//				_615seconds = 0;
+//
+//				if( (sending_busy == 0) && (ep1a_justSent == 1) )
+//				{
+//					ep_send(ep1b);
+//
+//					ep1a_justSent = 0;
+//				}
+//			}
+//	}
+//
+//	//============================================//
 //}
 //
 //

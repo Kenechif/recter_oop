@@ -8,6 +8,8 @@
 #include "seriall.h"
 
 char uart2_rx_buf[pump_rx_bufsize] = {0};
+char uart3_rx_buf[pump_rx_bufsize] = {0};
+char uart5_rx_buf[pump_rx_bufsize] = {0};
 
 extern char rx_buf[pump_rx_bufsize] = {0};
 

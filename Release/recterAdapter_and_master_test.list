@@ -5404,14 +5404,14 @@ Disassembly of section .text:
  800385c:	0800f8c8 	.word	0x0800f8c8
  8003860:	0800f8d4 	.word	0x0800f8d4
 
-08003864 <clr_screen>:
+08003864 <clr_screen1>:
  8003864:	b508      	push	{r3, lr}
- 8003866:	4805      	ldr	r0, [pc, #20]	; (800387c <clr_screen+0x18>)
+ 8003866:	4805      	ldr	r0, [pc, #20]	; (800387c <clr_screen1+0x18>)
  8003868:	f7fd fc5c 	bl	8001124 <send_line1>
- 800386c:	4803      	ldr	r0, [pc, #12]	; (800387c <clr_screen+0x18>)
+ 800386c:	4803      	ldr	r0, [pc, #12]	; (800387c <clr_screen1+0x18>)
  800386e:	f7fd fc65 	bl	800113c <send_line2>
  8003872:	e8bd 4008 	ldmia.w	sp!, {r3, lr}
- 8003876:	4801      	ldr	r0, [pc, #4]	; (800387c <clr_screen+0x18>)
+ 8003876:	4801      	ldr	r0, [pc, #4]	; (800387c <clr_screen1+0x18>)
  8003878:	f7fd bc6e 	b.w	8001158 <send_line3>
  800387c:	0800f854 	.word	0x0800f854
 
@@ -5801,7 +5801,7 @@ Disassembly of section .text:
  8003c8e:	f47f ae12 	bne.w	80038b6 <progstate_Handler+0x36>
  8003c92:	230e      	movs	r3, #14
  8003c94:	603b      	str	r3, [r7, #0]
- 8003c96:	f7ff fde5 	bl	8003864 <clr_screen>
+ 8003c96:	f7ff fde5 	bl	8003864 <clr_screen1>
  8003c9a:	e60c      	b.n	80038b6 <progstate_Handler+0x36>
  8003c9c:	4c59      	ldr	r4, [pc, #356]	; (8003e04 <progstate_Handler+0x584>)
  8003c9e:	6823      	ldr	r3, [r4, #0]
@@ -5830,7 +5830,7 @@ Disassembly of section .text:
  8003ce0:	f7fd fa2c 	bl	800113c <send_line2>
  8003ce4:	f44f 60fa 	mov.w	r0, #2000	; 0x7d0
  8003ce8:	f002 fffe 	bl	8006ce8 <HAL_Delay>
- 8003cec:	f7ff fdba 	bl	8003864 <clr_screen>
+ 8003cec:	f7ff fdba 	bl	8003864 <clr_screen1>
  8003cf0:	230e      	movs	r3, #14
  8003cf2:	603b      	str	r3, [r7, #0]
  8003cf4:	e5df      	b.n	80038b6 <progstate_Handler+0x36>
@@ -6157,7 +6157,7 @@ Disassembly of section .text:
  8004084:	f47f ac17 	bne.w	80038b6 <progstate_Handler+0x36>
  8004088:	2300      	movs	r3, #0
  800408a:	602b      	str	r3, [r5, #0]
- 800408c:	f7ff fbea 	bl	8003864 <clr_screen>
+ 800408c:	f7ff fbea 	bl	8003864 <clr_screen1>
  8004090:	e411      	b.n	80038b6 <progstate_Handler+0x36>
  8004092:	4a36      	ldr	r2, [pc, #216]	; (800416c <progstate_Handler+0x8ec>)
  8004094:	4b36      	ldr	r3, [pc, #216]	; (8004170 <progstate_Handler+0x8f0>)
@@ -6227,7 +6227,7 @@ Disassembly of section .text:
  8004138:	71da      	strb	r2, [r3, #7]
  800413a:	600a      	str	r2, [r1, #0]
  800413c:	6002      	str	r2, [r0, #0]
- 800413e:	f7ff fb91 	bl	8003864 <clr_screen>
+ 800413e:	f7ff fb91 	bl	8003864 <clr_screen1>
  8004142:	4912      	ldr	r1, [pc, #72]	; (800418c <progstate_Handler+0x90c>)
  8004144:	4a12      	ldr	r2, [pc, #72]	; (8004190 <progstate_Handler+0x910>)
  8004146:	2301      	movs	r3, #1
@@ -6253,7 +6253,7 @@ Disassembly of section .text:
  8004190:	20000538 	.word	0x20000538
  8004194:	230c      	movs	r3, #12
  8004196:	603b      	str	r3, [r7, #0]
- 8004198:	f7ff fb64 	bl	8003864 <clr_screen>
+ 8004198:	f7ff fb64 	bl	8003864 <clr_screen1>
  800419c:	4bb5      	ldr	r3, [pc, #724]	; (8004474 <progstate_Handler+0xbf4>)
  800419e:	49b6      	ldr	r1, [pc, #728]	; (8004478 <progstate_Handler+0xbf8>)
  80041a0:	1dd8      	adds	r0, r3, #7
@@ -6303,7 +6303,7 @@ Disassembly of section .text:
  8004208:	71d3      	strb	r3, [r2, #7]
  800420a:	6003      	str	r3, [r0, #0]
  800420c:	600b      	str	r3, [r1, #0]
- 800420e:	f7ff fb29 	bl	8003864 <clr_screen>
+ 800420e:	f7ff fb29 	bl	8003864 <clr_screen1>
  8004212:	f7ff bb50 	b.w	80038b6 <progstate_Handler+0x36>
  8004216:	4b97      	ldr	r3, [pc, #604]	; (8004474 <progstate_Handler+0xbf4>)
  8004218:	4997      	ldr	r1, [pc, #604]	; (8004478 <progstate_Handler+0xbf8>)
@@ -6928,7 +6928,7 @@ Disassembly of section .text:
  8004876:	230e      	movs	r3, #14
  8004878:	6011      	str	r1, [r2, #0]
  800487a:	603b      	str	r3, [r7, #0]
- 800487c:	f7fe fff2 	bl	8003864 <clr_screen>
+ 800487c:	f7fe fff2 	bl	8003864 <clr_screen1>
  8004880:	f7ff b819 	b.w	80038b6 <progstate_Handler+0x36>
  8004884:	682b      	ldr	r3, [r5, #0]
  8004886:	2b01      	cmp	r3, #1
@@ -7082,7 +7082,7 @@ Disassembly of section .text:
  8004a14:	f002 f968 	bl	8006ce8 <HAL_Delay>
  8004a18:	230e      	movs	r3, #14
  8004a1a:	603b      	str	r3, [r7, #0]
- 8004a1c:	f7fe ff22 	bl	8003864 <clr_screen>
+ 8004a1c:	f7fe ff22 	bl	8003864 <clr_screen1>
  8004a20:	6823      	ldr	r3, [r4, #0]
  8004a22:	f7ff b981 	b.w	8003d28 <progstate_Handler+0x4a8>
  8004a26:	f7fd f81b 	bl	8001a60 <clear_logA>
@@ -7092,7 +7092,7 @@ Disassembly of section .text:
  8004a32:	f7fc fb83 	bl	800113c <send_line2>
  8004a36:	f44f 60fa 	mov.w	r0, #2000	; 0x7d0
  8004a3a:	f002 f955 	bl	8006ce8 <HAL_Delay>
- 8004a3e:	f7fe ff11 	bl	8003864 <clr_screen>
+ 8004a3e:	f7fe ff11 	bl	8003864 <clr_screen1>
  8004a42:	220e      	movs	r2, #14
  8004a44:	6823      	ldr	r3, [r4, #0]
  8004a46:	603a      	str	r2, [r7, #0]

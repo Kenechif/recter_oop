@@ -13,8 +13,10 @@ extern "C" {
 #endif
 
 #include "settings.h"
+#include "../otp/_otp.h"
 
 int8_t nozzleup_awaitingauth_state_not_timedOut;
+uint32_t otp_codeInt1;
 
 extern const int max_events_per_state ;
 
@@ -109,16 +111,23 @@ typedef struct
   eSystemEvent  states[8];
 } sStateEventMachine;
 //-----------------------------------------------
-eSystemEvent eNewEvent;
+eSystemEvent eNewEvent1;
 eSystemState eNextState1, eLastState1, ePrevState;
 
 typedef enum
 {
  non,
- level0,
  level1,
- level2
+ level2,
+ level3
 }access_lev;
+
+typedef enum
+{
+	 pass1,
+	 pass2,
+	 pass3,
+}pass_lev;
 
 /*typedef enum
 {
@@ -136,7 +145,9 @@ typedef enum
 {
 	not_auth,
 	no_auth,
-	authed
+	authed,
+	pre_otp_authed,
+	otp_authed
 }auth_state;
 
 
@@ -146,7 +157,7 @@ enum
 	setmode,
 	setaddress,
 	setnozzle,
-	default_sell_type,
+	display_orientation,
 	setprice,
 	set_no_flow_time,
 	setmax_amt,
@@ -158,8 +169,20 @@ enum
 	calibrate_,
 	display_,
 	nothing,
-	setclock
+	setclock,
+	number_of_sides,
+	suppressed_display_vol,
+	calibration_can,
+	calibration_type_,
+	shift_login_type_,
+	number_of_shifts_,
+	shift_total,
+	keypress_tone_,
+	communication_card
 };
+
+//"Sides No", "Start CL", "Calib.Can", "Shift No"};
+//"Calib.typ"
 
 float price_real1, amt_real1;
 float amt_, price_;

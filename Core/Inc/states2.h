@@ -13,8 +13,11 @@ extern "C" {
 #endif
 
 #include "settings.h"
+#include "../otp/_otp.h"
 
-extern const int max_events_per_state ;
+extern const int max_events_per_state;
+
+uint32_t otp_codeInt2;
 
 
 typedef enum

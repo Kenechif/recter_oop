@@ -253,7 +253,7 @@ retn                0x4               ./Core/Src/thread1.o
 r_amo               0x4               ./Core/dart_protocol/drt.o
 nozzle_state        0x1               ./Core/dart_protocol/drt.o
 addr                0x1               ./Core/dart_protocol/drt.o
-eNewEvent           0x1               ./Core/Src/interrupt_codes.o
+eNewEvent1           0x1               ./Core/Src/interrupt_codes.o
 dat_strout          0x30              ./Core/Src/thread1.o
 r_TX                0x1               ./Core/dart_protocol/drt.o
 timeA               0x2               ./Core/Src/settings.o
@@ -2462,9 +2462,9 @@ LOAD c:/st/stm32cubeide_1.8.0/stm32cubeide/plugins/com.st.stm32cube.ide.mcu.exte
  .text.operator_State_Handler
                 0x0000000008003194      0x6d0 ./Core/Src/states.o
                 0x0000000008003194                operator_State_Handler
- .text.clr_screen
+ .text.clr_screen1
                 0x0000000008003864       0x1c ./Core/Src/states.o
-                0x0000000008003864                clr_screen
+                0x0000000008003864                clr_screen1
  .text.progstate_Handler
                 0x0000000008003880     0x1384 ./Core/Src/states.o
                 0x0000000008003880                progstate_Handler
@@ -3939,7 +3939,7 @@ LOAD c:/st/stm32cubeide_1.8.0/stm32cubeide/plugins/com.st.stm32cube.ide.mcu.exte
                 0x0000000020000610                ePrevState
                 0x0000000020000611                eLastState1
                 0x0000000020000612                eNextState1
-                0x0000000020000613                eNewEvent
+                0x0000000020000613                eNewEvent1
  COMMON         0x0000000020000614      0x314 ./Core/Src/main.o
                 0x0000000020000614                hi2c1
                 0x0000000020000698                htim5
