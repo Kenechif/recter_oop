@@ -13,7 +13,7 @@ extern "C" {
 #endif
 
 #include "settings.h"
-#include "../otp/_otp.h"
+#include "../otp/otp.h"
 
 extern const int max_events_per_state;
 

@@ -13,7 +13,7 @@ extern "C" {
 #endif
 
 #include "settings.h"
-#include "../otp/_otp.h"
+#include "../otp/otp.h"
 
 int8_t nozzleup_awaitingauth_state_not_timedOut;
 uint32_t otp_codeInt1;

@@ -40,7 +40,7 @@
 #include "pump_comm.h"
 
 //#include "../otp/sha1.h"
-#include "../otp/_otp.h"
+#include "../otp/otp.h"
 #include "stdlib.h"
 
 
@@ -119,6 +119,11 @@ extern const int16_t save_productType_loc,
 //==================================================
 
 extern pump_names pumpName[2];
+
+
+char testChar0[9] = {0};
+char testChar1[9] = {0};
+int sz;
 
 
 int8_t val;
@@ -959,7 +964,11 @@ void compose_printer()
 
 //	 ep_send(ep0);
 
+	 mcu_power(ACTIVATE);
+
 	 drive_power(ACTIVATE);   //latch power...
+
+	 modem_power(ACTIVATE);
 
 //	 while(1)
 //	 {
@@ -1003,6 +1012,8 @@ void compose_printer()
 
 //	pump_ini();    // activate the pump communication I/O
 
+	HAL_UART_Receive_IT(&huart1, uart1_rx_buf, pump_rx_bufsize);
+
 	HAL_UART_Receive_IT(&huart2, uart2_rx_buf, pump_rx_bufsize);
 
 	HAL_UART_Receive_IT(&huart3, uart3_rx_buf, pump_rx_bufsize);
@@ -1044,27 +1055,31 @@ void compose_printer()
 
 //while(1)
 //{
-////	HAL_GPIO_WritePin(clockPin_GPIO_Port, clockPin_Pin, GPIO_PIN_SET);
-////	_Delay(1);
-////	HAL_GPIO_WritePin(clockPin_GPIO_Port, clockPin_Pin, GPIO_PIN_RESET);
-////	_Delay(1);
-////	HAL_GPIO_WritePin(dataPin_GPIO_Port, dataPin_Pin, GPIO_PIN_SET);
-////	_Delay(1);
-////	HAL_GPIO_WritePin(dataPin_GPIO_Port, dataPin_Pin, GPIO_PIN_RESET);
-////	_Delay(1);
-////	HAL_GPIO_WritePin(latchPin_GPIO_Port, latchPin_Pin, GPIO_PIN_SET);  //latch pin high
-////	_Delay(1);
-////	HAL_GPIO_WritePin(latchPin_GPIO_Port, latchPin_Pin, GPIO_PIN_RESET);  //Latch pin low
-////	_Delay(1);
-////	printDisp_c("fuel",1,2,4,LT,CLEAR);
-////	printDisp_c2("fuel",1,2,4,LT,CLEAR);
-//
-////	HAL_Delay(2500);
-//
-////	HAL_GPIO_WritePin(T1output_GPIO_Port,T1output_Pin, GPIO_PIN_SET);
-////	HAL_Delay(2500);
-////	HAL_GPIO_WritePin(T1output_GPIO_Port,T1output_Pin, GPIO_PIN_RESET);
-////	HAL_Delay(2500);
+//	HAL_GPIO_WritePin(clockPin_GPIO_Port, clockPin_Pin, GPIO_PIN_SET);
+//	_Delay(1);
+//	HAL_GPIO_WritePin(clockPin_GPIO_Port, clockPin_Pin, GPIO_PIN_RESET);
+//	_Delay(1);
+//	HAL_GPIO_WritePin(dataPin_GPIO_Port, dataPin_Pin, GPIO_PIN_SET);
+//	_Delay(1);
+//	HAL_GPIO_WritePin(dataPin_GPIO_Port, dataPin_Pin, GPIO_PIN_RESET);
+//	_Delay(1);
+//	HAL_GPIO_WritePin(latchPin_GPIO_Port, latchPin_Pin, GPIO_PIN_SET);  //latch pin high
+//	_Delay(1);
+//	HAL_GPIO_WritePin(latchPin_GPIO_Port, latchPin_Pin, GPIO_PIN_RESET);  //Latch pin low
+//	_Delay(1);
+//	printDisp_c("fuel",1,2,4,LT,CLEAR);
+//	printDisp_c2("fuel",1,2,4,LT,CLEAR);
+
+//	HAL_Delay(2500);
+
+//	HAL_GPIO_WritePin(T1output_GPIO_Port,T1output_Pin, GPIO_PIN_SET);
+//	HAL_Delay(2500);
+//	HAL_GPIO_WritePin(T1output_GPIO_Port,T1output_Pin, GPIO_PIN_RESET);
+//	HAL_Delay(2500);
+//	HAL_GPIO_WritePin(T2output_GPIO_Port,T2output_Pin, GPIO_PIN_SET);
+//	HAL_Delay(2500);
+//	HAL_GPIO_WritePin(T2output_GPIO_Port,T2output_Pin, GPIO_PIN_RESET);
+//	HAL_Delay(2500);
 //}
 //	 float temp;
 //	while(1){
@@ -1216,7 +1231,7 @@ tmmm:
 //goto skip;
 
 
-//  if( HAL_GPIO_ReadPin(led_GPIO_Port, led_Pin) == 1)  // config
+//  if( HAL_GPIO_ReadPin(nLed_GPIO_Port, nLed_Pin) == 1)  // config
   if( (HAL_GPIO_ReadPin(settings1_GPIO_Port, settings1_Pin) == 1 ) || ( HAL_GPIO_ReadPin(settings2_GPIO_Port, settings2_Pin) == 1) )
   {
 	  printDisp_c("config",1,2,4,LT,CLEAR);
@@ -1245,6 +1260,9 @@ tmmm:
 
 
 	  config_mode = 1;
+//	  retrieve_settings();
+
+//	  HAL_UART_Transmit (&huart1, "Hey!", 4, 1000);
 
 //	  {"ni":"p17","pn":"pms","dt":"bluesky886n","kt":"bluesky22"}
 
@@ -1347,7 +1365,6 @@ tmmm:
 	//	 EEPROM_Write(flash_info_sto, flash_stoA, &flash_infoA, sizeof(flash_infoA));
 	//	 EEPROM_Write(flash_info_sto, flash_stoA, &flash_infoB, sizeof(flash_infoA));
 	 // ===========================================================================
-
 
 
 //	  eeprom_clearToken();
@@ -1511,6 +1528,19 @@ skip_test:
 //     EEPROM_Write(flash_info_sto, flash_stoA, &flash_infoB, sizeof(flash_infoA));
 // // ===========================================================================
 
+////    char testChar0[9] = {0};
+////	char testChar1[9] = {0};
+
+//		sz = sizeof(testChar0);
+//
+//		 strncpy(testChar0, "Testing", sizeof(testChar0) );
+//		 EEPROM_Write(700, 0, &testChar0, sz);
+//
+//		 memset(testChar1, '\0', sizeof(testChar1) );
+//
+//		 EEPROM_Read(700, 0, &testChar1, sz);
+//		 strncpy(attendant1.session_id, testChar1, sizeof(attendant1.session_id) );
+
 
     retrieve_settings();         //read pump settings from eeprom.
 
@@ -1657,6 +1687,8 @@ skip_test:
     retrieve_synchedAutoTransaction_sides(side_a);
     retrieve_synchedAutoTransaction_sides(side_b);
 
+    clear_1stvolTotaliser_day(side_a);
+    clear_1stvolTotaliser_day(side_b);
     retrieve_1stVolTotaliser_day(side_a);
     retrieve_1stVolTotaliser_day(side_b);
 
@@ -1674,6 +1706,7 @@ skip_test:
 
 //    clear_sessionId(side_a);
 //    clear_sessionId(side_b);
+
     retrieve_sessionId(side_a);
     retrieve_sessionId(side_b);
 
@@ -1793,14 +1826,14 @@ skip_test:
    __HAL_RCC_GPIOC_CLK_ENABLE();
 
    /*Configure GPIO pin Output Level */
-   HAL_GPIO_WritePin(led_GPIO_Port, led_Pin, GPIO_PIN_RESET);
+   HAL_GPIO_WritePin(nLed_GPIO_Port, nLed_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : led_Pin */
-   GPIO_InitStruct.Pin = led_Pin;
+  /*Configure GPIO pin : nLed_Pin */
+   GPIO_InitStruct.Pin = nLed_Pin;
    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
    GPIO_InitStruct.Pull = GPIO_NOPULL;
    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-   HAL_GPIO_Init(led_GPIO_Port, &GPIO_InitStruct);
+   HAL_GPIO_Init(nLed_GPIO_Port, &GPIO_InitStruct);
 
  }
 

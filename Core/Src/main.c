@@ -107,6 +107,7 @@ static void MX_RNG_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
+
 	// stop_flow1();
 
 	config_mode = 0;
@@ -204,9 +205,9 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 4;
-  RCC_OscInitStruct.PLL.PLLN = 72;
+  RCC_OscInitStruct.PLL.PLLN = 168;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-  RCC_OscInitStruct.PLL.PLLQ = 3;
+  RCC_OscInitStruct.PLL.PLLQ = 7;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -217,10 +218,10 @@ void SystemClock_Config(void)
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
   {
     Error_Handler();
   }
@@ -246,7 +247,7 @@ static void MX_ADC1_Init(void)
   /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
   */
   hadc1.Instance = ADC1;
-  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
   hadc1.Init.ScanConvMode = DISABLE;
   hadc1.Init.ContinuousConvMode = ENABLE;
@@ -621,7 +622,7 @@ static void MX_USART1_UART_Init(void)
 
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 9600;
+  huart1.Init.BaudRate = 115200;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -722,66 +723,64 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, lthk2_Pin|refresh2_Pin|RE_Pin|solenoid_Pin
-                          |slow_sole1_Pin|slow_sole2_Pin|fast_sole1_Pin|fast_sole2_Pin
-                          |motor_drv1_Pin|motor_drv2_Pin|clkk2_Pin|datak2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOE, lthk2_Pin|refresh2_Pin|RE_Pin|slow_sole1_Pin
+                          |slow_sole2_Pin|fast_sole1_Pin|fast_sole2_Pin|motor_drv1_Pin
+                          |motor_drv2_Pin|clkk2_Pin|datak2_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, led_Pin|T2output_Pin|dataPin_Pin|clockPin_Pin
-                          |latchPin_Pin|dataPin2_Pin|clockPin2_Pin|latchPin2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, T1output_Pin|T2output_Pin|dataPin_Pin|clockPin_Pin
+                          |latchPin_Pin|dataPin2_Pin|clockPin2_Pin|latchPin2_Pin
+                          |batt_check_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, FLASH_CS_Pin|T1output_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(FLASH_CS_GPIO_Port, FLASH_CS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, pwr_actv_Pin|pump_Pin|request_line_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, pwr_actv_Pin|pump_Pin|modem_power_Pin|UCD_power_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, clkk1_Pin|datak1_Pin|lthk1_Pin|refresh_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, clkk1_Pin|datak1_Pin|lthk1_Pin|refresh_Pin
+                          |nLed_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : lthk2_Pin refresh2_Pin RE_Pin solenoid_Pin
-                           slow_sole1_Pin slow_sole2_Pin fast_sole1_Pin fast_sole2_Pin
-                           motor_drv1_Pin motor_drv2_Pin clkk2_Pin datak2_Pin */
-  GPIO_InitStruct.Pin = lthk2_Pin|refresh2_Pin|RE_Pin|solenoid_Pin
-                          |slow_sole1_Pin|slow_sole2_Pin|fast_sole1_Pin|fast_sole2_Pin
-                          |motor_drv1_Pin|motor_drv2_Pin|clkk2_Pin|datak2_Pin;
+  /*Configure GPIO pins : lthk2_Pin refresh2_Pin RE_Pin slow_sole1_Pin
+                           slow_sole2_Pin fast_sole1_Pin fast_sole2_Pin motor_drv1_Pin
+                           motor_drv2_Pin clkk2_Pin datak2_Pin */
+  GPIO_InitStruct.Pin = lthk2_Pin|refresh2_Pin|RE_Pin|slow_sole1_Pin
+                          |slow_sole2_Pin|fast_sole1_Pin|fast_sole2_Pin|motor_drv1_Pin
+                          |motor_drv2_Pin|clkk2_Pin|datak2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : tamper_Pin sense_pwr_Pin sense_p_pwr_Pin */
-  GPIO_InitStruct.Pin = tamper_Pin|sense_pwr_Pin|sense_p_pwr_Pin;
+  /*Configure GPIO pins : pulser1_detect_Pin sense_pwr_Pin sense_p_pwr_Pin pulser2_detect_Pin */
+  GPIO_InitStruct.Pin = pulser1_detect_Pin|sense_pwr_Pin|sense_p_pwr_Pin|pulser2_detect_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : led_Pin T2output_Pin dataPin_Pin clockPin_Pin
-                           latchPin_Pin dataPin2_Pin clockPin2_Pin latchPin2_Pin */
-  GPIO_InitStruct.Pin = led_Pin|T2output_Pin|dataPin_Pin|clockPin_Pin
-                          |latchPin_Pin|dataPin2_Pin|clockPin2_Pin|latchPin2_Pin;
+  /*Configure GPIO pins : tamper_Pin T1sense_Pin T2sense_Pin */
+  GPIO_InitStruct.Pin = tamper_Pin|T1sense_Pin|T2sense_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : T1output_Pin T2output_Pin dataPin_Pin clockPin_Pin
+                           latchPin_Pin dataPin2_Pin clockPin2_Pin latchPin2_Pin
+                           batt_check_Pin */
+  GPIO_InitStruct.Pin = T1output_Pin|T2output_Pin|dataPin_Pin|clockPin_Pin
+                          |latchPin_Pin|dataPin2_Pin|clockPin2_Pin|latchPin2_Pin
+                          |batt_check_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : T1sense_Pin T2sense_Pin */
-  GPIO_InitStruct.Pin = T1sense_Pin|T2sense_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : other_Pin */
-  GPIO_InitStruct.Pin = other_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(other_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pins : FLASH_CS_Pin T1output_Pin buzzer_Pin */
-  GPIO_InitStruct.Pin = FLASH_CS_Pin|T1output_Pin|buzzer_Pin;
+  /*Configure GPIO pins : FLASH_CS_Pin buzzer_Pin */
+  GPIO_InitStruct.Pin = FLASH_CS_Pin|buzzer_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -793,8 +792,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : pwr_actv_Pin pump_Pin request_line_Pin */
-  GPIO_InitStruct.Pin = pwr_actv_Pin|pump_Pin|request_line_Pin;
+  /*Configure GPIO pins : pwr_actv_Pin pump_Pin modem_power_Pin UCD_power_Pin */
+  GPIO_InitStruct.Pin = pwr_actv_Pin|pump_Pin|modem_power_Pin|UCD_power_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -808,12 +807,20 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : clkk1_Pin datak1_Pin lthk1_Pin refresh_Pin */
-  GPIO_InitStruct.Pin = clkk1_Pin|datak1_Pin|lthk1_Pin|refresh_Pin;
+  /*Configure GPIO pins : clkk1_Pin datak1_Pin lthk1_Pin refresh_Pin
+                           nLed_Pin */
+  GPIO_InitStruct.Pin = clkk1_Pin|datak1_Pin|lthk1_Pin|refresh_Pin
+                          |nLed_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : case_open_Pin */
+  GPIO_InitStruct.Pin = case_open_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(case_open_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : nozzleSW2_Pin */
   GPIO_InitStruct.Pin = nozzleSW2_Pin;
@@ -826,12 +833,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(network_connected_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : data_available_Pin */
-  GPIO_InitStruct.Pin = data_available_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(data_available_GPIO_Port, &GPIO_InitStruct);
 
 }
 

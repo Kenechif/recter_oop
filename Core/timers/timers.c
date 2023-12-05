@@ -120,7 +120,7 @@ void toggle_led(void)
 		 			      shutdown_timer2 = 300;
 		 //=====================
 		 count = 0;
-		 HAL_GPIO_TogglePin(led_GPIO_Port, led_Pin);  // Toggle LED
+		 HAL_GPIO_TogglePin(nLed_GPIO_Port, nLed_Pin);  // Toggle LED
 
 		//*************************************************
 		//*************************************************

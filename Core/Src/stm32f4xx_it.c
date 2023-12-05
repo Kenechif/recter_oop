@@ -248,6 +248,11 @@ void USART1_IRQHandler(void)
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
 
+  if( (config_mode == 1) )
+  {
+	  config_rx();
+  }
+
   /* USER CODE END USART1_IRQn 1 */
 }
 
@@ -262,16 +267,16 @@ void USART2_IRQHandler(void)
   HAL_UART_IRQHandler(&huart2);
   /* USER CODE BEGIN USART2_IRQn 1 */
 
-  if( (config_mode == 1) ) // || (serverResponse == 1) )
-//  if( (config_mode == 1) || (serverResponse == 1) )
-  {
-	  config_rx();
-  }
-  else
-  {
+//  if( (config_mode == 1) ) // || (serverResponse == 1) )
+////  if( (config_mode == 1) || (serverResponse == 1) )
+//  {
+//	  config_rx();
+//  }
+//  else
+//  {
 	  server_read();
 //	  card_read();
-  }
+//  }
   /* USER CODE END USART2_IRQn 1 */
 }
 

@@ -54,6 +54,16 @@ int read_p_pwr(void)
 	 return(  (HAL_GPIO_ReadPin(sense_p_pwr_GPIO_Port, sense_p_pwr_Pin ) == 1)? 0:1 );
 }
 
+void mcu_power(drive drv)
+{
+	HAL_GPIO_WritePin(UCD_power_GPIO_Port, UCD_power_Pin, drv);
+}
+
+void modem_power(drive drv)
+{
+	HAL_GPIO_WritePin(modem_power_GPIO_Port, modem_power_Pin, drv);
+}
+
 void drive_power(drive drv)
 {
 //	if(drv == ACTIVATE)

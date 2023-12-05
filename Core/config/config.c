@@ -516,7 +516,7 @@ void epSend_interval(void)
 
 
 	//================================================//
-	// 		   EP0, EP5 & EP31 ROUTINES SENDING	      //
+	// 		         EP20 ROUTINES SENDING   	      //
 	//================================================//
 
 	if ( (ep20_available1 == 1) || (ep20_available2 == 1) )
@@ -912,13 +912,13 @@ void serverResponse_parse(ep_ ep)
 	}
 }
 
-int8_t list_push(long token, ep_ ep)
+uint8_t list_push(long token, ep_ ep)
 {
-	static int8_t list_full = 0;
+	static uint8_t list_full = 0;
 
 	if(list_full == 1)     //Clears list, whenever full
 	{
-		for(int8_t i = 0; i < 15; i++)
+		for(uint8_t i = 0; i < 15; i++)
 		{
 			list[i].token = 0;
 		}
@@ -929,7 +929,7 @@ int8_t list_push(long token, ep_ ep)
 		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
 		// In the event of an already existing ep2 in the list
 		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
-		for(int8_t i = 0; i < 15; i++)
+		for(uint8_t i = 0; i < 15; i++)
 		{
 			if (list[i].ep == ep2)   //Replaces any existing ep2, cos it's definitely a resend
 			{
@@ -943,7 +943,7 @@ int8_t list_push(long token, ep_ ep)
 		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
 		// In the event of no existing ep2 in the list
 		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
-		for(int8_t i = 0; i < 15; i++)
+		for(uint8_t i = 0; i < 15; i++)
 		{
 			if(list[i].token == 0)
 			{
@@ -981,7 +981,7 @@ void server_rx_parse(void)
 			pos = 0,
 			size;
 
-	  	int8_t st = 1, val, sz;
+	  	uint8_t st = 1, val, sz;
 	  	sz = sizeof(val);
 
 	  	char rx;

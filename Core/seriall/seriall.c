@@ -7,6 +7,7 @@
 
 #include "seriall.h"
 
+char uart1_rx_buf[pump_rx_bufsize] = {0};
 char uart2_rx_buf[pump_rx_bufsize] = {0};
 char uart3_rx_buf[pump_rx_bufsize] = {0};
 char uart5_rx_buf[pump_rx_bufsize] = {0};
@@ -25,8 +26,8 @@ void config_rx(void)
 	  	static int8_t curly_brace = 0;
 	  	char tx;
 
-	   int16_t rxcnt = pump_rx_bufsize - huart2.RxXferCount;
-	   tx = (char)(uart2_rx_buf[rxcnt-1]);
+	   int16_t rxcnt = pump_rx_bufsize - huart1.RxXferCount;
+	   tx = (char)(uart1_rx_buf[rxcnt-1]);
 
 	   if(tx == '{')     // header left square bracket 0x5B, 0d91   STX->0xA5
 	   {
@@ -61,8 +62,8 @@ void config_rx(void)
 			   		 rx_buf[head_pos] = tx;
 
 					 //  memcpy( pump_buf , pump_rx_buf[head_pos] ,rxcnt ); //transfer to the definitive buffer.
-					 huart2.RxXferCount = pump_rx_bufsize;
-					 huart2.pRxBuffPtr = &uart2_rx_buf[0]; //reset //uart2_rx_buf; //
+					 huart1.RxXferCount = pump_rx_bufsize;
+					 huart1.pRxBuffPtr = &uart1_rx_buf[0]; //reset //uart2_rx_buf; //
 					 header_found = 0;
 					 head_pos = 0;
 					 curly_brace = 0;

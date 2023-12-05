@@ -56,12 +56,12 @@ extern _card attendant1, attendant2, customer;
 extern ep20_ ep20_save;
 
 typedef struct{
-	long timestamp;
-	long token;
+	unsigned long timestamp;
+	unsigned long token;
 	char transaction_id[20];
 	char nozzle_name[5];
 	char nozzle_product[6];
-	int8_t nozzle_address;
+	uint8_t nozzle_address;
 	float litre_price;
 	float transaction_vol;
 	float transaction_price;
@@ -101,18 +101,18 @@ typedef struct
 	float totalizer_real;
 	float tolalizer_first;
 	float tolalizerReal_first;
-	long totalizerFirst_timestamp;
+	unsigned long totalizerFirst_timestamp;
 	char nozzle_name[5];
 	uint8_t nozzle_id;
 	uint8_t status;
 }pumps_ep;
 
 typedef struct{
-	long timestamp;
-	long token;
+	unsigned long timestamp;
+	unsigned long token;
 	char device_id[16];
 	pumps_ep pump[2];
-	long boot_time;
+	unsigned long boot_time;
 	uint8_t reboot_cause;
 }ep0_;
 
@@ -175,19 +175,19 @@ extern int8_t config_mode;
 
 typedef struct{
 	uint8_t ct;
-	long timestamp;
-	long token;
+	unsigned long timestamp;
+	unsigned long token;
 	char device_id[16];
 	pumps_ep pump[2];
-	int firmware_version;
+	unsigned int firmware_version;
 	char storage_loc;
 }ep1a_;
 
 ep1a_ ep1a_save;
 
 typedef struct{
-	long timestamp;
-	long token;
+	unsigned long timestamp;
+	unsigned long token;
 	char device_id[16];
 	pumps_ep pump[2];
 	uint16_t total_tranx;
@@ -211,7 +211,7 @@ typedef struct{
 	float mem_usage;
 	char chip_type[15];
 	float mem_usage_auto;
-	long boot_time;
+	unsigned long boot_time;
 	uint16_t firmware_version;
 	char storage_loc;
 }ep1b_;
@@ -255,7 +255,7 @@ typedef void (*ptrCallBack)(ep_ ep);
 
 typedef struct
 {
-	long token;
+	unsigned long token;
 	ep_ ep;
 	ptrCallBack ptrMessgResp_callBack;
 }LIST;
@@ -359,13 +359,14 @@ typedef struct
 extern "C" {
 #endif
 
-
+extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart3;
 extern UART_HandleTypeDef huart5;
 
 extern SPI_HandleTypeDef hspi2;
 
+extern char uart1_rx_buf[pump_rx_bufsize];
 extern char uart2_rx_buf[pump_rx_bufsize];
 extern char uart3_rx_buf[pump_rx_bufsize];
 extern char uart5_rx_buf[pump_rx_bufsize];
@@ -427,7 +428,7 @@ void send_ep0_ep5(void);
 
 void serverResponse_parse(ep_ ep);
 
-int8_t list_push(long token, ep_ ep);
+uint8_t list_push(long token, ep_ ep);
 
 void list_pop(void);
 

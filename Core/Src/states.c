@@ -864,7 +864,10 @@ eSystemState operator_State_Handler(void)
 			  {
 				   //count time elapsed
 				   if (shutdown_timer1 > 120)
+				   {
 					   drive_power(DEACTIVATE);   //shutdown... after  2 minutes
+					   modem_power(DEACTIVATE);
+				   }
 			  }
 		  	  else
 		  	  {
@@ -5233,7 +5236,10 @@ eSystemState idlestate_Handler(void)
 			  {
 				   //count time elapsed
 				   if (shutdown_timer1 > 120)
+				   {
 					   drive_power(DEACTIVATE);   //shutdown... after  2 minutes
+					   modem_power(DEACTIVATE);
+				   }
 			  }
 		  	  else
 		  	  {

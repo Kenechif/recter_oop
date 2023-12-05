@@ -83,7 +83,9 @@
 //	 nozzleid noz_id;
 //  }pump_settings;
 
+extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
+
 extern int8_t config_found;
 
 extern long tranxA_token,

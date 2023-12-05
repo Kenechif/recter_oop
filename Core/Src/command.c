@@ -78,10 +78,10 @@ extern UART_HandleTypeDef huart1;
 extern int32_t count__2;
 extern uint32_t pulser2;
 
-void send_()
-{
-	HAL_UART_Transmit (&huart1,&packet,25-10,3000); //(&huart1,&packet,);
-}
+//void send_()
+//{
+//	HAL_UART_Transmit (&huart1,&packet,25-10,3000); //(&huart1,&packet,);
+//}
 
 
 /////////////////////////////////////////////////

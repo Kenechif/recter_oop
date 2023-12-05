@@ -216,15 +216,15 @@ float price_upper1,
  const int save_settings2_loc = 581;   //581 --> 660
  const int sessionId_loc = 661,
 		   sessionId1_loc = 0,
-		   sessionId2_loc = 669;  ////669 --> 677
+		   sessionId2_loc = sessionId1_loc + 9;  ////670 --> 678
 
- const int startShiftTotVol_loc  =  678,
+ const int startShiftTotVol_loc  =  679,
  	 	   startShiftTotVol1_loc =  0,
- 	 	   startShiftTotVol2_loc =  startShiftTotVol1_loc + (2+(2*4));   // 688 -> 697
+ 	 	   startShiftTotVol2_loc =  startShiftTotVol1_loc + (2+(2*4));   // 689 -> 698
 
- const int startShiftTotAmount_loc  =  698,
+ const int startShiftTotAmount_loc  =  699,
  	 	   startShiftTotAmount1_loc =  0,
- 	 	   startShiftTotAmount2_loc =  startShiftTotAmount1_loc + (2+(2*4));  // 708 -> 717
+ 	 	   startShiftTotAmount2_loc =  startShiftTotAmount1_loc + (2+(2*4));  // 709 -> 718
 
  const int16_t save_pumpType_loc = 400;
  const int16_t save_productType_loc = save_pumpType_loc + 1;
@@ -239,9 +239,9 @@ float price_upper1,
  const int lastSale1_loc = 0;
  const int lastSale2_loc = ( lastSale1_loc + (4*4) );  //4bytes*4=16bytes = 16bytes ahead.  // 298 -> 314
 
- const int totVol_loc  =  10;
+ const int totVol_loc  =  720;   //10;
  const int totVol1_loc =  0;
- const int totVol2_loc =  totVol1_loc + (2+(2*4));   // 20 -> 30
+ const int totVol2_loc =  totVol1_loc + (1 + (3 * 4));   // 731 -> 743  // 20 -> 30
 
  const int8_t firstTotVol_loc  =  90;
  const int8_t firstTotVol1_loc =  0;
@@ -703,14 +703,14 @@ void clear_1stvolTotaliser_day(pump_sid side)
 	  {
 		firstTotaliser_vol_storeA.totaliserVol_cal = 0.00;
 		firstTotaliser_vol_storeA.totaliserVol_real = 0.00;
-		firstTotaliser_vol_storeA.timestamp = 0;
+		firstTotaliser_vol_storeA.timestamp = 4325376;
 	  	EEPROM_Write(totVol_loc, totVol1_loc, &firstTotaliser_vol_storeA, sz);
 	  }
 	else if (side == side_b)
 	  {
 		firstTotaliser_vol_storeB.totaliserVol_cal = 0.00;
 		firstTotaliser_vol_storeB.totaliserVol_real = 0.00;
-		firstTotaliser_vol_storeB.timestamp = 0;
+		firstTotaliser_vol_storeB.timestamp = 4325376;
 	  	EEPROM_Write(totVol_loc, totVol2_loc, &firstTotaliser_vol_storeB, sz);
 	  }
 }

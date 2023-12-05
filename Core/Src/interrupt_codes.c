@@ -81,13 +81,13 @@ HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	if(GPIO_Pin == GPIO_PIN_0) // If The INT Source Is B0 pin  from P2 pulser line
 	{
-		 HAL_GPIO_TogglePin(led_GPIO_Port, led_Pin); // Toggle LED
+		 HAL_GPIO_TogglePin(nLed_GPIO_Port, nLed_Pin); // Toggle LED
 		 pulser1++;   // increment the pulser counter.
 	}
 
 	if(GPIO_Pin == GPIO_PIN_1) // If The INT Source Is B1 pin from p22 pulser line
 	{
-		 HAL_GPIO_TogglePin(led_GPIO_Port, led_Pin); // Toggle LED
+		 HAL_GPIO_TogglePin(nLed_GPIO_Port, nLed_Pin); // Toggle LED
 		 pulser2++;   // increment the pulser counter.
 	}
 }     */

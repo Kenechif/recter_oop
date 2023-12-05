@@ -254,7 +254,7 @@ typedef struct   //structure for log.
   {
  	  float totaliserVol_real; //4
  	  float totaliserVol_cal;	//4  -->8
- 	  long timestamp;  // 8 + 4 => 12
+ 	  unsigned long timestamp;  // 8 + 4 => 12
   }firstTotaliser_store;
 
  typedef struct
@@ -275,8 +275,8 @@ typedef struct   //structure for log.
  typedef struct
  {
 	 float effective;
-	 int startTime;
-	 int endTime;
+	 unsigned int startTime;
+	 unsigned int endTime;
  }ctTimed_settings;
 
 
@@ -446,9 +446,9 @@ typedef struct
 	 unsigned int max_amt_;
 	 float pi_c;
 	 float pi_;
-	 int8_t dp_price;
-	 int8_t dp_amount;
-	 int8_t dp_unitprice;
+	 uint8_t dp_price;
+	 uint8_t dp_amount;
+	 uint8_t dp_unitprice;
 	 //peripherals
 	 displaytype display__;
 	 char product_[4];
@@ -557,14 +557,14 @@ ep1_mt mt_pump[2];
 typedef struct
 {
 	char nozzle_name[6];
-	long timestamp;
+	unsigned long timestamp;
 	float totalizer;
 	float totalizer_real;
 }firstTotalizer_ep;
 
 typedef struct{
-	long timestamp;
-	long token;
+	unsigned long timestamp;
+	unsigned long token;
 	firstTotalizer_ep firstTotalizer[2];
 	char sentEntry_count[8];
 }ep5_;
@@ -573,7 +573,7 @@ ep5_ ep5_save;
 
 typedef struct
 {
-	int8_t ctt;
+	uint8_t ctt;
 	char ct_original[6];
 	char ct_baseMinusOriginal[6];
 	char ct_effectiveMinusBase[6];
@@ -591,11 +591,11 @@ typedef struct
 }pumps_ep31;
 
 typedef struct{
-	long timestamp;
-	long token;
+	unsigned long timestamp;
+	unsigned long token;
 	char device_id[16];
 	pumps_ep31 pump[2];
-	int firmware_version;
+	unsigned int firmware_version;
 	char storage_loc;
 }ep31_;
 
@@ -616,8 +616,8 @@ ep31_ ep31_save;
 _card attendant1, attendant2, customer;
 
 typedef struct{
-	long timestamp;
-	long token;
+	unsigned long timestamp;
+	unsigned long token;
 	char device_id[16];
 	_card pump[2];
 }ep20_;
@@ -717,6 +717,14 @@ void retrieve_ctSettings(pump_sid side);
 void clear_ctSettings(pump_sid side);
 
 void save_1stVolTotaliser_day(pump_sid side);
+
+void save_calibrationPulser(pump_sid side);
+void retrieve_calibrationPulser(pump_sid side);
+void clear_calibrationPulser(pump_sid side);
+
+void save_sessionId(pump_sid side);
+void retrieve_sessionId(pump_sid side);
+void clear_sessionId(pump_sid side);
 
 void copy_settings(copy_dir dir);
 void load_settings(pump_sid side);
