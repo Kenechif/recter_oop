@@ -59,12 +59,17 @@ void mcu_power(drive drv)
 	HAL_GPIO_WritePin(UCD_power_GPIO_Port, UCD_power_Pin, drv);
 }
 
+void batt_charge(drive drv)
+{
+	HAL_GPIO_WritePin(batt_check_GPIO_Port, batt_check_Pin, drv);
+}
+
 void modem_power(drive drv)
 {
 	HAL_GPIO_WritePin(modem_power_GPIO_Port, modem_power_Pin, drv);
 }
 
-void drive_power(drive drv)
+void displayandkeypad_power(drive drv)
 {
 //	if(drv == ACTIVATE)
 //	 HAL_GPIO_WritePin(pwr_actv_GPIO_Port,pwr_actv_Pin, 0);

@@ -836,11 +836,12 @@ eSystemState operator_State_Handler2(void)
 		#if sense_power == 1
 				  if(readpwr() == 0)
 				  {
+					   modem_power(DEACTIVATE);
+
 					   //count time elapsed
 					   if (shutdown_timer2 > 120)
 					   {
-						   drive_power(DEACTIVATE);   //shutdown... after  2 minutes
-						   modem_power(DEACTIVATE);
+						   displayandkeypad_power(DEACTIVATE);   //shutdown... after  2 minutes
 					   }
 				  }
 				  else
@@ -3192,7 +3193,8 @@ eSystemState progstate_Handler2(void)
 
     			 if (pkey == 'A')  // back key
    			 {
-   				fxn = nothing;
+    			chg_pw = 0;
+    			fxn = nothing;
    				clr_screen2();
    				index_generic = 0;
    			 }
@@ -3427,7 +3429,7 @@ eSystemState progstate_Handler2(void)
       				  send_line22("        ");
       				  clear_buffer2();
       					//index_ = 0;
-      					//keyboard_entry[0] = 0;  //clear buffer...
+      					//keyboard_entry2[0] = 0;  //clear buffer...
       					//keypad_pw_xter1[0] = 0;
       					//_index = 0;
       					//==================================
@@ -3570,7 +3572,7 @@ eSystemState progstate_Handler2(void)
 
       		   if ( (rd19 == 1)&&( key19_sto_ == 0) )
       			 {
-      			   keyboard_entry[0] = 0;   //clear the previous entry...
+      			   keyboard_entry2[0] = 0;   //clear the previous entry...
       								   index_2 = 0;
       				pump_indx++;
       				if (pump_indx > 2) pump_indx = 1;  //wrap around
@@ -3633,7 +3635,7 @@ eSystemState progstate_Handler2(void)
        //=====================================================================
        //               			 CLOCK SETTING
        //=====================================================================
-         	 else if ( (auth2 == authed) &&  ( (access == level1)||(access == level2)||(access == level3) ) && (fxn == setclock) )
+         else if ( (auth2 == authed) &&  ( (access == level1)||(access == level2)||(access == level3) ) && (fxn == setclock) )
       	 {
 
       		    static int8_t respons_dir = 0,
@@ -3674,7 +3676,7 @@ eSystemState progstate_Handler2(void)
 
       		  }
       		  if(entry_clear)
-      			  respons = atoi(keyboard_entry);
+      			  respons = atoi(keyboard_entry2);
 
       		 //------------------------------------------------
       		  if( ((respons == 1) || (respons_dir == 1)) && (!failFlag_tm) )
@@ -3698,8 +3700,8 @@ eSystemState progstate_Handler2(void)
       				  printDisp_c2("nnI",1,0,8,LT,CLEAR); printDisp_c2(st__,1,4,8,RT,NOCLEAR);
       			  }
 
-      			  if( (atoi(keyboard_entry)) <= 59 )
-      				  tm = atoi(keyboard_entry);
+      			  if( (atoi(keyboard_entry2)) <= 59 )
+      				  tm = atoi(keyboard_entry2);
       			  else clear_buffer2();
 
       			  printDisp_i2(tm,2,4,8,RT,CLEAR);
@@ -3753,8 +3755,8 @@ eSystemState progstate_Handler2(void)
       				  printDisp_c2("dd",1,0,8,LT,CLEAR); printDisp_c2(st__,1,4,8,RT,NOCLEAR);
       			  }
 
-      			  if( (atoi(keyboard_entry)) <= 99 )
-      				  dte = atoi(keyboard_entry);
+      			  if( (atoi(keyboard_entry2)) <= 99 )
+      				  dte = atoi(keyboard_entry2);
       			  else clear_buffer2();
 
       			  printDisp_i2(dte,2,4,8,RT,CLEAR);
@@ -3853,7 +3855,7 @@ eSystemState progstate_Handler2(void)
       					 mth_success = true;
       					 montth = dte;
       				 }
-      				else if( (mth_success) && ((montth == January) || (montth == March) || (montth == May) || (montth == July) || (montth == August) || (montth == October) || (month == December)) && (!failFlag_dt) )
+      				else if( (mth_success) && ((montth == January) || (montth == March) || (montth == May) || (montth == July) || (montth == August) || (montth == October) || (montth == December)) && (!failFlag_dt) )
       				{
       					if ( (dte != 0) && (dte <= 31) )
       					{
@@ -6631,7 +6633,7 @@ eSystemState progstate_Handler2(void)
 //			  {
 //	  		  	   //count time elapsed
 //	  		       if (shutdown_timer1 > 120)
-//	  		    	   drive_power(DEACTIVATE);   //shutdown... after  2 minutes
+//	  		    	   displayandkeypad_power(DEACTIVATE);   //shutdown... after  2 minutes
 //			  }
 //	  	  else
 //	  	  {
@@ -6968,11 +6970,12 @@ eSystemState idlestate_Handler2(void)
 	#if sense_power == 1
 		  	  if(readpwr() == 0)
 			  {
-				   //count time elapsed
+		  		   modem_power(DEACTIVATE);
+
+		  		   //count time elapsed
 				   if (shutdown_timer2 > 120)
 				   {
-					   drive_power(DEACTIVATE);   //shutdown... after  2 minutes
-					   modem_power(DEACTIVATE);
+					   displayandkeypad_power(DEACTIVATE);   //shutdown... after  2 minutes
 				   }
 			  }
 		  	  else
@@ -7459,7 +7462,7 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 			return authorised_nozzleup_State;
 		}
 
-	send_line32("        ");
+//	send_line32("        ");
 
 
 	sellPrice_max_dpp = sellPrice_max_dp(dp_price2);

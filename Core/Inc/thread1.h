@@ -14,12 +14,12 @@ extern "C" {
 
 #include "settings.h"
 
-extern const int16_t totalizerDay_loc;
+extern const uint16_t totalizerDay_loc;
 
-int8_t awaiting_masterResponse;
+uint8_t awaiting_masterResponse;
 
-int8_t config_mode,
- 	   config_found;
+uint8_t config_mode,
+ 	    config_found;
 
 extern char rx_buf[pump_rx_bufsize];
 
@@ -28,7 +28,7 @@ void run();
 
 void dec_var(void);
 
-int  read_event1(void);
+uint8_t  read_event1(void);
 
 void get_time(void);
 

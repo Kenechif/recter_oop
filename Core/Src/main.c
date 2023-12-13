@@ -110,7 +110,7 @@ int main(void)
 
 	// stop_flow1();
 
-	config_mode = 0;
+ 	config_mode = 0;
 	//===========================================================================
 
 	SCnSCB->ACTLR |= SCnSCB_ACTLR_DISDEFWBUF_Msk; // disable the write buffer
@@ -756,11 +756,17 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : pulser1_detect_Pin sense_pwr_Pin sense_p_pwr_Pin pulser2_detect_Pin */
-  GPIO_InitStruct.Pin = pulser1_detect_Pin|sense_pwr_Pin|sense_p_pwr_Pin|pulser2_detect_Pin;
+  /*Configure GPIO pins : pulser1_detect_Pin sense_p_pwr_Pin pulser2_detect_Pin */
+  GPIO_InitStruct.Pin = pulser1_detect_Pin|sense_p_pwr_Pin|pulser2_detect_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : sense_pwr_Pin */
+  GPIO_InitStruct.Pin = sense_pwr_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(sense_pwr_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : tamper_Pin T1sense_Pin T2sense_Pin */
   GPIO_InitStruct.Pin = tamper_Pin|T1sense_Pin|T2sense_Pin;

@@ -151,9 +151,9 @@ uint32_t transaction_period = 0,
 unsigned int ttt1 = 0,
 			 ttt2 = 0;
 
-int8_t server_message_found = 0,
-	   card1_message_found = 0,
-	   card2_message_found = 0;
+uint8_t server_message_found = 0,
+	    card1_message_found = 0,
+	    card2_message_found = 0;
 
 uint16_t shutdown_timer1 = 0,
 		 shutdown_timer2 = 0;
@@ -966,7 +966,9 @@ void compose_printer()
 
 	 mcu_power(ACTIVATE);
 
-	 drive_power(ACTIVATE);   //latch power...
+	 batt_charge(ACTIVATE);
+
+	 displayandkeypad_power(ACTIVATE);   //latch power...
 
 	 modem_power(ACTIVATE);
 
@@ -1055,6 +1057,7 @@ void compose_printer()
 
 //while(1)
 //{
+
 //	HAL_GPIO_WritePin(clockPin_GPIO_Port, clockPin_Pin, GPIO_PIN_SET);
 //	_Delay(1);
 //	HAL_GPIO_WritePin(clockPin_GPIO_Port, clockPin_Pin, GPIO_PIN_RESET);
@@ -1080,7 +1083,26 @@ void compose_printer()
 //	HAL_Delay(2500);
 //	HAL_GPIO_WritePin(T2output_GPIO_Port,T2output_Pin, GPIO_PIN_RESET);
 //	HAL_Delay(2500);
+
+//	if(HAL_GPIO_ReadPin(pulser1_detect_GPIO_Port, pulser1_detect_Pin) == 1 )
+//	{
+//		HAL_Delay(2500);
+//	}
+//	else
+//	{
+//		HAL_Delay(2500);
+//	}
+//	if(HAL_GPIO_ReadPin(pulser2_detect_GPIO_Port, pulser2_detect_Pin) == 1 )
+//	{
+//		HAL_Delay(2500);
+//	}
+//	else
+//	{
+//		HAL_Delay(2500);
+//	}
+//
 //}
+
 //	 float temp;
 //	while(1){
 ////		float floatt = 70.402;
@@ -1473,7 +1495,7 @@ while(1)
 ////    	HAL_Delay(2000);
 ////    	printDisp_c("Bye...",1,0,8,LT,CLEAR);
 ////    	HAL_Delay(3000);
-////    	drive_power(DEACTIVATE);
+////    	displayandkeypad_power(DEACTIVATE);
 ////    	while(1){}
 //    }
 //    else
@@ -1481,7 +1503,7 @@ while(1)
 //    	printDisp_c("1",1,0,4,LT,CLEAR);
 //    }
   //========================================
-  //  drive_power(ACTIVATE);   //latch power...
+  //  displayandkeypad_power(ACTIVATE);   //latch power...
 
     float batt_val = battery_read();
     printDisp_i(batt_val,2,0,8,LT,CLEAR);
@@ -1687,8 +1709,8 @@ skip_test:
     retrieve_synchedAutoTransaction_sides(side_a);
     retrieve_synchedAutoTransaction_sides(side_b);
 
-    clear_1stvolTotaliser_day(side_a);
-    clear_1stvolTotaliser_day(side_b);
+//    clear_1stvolTotaliser_day(side_a);
+//    clear_1stvolTotaliser_day(side_b);
     retrieve_1stVolTotaliser_day(side_a);
     retrieve_1stVolTotaliser_day(side_b);
 
@@ -1910,20 +1932,20 @@ void run()
 	}
 //	epSend_interval();
 
-	if ( (ep20_available1 == 1) || (ep20_available2 == 1) )
-	{
-		if (ep20_available1 == 1)
-		{
-			ep20_send(side_a);
-		}
-		else if (ep20_available2 == 1)
-		{
-			ep20_send(side_b);
-		}
-
-//		ep20_available = 0;
-
-	}
+//	if ( (ep20_available1 == 1) || (ep20_available2 == 1) )
+//	{
+//		if (ep20_available1 == 1)
+//		{
+//			ep20_send(side_a);
+//		}
+//		else if (ep20_available2 == 1)
+//		{
+//			ep20_send(side_b);
+//		}
+//
+////		ep20_available = 0;
+//
+//	}
 
 	//============================================//
 	// 				EP's ROUTINE SENDING			  //
@@ -2014,7 +2036,7 @@ void run()
 }
 
 //==============================================================
-int  read_event1()
+uint8_t  read_event1()
 {
 	extern bool lock_clr;
 		 	   key19_flag = 0;

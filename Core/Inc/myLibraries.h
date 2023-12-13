@@ -108,7 +108,7 @@ void stop_flow2(void);
 //---------------------------
 int read_p_pwr(void);
 int readpwr(void);
-void drive_power(drive drv);
+void displayandkeypad_power(drive drv);
 float battery_read();
 
 

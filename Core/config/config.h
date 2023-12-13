@@ -171,7 +171,7 @@ extern log_new log_a_new,
 long tranxA_token,
 	 tranxB_token;
 
-extern int8_t config_mode;
+extern uint8_t config_mode;
 
 typedef struct{
 	uint8_t ct;
@@ -272,7 +272,7 @@ LIST list[15];
 char serverTimeStr[16],
 	 sessionIdStr[9];
 char *remaining;
-long serverTime;
+unsigned long serverTime;
 
 char token_str[12],
      statuss[10];
@@ -380,14 +380,14 @@ extern float litre_price,
 			 price_real1,
 			 amt_real1;
 
-extern const int16_t totalizerDay_loc;
+extern const uint16_t totalizerDay_loc;
 
 extern flash_store_info flash_infoA, flash_infoB;
 
-extern int8_t config_found,
-			  server_message_found,
-			  card1_message_found,
-			  card2_message_found;
+extern uint8_t config_found,
+			   server_message_found,
+			   card1_message_found,
+			   card2_message_found;
 //			  connected;
 
 extern uint8_t connected;
@@ -428,7 +428,7 @@ void send_ep0_ep5(void);
 
 void serverResponse_parse(ep_ ep);
 
-uint8_t list_push(long token, ep_ ep);
+uint8_t list_push(unsigned long token, ep_ ep);
 
 void list_pop(void);
 
@@ -529,7 +529,7 @@ void sessionId_parse(pump_sid side);
 void synchedLog_get(pump_sid ab);
 uint32_t RtcToInt_synchedTranx(uint32_t deviceYear, pump_sid ab);
 
-void ttostr(uint32_t time_integer,uint8_t typ); // typ: 1=> time 2=>date
+void ttostr(uint32_t time_integer, uint8_t typ); // typ: 1=> time 2=>date
 
 void serverTime_parse(void);
 

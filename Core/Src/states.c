@@ -862,11 +862,12 @@ eSystemState operator_State_Handler(void)
 	#if sense_power == 1
 		  	  if(readpwr() == 0)
 			  {
-				   //count time elapsed
+		  		   modem_power(DEACTIVATE);
+
+		  		   //count time elapsed
 				   if (shutdown_timer1 > 120)
 				   {
-					   drive_power(DEACTIVATE);   //shutdown... after  2 minutes
-					   modem_power(DEACTIVATE);
+					   displayandkeypad_power(DEACTIVATE);   //shutdown... after  2 minutes
 				   }
 			  }
 		  	  else
@@ -3220,10 +3221,10 @@ eSystemState progstate_Handler(void)
 					 //_index = 0;
 					 return prog_State;
 				  }
- 				 if (chg_pw == 1)
-					  {
+ 				  else if (chg_pw == 1)
+				  {
 						 if (strcmp(pw1, keyboard_entry) == 0)  //if strings are same
-							 {
+						 {
 								 send_line1("        ");
 								 send_line2("Success ");
 								 send_line3("        ");
@@ -3312,7 +3313,8 @@ eSystemState progstate_Handler(void)
 
  			 if (pkey == 'A')  // back key
 			 {
-				fxn = nothing;
+ 				chg_pw = 0;
+ 				fxn = nothing;
 				clr_screen1();
 				index_generic = 0;
 			 }
@@ -3973,7 +3975,7 @@ eSystemState progstate_Handler(void)
 					 mth_success = true;
 					 montth = dte;
 				 }
-				else if( (mth_success) && ((montth == January) || (montth == March) || (montth == May) || (montth == July) || (montth == August) || (montth == October) || (month == December)) && (!failFlag_dt) )
+				else if( (mth_success) && ((montth == January) || (montth == March) || (montth == May) || (montth == July) || (montth == August) || (montth == October) || (montth == December)) && (!failFlag_dt) )
 				{
 					if ( (dte != 0) && (dte <= 31) )
 					{
@@ -4893,6 +4895,29 @@ eSystemState idlestate_Handler(void)
 //	current_pulser_++;
 //	current_pulser_--;
 
+
+	#if sense_power == 1
+	  if(readpwr() == 0)
+	  {
+		   modem_power(DEACTIVATE);
+
+		   //count time elapsed
+		   if (shutdown_timer1 > 120)
+		   {
+			   displayandkeypad_power(DEACTIVATE);   //shutdown... after  2 minutes
+		   }
+	  }
+	  else
+	  {
+		  //clear the timer//
+		  shutdown_timer1 = 0;
+
+		  modem_power(ACTIVATE);
+		  displayandkeypad_power(ACTIVATE);
+	  }
+	#endif
+
+
 	if(calib_pulser1 < 15800)  //15987, 15967 .... 1106247681
 	{
 		calibration1_error = 1;
@@ -5231,22 +5256,23 @@ eSystemState idlestate_Handler(void)
 
 	     print__1();   //print the transaction.
 
-	#if sense_power == 1
-		  	  if(readpwr() == 0)
-			  {
-				   //count time elapsed
-				   if (shutdown_timer1 > 120)
-				   {
-					   drive_power(DEACTIVATE);   //shutdown... after  2 minutes
-					   modem_power(DEACTIVATE);
-				   }
-			  }
-		  	  else
-		  	  {
-		  		  //clear the timer//
-		  		  shutdown_timer1 = 0;
-		  	  }
-	#endif
+//	#if sense_power == 1
+//		  	  if(readpwr() == 0)
+//			  {
+//				   modem_power(DEACTIVATE);
+//
+//				   //count time elapsed
+//				   if (shutdown_timer1 > 120)
+//				   {
+//					   displayandkeypad_power(DEACTIVATE);   //shutdown... after  2 minutes
+//				   }
+//			  }
+//		  	  else
+//		  	  {
+//		  		  //clear the timer//
+//		  		  shutdown_timer1 = 0;
+//		  	  }
+//	#endif
 
 //		else if( (t2 > 2000) && (changeLitrePrice2_2 == 1) )
 //		{

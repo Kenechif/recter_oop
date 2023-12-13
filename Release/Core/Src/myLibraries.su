@@ -1,7 +1,7 @@
 myLibraries.c:27:5:readNozzle1	8	static
 myLibraries.c:33:5:readtotaliser1_state	8	static
 myLibraries.c:39:5:readpwr	8	static
-myLibraries.c:44:6:drive_power	0	static
+myLibraries.c:44:6:displayandkeypad_power	0	static
 myLibraries.c:52:5:battery_read	8	static
 myLibraries.c:59:6:drive_totaliser1	0	static
 myLibraries.c:64:6:slow_flow1	8	static

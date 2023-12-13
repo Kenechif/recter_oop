@@ -2796,10 +2796,10 @@ Disassembly of section .text:
  8001eda:	bd08      	pop	{r3, pc}
  8001edc:	40020400 	.word	0x40020400
 
-08001ee0 <drive_power>:
+08001ee0 <displayandkeypad_power>:
  8001ee0:	4602      	mov	r2, r0
  8001ee2:	2110      	movs	r1, #16
- 8001ee4:	4801      	ldr	r0, [pc, #4]	; (8001eec <drive_power+0xc>)
+ 8001ee4:	4801      	ldr	r0, [pc, #4]	; (8001eec <displayandkeypad_power+0xc>)
  8001ee6:	f005 bbef 	b.w	80076c8 <HAL_GPIO_WritePin>
  8001eea:	bf00      	nop
  8001eec:	40020400 	.word	0x40020400
@@ -4335,7 +4335,7 @@ Disassembly of section .text:
  8002dae:	f7fe f9d3 	bl	8001158 <send_line3>
  8002db2:	602c      	str	r4, [r5, #0]
  8002db4:	e7d8      	b.n	8002d68 <idlestate_Handler+0x14>
- 8002db6:	f7ff f893 	bl	8001ee0 <drive_power>
+ 8002db6:	f7ff f893 	bl	8001ee0 <displayandkeypad_power>
  8002dba:	2001      	movs	r0, #1
  8002dbc:	b005      	add	sp, #20
  8002dbe:	bd30      	pop	{r4, r5, pc}
@@ -9076,7 +9076,7 @@ Disassembly of section .text:
  8005f44:	b510      	push	{r4, lr}
  8005f46:	2001      	movs	r0, #1
  8005f48:	b082      	sub	sp, #8
- 8005f4a:	f7fb ffc9 	bl	8001ee0 <drive_power>
+ 8005f4a:	f7fb ffc9 	bl	8001ee0 <displayandkeypad_power>
  8005f4e:	4927      	ldr	r1, [pc, #156]	; (8005fec <setup+0xa8>)
  8005f50:	2002      	movs	r0, #2
  8005f52:	f7fb fb85 	bl	8001660 <keypad_lcd>

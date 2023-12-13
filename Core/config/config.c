@@ -519,7 +519,7 @@ void epSend_interval(void)
 	// 		         EP20 ROUTINES SENDING   	      //
 	//================================================//
 
-	if ( (ep20_available1 == 1) || (ep20_available2 == 1) )
+	if ( (timer_ep >= 4000) && ( (ep20_available1 == 1) || (ep20_available2 == 1) ) )
 	{
 		if (ep20_available1 == 1)
 		{
@@ -530,7 +530,7 @@ void epSend_interval(void)
 			ep20_send(side_b);
 		}
 
-//		ep20_available = 0;
+		timer_ep = 0;
 
 	}
 
@@ -538,7 +538,7 @@ void epSend_interval(void)
 	// 	      EP0, EP5 & EP31 ROUTINES SENDING	      //
 	//================================================//
 
-	if( (timer_ep >= 3000) && ( (ep0_sent == 0) || (ep5a_sent == 0) || (ep5b_sent == 0) || (ep31_sent == 0) ) )
+	else if( (timer_ep >= 5000) && ( (ep0_sent == 0) || (ep5a_sent == 0) || (ep5b_sent == 0) || (ep31_sent == 0) ) )
 	{
 //		send_ep0_ep5();
 
@@ -912,7 +912,7 @@ void serverResponse_parse(ep_ ep)
 	}
 }
 
-uint8_t list_push(long token, ep_ ep)
+uint8_t list_push(unsigned long token, ep_ ep)
 {
 	static uint8_t list_full = 0;
 
@@ -990,7 +990,7 @@ void server_rx_parse(void)
 
 //        static uint8_t serverTimeFlag = 0;
 
-       statuss[1] = 0;
+       memset(statuss, '\0', sizeof(statuss) );
 
 	   while( (st != 0) && (head_pos < size) )
 	   {
@@ -1046,13 +1046,13 @@ void server_rx_parse(void)
 
 	   //	   {"st":0,"tk":36685,"sn":"MANAGER MANAGER","bn":"Efuel","ba":"18 Illupeju, lagos, Lagos, Nigeria","cn":"Demonstration Limited","si":"JL32814"}
 
-	   if(st == 0)    //Successful Response --> status = 0
+	   if( (st == 0) && (statuss[0] == '0') )   //Successful Response --> status = 0
 	   {
 		   for(int8_t i = 0; i < 15; i++)
 		   	{
-			    list[0].token = 36685;
-			    list[0].ep = ep20_side_a;
-			    list[0].ptrMessgResp_callBack = serverResponse_parse;
+//			    list[0].token = 36685;
+//			    list[0].ep = ep20_side_a;
+//			    list[0].ptrMessgResp_callBack = serverResponse_parse;
 
 			    snprintf(token_str, sizeof(token_str), "%ld", list[i].token);
 		   		if(strstr(rx_buf, token_str))
@@ -1713,59 +1713,92 @@ void card2_read(void)
 
 void card1_rx_parse(void)
  {
-		int head_pos = 0,
-			pos = 0,
-			size;
+		uint16_t head_pos = 0,
+				 pos = 0,
+				 size;
 
-	  	int8_t i = 0;
+	  	uint8_t i = 0,
+	  			checksum_byte2 = 0;
+
 	  	static uint8_t namePicked = 0;
+	  	static char card11_rx_buf[500];
 
 	  	char rx;
 
 	  	uint16_t _check_sum;
 
-       data_length1 = (int)(card1_rx_buf[0]);
+	   strncpy(card11_rx_buf, card1_rx_buf, sizeof(card11_rx_buf));
 
-       check_sum1 = (uint8_t)(card1_rx_buf[1]);
+       data_length1 = (int)(card11_rx_buf[0]);
+
+       check_sum1 = (uint8_t)(card11_rx_buf[1]);
 
        check_sum1 = (check_sum1 << 8);
 
-       check_sum1 = ( check_sum1 + ((uint8_t)(card1_rx_buf[2])) );
+       check_sum1 = ( check_sum1 + ((uint8_t)(card11_rx_buf[2])) );
+
+//       checksum_byte2 = (uint8_t)(card1_rx_buf[2]);
+//
+//       check_sum1 = ( check_sum1 + checksum_byte2 );
+
+//      card11_rx_buf => "\024øè |ªk\v}|4321|FIDEL|A|ÿ"
+
+//      (verifyResponse1 == 0) ==> card1_buf => " |ªk\v}|4321|FIDEL|A|"
+
+//      (verifyResponse1 == 1) ==>  card1_buf => " |ªk\v}|\001|"
 
        //		   "\tüJ¤|ªk\v}|\001|ÿ"
 
-       memset(card1_buf, '\0', sizeof(card1_buf));
+//       memset(card1_buf, '\0', sizeof(card1_buf));
+
+       card1_buf[0] = card11_rx_buf[3];      // payload type
+       card1_buf[1] = card11_rx_buf[4];      // 1st Pipe Xter
+
        do
        {
-    	   card1_buf[i] = card1_rx_buf[i + 3];
 
-    	   if( (i > 1) && (i <= 5) )
-    		   attendant1.user_id[i - 2] = card1_rx_buf[i + 3];
-    	   if(verifyResponse1 == 0)
+    	   if( (i >= 0) && (i < 4) )
     	   {
-			   if( (i > 6) && (i <= 10) )
-				   attendant1.user_pin[i - 7] = card1_rx_buf[i + 3];
+    		   attendant1.user_id[i] = card11_rx_buf[i + 5];
+//    	   	   card1_buf[i] = card1_rx_buf[i + 5];
+    	   }
 
-			   if( (i > 11) && (namePicked == 0) )
+    	   else if(verifyResponse1 == 0)
+    	   {
+			   if( (i > 4) && (i < 9) )
+				   attendant1.user_pin[i - 5] = card11_rx_buf[i + 5];
+
+			   else if( (i > 9) && (namePicked == 0) )
 			   {
-				   if(card1_rx_buf[i + 3] == '|')
+				   if(card11_rx_buf[i + 5] == '|')
 				   {
 					   namePicked = 1;
 					   continue;
 				   }
-				   attendant1.user_name[i - 12] = card1_rx_buf[i + 3];
+				   attendant1.user_name[i - 10] = card11_rx_buf[i + 5];
 			   }
            }
     	   else if(verifyResponse1 == 1)
     	   {
-    		   if (i == 7)
-    		  	 WSTA1 = card1_rx_buf[i + 3];
+    		   if (i == 5)
+    		  	 WSTA1 = card11_rx_buf[i + 5];
     	   }
+
+//    	   i++;
+    	   card1_buf[i + 2] = card11_rx_buf[i + 5];
+    	   card1_buf[i + 3] = 0;
     	   i++;
        }
-       while(card1_rx_buf[i + 3] != 0xFF);
+       while( (card11_rx_buf[i + 5] != 0xFF) && (i < 100) );
+
+//       card1_buf[i] = card11_rx_buf[i + 4];
+//       card1_buf[i + 1] = 0;
 
        //		   "\tüJ¤|ªk\v}|\001|ÿ"
+//       {FF}ûÐ¢|ªk}|||
+//       "¢|ªk\v}|\001|\0|"
+
+       i = 0;
 
        _check_sum = checksum1(card1_buf, data_length1);
 
@@ -1788,7 +1821,7 @@ void card1_rx_parse(void)
 			   LSTA1 = 1;
 		   }
 
-		   memset(card1_rx_buf, '\0', sizeof(card1_rx_buf));
+		   memset(card11_rx_buf, '\0', sizeof(card11_rx_buf));
 		   sendReply1();
 	   }
 	   else if(verifyResponse1 == 1)
@@ -1827,7 +1860,7 @@ void card1_rx_parse(void)
 
 		   verifyResponse1 = 0;
 
-		   memset(card1_rx_buf, '\0', sizeof(card1_rx_buf));
+		   memset(card11_rx_buf, '\0', sizeof(card11_rx_buf));
 	   }
 
 //       ¢ = 0xA2
@@ -1839,16 +1872,20 @@ void card1_rx_parse(void)
 
 void card2_rx_parse(void)
  {
-		int head_pos = 0,
-			pos = 0,
-			size;
+		uint16_t head_pos = 0,
+			     pos = 0,
+			     size;
 
-	  	int8_t i = 0;
+	  	uint8_t i = 0;
 	  	static uint8_t namePicked = 0;
 
-	  	char rx;
+	  	static char card11_rx_buf[500];
 
-	  	uint16_t _check_sum;
+		char rx;
+
+		uint16_t _check_sum;
+
+	   strncpy(card11_rx_buf, card2_rx_buf, sizeof(card11_rx_buf));
 
        data_length2 = (int)(card2_rx_buf[0]);
 
@@ -1860,38 +1897,46 @@ void card2_rx_parse(void)
 
        //		   "\tüJ¤|ªk\v}|\001|ÿ"
 
-       memset(card2_buf, '\0', sizeof(card2_buf));
+       card2_buf[0] = card11_rx_buf[3];      // payload type
+       card2_buf[1] = card11_rx_buf[4];      // 1st Pipe Xter
+
        do
        {
-    	   card2_buf[i] = card2_rx_buf[i + 3];
+    	   if( (i >= 0) && (i < 4) )
+    		   attendant2.user_id[i] = card11_rx_buf[i + 5];
 
-    	   if( (i > 1) && (i <= 5) )
-    		   attendant2.user_id[i - 2] = card2_rx_buf[i + 3];
-    	   if(verifyResponse2 == 0)
-    	   {
-			   if( (i > 6) && (i <= 10) )
-				   attendant2.user_pin[i - 7] = card2_rx_buf[i + 3];
+    	   else if(verifyResponse2 == 0)
+		   {
+			   if( (i > 4) && (i < 9) )
+				   attendant2.user_pin[i - 5] = card11_rx_buf[i + 5];
 
-			   if( (i > 11) && (namePicked == 0) )
+			   else if( (i > 9) && (namePicked == 0) )
 			   {
-				   if(card2_rx_buf[i + 3] == '|')
+				   if(card11_rx_buf[i + 5] == '|')
 				   {
 					   namePicked = 1;
 					   continue;
 				   }
-				   attendant2.user_name[i - 12] = card2_rx_buf[i + 3];
+				   attendant2.user_name[i - 10] = card11_rx_buf[i + 5];
 			   }
-           }
-    	   else if(verifyResponse2 == 1)
-    	   {
-    		   if (i == 7)
-    		  	 WSTA2 = card2_rx_buf[i + 3];
-    	   }
+			  }
+		   else if(verifyResponse2 == 1)
+		   {
+			   if (i == 5)
+				 WSTA2 = card11_rx_buf[i + 5];
+		   }
+
+    	   card2_buf[i + 2] = card11_rx_buf[i + 5];
+    	   card2_buf[i + 3] = 0;
     	   i++;
        }
-       while(card2_rx_buf[i + 3] != 0xFF);
+       while( (card11_rx_buf[i + 5] != 0xFF) && (i < 100) );
 
        //		   "\tüJ¤|ªk\v}|\001|ÿ"
+//       {FF}ûÐ¢|ªk}|||
+//       "¢|ªk\v}|\001|\0|"
+
+       i = 0;
 
        _check_sum = checksum2(card2_buf, data_length2);
 
@@ -1984,7 +2029,7 @@ void sendReply1(void){
 
 	verifyResponse1 = 1;
 
-	memset( UART_BUFF1, 0, sizeof( UART_BUFF1));
+	memset(UART_BUFF1, 0, sizeof( UART_BUFF1));
 	 UART_BUFF1[1] = '|';
 	memcpy( (UART_BUFF1 + 2), attendant1.user_id, 4);
 	 UART_BUFF1[6] = '|';

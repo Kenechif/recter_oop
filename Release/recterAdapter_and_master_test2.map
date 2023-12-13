@@ -2297,9 +2297,9 @@ LOAD c:/st/stm32cubeide_1.8.0/stm32cubeide/plugins/com.st.stm32cube.ide.mcu.exte
                 0x0000000008001eac                readtotaliser1_state
  .text.readpwr  0x0000000008001ec8       0x18 ./Core/Src/myLibraries.o
                 0x0000000008001ec8                readpwr
- .text.drive_power
+ .text.displayandkeypad_power
                 0x0000000008001ee0       0x10 ./Core/Src/myLibraries.o
-                0x0000000008001ee0                drive_power
+                0x0000000008001ee0                displayandkeypad_power
  .text.drive_totaliser1
                 0x0000000008001ef0       0x10 ./Core/Src/myLibraries.o
                 0x0000000008001ef0                drive_totaliser1

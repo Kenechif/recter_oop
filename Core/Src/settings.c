@@ -229,7 +229,7 @@ float price_upper1,
  const int16_t save_pumpType_loc = 400;
  const int16_t save_productType_loc = save_pumpType_loc + 1;
  const int16_t save_nozzleId_loc = save_pumpType_loc + 2;
- const int16_t totalizerDay_loc = 404;
+ const uint16_t totalizerDay_loc = 404;
 
 // const int8_t lastSale_loc  =  40;
 // const int lastSale1_loc =  0;
@@ -239,9 +239,9 @@ float price_upper1,
  const int lastSale1_loc = 0;
  const int lastSale2_loc = ( lastSale1_loc + (4*4) );  //4bytes*4=16bytes = 16bytes ahead.  // 298 -> 314
 
- const int totVol_loc  =  720;   //10;
+ const int totVol_loc  =  10;
  const int totVol1_loc =  0;
- const int totVol2_loc =  totVol1_loc + (1 + (3 * 4));   // 731 -> 743  // 20 -> 30
+ const int totVol2_loc =  totVol1_loc + (2+(2*4));   // 20 -> 30
 
  const int8_t firstTotVol_loc  =  90;
  const int8_t firstTotVol1_loc =  0;
@@ -266,11 +266,15 @@ float price_upper1,
 
  const int8_t ctTimed_flag_loc = 186;
  const int8_t ctTimed_flag1_loc = 0;
- const int8_t ctTimed_flag2_loc = ctTimed_flag1_loc + 1;   // 187 -> 189
+ const int8_t ctTimed_flag2_loc = ctTimed_flag1_loc + 2;   // 188 -> 190
 
- const int8_t original_pi_c_loc = 190;
+ const int8_t original_pi_c_loc = 191;
  const int8_t original_pi_c1_loc = 0;
- const int8_t original_pi_c2_loc = original_pi_c1_loc + (1 + (2 *4));   // 199 -> 208
+ const int8_t original_pi_c2_loc = (original_pi_c1_loc + 4);   // 195 -> 199
+
+// const int8_t original_pi_c_loc = 190;
+// const int8_t original_pi_c1_loc = 0;
+// const int8_t original_pi_c2_loc = original_pi_c1_loc + (1 + (2 *4));   // 199 -> 208
 
  //--------------------------------------------------------------
  //  eeprom locations of the storage of  flash memory parameters
@@ -704,14 +708,14 @@ void clear_1stvolTotaliser_day(pump_sid side)
 		firstTotaliser_vol_storeA.totaliserVol_cal = 0.00;
 		firstTotaliser_vol_storeA.totaliserVol_real = 0.00;
 		firstTotaliser_vol_storeA.timestamp = 4325376;
-	  	EEPROM_Write(totVol_loc, totVol1_loc, &firstTotaliser_vol_storeA, sz);
+		EEPROM_Write(firstTotVol_loc, firstTotVol1_loc, &firstTotaliser_vol_storeA, sz);
 	  }
 	else if (side == side_b)
 	  {
 		firstTotaliser_vol_storeB.totaliserVol_cal = 0.00;
 		firstTotaliser_vol_storeB.totaliserVol_real = 0.00;
 		firstTotaliser_vol_storeB.timestamp = 4325376;
-	  	EEPROM_Write(totVol_loc, totVol2_loc, &firstTotaliser_vol_storeB, sz);
+		EEPROM_Write(firstTotVol_loc, firstTotVol2_loc, &firstTotaliser_vol_storeB, sz);
 	  }
 }
 
@@ -1165,7 +1169,7 @@ void retrieve_originalPi_c(pump_sid side)
 	}
 	else if (side == side_b)
 	{
-		 EEPROM_Write(original_pi_c_loc, original_pi_c2_loc, &original_pi_c.original_pi_c1, sz);
+		 EEPROM_Write(original_pi_c_loc, original_pi_c2_loc, &original_pi_c.original_pi_c2, sz);
 
 		 settings[1].pi_c = original_pi_c.original_pi_c2;
 	}
@@ -1181,13 +1185,13 @@ void clear_originalPi_c(pump_sid side)
 
 	if (side == side_a)
 	  {
-		    original_pi_c.original_pi_c2 = settings[0].pi_c;
+		    original_pi_c.original_pi_c1 = settings[0].pi_c;
 			EEPROM_Write(original_pi_c_loc, original_pi_c1_loc, &original_pi_c.original_pi_c1, sz);
 	  }
 	else if (side == side_b)
 	  {
 			original_pi_c.original_pi_c2 = settings[1].pi_c;
-		    EEPROM_Write(original_pi_c_loc, original_pi_c2_loc, &original_pi_c.original_pi_c1, sz);
+		    EEPROM_Write(original_pi_c_loc, original_pi_c2_loc, &original_pi_c.original_pi_c2, sz);
 	  }
 }
 
