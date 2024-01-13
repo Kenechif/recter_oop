@@ -1290,7 +1290,20 @@ tmmm:
 
 //	  {"ni":"p17","pn":"pms","dt":"bluesky886i","kt":"bluesky22"}
 
-	  while(config_found == 0);   //Loops idly while configuration is yet to be inputted
+//	 HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+//	 HAL_Delay(1);
+//	 HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+//     HAL_Delay(1);
+
+	  while(config_found == 0)   //Loops idly while configuration is yet to be inputted
+	  {
+		 HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+		 HAL_GPIO_TogglePin(nLed_GPIO_Port, nLed_Pin);  // Toggle LED
+		 HAL_Delay(200);
+		 HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+		 HAL_GPIO_TogglePin(nLed_GPIO_Port, nLed_Pin);  // Toggle LED
+		 HAL_Delay(1000);
+	  }
 
 	  config_rx_parse();
 	  pumpType_configure();
@@ -1350,7 +1363,12 @@ tmmm:
 	  clear_logA();
 	  clear_logB();
 
+	  HAL_GPIO_WritePin(nLed_GPIO_Port, nLed_Pin, GPIO_PIN_SET);
+	  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+
 	  W25qxx_EraseChip();
+
+	  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 
 	// ===========================================================================
 
@@ -1391,11 +1409,18 @@ tmmm:
 
 //	  eeprom_clearToken();
 
-	  HAL_Delay(1000);
+//	  HAL_Delay(1000);
+
+	  config_mode = 0;
 
 	  while(true)
 	  {
-		  ;
+		 HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+//		 HAL_GPIO_TogglePin(nLed_GPIO_Port, nLed_Pin);  // Toggle LED
+		 HAL_Delay(100);
+		 HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+//		 HAL_GPIO_TogglePin(nLed_GPIO_Port, nLed_Pin);  // Toggle LED
+		 HAL_Delay(4000);
 	  }    //loop idly
 
 //par_config:

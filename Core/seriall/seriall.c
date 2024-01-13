@@ -67,6 +67,7 @@ void config_rx(void)
 					 header_found = 0;
 					 head_pos = 0;
 					 curly_brace = 0;
+					 config_mode = 2;
 					 config_found = 1;
 					 return;
 			   	 }

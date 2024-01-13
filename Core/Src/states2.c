@@ -3335,9 +3335,9 @@ eSystemState progstate_Handler2(void)
       			#if sense_power == 1
       			  if( (readpwr() == 0)||(read_p_pwr() == 0) )
       			  {
-      				  HAL_GPIO_WritePin(buzzer_GPIO_Port, GPIO_PIN_12, GPIO_PIN_SET);
+      				  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
       				  HAL_Delay(200);
-      				  HAL_GPIO_WritePin(buzzer_GPIO_Port, GPIO_PIN_12, GPIO_PIN_RESET);
+      				  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
       				  stop_flow2();
       //				  get_time2();
       //				  do_calcs();
@@ -6673,6 +6673,15 @@ eSystemState idlestate_Handler2(void)
 //	current_pulser_++;
 //	current_pulser_--;
 
+	if(HAL_GPIO_ReadPin(pulser2_detect_GPIO_Port, pulser2_detect_Pin) == 1 )
+	{
+		send_line12(" Pulser ");
+		send_line22("  Error ");
+		send_line32(" Err24 ");
+
+	    return inactive_State;
+	}
+
 	if(calib_pulser2 < 15800)  //15987, 15967 .... 1106247681
 	{
 		calibration2_error = 1;
@@ -6971,6 +6980,10 @@ eSystemState idlestate_Handler2(void)
 		  	  if(readpwr() == 0)
 			  {
 		  		   modem_power(DEACTIVATE);
+
+				   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+				   HAL_Delay(200);
+				   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 
 		  		   //count time elapsed
 				   if (shutdown_timer2 > 120)
@@ -8878,9 +8891,9 @@ eSystemState filling_state_Handler2(void)
 		#if sense_power == 1
 	  	  if(  (readpwr() == 0)||(read_p_pwr() == 0) )
 			  {
-	  		      HAL_GPIO_WritePin(buzzer_GPIO_Port, GPIO_PIN_12, GPIO_PIN_SET);
+	  		      HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 	  			  HAL_Delay(200);
-	  			  HAL_GPIO_WritePin(buzzer_GPIO_Port, GPIO_PIN_12, GPIO_PIN_RESET);
+	  			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 				  filling2 = 0;
 				  stop_flow2();
 				  get_time();
@@ -8893,6 +8906,21 @@ eSystemState filling_state_Handler2(void)
 			  }
 		#endif
 
+	if(HAL_GPIO_ReadPin(pulser2_detect_GPIO_Port, pulser2_detect_Pin) == 1 )
+	{
+		 HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+		  HAL_Delay(200);
+		  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+		  filling2 = 0;
+		  stop_flow2();
+		  get_time();
+		  do_calcs2();
+		  update_info();
+		  save_volumeTotaliser(operating_side);
+		  save_amountTotaliser(operating_side);
+		  save_lastSale(operating_side);
+		  return write_flash_state;
+	}
 
 	if (stop_flag2 == 1)   //if stop key pressed
 	{

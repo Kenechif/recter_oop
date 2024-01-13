@@ -1469,6 +1469,7 @@ eSystemState error_clear_Handler(void)
 //			}
 //
 //			else
+
 			if(changeLitrePrice1_2 == 1)
 			{
 				changeLitrePrice1_2 = 0;
@@ -1478,6 +1479,13 @@ eSystemState error_clear_Handler(void)
 			{
 				totalizer1_error = 0;
 			}
+
+//			else if(HAL_GPIO_ReadPin(pulser1_detect_GPIO_Port, pulser1_detect_Pin) == 0 )
+//			{
+//
+//			}
+
+
 
 			return idle_State;
 		}
@@ -3455,9 +3463,9 @@ eSystemState progstate_Handler(void)
 			#if sense_power == 1
 			  if( (readpwr() == 0)||(read_p_pwr() == 0) )
 			  {
-				  HAL_GPIO_WritePin(buzzer_GPIO_Port, GPIO_PIN_12, GPIO_PIN_SET);
+				  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 				  HAL_Delay(200);
-				  HAL_GPIO_WritePin(buzzer_GPIO_Port, GPIO_PIN_12, GPIO_PIN_RESET);
+				  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 				  stop_flow1();
 //				  get_time();
 //				  do_calcs();
@@ -4901,6 +4909,10 @@ eSystemState idlestate_Handler(void)
 	  {
 		   modem_power(DEACTIVATE);
 
+		   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+		   HAL_Delay(200);
+		   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+
 		   //count time elapsed
 		   if (shutdown_timer1 > 120)
 		   {
@@ -4917,6 +4929,18 @@ eSystemState idlestate_Handler(void)
 	  }
 	#endif
 
+	if(HAL_GPIO_ReadPin(pulser1_detect_GPIO_Port, pulser1_detect_Pin) == 1 )
+	{
+		send_line1(" Pulser ");
+		send_line2("  Error ");
+		send_line3(" Err24 ");
+
+	    return inactive_State;
+	}
+	else
+	{
+
+	}
 
 	if(calib_pulser1 < 15800)  //15987, 15967 .... 1106247681
 	{
@@ -7146,9 +7170,9 @@ eSystemState filling_state_Handler(void)
 		#if sense_power == 1
 	  	  if( (readpwr() == 0)||(read_p_pwr() == 0) )
 		  {
-			  HAL_GPIO_WritePin(buzzer_GPIO_Port, GPIO_PIN_12, GPIO_PIN_SET);
+			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 			  HAL_Delay(200);
-			  HAL_GPIO_WritePin(buzzer_GPIO_Port, GPIO_PIN_12, GPIO_PIN_RESET);
+			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 			  filling1 = 0;
 			  stop_flow1();
 			  get_time();
@@ -7161,6 +7185,21 @@ eSystemState filling_state_Handler(void)
 		  }
 		#endif
 
+	if(HAL_GPIO_ReadPin(pulser1_detect_GPIO_Port, pulser1_detect_Pin) == 1 )
+	{
+		  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+		  HAL_Delay(200);
+		  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+		  filling1 = 0;
+		  stop_flow1();
+		  get_time();
+		  do_calcs();
+		  update_info();
+		  save_volumeTotaliser(operating_side);
+		  save_amountTotaliser(operating_side);
+		  save_lastSale(operating_side);
+		  return write_flash_state;
+	}
 
 	if (stop_flag == 1)   //if stop key pressed
 	{

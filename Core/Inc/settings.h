@@ -474,7 +474,7 @@ typedef struct
 
 typedef struct
 {
-  uint8_t user_id[5];
+  char user_id[9];
   char user_pin[5];
   uint8_t type[4];
   char user_name[16];

@@ -12,6 +12,10 @@ config_struct config_data;
 ////transaction tranx_save[2],
 ////			transaction_temp[2];
 
+extern firstTotaliser_store firstTotaliser_vol_storeA,
+					 firstTotaliser_vol_storeB,
+					 firstTtotaliser_amt_storeA,
+					 firstTtotaliser_amt_storeB;
 
 uint8_t _15SecIncrementer,
 	  _30SecIncrementer,
@@ -568,8 +572,17 @@ void epSend_interval(void)
 			save_1stVolTotaliser_day(side_a);
 			save_1stVolTotaliser_day(side_b);
 
-			retrieve_1stVolTotaliser_day(side_a);
-			retrieve_1stVolTotaliser_day(side_b);
+//			retrieve_1stVolTotaliser_day(side_a);
+//			retrieve_1stVolTotaliser_day(side_b);
+
+			ep5_save.firstTotalizer[0].totalizer =  firstTotaliser_vol_storeA.totaliserVol_cal;
+			ep5_save.firstTotalizer[0].totalizer_real = firstTotaliser_vol_storeA.totaliserVol_real;
+			ep5_save.firstTotalizer[0].timestamp = firstTotaliser_vol_storeA.timestamp;
+
+			ep5_save.firstTotalizer[1].totalizer = firstTotaliser_vol_storeB.totaliserVol_cal;
+			ep5_save.firstTotalizer[1].totalizer_real  = firstTotaliser_vol_storeB.totaliserVol_real;
+		  	ep5_save.firstTotalizer[1].timestamp = firstTotaliser_vol_storeB.timestamp;
+
 
 			if( (ep5a_sent == 0) || ((ep5a_sent == 1) && (ep5b_sent == 1)) )
 			{
@@ -858,6 +871,14 @@ void serverResponse_parse(ep_ ep)
 						   save_sessionId(side_a);
 						   save_volumeTotaliser_startShift(side_a);
 
+						   ep20_available1 = 0;
+
+//						   if ( (t >= 300) && (t <= 500) )
+//							{
+//							  send_line1("  Card  ");
+//
+//							  send_line2("LoggedIn");
+//							}
 						   memset(rx_buf, '\0', sizeof(rx_buf));
 						   break;
 
@@ -865,6 +886,8 @@ void serverResponse_parse(ep_ ep)
 						   sessionId_parse(side_b);
 						   save_sessionId(side_b);
 						   save_volumeTotaliser_startShift(side_b);
+
+						   ep20_available2 = 0;
 
 						   memset(rx_buf, '\0', sizeof(rx_buf));
 						   break;
@@ -1719,11 +1742,13 @@ void card1_rx_parse(void)
 
 	  	uint8_t i = 0,
 	  			checksum_byte2 = 0;
+//				j;
 
 	  	static uint8_t namePicked = 0;
 	  	static char card11_rx_buf[500];
 
-	  	char rx;
+//	  	char str_temp[5],
+		char rx;
 
 	  	uint16_t _check_sum;
 
@@ -1759,6 +1784,7 @@ void card1_rx_parse(void)
 
     	   if( (i >= 0) && (i < 4) )
     	   {
+//    		   str_temp[i] = card11_rx_buf[i + 5];
     		   attendant1.user_id[i] = card11_rx_buf[i + 5];
 //    	   	   card1_buf[i] = card1_rx_buf[i + 5];
     	   }
@@ -1791,8 +1817,14 @@ void card1_rx_parse(void)
        }
        while( (card11_rx_buf[i + 5] != 0xFF) && (i < 100) );
 
-//       card1_buf[i] = card11_rx_buf[i + 4];
-//       card1_buf[i + 1] = 0;
+//       /*converting str character into Hex and adding into strH*/
+//        for (i = 0, j = 0; i < strlen(str_temp); i++, j += 2) {
+//            sprintf((char*)attendant1.user_id + j, "%02X", str_temp[i]);
+//        }
+//        attendant1.user_id[j] = '\0'; /*adding NULL in the end*/
+
+//        AA6B0B7D
+
 
        //		   "\tüJ¤|ªk\v}|\001|ÿ"
 //       {FF}ûÐ¢|ªk}|||
@@ -2502,15 +2534,36 @@ void ep2_send(pump_sid side)
 
 void ep20_send(pump_sid side)
 {
+	uint8_t i,
+			j;
+
 	if(side == side_a)
 	{
-		strcpy(ep20_save.pump[0].user_id, attendant1.user_id);
+		/*converting str character into Hex and adding into strH*/
+		for (i = 0, j = 0; i < strlen(attendant1.user_id); i++, j += 2)
+		{
+			sprintf((char*)ep20_save.pump[0].user_id + j, "%02X", attendant1.user_id[i]);
+		}
+
+		ep20_save.pump[0].user_id[j] = '\0'; /*adding NULL in the end*/
+
+//		AA6B0B7D
+//		strcpy(ep20_save.pump[0].user_id, attendant1.user_id);
 		strcpy(ep20_save.pump[0].user_pin, attendant1.user_pin);
 		ep_send(ep20_side_a);
 	}
 	else if(side == side_b)
 	{
-		strcpy(ep20_save.pump[1].user_id, attendant2.user_id);
+		/*converting str character into Hex and adding into strH*/
+		for (i = 0, j = 0; i < strlen(attendant2.user_id); i++, j += 2)
+		{
+			sprintf((char*)ep20_save.pump[1].user_id + j, "%02X", attendant2.user_id[i]);
+		}
+
+		ep20_save.pump[1].user_id[j] = '\0'; /*adding NULL in the end*/
+
+//			strcpy(ep20_save.pump[1].user_id, attendant2.user_id);
+
 		strcpy(ep20_save.pump[1].user_pin, attendant2.user_pin);
 		ep_send(ep20_side_b);
 	}

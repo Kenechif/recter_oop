@@ -210,9 +210,12 @@ void SysTick_Handler(void)
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
-   toggle_led();
+  if(config_mode == 0)
+  {
+	  toggle_led();
 
-   check_flow();  // checks the programmed flow and then starts/stops flow.
+	  check_flow();  // checks the programmed flow and then starts/stops flow.
+  }
   /* USER CODE END SysTick_IRQn 1 */
 }
 
