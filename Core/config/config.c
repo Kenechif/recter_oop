@@ -520,69 +520,39 @@ void epSend_interval(void)
 
 
 	//================================================//
-	// 		         EP20 ROUTINES SENDING   	      //
-	//================================================//
-
-	if ( (timer_ep >= 4000) && ( (ep20_available1 == 1) || (ep20_available2 == 1) ) )
-	{
-		if (ep20_available1 == 1)
-		{
-			ep20_send(side_a);
-		}
-		else if (ep20_available2 == 1)
-		{
-			ep20_send(side_b);
-		}
-
-		timer_ep = 0;
-
-	}
-
-	//================================================//
 	// 	      EP0, EP5 & EP31 ROUTINES SENDING	      //
 	//================================================//
 
-	else if( (timer_ep >= 5000) && ( (ep0_sent == 0) || (ep5a_sent == 0) || (ep5b_sent == 0) || (ep31_sent == 0) ) )
+	if( (timer_ep >= 3000) &&
+		( (ep0_sent == 0) || (ep5a_sent == 0) || (ep5b_sent == 0) || (ep31_sent == 0) ) )
 	{
-//		send_ep0_ep5();
 
+		day = DS1307_GetDate();
 
-//		ep0_sent = 1;
-//		ep5a_sent = 1;
-//		ep5b_sent = 1;
-//		ep31_sent = 1;
+		//============================================//
+		// 				EP0 ROUTINE SENDING			  //
+		//============================================//
+		if (ep0_sent == 0)
+		{
+			ep_send(ep0);
+		}
+		//============================================//
+
 
 		//============================================//
 		// 				EP5 ROUTINE SENDING			  //
 		//============================================//
 
-		day = DS1307_GetDate();
-
-//		day = 17;
-//		settings[0].totalizer_day = day;
-
-		if(settings[0].totalizer_day == day)
+		else if(settings[0].totalizer_day == day)
 		{
 			ep5a_sent = 1;
 			ep5b_sent = 1;
 		}
 
-		if(settings[0].totalizer_day != day)
+		else if(settings[0].totalizer_day != day)
 		{
-			save_1stVolTotaliser_day(side_a);
-			save_1stVolTotaliser_day(side_b);
-
-//			retrieve_1stVolTotaliser_day(side_a);
-//			retrieve_1stVolTotaliser_day(side_b);
-
-			ep5_save.firstTotalizer[0].totalizer =  firstTotaliser_vol_storeA.totaliserVol_cal;
-			ep5_save.firstTotalizer[0].totalizer_real = firstTotaliser_vol_storeA.totaliserVol_real;
-			ep5_save.firstTotalizer[0].timestamp = firstTotaliser_vol_storeA.timestamp;
-
-			ep5_save.firstTotalizer[1].totalizer = firstTotaliser_vol_storeB.totaliserVol_cal;
-			ep5_save.firstTotalizer[1].totalizer_real  = firstTotaliser_vol_storeB.totaliserVol_real;
-		  	ep5_save.firstTotalizer[1].timestamp = firstTotaliser_vol_storeB.timestamp;
-
+			retrieve_1stVolTotaliser_day(side_a);
+			retrieve_1stVolTotaliser_day(side_b);
 
 			if( (ep5a_sent == 0) || ((ep5a_sent == 1) && (ep5b_sent == 1)) )
 			{
@@ -595,15 +565,6 @@ void epSend_interval(void)
 		}
 		//============================================//
 
-
-		//============================================//
-		// 				EP0 ROUTINE SENDING			  //
-		//============================================//
-		else if (ep0_sent == 0)
-		{
-			ep_send(ep0);
-		}
-		//============================================//
 
 
 		//================================================//
@@ -649,10 +610,33 @@ void epSend_interval(void)
 			ep_send(ep31);
 		}
 
+
 		timer_ep = 0;
 
 		//============================================//
 	}
+
+	//================================================//
+	// 		         EP20 ROUTINES SENDING   	      //
+	//================================================//
+
+	else if ( (timer_ep >= 1000)  &&
+			!( (ep0_sent == 0) || (ep5a_sent == 0) )
+			&& ( (ep20_available1 == 1) || (ep20_available2 == 1) ) )
+	{
+		if (ep20_available1 == 1)
+		{
+			ep20_send(side_a);
+		}
+		else if (ep20_available2 == 1)
+		{
+			ep20_send(side_b);
+		}
+
+		timer_ep = 0;
+
+	}
+
 
 	else if( (timer_ep >= 2000) && ( (ep1a_priceChangeFlag1 == 1) || (ep1a_priceChangeFlag2 == 1) ||
 			(ep1a_priceChangeFlag_bothSides == 1) ) )
@@ -811,6 +795,68 @@ uint32_t RtcToInt_synchedTranx(uint32_t deviceYear, pump_sid ab)
 	return tmInt;
 }
 
+uint8_t list_push(unsigned long token, ep_ ep)
+{
+	static uint8_t list_full = 0;
+
+	if(list_full == 1)     //Clears list, whenever full
+	{
+		for(uint8_t i = 0; i < 15; i++)
+		{
+			list[i].token = 0;
+		}
+	}
+
+	if (ep == ep2)
+	{
+		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+		// In the event of an already existing ep2 in the list
+		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+		for(uint8_t i = 0; i < 15; i++)
+		{
+			if (list[i].ep == ep2)   //Replaces any existing ep2, cos it's definitely a resend
+			{
+				list[i].token = token;
+				list[i].ep = ep;
+				list[i].ptrMessgResp_callBack = serverResponse_parse;
+				return;
+			}
+		}
+
+		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+		// In the event of no existing ep2 in the list
+		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+		for(uint8_t i = 0; i < 15; i++)
+		{
+			if(list[i].token == 0)
+			{
+				list[i].token = token;
+				list[i].ep = ep;
+				list[i].ptrMessgResp_callBack = serverResponse_parse;
+				return;
+			}
+		}
+
+		list_full = 1;
+		return 1;
+	}
+	else
+	{
+		for(int8_t i = 0; i < 15; i++)
+		{
+			if(list[i].token == 0)
+			{
+				list[i].token = token;
+				list[i].ep = ep;
+				list[i].ptrMessgResp_callBack = serverResponse_parse;
+				return;
+			}
+		}
+	}
+	list_full = 1;
+	return 1;
+}
+
 void serverResponse_parse(ep_ ep)
 {
 	char strA[12], strB[12];
@@ -933,190 +979,6 @@ void serverResponse_parse(ep_ ep)
 					   memset(rx_buf, '\0', sizeof(rx_buf));
 					   break;
 	}
-}
-
-uint8_t list_push(unsigned long token, ep_ ep)
-{
-	static uint8_t list_full = 0;
-
-	if(list_full == 1)     //Clears list, whenever full
-	{
-		for(uint8_t i = 0; i < 15; i++)
-		{
-			list[i].token = 0;
-		}
-	}
-
-	if (ep == ep2)
-	{
-		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
-		// In the event of an already existing ep2 in the list
-		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
-		for(uint8_t i = 0; i < 15; i++)
-		{
-			if (list[i].ep == ep2)   //Replaces any existing ep2, cos it's definitely a resend
-			{
-				list[i].token = token;
-				list[i].ep = ep;
-				list[i].ptrMessgResp_callBack = serverResponse_parse;
-				return;
-			}
-		}
-
-		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
-		// In the event of no existing ep2 in the list
-		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
-		for(uint8_t i = 0; i < 15; i++)
-		{
-			if(list[i].token == 0)
-			{
-				list[i].token = token;
-				list[i].ep = ep;
-				list[i].ptrMessgResp_callBack = serverResponse_parse;
-				return;
-			}
-		}
-
-		list_full = 1;
-		return 1;
-	}
-	else
-	{
-		for(int8_t i = 0; i < 15; i++)
-		{
-			if(list[i].token == 0)
-			{
-				list[i].token = token;
-				list[i].ep = ep;
-				list[i].ptrMessgResp_callBack = serverResponse_parse;
-				return;
-			}
-		}
-	}
-	list_full = 1;
-	return 1;
-}
-
-
-void server_rx_parse(void)
- {
-		int head_pos = 0,
-			pos = 0,
-			size;
-
-	  	uint8_t st = 1, val, sz;
-	  	sz = sizeof(val);
-
-	  	char rx;
-
-        size = strlen(rx_buf);
-
-//        static uint8_t serverTimeFlag = 0;
-
-       memset(statuss, '\0', sizeof(statuss) );
-
-	   while( (st != 0) && (head_pos < size) )
-	   {
-		   if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-			   rx = rx_buf[head_pos];
-
-		   //	   res: ep:1a. {"st":0,"tk":24404,"ud":0,"tm":37424857,"am":0.0,"mt":{"ty":3,"pn":"all","pr":590.0,"sh":null,"fg":0,"tg":"p|all"},"pv":0.0,"wv":0.0,"sa":0.0,"bal":0.0,"dc":null,"wb":null,"ft":null}
-
-//		   {"st":0,"tk":36685,"sn":"MANAGER MANAGER","bn":"Efuel","ba":"18 Illupeju, lagos, Lagos, Nigeria","cn":"Demonstration Limited","si":"JL32814"}
-
-		   if(rx == '{')     // header left square bracket 0x5B, 0d91   STX->0xA5
-		   {
-			  head_pos++;
-			  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-				  rx = rx_buf[head_pos];
-
-			  if(rx == '"')
-			  {
-				  head_pos++;
-				  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-					  rx = rx_buf[head_pos];
-
-				  if(rx == 's')
-				  {
-					  head_pos++;
-					  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-						  rx = rx_buf[head_pos];
-					  if(rx == 't')
-					  {
-						  head_pos += 3;
-						  do
-						  {
-							  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-								  statuss[pos++] = rx_buf[head_pos++];
-
-							  if( (head_pos < 0) || (head_pos >= pump_rx_bufsize) )
-								  break;
-
-						  }
-						  while(rx_buf[head_pos] != ',');
-						  statuss[pos] = 0;
-
-						  st = 0;
-					  }
-				  }
-			  }
-
-			}
-		   head_pos++;
-	   }
-
-	   //	   res: ep:1a. {"st":0,"tk":24404,"ud":0,"tm":37424857,"am":0.0,"mt":{"ty":3,"pn":"all","pr":590.0,"sh":null,"fg":0,"tg":"p|all"},"pv":0.0,"wv":0.0,"sa":0.0,"bal":0.0,"dc":null,"wb":null,"ft":null}
-
-	   //	   {"st":0,"tk":36685,"sn":"MANAGER MANAGER","bn":"Efuel","ba":"18 Illupeju, lagos, Lagos, Nigeria","cn":"Demonstration Limited","si":"JL32814"}
-
-	   if( (st == 0) && (statuss[0] == '0') )   //Successful Response --> status = 0
-	   {
-		   for(int8_t i = 0; i < 15; i++)
-		   	{
-//			    list[0].token = 36685;
-//			    list[0].ep = ep20_side_a;
-//			    list[0].ptrMessgResp_callBack = serverResponse_parse;
-
-			    snprintf(token_str, sizeof(token_str), "%ld", list[i].token);
-		   		if(strstr(rx_buf, token_str))
-		   		{
-		   			if(list[i].ep == 0)
-		   			{
-		   				list[i].token = 0;
-		   			}
-		   			else
-		   			{
-		   				(*list[i].ptrMessgResp_callBack)(list[i].ep);
-		   				list[i].token = 0;
-		   				if(list[i].ep == ep0)
-		   				{
-		   					ep0_sent = 1;
-		   					serverTimeFlag = 1;
-		   				}
-		   				else if(list[i].ep == ep5_side_a)
-		   				{
-		   					ep5a_sent = 1;
-
-		   					if(ep5b_sent == 1)
-		   					{
-		   						settings[0].totalizer_day = day;
-		   						EEPROM_Write_NUM (totalizerDay_loc, 0, settings[0].totalizer_day);
-		   					}
-		   				}
-		   				else if(list[i].ep == ep5_side_b)
-						{
-							ep5b_sent = 1;
-
-							if(ep5a_sent == 1)
-							{
-								settings[0].totalizer_day = day;
-								EEPROM_Write_NUM (totalizerDay_loc, 0, settings[0].totalizer_day);
-							}
-						}
-		   			}
-		   		}
-		   	}
-	   }
 }
 
 
@@ -1603,6 +1465,127 @@ void server_read(void)
 //	   }
 }
 
+
+void server_rx_parse(void)
+ {
+		int head_pos = 0,
+			pos = 0,
+			size;
+
+	  	uint8_t st = 1, val, sz;
+	  	sz = sizeof(val);
+
+	  	char rx;
+
+        size = strlen(rx_buf);
+
+//        static uint8_t serverTimeFlag = 0;
+
+       memset(statuss, '\0', sizeof(statuss) );
+
+	   while( (st != 0) && (head_pos < size) )
+	   {
+		   if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+			   rx = rx_buf[head_pos];
+
+		   //	   res: ep:1a. {"st":0,"tk":24404,"ud":0,"tm":37424857,"am":0.0,"mt":{"ty":3,"pn":"all","pr":590.0,"sh":null,"fg":0,"tg":"p|all"},"pv":0.0,"wv":0.0,"sa":0.0,"bal":0.0,"dc":null,"wb":null,"ft":null}
+
+//		   {"st":0,"tk":36685,"sn":"MANAGER MANAGER","bn":"Efuel","ba":"18 Illupeju, lagos, Lagos, Nigeria","cn":"Demonstration Limited","si":"JL32814"}
+
+		   if(rx == '{')     // header left square bracket 0x5B, 0d91   STX->0xA5
+		   {
+			  head_pos++;
+			  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+				  rx = rx_buf[head_pos];
+
+			  if(rx == '"')
+			  {
+				  head_pos++;
+				  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+					  rx = rx_buf[head_pos];
+
+				  if(rx == 's')
+				  {
+					  head_pos++;
+					  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+						  rx = rx_buf[head_pos];
+					  if(rx == 't')
+					  {
+						  head_pos += 3;
+						  do
+						  {
+							  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+								  statuss[pos++] = rx_buf[head_pos++];
+
+							  if( (head_pos < 0) || (head_pos >= pump_rx_bufsize) )
+								  break;
+
+						  }
+						  while(rx_buf[head_pos] != ',');
+						  statuss[pos] = 0;
+
+						  st = 0;
+					  }
+				  }
+			  }
+
+			}
+		   head_pos++;
+	   }
+
+	   //	   res: ep:1a. {"st":0,"tk":24404,"ud":0,"tm":37424857,"am":0.0,"mt":{"ty":3,"pn":"all","pr":590.0,"sh":null,"fg":0,"tg":"p|all"},"pv":0.0,"wv":0.0,"sa":0.0,"bal":0.0,"dc":null,"wb":null,"ft":null}
+
+	   //	   {"st":0,"tk":36685,"sn":"MANAGER MANAGER","bn":"Efuel","ba":"18 Illupeju, lagos, Lagos, Nigeria","cn":"Demonstration Limited","si":"JL32814"}
+
+	   if( (st == 0) && (statuss[0] == '0') )   //Successful Response --> status = 0
+	   {
+		   for(int8_t i = 0; i < 15; i++)
+		   	{
+//			    list[0].token = 36685;
+//			    list[0].ep = ep20_side_a;
+//			    list[0].ptrMessgResp_callBack = serverResponse_parse;
+
+			    snprintf(token_str, sizeof(token_str), "%ld", list[i].token);
+		   		if(strstr(rx_buf, token_str))
+		   		{
+		   			if(list[i].ep == 0)
+		   			{
+		   				list[i].token = 0;
+		   			}
+		   			else
+		   			{
+		   				(*list[i].ptrMessgResp_callBack)(list[i].ep);
+		   				list[i].token = 0;
+		   				if(list[i].ep == ep0)
+		   				{
+		   					ep0_sent = 1;
+		   					serverTimeFlag = 1;
+		   				}
+		   				else if(list[i].ep == ep5_side_a)
+		   				{
+		   					ep5a_sent = 1;
+
+		   					if(ep5b_sent == 1)
+		   					{
+		   						settings[0].totalizer_day = day;
+		   						EEPROM_Write_NUM (totalizerDay_loc, 0, settings[0].totalizer_day);
+		   					}
+		   				}
+		   				else if(list[i].ep == ep5_side_b)
+						{
+							ep5b_sent = 1;
+
+							if(ep5a_sent == 1)
+							{
+								settings[0].totalizer_day = day;
+								EEPROM_Write_NUM (totalizerDay_loc, 0, settings[0].totalizer_day);
+							}
+						}
+		   			}
+		   		}
+		   	}
+	   }
+}
 
 //{00}{FF}{14}{F9}{1D}    //
 //{7C}

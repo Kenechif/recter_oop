@@ -1780,6 +1780,14 @@ skip_test:
 
     ep0_save.boot_time = RtcToInt(2019);
 
+    day = DS1307_GetDate();
+
+	if(settings[0].totalizer_day != day)
+	{
+		save_1stVolTotaliser_day(side_a);
+		save_1stVolTotaliser_day(side_b);
+	}
+
 //    calib_pulser1 = 15800;
 
 //    vol_real1 = 20;
