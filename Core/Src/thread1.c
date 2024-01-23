@@ -1780,6 +1780,8 @@ skip_test:
 
     ep0_save.boot_time = RtcToInt(2019);
 
+    calib_pulser1 = 15800;
+
     day = DS1307_GetDate();
 
 	if(settings[0].totalizer_day != day)
