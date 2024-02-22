@@ -655,7 +655,7 @@ extern char upper1[10],
  	 	tokenFlag,
 		changeLitrePrice;
 
- char keyboard_entry[8];
+ char keyboard_entry[10];
 
  int8_t keyEntry_len,
  	 	keyEntry2_len;

@@ -65,9 +65,9 @@ void send_totaliser();
 
 //from master..
 
-void send_line1(char lcd_[8]);
-void send_line2(char lcd_[8]);
-void send_line3(char lcd_[8]);
+void send_line1(char lcd_[10]);
+void send_line2(char lcd_[10]);
+void send_line3(char lcd_[10]);
 void send_keypad(char lcd_[7]);
 
 void send_solenoid(int v_);
@@ -77,9 +77,9 @@ void sell_pulser(int v_);
 void clr_lcd();
 void clr_keypad();
 
-void send_line12(char lcd_[8]);
-void send_line22(char lcd_[8]);
-void send_line32(char lcd_[8]);
+void send_line12(char lcd_[10]);
+void send_line22(char lcd_[10]);
+void send_line32(char lcd_[10]);
 void send_keypad2(char lcd_[7]);
 
 void send_solenoid2(int v_);

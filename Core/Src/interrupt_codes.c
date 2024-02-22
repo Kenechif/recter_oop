@@ -189,7 +189,8 @@ void check_flow(void)
 	extern float pulser_index_c;
 
 	extern uint32_t target_pulser1,
-					current_pulser1;
+					current_pulser1,
+					overall_currentPulser1;
 	extern int t,
 //			   ttt1,
 			   t2;
@@ -235,9 +236,12 @@ void check_flow(void)
 		  if(pulser_rem1 > 0)
 		  {
 			  current_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);
+			  overall_currentPulser1 = current_pulser1;
 		  }
-
-//		  current_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);
+		  else
+		  {
+			  overall_currentPulser1 = __HAL_TIM_GET_COUNTER(&htim5);
+		  }
 
 	#endif
     //------------------------------------------------------------------

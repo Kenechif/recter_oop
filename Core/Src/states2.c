@@ -153,7 +153,7 @@ char upper2[10]  = {0};
 char middle2[10] = {0};
 
 //=============== keyboard entry ======================
-char keyboard_entry2[8] = {0};  //buffers the key press
+char keyboard_entry2[10] = {0};  //buffers the key press
 char keyboard2[7] = {0};
 
 char temp2[9] = {0};

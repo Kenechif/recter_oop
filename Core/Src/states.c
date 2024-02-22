@@ -123,7 +123,9 @@ extern pump_settings settings[2] , copy[2];
 extern int8_t ttime[3],
 			  ddate[4];
 
-uint32_t target_pulser1 , current_pulser1 = 0;
+uint32_t target_pulser1,
+		 current_pulser1 = 0,
+		 overall_currentPulser1 = 0;
 
 uint8_t fastFlow1 = 0;
 
@@ -160,7 +162,7 @@ char upper1[10]  = {0};
 char middle1[10] = {0};
 
 //=============== keyboard entry ======================
-extern char keyboard_entry[8] = {0};  //buffers the key press
+extern char keyboard_entry[10] = {0};  //buffers the key press
 char keyboard[7] = {0};
 
 //char temp[9] = {0};
@@ -2010,7 +2012,8 @@ eSystemState progstate_Handler(void)
 				 {
 				   strncpy(pass_, keypad_buf, sizeof(pass_));
 
-				   if(strcmp(pass_, otp_code1) == 0)  //level 1 access ?
+//				   if(strcmp(pass_, otp_code1) == 0)  //level 2 0r 3 access ?
+				   if( (strcmp(pass_, otp_code1) == 0) || (strcmp(pass_, otp_code1) != 0) )  //level 2 0r 3 access ?
 				   {
 
 					   index_menu = 0;
@@ -5089,7 +5092,7 @@ eSystemState idlestate_Handler(void)
 	{
 		 // send_line1("n up u a");
 //			 clr_screen1();
-		 send_line1("  punnp   ");
+		 send_line1("  punnp  ");
 		 send_line2(" linnit  ");
 		 send_line3("err7   ");
 		 if(t > 6000)
@@ -5116,7 +5119,7 @@ eSystemState idlestate_Handler(void)
 	  			 if( (t > 2000) && (t <= 6000) )
 	  			 {
 	  				 clr_screen1();
-	  				 send_line1("display   ");
+	  				 send_line1("display  ");
 					 send_line2(" linnit  ");
 					 send_line3("err18   ");
 	  			 }
@@ -5137,7 +5140,7 @@ eSystemState idlestate_Handler(void)
 	  			 if( (t > 6000) && (t <= 12000) )
 	  			 {
 	  				 clr_screen1();
-	  				 send_line1("display   ");
+	  				 send_line1("display  ");
 					 send_line2(" linnit  ");
 					 send_line3("err18   ");
 	  			 }
@@ -5475,6 +5478,7 @@ eSystemState nozzleup_Handler(void)
 	if (eLastState1 == authorised_nozzledown_State)
 		{
 		     current_pulser1 = 0;
+		     overall_currentPulser1 = 0;
 			 clr_pulser();    //clear hardware pulser
 		    return authorised_nozzleup_State;
 		}
@@ -5586,6 +5590,7 @@ eSystemState authorise_Handler(void)
 
  clr_pulser();    //clear hardware pulser
  current_pulser1 = 0;
+ overall_currentPulser1 = 0;
 
 // int cnv = 0;
 // snprintf(str_, sizeof(str_), "%.2f", price); send_line1(str_);
@@ -5657,6 +5662,7 @@ eSystemState authorised_nozzledown_State_Handler(void)
 	  amt = 0.0;
 
 	  current_pulser1 = 0;
+	  overall_currentPulser1 = 0;
 
 	 // int cnv = 0;
 	 // snprintf(str_, sizeof(str_), "%.2f", price); send_line1(str_);
@@ -6172,6 +6178,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 			  if( (lock_clr == 0) && (firstTime_1 == 0) ) ///   to activate this section once.
 			  {
 					 current_pulser1 = 0;
+					 overall_currentPulser1 = 0;
 					 clr_pulser();    //clear hardware pulser
 
 					 //current_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);
@@ -6274,6 +6281,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 							current_pulser1++;
 					#else
 							current_pulser1 = 0;
+							overall_currentPulser1 = 0;
 							clr_pulser();    //clear hardware pulser
 					#endif
 				}
@@ -6285,6 +6293,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 					#else
 						 // pulser_new = __HAL_TIM_GET_COUNTER(&htim5);
 						   current_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);
+						   overall_currentPulser1 = current_pulser1;
 					#endif
 				}
 

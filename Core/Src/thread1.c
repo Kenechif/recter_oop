@@ -204,11 +204,16 @@ int retn;
  //reference variables
 
  extern char str_[9] , str_2[9];                 //used in states.c
- extern char keyboard_entry[8] , keyboard_entry2[7];
+ extern char keyboard_entry[10] , keyboard_entry2[10];
  extern int keypress_ , keypress_2;
  extern int index_ , index_2;
  extern char upper1[10] , upper2[10];
- extern uint32_t target_pulser1 , current_pulser1 ,target_pulser2 , current_pulser2;
+ extern uint32_t target_pulser1,
+ 	 	 	 	 current_pulser1,
+				 target_pulser2,
+				 current_pulser2,
+				 overall_currentPulser1;
+
  extern float key_value ,key_value2;
  extern int index2 , index2;
  extern char keypad_pw[10],keypad_pw2[10];
@@ -1286,7 +1291,7 @@ tmmm:
 
 //	  HAL_UART_Transmit (&huart1, "Hey!", 4, 1000);
 
-//	  {"ni":"p17","pn":"pms","dt":"bluesky886n","kt":"bluesky22"}
+//	  {"ni":"p1","pn":"pms","dt":"bluesky886n","kt":"bluesky22"}
 
 //	  {"ni":"p17","pn":"pms","dt":"bluesky886i","kt":"bluesky22"}
 

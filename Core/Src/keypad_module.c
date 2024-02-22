@@ -13,7 +13,7 @@ static char buf[9] = {0};  //keypad LCD display graphics array.
 // extern int8_t pump_type;
  extern pump pump_type;
 
- extern char keyboard_entry[8];
+ extern char keyboard_entry[10];
 
 ///////////////////////////////////////////////////////////////////
 
