@@ -109,6 +109,8 @@ extern float pulser_index_c ;
 extern float litre_price1;
 extern float litre_price2;
 
+extern uint8_t calibration_flag1 = 0;
+
 extern float price_upper1 = 0.000,
 			 amt_middle1 = 0.000;
 
@@ -1903,18 +1905,27 @@ eSystemState progstate_Handler(void)
 
    else if ( (auth == pre_otp_authed) && ( (access == level2)||(access == level3) ) && (fxn == nothing)  )
    {
-   		if (t >= 300)
+		if (t >= 300)
    		{
    		  send_line1("OTP Seed");
 
    		  snprintf(st__, sizeof(st__), "    %d", otp_seed1);
    		  send_line2(st__);
 
+//   		  write_v(3, st__);
+//   		  strncpy(keyboard, st__, 8);
+			for(uint8_t ii = 0 ; ii < 7; ii++)
+			{
+				keyboard[ii] = st__[ii+1];
+				keyboard[ii+1] = 0;
+			}
+   		  send_keypad(keyboard);
+
 
    		  send_line3("  A  ");
 
    		  t = 0;
-   	   }
+   		}
 
       	 // -------------- test keys....----------------
       	 pkey = read_keypad();
@@ -2342,7 +2353,7 @@ eSystemState progstate_Handler(void)
 					copy[pump_indx-1].mode = AUTO;
 				}
 
-			 if (pkey == 'C')  // down key
+			 else if (pkey == 'C')  // down key
 				{
 					if (copy[pump_indx-1].mode == AUTO) //;
 						copy[pump_indx-1].mode = MANUAL;
@@ -2350,13 +2361,26 @@ eSystemState progstate_Handler(void)
 						copy[pump_indx-1].mode = AUTO;
 				}
 
-			 if (pkey == 'F')  //change pump index.
+			 else if (pkey == 'F')  //change pump index.
 				{
 				  // pump_indx++;
 					//if (pump_indx > 2) pump_indx = 1; //wrap around
 				}
 
-			 if (pkey == 'A')  // back key
+			 else if (pkey == 'D')  // back key
+			 {
+				  if (copy[pump_indx-1].mode == AUTO) //;
+					  copy[pump_indx-1].def_t = P;
+				  else if (copy[pump_indx-1].mode == MANUAL)
+					  copy[pump_indx-1].def_t = P;
+//				  else if (copy[pump_indx-1].mode == VOUCHER_ONLY)
+//					  copy[pump_indx-1].def_t = V;
+
+				fxn = nothing;
+ //				send_line3("      ");
+			 }
+
+			 else if (pkey == 'A')  // back key
 				{
 					fxn = nothing;
 					send_line3("      ");
@@ -2419,7 +2443,7 @@ eSystemState progstate_Handler(void)
 					 copy[pump_indx-1].noz = overide;
 				}
 
-			 if (pkey == 'C')  // down key
+			 else if (pkey == 'C')  // down key
 				{
 				 if (copy[pump_indx-1].noz == overide)
 					 copy[pump_indx-1].noz = nooveride;
@@ -2427,13 +2451,19 @@ eSystemState progstate_Handler(void)
 					 copy[pump_indx-1].noz = overide;
 				}
 
-			 if (pkey == 'F')  //change pump index.
-			{
+			 else if (pkey == 'F')  //change pump index.
+			 {
 			  // pump_indx++;
 			  // if (pump_indx > 2) pump_indx = 1; //wrap around
-			}
+			 }
 
-			 if (pkey == 'A')  // back key
+			 else if (pkey == 'D')  // Enter key
+			 {
+				 fxn = nothing;
+ //				 clr_screen1();
+			 }
+
+			 else if (pkey == 'A')  // back key
 				{
 					 fxn = nothing;
 					 clr_screen1();
@@ -3587,6 +3617,9 @@ eSystemState progstate_Handler(void)
 					vol_calibrated1 = cal_vol;
 					save_ctSettings(side_a);
 					save_calibrationPulser(side_a);
+
+					calibration_flag1 = CALIBRATED;
+					save_calibrationFlag(side_a);
 
                     HAL_Delay(1700);
 
@@ -4945,15 +4978,36 @@ eSystemState idlestate_Handler(void)
 
 	}
 
-	if(calib_pulser1 < 15800)  //15987, 15967 .... 1106247681
+//	if(calib_pulser1 < 15800)  //15987, 15967 .... 1106247681
+//	{
+//		calibration1_error = 1;
+//
+//		send_line1("Calibrate");
+//		send_line2("  Error ");
+//		send_line3(" Err23 ");
+//
+//	    return inactive_State;
+//	}   //if(calibration1_error == 1)
+//	else
+//	{
+//		calibration1_error = 0;
+//	}
+
+//	if(calib_pulser1 < 15800)  //15987, 15967 .... 1106247681
+	if(calibration_flag1 != CALIBRATED) //15800)  //15987, 15967 .... 1106247681
 	{
-		calibration1_error = 1;
+		retrieve_calibrationFlag(side_a);
 
-		send_line1("Calibrate");
-		send_line2("  Error ");
-		send_line3(" Err23 ");
+		if(calibration_flag1 != CALIBRATED) //takes care of accidental clearing of calibration_flag1 by F-keys
+		{
+			calibration1_error = 1;
 
-	    return inactive_State;
+			send_line1("Calibrat");
+			send_line2("  Error ");
+			send_line3(" Err23 ");
+
+			return inactive_State;
+		}
 	}   //if(calibration1_error == 1)
 	else
 	{

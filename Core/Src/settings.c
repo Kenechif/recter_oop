@@ -21,7 +21,7 @@
 
 //##################################################
 
-const char device_id [] = "860537065691297";   //"860537064685993";        //"860537064685357";           //"860537064685993";     //"860537064685340";
+const char device_id [] = "860537064685993"; //"860537065691297";   //"860537064685993";        //"860537064685357";           //"860537064685993";     //"860537064685340";
 
 const char firmware_date [] = "Aug 28 2023";
 const char firmware_time [] = "17:07:30";
@@ -39,7 +39,11 @@ char session_id[9] = {0};
  const int max_events_per_state = 10;
 
  // The shared secret is FdelOnwuka
- uint8_t hmacKey[] = {0x46, 0x64, 0x65, 0x6C, 0x4F, 0x6E, 0x77, 0x75, 0x6B, 0x61};
+// uint8_t hmacKey[] = {0x46, 0x64, 0x65, 0x6C, 0x4F, 0x6E, 0x77, 0x75, 0x6B, 0x61};
+
+
+ // The shared secret is FuelMetric
+uint8_t hmacKey[] = {0x46, 0x75, 0x65, 0x6C, 0x4D, 0x65, 0x74, 0x72, 0x69, 0x63};
 
 uint8_t connected;
 
@@ -225,6 +229,9 @@ float price_upper1,
  const int startShiftTotAmount_loc  =  699,
  	 	   startShiftTotAmount1_loc =  0,
  	 	   startShiftTotAmount2_loc =  startShiftTotAmount1_loc + (2+(2*4));  // 709 -> 718
+
+ const int calibrationFlag1_loc = 800,
+		   calibrationFlag2_loc = 801;
 
  const int16_t save_pumpType_loc = 400;
  const int16_t save_productType_loc = save_pumpType_loc + 1;
@@ -1481,6 +1488,57 @@ void clear_amountTotaliser_startShift(pump_sid side)
 		  startShiftTotaliser_amt_storeB.totaliserVol_real = 0.00;
 	  	  EEPROM_Write(startShiftTotAmount_loc, startShiftTotAmount2_loc, &startShiftTotaliser_amt_storeB, sz);
 	  }
+}
+
+
+
+//===================================================
+/*
+ *  save Calibration Flag
+ */
+void save_calibrationFlag(pump_sid side)
+{
+	if (side == side_a)
+	{
+		EEPROM_Write_NUM (calibrationFlag1_loc, 0, calibration_flag1);
+	}
+	else if (side == side_b)
+	{
+		EEPROM_Write_NUM (calibrationFlag2_loc, 0, calibration_flag2);
+	}
+
+}
+
+//===================================================
+/*
+ *  read Calibration Flag
+ */
+void retrieve_calibrationFlag(pump_sid side)
+{
+	if (side == side_a)
+	{
+		calibration_flag1 = EEPROM_Read_NUM (calibrationFlag1_loc, 0);
+	}
+	else if (side == side_b)
+	{
+		calibration_flag2 = EEPROM_Read_NUM (calibrationFlag2_loc, 0);
+	}
+}
+
+//==============================================
+/*
+ * clear Calibration Flag
+ */
+void clear_calibrationFlag(pump_sid side)
+{
+	if (side == side_a)
+	{
+		EEPROM_Write_NUM (calibrationFlag1_loc, 0, 0);
+	}
+	else if (side == side_b)
+	{
+		EEPROM_Write_NUM (calibrationFlag2_loc, 0, 0);
+	}
 }
 
 

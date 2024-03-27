@@ -132,7 +132,7 @@ int t, t2 = 0;
 
 uint16_t _tt1 = 0,
 		 _tt2 = 0,
-		 timer_ep = 0,
+//		 timer_ep = 0,
 //		 timer_ep1 = 0,
 		 timer_spi,
 		 totalizer1Timer = 0,
@@ -143,7 +143,8 @@ uint16_t _tt1 = 0,
 		 timer_config2 = 0;
 //		 ep2_timer = 0;
 
-uint32_t timer_ep1;
+uint32_t timer_ep1,
+		 timer_ep;
 
 uint32_t transaction_period = 0,
 		 transaction_period2 = 0;
@@ -1403,6 +1404,12 @@ tmmm:
 		 save_calibrationPulser(side_a);
 		 save_calibrationPulser(side_b);
 
+		 calibration_flag1 = CALIBRATED;
+		 save_calibrationFlag(side_a);
+
+		 calibration_flag2 = CALIBRATED;
+		 save_calibrationFlag(side_b);
+
 	//	 save_volumeTotaliser(side_a); //side_a
 	//	 save_volumeTotaliser(side_b);
 	//	 flash_infoA.current_loc = 0;
@@ -1768,6 +1775,12 @@ skip_test:
     retrieve_volumeTotaliser_startShift(side_b);
 //    startShiftTotaliser_vol1c = 500;
 //    startShiftTotaliser_amt1c = 500;
+
+//	 calibration_flag1 = CALIBRATED;
+//	 save_calibrationFlag(side_a);
+//
+//	 calibration_flag2 = CALIBRATED;
+//	 save_calibrationFlag(side_b);
 
 
 

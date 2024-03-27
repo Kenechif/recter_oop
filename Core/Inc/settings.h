@@ -48,7 +48,13 @@ extern "C" {
 #define LCD_UPDATE_RATE             100
 #define keypad_delay				100
 
-#define pump_rx_bufsize  1000
+#define pump_rx_bufsize  			1000
+
+#define CALIBRATED 					0b10011001
+
+#define FRESHDAY					0b00000001
+#define VOUCHERNUMBERGOTTEN			0b00000011
+#define VOUCHER_DOWNLOADED          0b00000111
 
 
 
@@ -690,6 +696,9 @@ uint32_t pulser_benchMark1,
 
 uint8_t calibrationCan_measure1,
 		calibrationCan_measure2;
+
+uint8_t calibration_flag1,
+		calibration_flag2;
 
 float temppp_;
 

@@ -28,8 +28,8 @@ uint8_t server_time = 0;
 extern int t, t2; //ttt1;
 extern uint16_t _tt1,
 				_tt2,
-				timer_ep,
-				timer_ep1,
+//				timer_ep,
+//				timer_ep1,
 				timer_spi,
 				totalizer1Timer,
 				totalizer2Timer,
@@ -38,6 +38,9 @@ extern uint16_t _tt1,
 				timer_config1,
 				timer_config2;
 //				ep2_timer;
+
+extern uint32_t timer_ep,
+				timer_ep1;
 
 extern unsigned int ttt1,
 		   	   	    ttt2;
@@ -78,7 +81,7 @@ void dec_var()
 		if(ttt2 > 65534) ttt2 = 0;
 
 		timer_ep++;
-		if(timer_ep > 65534) timer_ep = 0;
+		if(timer_ep > 85534) timer_ep = 0;
 		timer_ep1++;
 		if(timer_ep1 > 85534) timer_ep1 = 0;
 //		ep2_timer++;

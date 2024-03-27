@@ -147,7 +147,7 @@ void ep_send(ep_ designation)
 					ep0_save.reboot_cause = 0;
 
 					sprintf(ep_message,
-						  "{\"ep\":0,\"di\":\"%s\",\"tk\":%ld,\"pumps\":[{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\"},{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\"}],\"bt\":%ld,\"tm\":%ld,\"rs\":%d}",
+						  "{\"ep\":0,\"di\":\"%s\",\"tk\":%lu,\"pumps\":[{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%lu,\"nm\":\"%s\"},{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%lu,\"nm\":\"%s\"}],\"bt\":%lu,\"tm\":%lu,\"rs\":%d}",
 						  device_id, ep0_save.token, ep0_save.pump[0].status, ep0_save.pump[0].totalizer,
 						  ep0_save.pump[0].tolalizer_first, ep0_save.pump[0].totalizerFirst_timestamp,
 						  ep0_save.pump[0].nozzle_name, ep0_save.pump[1].status, ep0_save.pump[1].totalizer,
@@ -185,7 +185,7 @@ void ep_send(ep_ designation)
 					ep1a_save.storage_loc = 'i';
 
 					sprintf(ep_message,
-							"{\"ep\":1,\"di\":\"%s\",\"tk\":%ld,\"pumps\":[{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\",\"nz\":%d,\"toz\":%0.3f,\"fot\":%0.3f},{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\",\"nz\":%d,\"toz\":%0.3f,\"fot\":%0.3f}],\"tm\":%ld,\"fv\":%d,\"sl\":\'%c\'}",
+							"{\"ep\":1,\"di\":\"%s\",\"tk\":%lu,\"pumps\":[{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%lu,\"nm\":\"%s\",\"nz\":%d,\"toz\":%0.3f,\"fot\":%0.3f},{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%lu,\"nm\":\"%s\",\"nz\":%d,\"toz\":%0.3f,\"fot\":%0.3f}],\"tm\":%lu,\"fv\":%d,\"sl\":\'%c\'}",
 							device_id, ep1a_save.token, ep1a_save.pump[0].status,
 							ep1a_save.pump[0].totalizer, ep1a_save.pump[0].tolalizer_first,
 							ep1a_save.pump[0].totalizerFirst_timestamp, ep1a_save.pump[0].nozzle_name,
@@ -238,7 +238,7 @@ void ep_send(ep_ designation)
 
 					sprintf(ep_message,
 //							"{\"ep\":1,\"di\":\"%s\",\"tk\":%ld,\"pumps\":[{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\"},{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\"}],\"tt\":%d,\"st\":%d,\"tta\":%d,\"sta\":%d,\"se\":%d,\"te\":%d,\"fwd\":\"%s\",\"fwt\":\"%s\",\"mu\":%0.3f,\"ch\":\"%s\",\"mua\":%0.3f,\"bt\":%ld,\"tm\":%ld,\"fv\":%d,\"sl\":\'%c\'}",
-							"{\"ep\":1,\"di\":\"%s\",\"tk\":%ld,\"pumps\":[{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\",\"nz\":%d,\"toz\":%0.3f,\"fot\":%0.3f},{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\",\"nz\":%d,\"toz\":%0.3f,\"fot\":%0.3f}],\"tt\":%d,\"st\":%d,\"tta\":%d,\"sta\":%d,\"se\":%d,\"te\":%d,\"fwd\":\"%s\",\"fwt\":\"%s\",\"mu\":%0.3f,\"ch\":\"%s\",\"mua\":%0.3f,\"bt\":%ld,\"tm\":%ld,\"fv\":%d,\"sl\":\'%c\'}",
+							"{\"ep\":1,\"di\":\"%s\",\"tk\":%lu,\"pumps\":[{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%lu,\"nm\":\"%s\",\"nz\":%d,\"toz\":%0.3f,\"fot\":%0.3f},{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%lu,\"nm\":\"%s\",\"nz\":%d,\"toz\":%0.3f,\"fot\":%0.3f}],\"tt\":%u,\"st\":%u,\"tta\":%u,\"sta\":%u,\"se\":%u,\"te\":%u,\"fwd\":\"%s\",\"fwt\":\"%s\",\"mu\":%0.3f,\"ch\":\"%s\",\"mua\":%0.3f,\"bt\":%lu,\"tm\":%lu,\"fv\":%u,\"sl\":\'%c\'}",
 							device_id, ep1b_save.token, ep1b_save.pump[0].status, ep1b_save.pump[0].totalizer,
 							ep1b_save.pump[0].tolalizer_first, ep1b_save.pump[0].totalizerFirst_timestamp, ep1b_save.pump[0].nozzle_name,
 							ep1b_save.pump[0].nozzle_id, ep1b_save.pump[0].totalizer_real, ep1b_save.pump[0].tolalizerReal_first,
@@ -260,10 +260,12 @@ void ep_send(ep_ designation)
 					tranx_save.storage_loc = 'i';
 //					strcpy(tranx_save.session_id, " ");
 
+					strcpy(tranx_save.device_id, device_id);
+
 					strcpy(tranx_save.tag, "null");
 
 					sprintf(ep_message,
-							"{\"ep\":2,\"di\":\"%s\",\"tk\":%ld,\"tm\":%ld,\"ti\":\"%s\",\"ta\":%0.3f,\"tv\":%0.3f,\"pl\":%0.3f,\"tz\":%0.3f,\"pm\":\"%s\",\"pa\":%d,\"pr\":\"%s\",\"tt\":\'%c\',\"tp\":%d,\"sl\":\'%c\',\"tg\":\"%s\",\"ci\":\"%s\"}",
+							"{\"ep\":2,\"di\":\"%s\",\"tk\":%lu,\"tm\":%lu,\"ti\":\"%s\",\"ta\":%0.3f,\"tv\":%0.3f,\"pl\":%0.3f,\"tz\":%0.3f,\"pm\":\"%s\",\"pa\":%d,\"pr\":\"%s\",\"tt\":\'%c\',\"tp\":%u,\"sl\":\'%c\',\"tg\":\"%s\",\"ci\":\"%s\"}",
 							tranx_save.device_id, tranx_save.token, tranx_save.timestamp,
 							tranx_save.transaction_id, tranx_save.transaction_price,
 							tranx_save.transaction_vol, tranx_save.litre_price,
@@ -283,7 +285,7 @@ void ep_send(ep_ designation)
 							strcpy(ep5_save.firstTotalizer[0].nozzle_name, pumpName[0].pump_name);
 
 							sprintf(ep_message,
-								"{\"ep\":5,\"di\":\"%s\",\"tk\":%ld,\"cn\":\"%s\",\"FT\":[{\"pn\":\"%s\",\"tm\":%ld,\"tz\":%0.3f,\"toz\":%0.3f}],\"tm\":%ld}",
+								"{\"ep\":5,\"di\":\"%s\",\"tk\":%lu,\"cn\":\"%s\",\"FT\":[{\"pn\":\"%s\",\"tm\":%lu,\"tz\":%0.3f,\"toz\":%0.3f}],\"tm\":%lu}",
 								device_id, ep5_save.token, ep5_save.sentEntry_count,
 								ep5_save.firstTotalizer[0].nozzle_name, ep5_save.firstTotalizer[0].timestamp,
 								ep5_save.firstTotalizer[0].totalizer, ep5_save.firstTotalizer[0].totalizer_real, ep5_save.timestamp);
@@ -299,7 +301,7 @@ void ep_send(ep_ designation)
 							strcpy(ep5_save.firstTotalizer[1].nozzle_name, pumpName[1].pump_name);
 
 							sprintf(ep_message,
-								"{\"ep\":5,\"di\":\"%s\",\"tk\":%ld,\"cn\":\"%s\",\"FT\":[{\"pn\":\"%s\",\"tm\":%ld,\"tz\":%0.3f,\"toz\":%0.3f}],\"tm\":%ld}",
+								"{\"ep\":5,\"di\":\"%s\",\"tk\":%lu,\"cn\":\"%s\",\"FT\":[{\"pn\":\"%s\",\"tm\":%lu,\"tz\":%0.3f,\"toz\":%0.3f}],\"tm\":%lu}",
 								device_id, ep5_save.token, ep5_save.sentEntry_count,
 								ep5_save.firstTotalizer[1].nozzle_name, ep5_save.firstTotalizer[1].timestamp,
 								ep5_save.firstTotalizer[1].totalizer, ep5_save.firstTotalizer[1].totalizer_real, ep5_save.timestamp);
@@ -314,7 +316,7 @@ void ep_send(ep_ designation)
 							ep20_save.token = generate_tk();
 
 							sprintf(ep_message,
-								"{\"ep\":20,\"di\":\"%s\",\"tk\":%ld,\"tm\":%ld,\"ci\":\"%s\",\"pin\":\"%s\"}",
+								"{\"ep\":20,\"di\":\"%s\",\"tk\":%lu,\"tm\":%lu,\"ci\":\"%s\",\"pin\":\"%s\"}",
 								device_id, ep20_save.token, ep20_save.timestamp, ep20_save.pump[0].user_id, ep20_save.pump[0].user_pin);
 
 							list_push(ep20_save.token, ep20_side_a);
@@ -327,7 +329,7 @@ void ep_send(ep_ designation)
 							ep20_save.token = generate_tk();
 
 							sprintf(ep_message,
-								"{\"ep\":20,\"di\":\"%s\",\"tk\":%ld,\"tm\":%ld,\"ci\":\"%s\",\"pin\":\"%s\"}",
+								"{\"ep\":20,\"di\":\"%s\",\"tk\":%lu,\"tm\":%lu,\"ci\":\"%s\",\"pin\":\"%s\"}",
 								device_id, ep20_save.token, ep20_save.timestamp, ep20_save.pump[0].user_id, ep20_save.pump[0].user_pin);
 
 							list_push(ep20_save.token, ep20_side_b);
@@ -345,7 +347,7 @@ void ep_send(ep_ designation)
 							strcpy(ep31_save.pump[1].nozzle_name, pumpName[1].pump_name);
 
 							sprintf(ep_message,
-								"{\"ep\":31,\"di\":\"%s\",\"tk\":%ld,\"tm\":%ld,\"pumps\":[{\"nm\":\"%s\",\"nz\":%d,\"ct\":\"%s|%s|%s\"},{\"nm\":\"%s\",\"nz\":%d,\"ct\":\"%s|%s|%s\"}]}",
+								"{\"ep\":31,\"di\":\"%s\",\"tk\":%lu,\"tm\":%lu,\"pumps\":[{\"nm\":\"%s\",\"nz\":%d,\"ct\":\"%s|%s|%s\"},{\"nm\":\"%s\",\"nz\":%d,\"ct\":\"%s|%s|%s\"}]}",
 								device_id, ep31_save.token, ep31_save.timestamp, ep31_save.pump[0].nozzle_name, ep31_save.pump[0].nozzle_id,
 								ep31_save.pump[0].calibrate_ct.ct_original, ep31_save.pump[0].calibrate_ct.ct_baseMinusOriginal,
 								ep31_save.pump[0].calibrate_ct.ct_effectiveMinusBase, ep31_save.pump[1].nozzle_name, ep31_save.pump[1].nozzle_id,
@@ -386,7 +388,7 @@ void ep_send(ep_ designation)
 							ep1a_save.storage_loc = 'i';
 
 							sprintf(ep_message,
-									"{\"ep\":1,\"di\":\"%s\",\"tk\":%ld,\"tm\":%ld,\"pumps\":[{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\",\"nz\":%d},{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\",\"nz\":%d}],\"mt\":{\"ty\":0,\"pn\":\"%s\",\"pr\":%0.3f,\"sh\":0,\"tg\":\"p|%s\"},\"fv\":%d}",
+									"{\"ep\":1,\"di\":\"%s\",\"tk\":%lu,\"tm\":%lu,\"pumps\":[{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%lu,\"nm\":\"%s\",\"nz\":%d},{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%lu,\"nm\":\"%s\",\"nz\":%d}],\"mt\":{\"ty\":0,\"pn\":\"%s\",\"pr\":%0.3f,\"sh\":0,\"tg\":\"p|%s\"},\"fv\":%u}",
 
 									device_id, ep1a_save.token,  ep1a_save.timestamp, ep1a_save.pump[0].status,
 									ep1a_save.pump[0].totalizer, ep1a_save.pump[0].tolalizer_first,
@@ -431,7 +433,7 @@ void ep_send(ep_ designation)
 							ep1a_save.storage_loc = 'i';
 
 							sprintf(ep_message,
-									"{\"ep\":1,\"di\":\"%s\",\"tk\":%ld,\"tm\":%ld,\"pumps\":[{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\",\"nz\":%d},{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\",\"nz\":%d}],\"mt\":{\"ty\":0,\"pn\":\"%s\",\"pr\":%0.3f,\"sh\":0,\"tg\":\"p|%s\"},\"fv\":%d}",
+									"{\"ep\":1,\"di\":\"%s\",\"tk\":%lu,\"tm\":%lu,\"pumps\":[{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%lu,\"nm\":\"%s\",\"nz\":%d},{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%lu,\"nm\":\"%s\",\"nz\":%d}],\"mt\":{\"ty\":0,\"pn\":\"%s\",\"pr\":%0.3f,\"sh\":0,\"tg\":\"p|%s\"},\"fv\":%u}",
 
 									device_id, ep1a_save.token,  ep1a_save.timestamp, ep1a_save.pump[0].status,
 									ep1a_save.pump[0].totalizer, ep1a_save.pump[0].tolalizer_first,
@@ -478,7 +480,7 @@ void ep_send(ep_ designation)
 									ep1a_save.storage_loc = 'i';
 
 									sprintf(ep_message,
-											"{\"ep\":1,\"di\":\"%s\",\"tk\":%ld,\"tm\":%ld,\"pumps\":[{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\",\"nz\":%d},{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%ld,\"nm\":\"%s\",\"nz\":%d}],\"mt\":[{\"ty\":0,\"pn\":\"%s\",\"pr\":%0.3f,\"sh\":0,\"tg\":\"p|%s\"},{\"ty\":0,\"pn\":\"%s\",\"pr\":%0.3f,\"sh\":0,\"tg\":\"p|%s\"}],\"fv\":%d}",
+											"{\"ep\":1,\"di\":\"%s\",\"tk\":%lu,\"tm\":%lu,\"pumps\":[{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%lu,\"nm\":\"%s\",\"nz\":%d},{\"st\":%d,\"tz\":%0.3f,\"ft\":%0.3f,\"fttm\":%lu,\"nm\":\"%s\",\"nz\":%d}],\"mt\":[{\"ty\":0,\"pn\":\"%s\",\"pr\":%0.3f,\"sh\":0,\"tg\":\"p|%s\"},{\"ty\":0,\"pn\":\"%s\",\"pr\":%0.3f,\"sh\":0,\"tg\":\"p|%s\"}],\"fv\":%u}",
 
 											device_id, ep1a_save.token,  ep1a_save.timestamp, ep1a_save.pump[0].status,
 											ep1a_save.pump[0].totalizer, ep1a_save.pump[0].tolalizer_first,
@@ -523,11 +525,19 @@ void epSend_interval(void)
 	// 	      EP0, EP5 & EP31 ROUTINES SENDING	      //
 	//================================================//
 
-	if( (timer_ep >= 3000) &&
+	if( (timer_ep >= 15000) &&
 		( (ep0_sent == 0) || (ep5a_sent == 0) || (ep5b_sent == 0) || (ep31_sent == 0) ) )
 	{
 
 		day = DS1307_GetDate();
+
+
+		if(settings[0].totalizer_day == day)
+		{
+			ep5a_sent = 1;
+			ep5b_sent = 1;
+		}
+
 
 		//============================================//
 		// 				EP0 ROUTINE SENDING			  //
@@ -542,12 +552,6 @@ void epSend_interval(void)
 		//============================================//
 		// 				EP5 ROUTINE SENDING			  //
 		//============================================//
-
-		else if(settings[0].totalizer_day == day)
-		{
-			ep5a_sent = 1;
-			ep5b_sent = 1;
-		}
 
 		else if(settings[0].totalizer_day != day)
 		{
@@ -620,7 +624,7 @@ void epSend_interval(void)
 	// 		         EP20 ROUTINES SENDING   	      //
 	//================================================//
 
-	else if ( (timer_ep >= 1000)  &&
+	else if ( (timer_ep >= 10000)  &&
 			!( (ep0_sent == 0) || (ep5a_sent == 0) )
 			&& ( (ep20_available1 == 1) || (ep20_available2 == 1) ) )
 	{
@@ -638,7 +642,7 @@ void epSend_interval(void)
 	}
 
 
-	else if( (timer_ep >= 2000) && ( (ep1a_priceChangeFlag1 == 1) || (ep1a_priceChangeFlag2 == 1) ||
+	else if( (timer_ep >= 12000) && ( (ep1a_priceChangeFlag1 == 1) || (ep1a_priceChangeFlag2 == 1) ||
 			(ep1a_priceChangeFlag_bothSides == 1) ) )
 	{
 
@@ -669,7 +673,7 @@ void epSend_interval(void)
 //			( (ep0_sent != 0) || (ep5a_sent != 0) && (ep5b_sent != 0) && (ep31_sent != 0)
 //			|| (ep1a_priceChangeFlag1 != 1) || (ep1a_priceChangeFlag2 != 1) ||
 //			(ep1a_priceChangeFlag_bothSides != 1) ) )
-	else if( (timer_ep >= 1000) &&
+	else if( (timer_ep >= 10000) &&
 				!( (ep0_sent == 0) || (ep5a_sent == 0) || (ep5b_sent == 0) || (ep31_sent == 0)
 				|| (ep1a_priceChangeFlag1 == 1) || (ep1a_priceChangeFlag2 == 1) ||
 				(ep1a_priceChangeFlag_bothSides == 1) ) )
@@ -715,7 +719,7 @@ void epSend_interval(void)
 	}
 
 	if( ((timer_ep1 >= 60000)    //60 sec interval
-		&& (timer_ep >= 3000))  //Allows some breather, in case ep2 just got sent out
+		&& (timer_ep >= 7000))  //Allows some breather, in case ep2 just got sent out
 		&& !( (ep0_sent == 0) || (ep5a_sent == 0) || (ep5b_sent == 0) || (ep31_sent == 0)
 		|| (ep1a_priceChangeFlag1 == 1) || (ep1a_priceChangeFlag2 == 1) ||
 		(ep1a_priceChangeFlag_bothSides == 1) ) )
@@ -725,18 +729,33 @@ void epSend_interval(void)
 	// 			  EP1A & EP1B ROUTINE SENDING		      //
 	//====================================================//
 
-			_60SecIncrementer++;
-			timer_ep1 = 0;
+			static uint8_t ep1_count = 0;
 
+			if(ep1_count >= 2)
+			{
+				ep1_count = 0;
+				timer_ep = 0;
+				timer_ep1 = 0;
+				ep_send(ep1a);
+			}
+			else if(timer_ep < 60000)
+			{
+				ep1_count++;
+			}
+
+
+			_60SecIncrementer++;
 
 			if(_60SecIncrementer == 10)
 			{
 				_60SecIncrementer = 0;
 				ep_send(ep1b);
+				timer_ep = 0;
+				timer_ep1 = 0;
 				return;
 			}
 
-			ep_send(ep1a);
+//			ep_send(ep1a);
 		//============================================//
 	}
 }
@@ -1358,6 +1377,13 @@ void server_write(char* write_string)
 {
 	int8_t id = 0;
 
+//	HAL_UART_Abort_IT(&huart2);
+//	huart2.RxXferCount = pump_rx_bufsize;
+//	huart2.pRxBuffPtr = &uart2_rx_buf[0];
+//	HAL_Delay(1);
+//	HAL_UART_Receive_IT(&huart2, uart2_rx_buf, pump_rx_bufsize);
+//	HAL_Delay(10);
+
 	//=======================================================================
 
 		  memset(sndd, 0, sizeof(sndd));
@@ -1545,7 +1571,7 @@ void server_rx_parse(void)
 //			    list[0].ep = ep20_side_a;
 //			    list[0].ptrMessgResp_callBack = serverResponse_parse;
 
-			    snprintf(token_str, sizeof(token_str), "%ld", list[i].token);
+			    snprintf(token_str, sizeof(token_str), "%lu", list[i].token);
 		   		if(strstr(rx_buf, token_str))
 		   		{
 		   			if(list[i].ep == 0)
@@ -1560,6 +1586,7 @@ void server_rx_parse(void)
 		   				{
 		   					ep0_sent = 1;
 		   					serverTimeFlag = 1;
+		   					break;
 		   				}
 		   				else if(list[i].ep == ep5_side_a)
 		   				{
@@ -1570,6 +1597,7 @@ void server_rx_parse(void)
 		   						settings[0].totalizer_day = day;
 		   						EEPROM_Write_NUM (totalizerDay_loc, 0, settings[0].totalizer_day);
 		   					}
+		   					break;
 		   				}
 		   				else if(list[i].ep == ep5_side_b)
 						{
@@ -1580,6 +1608,7 @@ void server_rx_parse(void)
 								settings[0].totalizer_day = day;
 								EEPROM_Write_NUM (totalizerDay_loc, 0, settings[0].totalizer_day);
 							}
+							break;
 						}
 		   			}
 		   		}

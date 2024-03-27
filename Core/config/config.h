@@ -392,12 +392,13 @@ extern uint8_t config_found,
 
 extern uint8_t connected;
 
-extern uint16_t timer_ep,
+extern uint16_t //timer_ep,
 //				timer_ep1,
 				timer_spi;
 //				ep2_timer;
 
-extern uint32_t timer_ep1;
+extern uint32_t timer_ep1,
+				timer_ep;
 
 
 uint8_t ep1a_priceChangeFlag1,
