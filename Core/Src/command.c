@@ -127,14 +127,14 @@ void send_totaliser(int v_)
 	drive_totaliser1(0);
 }
 
-void clr_pulser()
-{
-   __HAL_TIM_SET_COUNTER(&htim5,0);
-}
-
-uint32_t get_pulser()
+uint32_t get_pulser1()
 {
 	return  __HAL_TIM_GET_COUNTER(&htim5);
+}
+
+uint32_t get_pulser2()
+{
+	return  __HAL_TIM_GET_COUNTER(&htim2);
 }
 
 void clr_keypad()
@@ -186,16 +186,6 @@ void send_keypad2(char lcd_[8])
 //	//__asm_('nop');
 //	drive_totaliser1(0);
 //}
-
-void clr_pulser2()
-{
-   __HAL_TIM_SET_COUNTER(&htim2,0);
-}
-
-uint32_t get_pulser2()
-{
-	return  __HAL_TIM_GET_COUNTER(&htim2);
-}
 
 void clr_keypad2()
 {

@@ -92,7 +92,9 @@ extern float price_real1, price_real2,
 			 totaliser_vol1, totaliser_vol1c,
 			 totaliser_vol2, totaliser_vol2c,
 			 totaliser_amt1, totaliser_amt1c,
-			 totaliser_amt2, totaliser_amt2c;
+			 totaliser_amt2, totaliser_amt2c,
+			 priceOld1,
+			 priceOld2;
 
 extern float firstTotaliser_vol1,
 			 firstTotaliser_vol1c,
@@ -405,15 +407,15 @@ eSystemState write_flash_state_Handler(void)
 //			//============================================//
 //			// 				EP2 ROUTINE SENDING			  //
 //			//============================================//
-//			if (HAL_GPIO_ReadPin(network_connected_GPIO_Port, network_connected_Pin) == 1 )
-//			{
-//				connected = 1;
-//				ep2_send(side_a);
-//			}
-//			else
-//			{
-//				connected = 0;
-//			}
+			if (HAL_GPIO_ReadPin(network_connected_GPIO_Port, network_connected_Pin) == 1 )
+			{
+				connected = 1;
+				ep2_send(side_a);
+			}
+			else
+			{
+				connected = 0;
+			}
 //			//============================================//
 
 		  }
@@ -436,15 +438,15 @@ eSystemState write_flash_state_Handler(void)
 //			//============================================//
 //			// 				EP2 ROUTINE SENDING			  //
 //			//============================================//
-//			if (HAL_GPIO_ReadPin(network_connected_GPIO_Port, network_connected_Pin) == 1 )
-//			{
-//				connected = 1;
-//				ep2_send(side_b);
-//			}
-//			else
-//			{
-//				connected = 0;
-//			}
+			if (HAL_GPIO_ReadPin(network_connected_GPIO_Port, network_connected_Pin) == 1 )
+			{
+				connected = 1;
+				ep2_send(side_b);
+			}
+			else
+			{
+				connected = 0;
+			}
 //			//============================================//
 
 		  }
@@ -464,13 +466,13 @@ eSystemState write_flash_state_Handler(void)
 		  //----------------------------------------------------
 		  //   assign the writing address.
 		  if (operating_side == side_a)
-			   {
-			     flash_write_id_ = flash_infoA.current_loc;
-			   }
+		   {
+			 flash_write_id_ = flash_infoA.current_loc;
+		   }
 		  if (operating_side == side_b)
-			   {
-				 flash_write_id_ = flash_infoB.current_loc;
-			   }
+		   {
+			 flash_write_id_ = flash_infoB.current_loc;
+		   }
 		  //-----------------------------------------------------
 		  flshw = 1;
 		  return write_flash_state;

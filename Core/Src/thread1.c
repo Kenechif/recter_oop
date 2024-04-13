@@ -125,6 +125,12 @@ char testChar0[9] = {0};
 char testChar1[9] = {0};
 int sz;
 
+extern  uint16_t fast_flow_threshold1,
+				 fast_flow_threshold2,
+				 slowFlow_startThreshold1,
+				 slowFlow_startThreshold2,
+				 slowFlow_endThreshold1,
+				 slowFlow_endThreshold2;
 
 int8_t val;
 
@@ -201,7 +207,7 @@ int retn;
 
  uint8_t prog_entry1, prog_entry2 = 0;
 
- char keyboard[7], keyboard2[7];
+ char keyboard[9], keyboard2[9];
  //reference variables
 
  extern char str_[9] , str_2[9];                 //used in states.c
@@ -241,7 +247,9 @@ extern float firstTotaliser_vol1,
 extern float totaliser_amt1,
 			totaliser_amt1c,
 			totaliser_amt2,
-			totaliser_amt2c;
+			totaliser_amt2c,
+			priceOld1,
+			priceOld2;
 
 extern float working_volTotaliser1;
 extern float working_volTotaliser1c;
@@ -1366,6 +1374,9 @@ tmmm:
 	  clear_sessionId(side_a);
 	  clear_sessionId(side_b);
 
+	  clear_amountSend(side_a);
+	  clear_amountSend(side_b);
+
 	  clear_logA();
 	  clear_logB();
 
@@ -1386,13 +1397,18 @@ tmmm:
 		 make_settings(side_a);
 		 make_settings(side_b);
 
+		settings[0].pi_ = 407.3;   //399.25;   //798.35;
+		settings[0].pi_c = 391.64;   //383.89;  //760.33;
+		settings[1].pi_ = 399.25;   //798.35;
+		settings[1].pi_c = 383.89;  //760.33;
 
+//4650
 		 vol_real1 = 20;
 		 vol_real2 = 20;
-		 vol_calibrated1 = 21.0;
-		 vol_calibrated2 = 21.0;
-		 vol_effective1 = 21.0;
-		 vol_effective2 = 21.0;
+		 vol_calibrated1 = 20.8;   //21.0;
+		 vol_calibrated2 = 20.8;
+		 vol_effective1 = 20.8;    //21.0;
+		 vol_effective2 = 20.8;
 
 		 calib_pulser1 =  (settings[0].pi_c * vol_calibrated1);
 		 calib_pulser2 =  (settings[1].pi_c * vol_calibrated2);
@@ -1600,6 +1616,9 @@ skip_test:
 //		 EEPROM_Read(700, 0, &testChar1, sz);
 //		 strncpy(attendant1.session_id, testChar1, sizeof(attendant1.session_id) );
 
+//	settings[0].pi_ = 407.3;
+//	save_settings();
+
 
     retrieve_settings();         //read pump settings from eeprom.
 
@@ -1720,10 +1739,13 @@ skip_test:
     load_settings(side_a); //load the settings into the internal variables.
     load_settings(side_b);
 
+//    int intSize;
+//    intSize = sizeof(intSize);
+
     pumpName_parse();
 
-    strcpy(pumpName[0].pump_name, "P17");
-    strcpy(pumpName[1].pump_name, "P18");
+//    strcpy(pumpName[0].pump_name, "P17");
+//    strcpy(pumpName[1].pump_name, "P18");
 
     retrieve_volumeTotaliser(side_a);
     retrieve_volumeTotaliser(side_b);
@@ -1773,6 +1795,9 @@ skip_test:
 //    clear_volumeTotaliser_startShift(side_b);
     retrieve_volumeTotaliser_startShift(side_a);
     retrieve_volumeTotaliser_startShift(side_b);
+
+    retrieve_amountSend(side_a);
+    retrieve_amountSend(side_b);
 //    startShiftTotaliser_vol1c = 500;
 //    startShiftTotaliser_amt1c = 500;
 
@@ -1798,7 +1823,17 @@ skip_test:
 
     ep0_save.boot_time = RtcToInt(2019);
 
-    calib_pulser1 = 15800;
+    slowFlow_startThreshold1 = (fast_flow_threshold1 * settings[0].valve_salesStart);
+    slowFlow_endThreshold1 = (fast_flow_threshold1 * settings[0].valve_salesEnd);
+	slowFlow_startThreshold2 = (fast_flow_threshold2 * settings[1].valve_salesStart);
+	slowFlow_endThreshold2 = (fast_flow_threshold2 * settings[1].valve_salesEnd);
+
+	settings[1].noz = nooveride;
+	overide_2 = settings[1].noz;
+	settings[0].pulser_offset = 0;
+	settings[1].pulser_offset = 0;
+
+//    calib_pulser1 = 15800;
 
     day = DS1307_GetDate();
 
@@ -1983,7 +2018,8 @@ void run()
 		card2_rx_parse();
 		card2_message_found = 0;
 	}
-//	epSend_interval();
+
+	epSend_interval();
 
 //	if ( (ep20_available1 == 1) || (ep20_available2 == 1) )
 //	{
@@ -2111,11 +2147,11 @@ uint8_t  read_event1()
 
    			 //--------------------------------------------------
 			  //  totaliser error.
-				if( (totaliser_flag == 0) && (drive1 != ACTIVATE) )
-				{
-					totaliser_flag = 1;
-					return _tot_error_Event;
-				}
+//				if( (totaliser_flag == 0) && (drive1 != ACTIVATE) )
+//				{
+//					totaliser_flag = 1;
+//					return _tot_error_Event;
+//				}
    			  //--------------------------------------------------
 
 
@@ -2197,6 +2233,8 @@ uint8_t  read_event1()
 			  //if(settings[operating_side-1].mode == offline_)
 			  //{
 				auth_cmd_flag = 0;
+
+				eNextState1 = authorised_nozzledown_State;
 					//---------------------------------------------
 					//                nozzle-up overide
 					if (eNextState1 == authorised_nozzledown_State)
@@ -2320,11 +2358,11 @@ int  read_event2()
 
    			//--------------------------------------------------
 			  //  totaliser error.
-				if( (totaliser_flag2 == 0) && (drive2 != ACTIVATE) )
-				{
-					totaliser_flag2 = 1;
-					return _tot_error_Event;
-				}
+//				if( (totaliser_flag2 == 0) && (drive2 != ACTIVATE) )
+//				{
+//					totaliser_flag2 = 1;
+//					return _tot_error_Event;
+//				}
 		    //--------------------------------------------------
 
 
@@ -2404,6 +2442,9 @@ int  read_event2()
 		if ( auth_cmd_flag2  == 1 )
 			{
 				auth_cmd_flag2 = 0;
+
+				eNextState2 = authorised_nozzledown_State;
+
 				//---------------------------------------------
 				//                nozzle-up overide
 				if (eNextState2 == authorised_nozzledown_State)

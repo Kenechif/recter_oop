@@ -49,7 +49,10 @@ extern "C" {
 
 extern struct rcv_structure packet;
 
-extern fifo_t  dat_str;  //create an instance of the buffer
+//extern pump_settings settings[2],
+//					 copy[2];
+
+extern fifo_t dat_str;  //create an instance of the buffer
 
 /*
 void validate_packet(rcv_structure *bf);
@@ -68,7 +71,7 @@ void send_totaliser();
 void send_line1(char lcd_[10]);
 void send_line2(char lcd_[10]);
 void send_line3(char lcd_[10]);
-void send_keypad(char lcd_[7]);
+void send_keypad(char lcd_[8]);
 
 void send_solenoid(int v_);
 void send_pump(int v_);
@@ -80,14 +83,18 @@ void clr_keypad();
 void send_line12(char lcd_[10]);
 void send_line22(char lcd_[10]);
 void send_line32(char lcd_[10]);
-void send_keypad2(char lcd_[7]);
+void send_keypad2(char lcd_[8]);
 
 void send_solenoid2(int v_);
 void send_pump2(int v_);
-void clr_pulser2();
 void sell_pulser2(int v_);
 void clr_lcd2();
 void clr_keypad2();
+
+//void clr_pulser1();
+//void clr_pulser2();
+uint32_t get_pulser1();
+uint32_t get_pulser2();
 
 #ifdef __cplusplus
 }

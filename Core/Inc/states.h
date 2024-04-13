@@ -178,8 +178,12 @@ enum
 	number_of_shifts_,
 	shift_total,
 	keypress_tone_,
-	communication_card
+	communication_card,
+	pulser_config,
+	valve_config,
+	no_calibration
 };
+
 
 //"Sides No", "Start CL", "Calib.Can", "Shift No"};
 //"Calib.typ"

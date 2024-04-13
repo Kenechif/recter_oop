@@ -38,7 +38,15 @@ extern int key_buttonpress_tmr,
 extern uint8_t filling1;
 extern uint8_t pulser_complete1;
 extern int pulser_rem1;
-extern const uint16_t fast_flow_threshold;
+//extern const uint16_t fast_flow_threshold;
+
+extern uint16_t fast_flow_threshold1,
+				 fast_flow_threshold2,
+				 slowFlow_startThreshold1,
+				 slowFlow_startThreshold2,
+				 slowFlow_endThreshold1,
+				 slowFlow_endThreshold2;
+
 extern int calibr1;
 
 extern uint8_t buff[30] ;
@@ -69,6 +77,13 @@ extern uint8_t pulser_complete2;
 extern int pulser_rem2;
 //extern const uint8_t fast_flow_threshold;
 extern int calibr2;
+
+extern  uint16_t fast_flow_threshold1,
+				 slowFlow_startThreshold1,
+				 slowFlow_endThreshold1,
+				 fast_flow_threshold2,
+				 slowFlow_startThreshold2,
+				 slowFlow_endThreshold2;
 
 extern uint16_t totalizer1Timer,
 				totalizer2Timer;
@@ -268,9 +283,9 @@ void check_flow(void)
 				stop_flow1();
 			}
 
-			else if(pulser_rem1 >= fast_flow_threshold)
+			else if(pulser_rem1 >= slowFlow_endThreshold1)
 			{
-				if(current_pulser1 >=  fast_flow_threshold/2 )
+				if(current_pulser1 >=  slowFlow_startThreshold1)
 				{
 					fast_flow1();
 
@@ -406,9 +421,9 @@ void check_flow(void)
 						{
 							stop_flow2();
 						}
-						else if(pulser_rem2 >= fast_flow_threshold)
+						else if(pulser_rem2 >= slowFlow_endThreshold2)
 						{
-							if(current_pulser2 >=  fast_flow_threshold/2 )
+							if(current_pulser2 >=  slowFlow_startThreshold2)
 							{
 								fast_flow2();
 

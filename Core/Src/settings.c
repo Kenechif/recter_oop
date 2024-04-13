@@ -21,7 +21,7 @@
 
 //##################################################
 
-const char device_id [] = "860537064685993"; //"860537065691297";   //"860537064685993";        //"860537064685357";           //"860537064685993";     //"860537064685340";
+const char device_id [] = "860537065062176";   //"860537065695256";   //"860537064685993"; //"860537065691297";   //"860537064685993";        //"860537064685357";           //"860537064685993";     //"860537064685340";
 
 const char firmware_date [] = "Aug 28 2023";
 const char firmware_time [] = "17:07:30";
@@ -49,7 +49,12 @@ uint8_t connected;
 
 uint8_t serverTimeFlag = 0;
 
- uint16_t fast_flow_threshold  = 0;  //=  pulser_index_c ;   //140;
+ uint16_t fast_flow_threshold1  = 0,  //=  pulser_index_c ;   //140;
+		 fast_flow_threshold2  = 0,
+		 slowFlow_startThreshold1 = 0,
+		 slowFlow_startThreshold2 = 0,
+		 slowFlow_endThreshold1 = 0,
+		 slowFlow_endThreshold2 = 0;
 
 extern int8_t change_p,
 			  change_v;
@@ -110,7 +115,9 @@ int access_level = non;    //default
 	float totaliser_amt1 = 0.00,
 		  totaliser_amt1c = 0.00,
 		  totaliser_amt2 = 0.00,
-		  totaliser_amt2c = 0.00;
+		  totaliser_amt2c = 0.00,
+		  priceOld1 = 0.00,
+		  priceOld2 = 0.00;
 
 	float startShiftTotaliser_vol1 = 0.00,
 		  startShiftTotaliser_vol1c = 0.00,
@@ -233,6 +240,10 @@ float price_upper1,
  const int calibrationFlag1_loc = 800,
 		   calibrationFlag2_loc = 801;
 
+ const int amountSend_loc  =  803;
+ const int amountSend1_loc =  0;
+ const int amountSend2_loc =  amountSend1_loc + (4 + 1);  // 808 -> 812
+
  const int16_t save_pumpType_loc = 400;
  const int16_t save_productType_loc = save_pumpType_loc + 1;
  const int16_t save_nozzleId_loc = save_pumpType_loc + 2;
@@ -305,7 +316,9 @@ log_new log_a_new,
 		synchedLog_a_new,
 		synchedLog_b_new;
 
-log_new1 log_a_new1 , log_b_new1;
+log_new1 log_a_new1, log_b_new1;
+
+_amountSend amountSend[2];
 
 flash_store_info flash_infoA,flash_infoB;
 
@@ -355,8 +368,9 @@ const uint32_t flash_endB   = 0x7fffff;
  char* menu3[3]  = {"tmm cfg","flo rate"};
 
  char* menu_level1[4] = {"Shft. Tot ", "  Price ", "  Cloc"};
- char* menu_level2[18] = {"  nnode ", "Address ", " Nozzle ", "Disp.Styl", "  Price ", "no flo. t", "Hi. Litre", "Ch  Pass", "Calibrat.", "DP Count", "  Cloc", "Sides No", "Start CL", "Calib.Can", "Shift.Typ", "Shift No", "  Tone  "};
- char* menu_level3[20] = {"  nnode ", "Address ", " Nozzle ", "Disp.Styl", "  Price ", "no flo. t", "Hi. Litre", "Ch  Pass", "Calibrat.", "DP Count", "  Cloc", "Sides No", "Start CL", "Calib.Can", "Shift.Typ", "Shift No", "  Tone  ", "Calib.Typ", "Conn.Card"};
+ char* menu_level2[21] = {"  nnode ", "Address ", " Nozzle ", "Disp.Styl", "  Price ", "no flo. t", "Hi. Litre", "Ch  Pass", "Calibrat.", "DP Count", "  Cloc", "Sides No", "Start CL", "Calib.Can", "Shift.Typ", "Shift No", "  Tone  ", " Pulser", "  Valve ", "No-Calib"};
+ char* menu_level3[23] = {"  nnode ", "Address ", " Nozzle ", "Disp.Styl", "  Price ", "no flo. t", "Hi. Litre", "Ch  Pass", "Calibrat.", "DP Count", "  Cloc", "Sides No", "Start CL", "Calib.Can", "Shift.Typ", "Shift No", "  Tone  ", " Pulser", "  Valve ", "No-Calib", "Calib.Typ", "Conn.Card"};
+
 
  char* pass[4] = {" pass 1 ", " pass 2 ", " pass 3 "};
  char* ch_pass[4] = {"pass.1", "pass.2", "pass.3"};
@@ -412,15 +426,15 @@ void load_settings(pump_sid side)
 	    pulser_index = settings[sdd].pi_;
 	    pulser_index_c = settings[sdd].pi_c;
 
-	    fast_flow_threshold = pulser_index_c;
+	    fast_flow_threshold1 = pulser_index_c;
 
 	    opmode  = settings[sdd].mode;
 
 	    litre_price  = settings[sdd].price_;
 	    litre_price1 = settings[sdd].price_;
 
-	    timeout_picknozzle = 30;
-	    timeout_dispense   = 60;
+	    timeout_picknozzle = 60;     //30;
+	    timeout_dispense   = 250;    //60;
 	    timeout_noflow = settings[sdd].noFlow_timeOut;
 
 	    pump_type = settings[sdd].pump_type_;
@@ -443,12 +457,25 @@ void load_settings(pump_sid side)
 		display_minimumCentilitre1 = settings[sdd].startUp_suppressVol;  // (0 - 10) cL   ==> default : 4cL  // Level 2
 		calibrationCan_measure1 = settings[sdd].calibration_measureCan;  // 10L/20L   ==> default : 20L  // Level 2
 
+	    //============== FOR PETROL STATION PUMP =================//
+//	    settings[sdd].startUp_suppressVol = 0.5;  // (0 - 10) dL   ==> default : 0.5L  // Level 2
+//		settings[sdd].calibration_measureCan = 100;  // 10L/20L   ==> default : 20L  // Level 2
+//	    settings[sdd].shift_login_type = None_; // None_/Code_/Card_   ==> default : None_  // Level 2
+
+//	    settings[sdd].commCard_enforced = true;  // Yes/No   ==> default : Yes   // Level 3
+//	    settings[sdd].calibration_type = Wizard; // Wizard/Manual_calib   ==> default : Wizard   // Level 3
+//
+//	    settings[sdd].pulser_type_ = non_quadrature;   //quadrature;
+//	    settings[sdd].pulser_offset = 2;
+//	    settings[sdd].fastValve = 20;
+//	    settings[sdd].non_calibration_seed = 0;
+
    }
    else
    {
 	    sdd = 1;
 
-		litre_price2 = settings[1].price_;
+		litre_price2 = settings[sdd].price_;
 		sellmode2 = settings[sdd].def_t;
 		//totaliser_vol1 = 57638694.00;
 
@@ -457,6 +484,8 @@ void load_settings(pump_sid side)
 		pulser_index2 = settings[sdd].pi_;
 		pulser_index_c2 = settings[sdd].pi_c;
 		opmode2  = settings[sdd].mode;
+
+		fast_flow_threshold2 = pulser_index_c2;
 
 	   // litre_price  = settings[sdd].price_;
 		litre_price2 = settings[sdd].price_;
@@ -500,18 +529,23 @@ void make_settings(pump_sid side)
    {
 	   sdd = 1;
    }
-	     settings[sdd].def_t = P;
+	     settings[sdd].def_t = L;    //P/L  ==> default : P
+	     settings[sdd].display_mode = LP;  // PL/LP   ==> default : PL  // Level 2
 
-	    settings[sdd].pi_ = 798.35;
-	    settings[sdd].pi_c = 760.33;
-	    settings[sdd].mode = AUTO;
+	    settings[sdd].pi_ = 407.3;   //399.25;   //798.35;
+	    settings[sdd].pi_c = 391.64;   //383.89;  //760.33;
+//	    settings[0].pi_ = 407.3;   //399.25;   //798.35;
+//	  	settings[0].pi_c = 391.64;   //383.89;  //760.33;
+//	    settings[1].pi_ = 399.25;   //798.35;
+//	  	settings[1].pi_c = 383.89;  //760.33;
+	    settings[sdd].mode = MANUAL;   //AUTO;
 
-	    settings[sdd].price_ = 120.00;
+	    settings[sdd].price_ = 648.00;
 
-	    timeout_picknozzle = 30;
-	    timeout_dispense   = 60;
+	    timeout_picknozzle = 60;
+	    timeout_dispense   = 250;
 
-	    settings[sdd].noFlow_timeOut = 30;
+	    settings[sdd].noFlow_timeOut = 300;
 
 //	    settings[sdd].pump_type_ = bluesky;    // lafeng;
 //	    settings[sdd].pump_type_ = pump_type;
@@ -524,11 +558,10 @@ void make_settings(pump_sid side)
 	    settings[sdd].dp_amount    = 2;
 	    settings[sdd].dp_unitprice = 2;
 
-	    settings[sdd].noz = nooveride;
+	    settings[sdd].noz = overide;  //nooveride;
 	    settings[sdd].max_amt_ = 99999999;   //Maximum pump litres
 
 	    settings[sdd].side_size = 2;   // 1/2    ==> default : 2   // Level 2
-	    settings[sdd].display_mode = PL;  // PL/LP   ==> default : PL  // Level 2
 	    settings[sdd].keypress_tone = No;  // Yes/No   ==> default : No   // Level 2
 
 		settings[sdd].startUp_suppressVol = 0.04;  // (0 - 10) cL   ==> default : 4cL  // Level 2
@@ -537,6 +570,11 @@ void make_settings(pump_sid side)
 
 	    settings[sdd].commCard_enforced = true;  // Yes/No   ==> default : Yes   // Level 3
 	    settings[sdd].calibration_type = Wizard; // Wizard/Manual_calib   ==> default : Wizard   // Level 3
+	    settings[sdd].pulser_type_ = quadrature;   //non_quadrature;   //quadrature;
+		settings[sdd].pulser_offset = 0;
+		settings[sdd].valve_salesStart = 0.15;
+		settings[sdd].valve_salesEnd = 1.0;
+		settings[sdd].non_calibration_seed = 0;
 
 	     /*
 		   if (sdd == side_a)
@@ -1543,6 +1581,73 @@ void clear_calibrationFlag(pump_sid side)
 
 
 //===================================================
+
+
+//==============================================
+/*
+ * save amountSend
+ */
+void save_amountSend(pump_sid side)
+{
+	int sz = sizeof(amountSend[0]);
+
+	if (side == side_a)
+	  {
+		  amountSend[0].amountOld = priceOld1;
+	  	  EEPROM_Write(amountSend_loc, amountSend1_loc, &amountSend[0], sz);
+	  }
+	else if (side == side_b)
+	  {
+		  amountSend[1].amountOld = priceOld2;
+	  	  EEPROM_Write(amountSend_loc, amountSend2_loc, &amountSend[1], sz);
+	  }
+}
+
+//===================================================
+/*
+ *  read amountSend
+ */
+void retrieve_amountSend(pump_sid side)
+{
+  int sz = sizeof(amountSend[0]);
+	if (side == side_a)
+	{
+		EEPROM_Read(amountSend_loc, amountSend1_loc, &amountSend[0], sz);
+		priceOld1 = amountSend[0].amountOld;
+
+	  	if(isnan(priceOld1)) priceOld1 = 0.0;
+
+	}
+	else if (side == side_b)
+	{
+		 EEPROM_Read(totAmount_loc, totAmount2_loc, &amountSend[1], sz);
+		 priceOld2 = amountSend[1].amountOld;
+
+	  	if(isnan(priceOld2)) priceOld2 = 0.0;
+	}
+}
+
+//==============================================
+/*
+ * clear amountSend
+ */
+void clear_amountSend(pump_sid side)
+{
+	int sz = sizeof(amountSend[0]);
+
+	if (side == side_a)
+	  {
+		  amountSend[0].amountOld = 0.00;
+	  	  EEPROM_Write(amountSend_loc, amountSend1_loc, &amountSend[0], sz);
+	  }
+	else if (side == side_b)
+	  {
+		  amountSend[1].amountOld = 0.00;
+	  	  EEPROM_Write(amountSend_loc, amountSend2_loc, &amountSend[1], sz);
+	  }
+}
+
+//==============================================
 /*
  *  copy settings to the structure to be used for prog.
  */
@@ -1723,4 +1828,14 @@ void dp_init(pump_sid sdd)
 	   settings[sdd-1].dp_amount = 2;
     if(settings[sdd-1].dp_unitprice == 0)
 	   settings[sdd-1].dp_unitprice = 2;
+}
+
+void clr_pulser1()
+{
+   __HAL_TIM_SET_COUNTER(&htim5, settings[0].pulser_offset);
+}
+
+void clr_pulser2()
+{
+   __HAL_TIM_SET_COUNTER(&htim2, settings[1].pulser_offset);
 }

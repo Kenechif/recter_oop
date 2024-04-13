@@ -110,7 +110,7 @@ int main(void)
 
 	// stop_flow1();
 
- 	config_mode = 0;
+  	config_mode = 0;
 	//===========================================================================
 
 	SCnSCB->ACTLR |= SCnSCB_ACTLR_DISDEFWBUF_Msk; // disable the write buffer

@@ -520,6 +520,12 @@ void epSend_interval(void)
 		  effectiveMinusBase1,
 		  effectiveMinusBase2;
 
+	//:::::::::::::::::::::::::::::::://
+		ep5a_sent = 1;
+		ep5b_sent = 1;
+		ep0_sent = 1;
+		ep31_sent = 1;
+	//:::::::::::::::::::::::::::::::://
 
 	//================================================//
 	// 	      EP0, EP5 & EP31 ROUTINES SENDING	      //
@@ -688,11 +694,13 @@ void epSend_interval(void)
 			if(ep1b_save.synched_tranxA != ep1b_save.total_tranxA)
 			{
 				ep2_send(side_a);
+				save_synchedTransaction_sides(side_a);
 				timer_ep = 0;
 			}
 			else if(ep1b_save.synched_tranxB != ep1b_save.total_tranxB)
 			{
 				ep2_send(side_b);
+				save_synchedTransaction_sides(side_b);
 				timer_ep = 0;
 			}
 
@@ -704,11 +712,13 @@ void epSend_interval(void)
 			if(ep1b_save.synched_tranxB != ep1b_save.total_tranxB) //&& (ep2a_justSent == 0) )
 			{
 				ep2_send(side_b);
+				save_synchedTransaction_sides(side_b);
 				timer_ep = 0;
 			}
 			else if(ep1b_save.synched_tranxA != ep1b_save.total_tranxA)
 			{
 				ep2_send(side_a);
+				save_synchedTransaction_sides(side_a);
 				timer_ep = 0;
 			}
 
@@ -1142,26 +1152,26 @@ void save_synchedTransaction_sides(pump_sid ab)
 	if(ab == side_a)
 	{
 		sz = sizeof(ep1b_save.synched_tranxA);
-		ep1b_save.synched_tranxA = (ep1b_save.synched_tranxA + 1);
+		ep1b_save.synched_tranxA = (ep1b_save.synched_tranxA + 1);  //Tracks Transactions that've been synched
 
-		ep1b_save.synched_flashA = (ep1b_save.synched_flashA + 1);
+		ep1b_save.synched_flashA = (ep1b_save.synched_flashA + 1);  //Tracks Flash-Locations that have been synched
 
 		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
 		//flash_endA => 0x3FFFFF --> 4,194,303 pg16,383.996
 		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
-		if (ep1b_save.synched_flashA > 16383)
+		if (ep1b_save.synched_tranxA == 16384) //&& (ep1b_save.synched_flashA <= 32767))
 		{
-			ep1b_save.synched_flashA = (ep1b_save.synched_tranxA - 16384);
+			ep1b_save.synched_flashA = flash_beginA_page;   //(ep1b_save.synched_tranxA - 16384);
 		}
-		else if (ep1b_save.synched_flashA > 32767)
+		else if (ep1b_save.synched_tranxA == 32768) //&& (ep1b_save.synched_flashA <= 49151) )
 		{
-			ep1b_save.synched_flashA = (ep1b_save.synched_tranxA - 32767);
+			ep1b_save.synched_flashA = flash_beginA_page; //(ep1b_save.synched_tranxA - 32767);
 		}
-		else if (ep1b_save.synched_flashA > 49151)
+		else if (ep1b_save.synched_tranxA == 49152) //&& (ep1b_save.synched_flashA <= 65535) )
 		{
-			ep1b_save.synched_flashA = (ep1b_save.synched_tranxA - 49151);
+			ep1b_save.synched_flashA = flash_beginA_page; //(ep1b_save.synched_tranxA - 49151);
 		}
-		else if (ep1b_save.synched_flashA > 65535)
+		else if (ep1b_save.synched_tranxA == 0)
 		{
 			ep1b_save.synched_flashA = flash_beginA_page;
 		}
@@ -1187,15 +1197,20 @@ void save_synchedTransaction_sides(pump_sid ab)
 		//flash_beginB => 0x400000 --> 4,194,304 pg16,384
 		//flash_endB => 0x7FFFFF --> 8,388,607 pg32767.996
 		//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
-		if (ep1b_save.synched_flashB > 32767)
+
+		if (ep1b_save.synched_tranxB == 16384)
 		{
-			ep1b_save.synched_flashB = (ep1b_save.synched_tranxB - 32768);
+			ep1b_save.synched_flashB = flash_beginB_page;
 		}
-		else if (ep1b_save.synched_flashB > 49151)
+		else if (ep1b_save.synched_tranxB == 32768)
 		{
-			ep1b_save.synched_flashB = (ep1b_save.synched_tranxB - 49152);
+			ep1b_save.synched_flashB = flash_beginB_page;
 		}
-		else if (ep1b_save.synched_flashB > 65535)
+		else if (ep1b_save.synched_tranxB == 49152)
+		{
+			ep1b_save.synched_flashB = flash_beginB_page;
+		}
+		else if (ep1b_save.synched_tranxB == 0)
 		{
 			ep1b_save.synched_flashB = flash_beginB_page;
 		}
@@ -1277,7 +1292,7 @@ void save_totalAutoTransaction_sides(pump_sid ab)
 	}
 	else if(ab == side_b)
 	{
-		sz = sizeof(++ep1b_save.total_autoTranxB);
+		sz = sizeof(++ep1b_save.total_autoTranxB);   // ???
 		ep1b_save.total_autoTranxB = (ep1b_save.total_autoTranxB + 1);
 		EEPROM_Write(totalAutoTranxB_loc, totalAutoTranxB1_loc, &ep1b_save.total_autoTranxB, sz);
 	}
@@ -2067,6 +2082,281 @@ uint16_t checksum2(uint8_t* data, uint8_t len)
 	return ret;
 }
 
+void ep2_send(pump_sid side)
+{
+	if(side == side_a)
+	{
+		synchedLog_get(side);
+
+		tranxA_token = generate_tk();
+		tranx_save.token = 	tranxA_token;
+
+		tranx_save.timestamp = synchedLog_a_new.timestamp;
+//		strcpy(tranx_save.device_id, synchedLog_a_new.device_id);
+		strcpy(tranx_save.transaction_id, synchedLog_a_new.transaction_id);
+		tranx_save.transaction_price = synchedLog_a_new.pr__;
+		tranx_save.transaction_vol = synchedLog_a_new.vol__;
+		tranx_save.litre_price = synchedLog_a_new.litre_price_;
+		tranx_save.totalizer = synchedLog_a_new.totaliserVol_cal;
+//		strcpy(tranx_save.nozzle_name, synchedLog_a_new.nozzle_name);
+		tranx_save.nozzle_address = 1;
+		strcpy(tranx_save.nozzle_product, synchedLog_a_new.nozzle_product);
+		tranx_save.transaction_period = synchedLog_a_new.transaction_period;
+		strncpy(tranx_save.session_id, attendant1.session_id, 9);
+		strcpy(tranx_save.nozzle_name, pumpName[0].pump_name);
+	}
+	else if(side == side_b)
+	{
+		synchedLog_get(side);
+
+		tranxB_token = generate_tk();
+
+		tranx_save.token = tranxB_token;
+
+		tranx_save.timestamp = synchedLog_b_new.timestamp;
+//		strcpy(tranx_save.device_id, synchedLog_b_new.device_id);
+		strcpy(tranx_save.transaction_id, synchedLog_b_new.transaction_id);
+		tranx_save.transaction_price = synchedLog_b_new.pr__;
+		tranx_save.transaction_vol = synchedLog_b_new.vol__;
+		tranx_save.litre_price = synchedLog_b_new.litre_price_;
+		tranx_save.totalizer = synchedLog_b_new.totaliserVol_cal;
+//		strcpy(tranx_save.nozzle_name, synchedLog_b_new.nozzle_name);
+		tranx_save.nozzle_address = 2;
+		strcpy(tranx_save.nozzle_product, synchedLog_b_new.nozzle_product);
+		tranx_save.transaction_period = synchedLog_b_new.transaction_period;
+		strncpy(tranx_save.session_id, attendant2.session_id, 9);
+		strcpy(tranx_save.nozzle_name, pumpName[1].pump_name);
+
+	}
+	ep_send(ep2);
+}
+
+
+void ep1_mtResponse(void)
+{
+	int8_t header_found = 0;
+	uint8_t indexx = 0;
+
+	int head_pos = 0;
+
+	float price_change1,
+		  price_change2;
+
+	char rx;
+
+	memset(mt, '\0', sizeof(mt));
+
+	while( (indexx < 249) && (head_pos < pump_rx_bufsize) )
+	{
+	   if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) && (indexx < 249) )
+		   rx = rx_buf[head_pos];
+
+//	   res: di:860537064685993,ep:1. {"st":0,"tk":31290,"ud":0,"tm":37427375,"am":0.0,"mt":{"ty":3,"pn":"all","pr":590.0,"sh":null,"fg":0,"tg":"p|all"},"pv":0.0,"wv":0.0,"sa":0.0,"bal":0.0,"dc":null,"wb":null,"ft":null}
+
+//	   mt":{"ty":3,"pn":"all","pr":590.0,"sh":null,"fg":0,"tg":"p|all"}
+
+//     [{"ty":3,"pn":"P9","pr":185.0,"sh":null,"fg":0,"tg":"p|P9"},{"ty":3,"pn":"P10","pr":850.0,"sh":null,"fg":0,"tg":"p|P10"}]
+
+	   if(rx == '[')     // header left square bracket 0x5B, 0d91   STX->0xA5
+	   {
+		  indexx = 0;
+		  mt[indexx++] = rx;
+		  header_found = 1;
+	   }
+	   else if (header_found == 1)
+	   {
+		   mt[indexx++] = rx;
+
+		   //header found look for the footer...
+		   if(rx == ']')
+		   {
+			   mt[indexx] = '\0';
+			   if(indexx > 6)
+			   {
+				   if(indexx > 100)
+				   {
+//					   int8_t str_len;
+
+					   mt_pump[0].type[0] = mt[7];
+					   mt_pump[0].pumpName[0] = mt[(7 + 8)];
+
+					   head_pos = 16;
+					   indexx = 1;
+					   while(mt[head_pos] != '"')
+					   {
+						   if(indexx < 5)
+							   mt_pump[0].pumpName[indexx++] = mt[head_pos++];
+					   }
+
+					   head_pos = head_pos + 7;
+					   indexx = 0;
+					   memset(mt_pump[0].price, '\0', sizeof(mt_pump[0].price) );
+					   do
+					   {
+						  mt_pump[0].price[indexx++] = mt[head_pos++];
+					   }
+					   while(mt[head_pos] != ',');
+
+					   while(mt[head_pos++] != '{');
+					   mt_pump[1].type[0] = (mt[head_pos + 5]);
+					   mt_pump[1].pumpName[0] = mt[head_pos + (5+8)];
+
+					   head_pos = head_pos + (13 + 1);
+					   indexx = 1;
+					   while(mt[head_pos] != '"')
+					   {
+						   if(indexx < 5)
+							   mt_pump[1].pumpName[indexx++] = mt[head_pos++];
+					   }
+
+					   head_pos = head_pos + 7;
+					   indexx = 0;
+					   memset(mt_pump[1].price, '\0', sizeof(mt_pump[1].price) );
+					   do
+					   {
+						  mt_pump[1].price[indexx++] = mt[head_pos++];
+					   }
+					   while(mt[head_pos] != ',');
+
+					   price_change1 = atoff(mt_pump[0].price);
+//					   price_change1  += 0.00011;  //make small correction for the inherent rounddown.
+
+					   price_change2 = atoff(mt_pump[1].price);
+//					   price_change2  += 0.00011;  //make small correction for the inherent rounddown.
+
+					   priceChange_check1 = price_change1 - settings[0].price_;
+					   priceChange_check2 = price_change2 - settings[1].price_;
+
+
+					   if( (mt_pump[0].type[0] == '3') && ( (priceChange_check1 > 0.1) || (priceChange_check1 < -0.1)) )
+					   {
+						   changeLitrePrice1 = 1;
+					   }
+					   else
+					   {
+						   ep1a_priceChangeFlag1 = 1;
+					   }
+
+//					   if( (mt_pump[1].type[0] == '3') && (price_change2 != settings[1].price_) )
+					   if( (mt_pump[1].type[0] == '3') && ( (priceChange_check2 > 0.1) || (priceChange_check2 < -0.1)) )
+					   {
+						   changeLitrePrice2 = 1;
+					   }
+					   else
+					   {
+						   ep1a_priceChangeFlag2 = 1;
+					   }
+
+					   head_pos = 0;
+					   return;
+				   }
+				   else
+				   {
+
+//					   int8_t str_len;
+						if(strstr(mt, pumpName[0].pump_name))
+						{
+//						   char *p = strstr(mt, pumpName[0].pump_name);
+//
+//						   uint16_t pp = p - mt;
+
+						   mt_pump[0].type[0] = mt[7];
+						   mt_pump[0].pumpName[0] = mt[(7 + 8)];
+
+						   head_pos = 16;
+						   indexx = 1;
+						   while(mt[head_pos] != '"')
+						   {
+							   if(indexx < 5)
+								   mt_pump[0].pumpName[indexx++] = mt[head_pos++];
+						   }
+
+						   if(strcmp(pumpName[0].pump_name, mt_pump[0].pumpName) != 0)   //if it's not actually for the pump's name
+							   return;
+
+						   head_pos = head_pos + 7;
+						   indexx = 0;
+						   memset(mt_pump[0].price, '\0', sizeof(mt_pump[0].price) );
+						   do
+						   {
+							  mt_pump[0].price[indexx++] = mt[head_pos++];
+						   }
+						   while(mt[head_pos] != ',');
+
+						   price_change1 = atoff(mt_pump[0].price);
+//						   price_change1  += 0.00011;  //make small correction for the inherent rounddown.
+
+						   priceChange_check1 = price_change1 - settings[0].price_;
+
+
+//						   if( (mt_pump[0].type[0] == '3') && (price_change1 != settings[0].price_) )
+						   if( (mt_pump[0].type[0] == '3') && ( (priceChange_check1 > 0.1) || (priceChange_check1 < -0.1)) )
+						   {
+							   changeLitrePrice1 = 1;
+						   }
+						   else
+						   {
+							   ep1a_priceChangeFlag1 = 1;
+						   }
+
+
+						   head_pos = 0;
+						   return;
+						}
+						else if (strstr(mt, pumpName[1].pump_name))
+						{
+						   mt_pump[1].type[0] = mt[7];
+						   mt_pump[1].pumpName[0] = mt[(7 + 8)];
+
+						   head_pos = 16;
+						   indexx = 1;
+						   while(mt[head_pos] != '"')
+						   {
+							   if(indexx < 5)
+								   mt_pump[1].pumpName[indexx++] = mt[head_pos++];
+						   }
+
+						   if(strcmp(pumpName[1].pump_name, mt_pump[1].pumpName) != 0)   //if it's not actually for the pump's name
+							   return;
+
+						   head_pos = head_pos + 7;
+						   indexx = 0;
+						   memset(mt_pump[1].price, '\0', sizeof(mt_pump[1].price) );
+						   do
+						   {
+							  mt_pump[1].price[indexx++] = mt[head_pos++];
+						   }
+						   while(mt[head_pos] != ',');
+
+						   price_change2 = atoff(mt_pump[1].price);
+//						   price_change2  += 0.00011;  //make small correction for the inherent rounddown.
+
+	   					   priceChange_check2 = price_change2 - settings[1].price_;
+
+//						   if( (mt_pump[1].type[0] == '3') && (price_change2 != settings[1].price_) )
+						   if( (mt_pump[1].type[0] == '3') && ( (priceChange_check2 > 0.1) || (priceChange_check2 < -0.1)) )
+						   {
+							   changeLitrePrice2 = 1;
+						   }
+						   else
+						   {
+							   ep1a_priceChangeFlag2 = 1;
+						   }
+						   head_pos = 0;
+						   return;
+						}
+				   }
+			   }
+			   else
+			   {
+				   indexx = 250;
+			   }
+		   }
+	   }
+	   head_pos++;
+	}
+}
+
 void sendReply1(void){
 	uint8_t pos = 0, byte;
 	uint16_t chk = 0;
@@ -2273,277 +2563,6 @@ void sendReply2(void){
 
 
 
-void online_setUnitPrice1(void)
-{
-	settings[0].price_ = atof(mt_pump[0].price);
-	settings[0].price_  += 0.00011;  //make small correction for the inherent rounddown.
-
-	save_settings();   //save to eeprom
-	load_settings(side_a); //load the settings into the internal variables
-}
-
-void online_setUnitPrice2(void)
-{
-	settings[1].price_ = atof(mt_pump[1].price);
-	settings[1].price_  += 0.00011;  //make small correction for the inherent rounddown.
-
-	save_settings();   //save to eeprom
-	load_settings(side_b); //load the settings into the internal variables
-}
-
-
-
-void ep1_mtResponse(void)
-{
-	int8_t header_found = 0;
-	uint8_t indexx = 0;
-
-	int head_pos = 0;
-
-	float price_change1,
-		  price_change2;
-
-	char rx;
-
-	memset(mt, '\0', sizeof(mt));
-
-	while( (indexx < 249) && (head_pos < pump_rx_bufsize) )
-	{
-	   if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) && (indexx < 249) )
-		   rx = rx_buf[head_pos];
-
-//	   res: di:860537064685993,ep:1. {"st":0,"tk":31290,"ud":0,"tm":37427375,"am":0.0,"mt":{"ty":3,"pn":"all","pr":590.0,"sh":null,"fg":0,"tg":"p|all"},"pv":0.0,"wv":0.0,"sa":0.0,"bal":0.0,"dc":null,"wb":null,"ft":null}
-
-//	   mt":{"ty":3,"pn":"all","pr":590.0,"sh":null,"fg":0,"tg":"p|all"}
-
-//     [{"ty":3,"pn":"P9","pr":185.0,"sh":null,"fg":0,"tg":"p|P9"},{"ty":3,"pn":"P10","pr":850.0,"sh":null,"fg":0,"tg":"p|P10"}]
-
-	   if(rx == '[')     // header left square bracket 0x5B, 0d91   STX->0xA5
-	   {
-		  indexx = 0;
-		  mt[indexx++] = rx;
-		  header_found = 1;
-	   }
-	   else if (header_found == 1)
-	   {
-		   mt[indexx++] = rx;
-
-		   //header found look for the footer...
-		   if(rx == ']')
-		   {
-			   mt[indexx] = '\0';
-			   if(indexx > 6)
-			   {
-				   if(indexx > 100)
-				   {
-//					   int8_t str_len;
-
-					   mt_pump[0].type[0] = mt[7];
-					   mt_pump[0].pumpName[0] = mt[(7 + 8)];
-
-					   head_pos = 16;
-					   indexx = 1;
-					   while(mt[head_pos] != '"')
-					   {
-						   if(indexx < 5)
-							   mt_pump[0].pumpName[indexx++] = mt[head_pos++];
-					   }
-
-					   head_pos = head_pos + 7;
-					   indexx = 0;
-					   memset(mt_pump[0].price, '\0', sizeof(mt_pump[0].price) );
-					   do
-					   {
-						  mt_pump[0].price[indexx++] = mt[head_pos++];
-					   }
-					   while(mt[head_pos] != ',');
-
-					   while(mt[head_pos++] != '{');
-					   mt_pump[1].type[0] = (mt[head_pos + 5]);
-					   mt_pump[1].pumpName[0] = mt[head_pos + (5+8)];
-
-					   head_pos = head_pos + (13 + 1);
-					   indexx = 1;
-					   while(mt[head_pos] != '"')
-					   {
-						   if(indexx < 5)
-							   mt_pump[1].pumpName[indexx++] = mt[head_pos++];
-					   }
-
-					   head_pos = head_pos + 7;
-					   indexx = 0;
-					   memset(mt_pump[1].price, '\0', sizeof(mt_pump[1].price) );
-					   do
-					   {
-						  mt_pump[1].price[indexx++] = mt[head_pos++];
-					   }
-					   while(mt[head_pos] != ',');
-
-					   price_change1 = atoff(mt_pump[0].price);
-//					   price_change1  += 0.00011;  //make small correction for the inherent rounddown.
-
-					   price_change2 = atoff(mt_pump[1].price);
-//					   price_change2  += 0.00011;  //make small correction for the inherent rounddown.
-
-					   if( (mt_pump[0].type[0] == '3') && (price_change1 != settings[0].price_) )
-					   {
-						   changeLitrePrice1 = 1;
-					   }
-					   else
-					   {
-						   ep1a_priceChangeFlag1 = 1;
-					   }
-
-					   if( (mt_pump[1].type[0] == '3') && (price_change2 != settings[1].price_) )
-					   {
-						   changeLitrePrice2 = 1;
-					   }
-					   else
-					   {
-						   ep1a_priceChangeFlag2 = 1;
-					   }
-
-					   head_pos = 0;
-					   return;
-				   }
-				   else
-				   {
-
-//					   int8_t str_len;
-						if(strstr(mt, pumpName[0].pump_name))
-						{
-						   mt_pump[0].type[0] = mt[7];
-						   mt_pump[0].pumpName[0] = mt[(7 + 8)];
-
-						   head_pos = 16;
-						   indexx = 1;
-						   while(mt[head_pos] != '"')
-						   {
-							   if(indexx < 5)
-								   mt_pump[0].pumpName[indexx++] = mt[head_pos++];
-						   }
-
-						   head_pos = head_pos + 7;
-						   indexx = 0;
-						   memset(mt_pump[0].price, '\0', sizeof(mt_pump[0].price) );
-						   do
-						   {
-							  mt_pump[0].price[indexx++] = mt[head_pos++];
-						   }
-						   while(mt[head_pos] != ',');
-
-						   price_change1 = atoff(mt_pump[0].price);
-//						   price_change1  += 0.00011;  //make small correction for the inherent rounddown.
-
-						   if( (mt_pump[0].type[0] == '3') && (price_change1 != settings[0].price_) )
-						   {
-							   changeLitrePrice1 = 1;
-						   }
-						   else
-						   {
-							   ep1a_priceChangeFlag1 = 1;
-						   }
-
-
-						   head_pos = 0;
-						   return;
-						}
-						else if (strstr(mt, pumpName[1].pump_name))
-						{
-						   mt_pump[1].type[0] = mt[7];
-						   mt_pump[1].pumpName[0] = mt[(7 + 8)];
-
-						   head_pos = 16;
-						   indexx = 1;
-						   while(mt[head_pos] != '"')
-						   {
-							   if(indexx < 5)
-								   mt_pump[1].pumpName[indexx++] = mt[head_pos++];
-						   }
-
-						   head_pos = head_pos + 7;
-						   indexx = 0;
-						   memset(mt_pump[1].price, '\0', sizeof(mt_pump[1].price) );
-						   do
-						   {
-							  mt_pump[1].price[indexx++] = mt[head_pos++];
-						   }
-						   while(mt[head_pos] != ',');
-
-						   price_change2 = atoff(mt_pump[1].price);
-//						   price_change2  += 0.00011;  //make small correction for the inherent rounddown.
-
-						   if( (mt_pump[1].type[0] == '3') && (price_change2 != settings[1].price_) )
-						   {
-							   changeLitrePrice2 = 1;
-						   }
-						   else
-						   {
-							   ep1a_priceChangeFlag2 = 1;
-						   }
-						   head_pos = 0;
-						   return;
-						}
-				   }
-			   }
-			   else
-			   {
-				   indexx = 250;
-			   }
-		   }
-	   }
-	   head_pos++;
-	}
-}
-
-void ep2_send(pump_sid side)
-{
-	if(side == side_a)
-	{
-		synchedLog_get(side);
-
-		tranxA_token = generate_tk();
-		tranx_save.token = 	tranxA_token;
-
-		tranx_save.timestamp = synchedLog_a_new.timestamp;
-		strcpy(tranx_save.device_id, synchedLog_a_new.device_id);
-		strcpy(tranx_save.transaction_id, synchedLog_a_new.transaction_id);
-		tranx_save.transaction_price = synchedLog_a_new.pr__;
-		tranx_save.transaction_vol = synchedLog_a_new.vol__;
-		tranx_save.litre_price = synchedLog_a_new.litre_price_;
-		tranx_save.totalizer = synchedLog_a_new.totaliserVol_cal;
-		strcpy(tranx_save.nozzle_name, synchedLog_a_new.nozzle_name);
-		tranx_save.nozzle_address = 1;
-		strcpy(tranx_save.nozzle_product, synchedLog_a_new.nozzle_product);
-		tranx_save.transaction_period = synchedLog_a_new.transaction_period;
-		strncpy(tranx_save.session_id, attendant1.session_id, 9);
-	}
-	else if(side == side_b)
-	{
-		synchedLog_get(side);
-
-		tranxB_token = generate_tk();
-
-		tranx_save.token = tranxB_token;
-
-		tranx_save.timestamp = synchedLog_b_new.timestamp;
-		strcpy(tranx_save.device_id, synchedLog_b_new.device_id);
-		strcpy(tranx_save.transaction_id, synchedLog_b_new.transaction_id);
-		tranx_save.transaction_price = synchedLog_b_new.pr__;
-		tranx_save.transaction_vol = synchedLog_b_new.vol__;
-		tranx_save.litre_price = synchedLog_b_new.litre_price_;
-		tranx_save.totalizer = synchedLog_b_new.totaliserVol_cal;
-		strcpy(tranx_save.nozzle_name, synchedLog_b_new.nozzle_name);
-		tranx_save.nozzle_address = 2;
-		strcpy(tranx_save.nozzle_product, synchedLog_b_new.nozzle_product);
-		tranx_save.transaction_period = synchedLog_b_new.transaction_period;
-		strncpy(tranx_save.session_id, attendant2.session_id, 9);
-
-	}
-	ep_send(ep2);
-}
-
-
 void ep20_send(pump_sid side)
 {
 	uint8_t i,
@@ -2580,6 +2599,26 @@ void ep20_send(pump_sid side)
 		ep_send(ep20_side_b);
 	}
 }
+
+
+void online_setUnitPrice1(void)
+{
+	settings[0].price_ = atof(mt_pump[0].price);
+	settings[0].price_  += 0.00011;  //make small correction for the inherent rounddown.
+
+	save_settings();   //save to eeprom
+	load_settings(side_a); //load the settings into the internal variables
+}
+
+void online_setUnitPrice2(void)
+{
+	settings[1].price_ = atof(mt_pump[1].price);
+	settings[1].price_  += 0.00011;  //make small correction for the inherent rounddown.
+
+	save_settings();   //save to eeprom
+	load_settings(side_b); //load the settings into the internal variables
+}
+
 
 
 void send_ep0_ep5(void)

@@ -20,6 +20,8 @@ extern "C" {
 #include "stdio.h"
 #include "math.h"
 
+#include "stm32f4xx_hal.h"
+
 #include <time.h>
 
 #define randnum(min, max) \ ((rand() % (int)(((max) + 1) - (min))) + (min))
@@ -32,7 +34,7 @@ extern "C" {
 
 
 //============================================
-#define _USE_SOFT_PULSER            0
+#define _USE_SOFT_PULSER            1
 #define use_internal_rtc			0
 #define sense_power  				1
 #define sense_battery 				1
@@ -256,6 +258,11 @@ typedef struct   //structure for log.
 	  float totaliserVol_cal;	//4  -->8
  }totaliser_store;
 
+typedef struct
+{
+  float amountOld; //4
+}_amountSend;
+
  typedef struct
   {
  	  float totaliserVol_real; //4
@@ -321,6 +328,12 @@ typedef enum
 	overide,
 	nooveride
 }nozzle_overide;
+
+typedef enum
+{
+	quadrature,
+	non_quadrature
+}pulser_type;
 
 typedef enum
 {
@@ -475,6 +488,11 @@ typedef struct
 	 char passwd2[9];
 	 char passwd3[9];
 	 shiftlogintype shift_login_type;
+	 uint8_t pulser_type_;
+	 uint8_t pulser_offset;
+	 float valve_salesStart;
+	 float valve_salesEnd;
+	 uint16_t non_calibration_seed;
 
 }pump_settings;
 
@@ -704,6 +722,9 @@ float temppp_;
 
 //void get_settings();
 
+void clr_pulser1();
+void clr_pulser2();
+
 void dp_init(pump_sid sdd);
 
 void retrieve_settings();
@@ -755,6 +776,9 @@ char rx_buf[pump_rx_bufsize];
 
 // The shared secret is FdelOnwuka
 extern uint8_t hmacKey[]; // = {0x46, 0x64, 0x65, 0x6C, 0x4F, 0x6E, 0x77, 0x75, 0x6B, 0x61};
+
+extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim5;
 
 extern uint16_t pump_SN;
 

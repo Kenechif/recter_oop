@@ -400,6 +400,8 @@ extern uint16_t //timer_ep,
 extern uint32_t timer_ep1,
 				timer_ep;
 
+float priceChange_check1,
+	  priceChange_check2;
 
 uint8_t ep1a_priceChangeFlag1,
 		ep1a_priceChangeFlag2,
