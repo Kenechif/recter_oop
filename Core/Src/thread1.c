@@ -213,7 +213,7 @@ int retn;
  extern char str_[9] , str_2[9];                 //used in states.c
  extern char keyboard_entry[10] , keyboard_entry2[10];
  extern int keypress_ , keypress_2;
- extern int index_ , index_2;
+ extern int8_t index_, index_2;
  extern char upper1[10] , upper2[10];
  extern uint32_t target_pulser1,
  	 	 	 	 current_pulser1,
@@ -1136,11 +1136,11 @@ void compose_printer()
     clear_prn();
 
 //===================================================================
-	printDisp_c("fuel",1,2,4,LT,CLEAR);
-	printDisp_c("nnetrics",2,0,8,LT,CLEAR);
+	printDisp_c("Fuel",1,2,4,LT,CLEAR);
+	printDisp_c("NNetrics",2,0,8,LT,CLEAR);
 	//}
-	printDisp_c2("fuel",1,2,4,LT,CLEAR);
-	printDisp_c2("nnetrics",2,0,8,LT,CLEAR);
+	printDisp_c2("Fuel",1,2,4,LT,CLEAR);
+	printDisp_c2("NNetrics",2,0,8,LT,CLEAR);
 
 	HAL_Delay(2500);
 
@@ -1828,10 +1828,10 @@ skip_test:
 	slowFlow_startThreshold2 = (fast_flow_threshold2 * settings[1].valve_salesStart);
 	slowFlow_endThreshold2 = (fast_flow_threshold2 * settings[1].valve_salesEnd);
 
-	settings[1].noz = nooveride;
-	overide_2 = settings[1].noz;
-	settings[0].pulser_offset = 0;
-	settings[1].pulser_offset = 0;
+//	settings[1].noz = overide;   //nooveride;
+//	overide_2 = settings[1].noz;
+//	settings[0].pulser_offset = 0;
+//	settings[1].pulser_offset = 0;
 
 //    calib_pulser1 = 15800;
 
@@ -2147,11 +2147,11 @@ uint8_t  read_event1()
 
    			 //--------------------------------------------------
 			  //  totaliser error.
-//				if( (totaliser_flag == 0) && (drive1 != ACTIVATE) )
-//				{
-//					totaliser_flag = 1;
-//					return _tot_error_Event;
-//				}
+				if( (totaliser_flag == 0) && (drive1 != ACTIVATE) )
+				{
+					totaliser_flag = 1;
+					return _tot_error_Event;
+				}
    			  //--------------------------------------------------
 
 
@@ -2358,11 +2358,11 @@ int  read_event2()
 
    			//--------------------------------------------------
 			  //  totaliser error.
-//				if( (totaliser_flag2 == 0) && (drive2 != ACTIVATE) )
-//				{
-//					totaliser_flag2 = 1;
-//					return _tot_error_Event;
-//				}
+				if( (totaliser_flag2 == 0) && (drive2 != ACTIVATE) )
+				{
+					totaliser_flag2 = 1;
+					return _tot_error_Event;
+				}
 		    //--------------------------------------------------
 
 

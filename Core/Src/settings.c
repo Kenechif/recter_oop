@@ -21,7 +21,7 @@
 
 //##################################################
 
-const char device_id [] = "860537065062176";   //"860537065695256";   //"860537064685993"; //"860537065691297";   //"860537064685993";        //"860537064685357";           //"860537064685993";     //"860537064685340";
+const char device_id [] = "860537065691297";   //"860537065062176";   //"860537065695256";   //"860537064685993"; //"860537065691297";   //"860537064685993";        //"860537064685357";           //"860537064685993";     //"860537064685340";
 
 const char firmware_date [] = "Aug 28 2023";
 const char firmware_time [] = "17:07:30";
@@ -364,12 +364,12 @@ const uint32_t flash_endB   = 0x7fffff;
 //   MENU ITEMS
 
  char* menu1[4]  = {"  tot   ","  log   "};
- char* menu2[16] = {"  nnode ","Address "," Nozzle ","Prog.type","  Price ","no flo. t","Hi. Litre","Ch  Pass","Send cfg","Get. cfg ","Clr log","Clr tot","Calibrat.","Display ", "  Cloc"};
+ char* menu2[16] = {"  NNode ","Address "," Nozzle ","Prog.type","  Price ","no flo. t","Hi. Litre","Ch  Pass","Send cfg","Get. cfg ","Clr log","Clr tot","Calibrat.","Display ", " Clock"};
  char* menu3[3]  = {"tmm cfg","flo rate"};
 
- char* menu_level1[4] = {"Shft. Tot ", "  Price ", "  Cloc"};
- char* menu_level2[21] = {"  nnode ", "Address ", " Nozzle ", "Disp.Styl", "  Price ", "no flo. t", "Hi. Litre", "Ch  Pass", "Calibrat.", "DP Count", "  Cloc", "Sides No", "Start CL", "Calib.Can", "Shift.Typ", "Shift No", "  Tone  ", " Pulser", "  Valve ", "No-Calib"};
- char* menu_level3[23] = {"  nnode ", "Address ", " Nozzle ", "Disp.Styl", "  Price ", "no flo. t", "Hi. Litre", "Ch  Pass", "Calibrat.", "DP Count", "  Cloc", "Sides No", "Start CL", "Calib.Can", "Shift.Typ", "Shift No", "  Tone  ", " Pulser", "  Valve ", "No-Calib", "Calib.Typ", "Conn.Card"};
+ char* menu_level1[4] = {"Shft. Tot ", "  Price ", " Clock"};
+ char* menu_level2[21] = {"  NNode ", "Address ", " Nozzle ", "Disp.Styl", "  Price ", "No flo. t", "Hi. Litre", "Ch  Pass", "Calibrat.", "DP Count", " Clock", "Sides No", "Start CL", "Calib.Can", "Shift.Typ", "Shift No", "  Tone  ", " Pulser", "  Valve ", "No-Calib"};
+ char* menu_level3[23] = {"  NNode ", "Address ", " Nozzle ", "Disp.Styl", "  Price ", "No flo. t", "Hi. Litre", "Ch  Pass", "Calibrat.", "DP Count", " Clock", "Sides No", "Start CL", "Calib.Can", "Shift.Typ", "Shift No", "  Tone  ", " Pulser", "  Valve ", "No-Calib", "Calib.Typ", "Conn.Card"};
 
 
  char* pass[4] = {" pass 1 ", " pass 2 ", " pass 3 "};

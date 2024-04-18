@@ -34,7 +34,7 @@ extern "C" {
 
 
 //============================================
-#define _USE_SOFT_PULSER            1
+#define _USE_SOFT_PULSER            0
 #define use_internal_rtc			0
 #define sense_power  				1
 #define sense_battery 				1

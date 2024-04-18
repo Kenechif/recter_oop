@@ -102,12 +102,12 @@ void send_line3(char lcd_[10])
 
 void send_keypad(char lcd_[8])
 {
-	for (int i = 0; i < 8; i++)
-		 {
-			 key_lcd[i] = lcd_[i];
-		 }
+	 for (int i = 0; i < 8; i++)
+	 {
+		 key_lcd[i] = lcd_[i];
+	 }
 
-	  keypad_lcd(0,key_lcd);
+	 keypad_lcd(0,key_lcd);
 }
 
 void send_solenoid(int v_)

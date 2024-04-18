@@ -247,9 +247,11 @@ uint8_t To_pattern(int Input)
 		 case  'i': return(0b00000110);
 		 case  'j': return(0b00111000);
 		 case  'l': return(0b00001110);
+		 case  'L': return(0b00001110);
          case  'n': return(0b01110110);
          case  'o': return 0b01111110;
          case  'p': return(0b01100111);
+         case  'P': return(0b01100111);
          case  'r': return(0b01000110);
          case  's': return 0b01011011;
          case  't': return(0b00001111);
@@ -273,6 +275,8 @@ int write_keypad_lcd(int fxn,char* num)
 	keypad_ini();
 	int8_t count = 0,
 		   decimalPoint_flag = 0;
+
+	dpFlag = 0;
 
 
 	//char buf2[9]  = {0};
@@ -350,6 +354,7 @@ int write_keypad_lcd(int fxn,char* num)
 	if(dpFlag == 0)
 	{
 		postn = 6;
+		if(strchr(num, '.') ) --count;
 		while(count<7)
 		{
 			buf[postn] = 0;           //prefill leading spaces with spaces (zeros)
@@ -360,14 +365,18 @@ int write_keypad_lcd(int fxn,char* num)
 
 		while (postn > -1) //for(int i = cnv; i<8; i++)   //fill the rest of the buffer with the code pattern.
 		{
-			if( (num[count-postn] == '.' )  && (num[cnv-1] == '.') )
+//			if( (num[count-postn] == '.' )  && (num[cnv-1] == '.') )
+			if(num[count-postn] == '.' ) // && (num[cnv-1] == '.') )
 			{
 	//			char buff = buf[postn + 1];
 	//			buf[postn--] = buff + 0x80;
 	//			postn--;
 	//			continue;
-	//			scan_code = To_pattern( ToInt( num[count-postn] ) );
-				buf[postn] = 0x7E + 0X80;
+				scan_code = To_pattern( ToInt( num[(count-postn) + 1] ) );
+//				buf[postn] = 0x7E + 0X80;    //0x7E for a '0'
+				buf[postn] = scan_code + 0X80;
+				count++;
+//				postn--;
 			}
 			else
 			{
@@ -850,6 +859,8 @@ int write_keypad_lcd2(int fxn,char* num)
 		   scan_code2 = 0,
 		   postn2;
 
+	dpFlag2 = 0;
+
 	int8_t cnv2 =   strlen(num);      //snprintf(buf2, sz, "%ld", num);
 
 	count2 = cnv2;
@@ -888,6 +899,7 @@ int write_keypad_lcd2(int fxn,char* num)
 	if(dpFlag2 == 0)
 	{
 		postn2 = 6;
+		if(strchr(num, '.') ) --count2;
 		while(count2 < 7)
 		{
 			buf2[postn2] = 0;           //prefill leading spaces with spaces (zeros)
@@ -898,9 +910,12 @@ int write_keypad_lcd2(int fxn,char* num)
 
 		while (postn2 > -1) //for(int i = cnv; i<8; i++)   //fill the rest of the buffer with the code pattern.
 		{
-			if( (num[count2 - postn2] == '.' )  && (num[cnv2 - 1] == '.') )
+			if(num[count2 - postn2] == '.')  //&& (num[cnv2 - 1] == '.') )
 			{
-				buf2[postn2] = 0x7E + 0X80;
+//				buf2[postn2] = 0x7E + 0X80;
+				scan_code2 = To_pattern( ToInt( num[(count2 - postn2) + 1] ) );
+				buf2[postn2] = scan_code2 + 0X80;
+				count2++;
 			}
 			else
 			{
