@@ -712,13 +712,13 @@ void epSend_interval(void)
 			if(ep1b_save.synched_tranxB != ep1b_save.total_tranxB) //&& (ep2a_justSent == 0) )
 			{
 				ep2_send(side_b);
-				save_synchedTransaction_sides(side_b);
+//				save_synchedTransaction_sides(side_b);
 				timer_ep = 0;
 			}
 			else if(ep1b_save.synched_tranxA != ep1b_save.total_tranxA)
 			{
 				ep2_send(side_a);
-				save_synchedTransaction_sides(side_a);
+//				save_synchedTransaction_sides(side_a);
 				timer_ep = 0;
 			}
 

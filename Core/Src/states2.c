@@ -1010,13 +1010,13 @@ eSystemState operator_State_Handler2(void)
 								 j++; i++;
 							   }
 							   clear_screen2();
-							   printDisp_c2("p",1,0,8,LT,CLEAR);
+							   printDisp_c2("P",1,0,8,LT,CLEAR);
 							   printDisp_c2(line1,1,(8-jj),5,LT,NOCLEAR);
 							   send_line22(line2);
 							 }
 							 else
 							 {
-								 send_line12("p        ");
+								 send_line12("P        ");
 								 send_line22("        ");
 								 printDisp_f2(totaliser_amt1c, 2, 0,5,RT,CLEAR ); //send_line22(scc);
 							 }
@@ -1089,7 +1089,7 @@ eSystemState operator_State_Handler2(void)
 						 }
 						 else
 						 {
-							 send_line12("p        ");
+							 send_line12("P        ");
 							 send_line22("        ");
 							 printDisp_f2(totaliser_amt2c, 2, 0,5,RT,CLEAR ); //send_line22(scc);
 						 }
@@ -1374,11 +1374,11 @@ eSystemState operator_State_Handler2(void)
 
 
 								  //dd-hh:mm,    P  , L  ,    T
-								 printDisp_c2("p",1,0,8,LT,CLEAR); printDisp_f2(pr_,1,0,8,LT,NOCLEAR);  //display price
+								 printDisp_c2("P",1,0,8,LT,CLEAR); printDisp_f2(pr_,1,0,8,LT,NOCLEAR);  //display price
 
 								 if (scroll_ == 1 )
 								 {
-									 printDisp_c2("l",2,0,8,LT,CLEAR); printDisp_f2(vl_,2,0,8,LT,NOCLEAR);  //display litre
+									 printDisp_c2("L",2,0,8,LT,CLEAR); printDisp_f2(vl_,2,0,8,LT,NOCLEAR);  //display litre
 								 }
 								 else if (scroll_ == 2)
 								 {
@@ -1394,15 +1394,15 @@ eSystemState operator_State_Handler2(void)
 								  }
 
 								snprintf(line3, sizeof(line3), "Bn1.%d",log_indx_indx );
-								send_line32("      ");
+								send_line32("        ");
 								send_line32(line3);
 //							  }
            	             }
 						 else
 						 {
-						   send_line12(" no log ");
+						   send_line12(" No log ");
 						   send_line22("        ");
-						   send_line32("      ");
+						   send_line32("        ");
 						 }   // if log  > 0.
 
 	          		       t2 = 0;    //reset the timer.
@@ -2321,7 +2321,7 @@ eSystemState progstate_Handler2(void)
 			 else if (pkey == 'A')  // back key
    				{
    					fxn = nothing;
-   					send_line32("      ");
+   					send_line32("        ");
    				}
    		 }
    	 return prog_State;
@@ -3043,7 +3043,7 @@ eSystemState progstate_Handler2(void)
     	   if (t2 >= 3000)
     		 {
 
-    		  send_line32("      ");
+    		  send_line32("        ");
     		  send_line22(" Done ");
     		  fxn = nothing;
     		t2 = 0;

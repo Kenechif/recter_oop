@@ -1120,7 +1120,7 @@ eSystemState operator_State_Handler(void)
 							 }
 							 else
 							 {
-								 send_line1("p        ");
+								 send_line1("P        ");
 								 send_line2("        ");
 								 printDisp_f(totaliser_amt2c, 2, 0,5,RT,CLEAR ); //send_line2(scc);
 							 }
@@ -1448,7 +1448,7 @@ eSystemState operator_State_Handler(void)
 	           	             }
 							 else
 							 {
-							   send_line1(" no log ");
+							   send_line1(" No log ");
 							   send_line2("        ");
 							   send_line3("      ");
 							 }   // if log  > 0.

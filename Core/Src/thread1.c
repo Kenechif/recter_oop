@@ -2101,7 +2101,7 @@ void run()
 	else if(awaiting_masterResponse == 1)
 	{
 		 if(_tt1 > 2000)
-			 send_line3("err5 ");
+			 send_line3("Err5 ");
 	}
 
 	#if sense_battery == 1
@@ -2110,6 +2110,20 @@ void run()
 
 		}
 	#endif    //#if sense_battery
+
+
+//	pulsercheck = oldPulser1 - newPulser;
+//	pulsercheck2 = oldPulser2 - newPulser2;
+//	if(pulsercheck > threshold) && (eNextState != filling_State)
+//	{
+//	   activatefilling_display;
+//	   reading_starts;
+//	}
+//	if(pulsercheck2 > threshold) && (eNextState2 != filling_State)
+//	{
+//	   activatefilling_display2;
+//	   reading_starts2;
+//	}
 //
 //	 while(1)
 //	 {
