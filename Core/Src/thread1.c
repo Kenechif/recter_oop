@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "EEPROM.h"
+#include "FRAM.h"
 
 // include flash routines.
 #include "../flash_mem/w25qxxConf.h"
@@ -68,6 +69,8 @@ extern drive drive1,
 			 drive2;
 
 extern uint8_t hmacKey[];
+
+uint8_t batteryStatus = BATTERYOK;
 
 //===================================================
 #define DEV_ADDR 0xa0
@@ -1377,6 +1380,9 @@ tmmm:
 	  clear_amountSend(side_a);
 	  clear_amountSend(side_b);
 
+	  clear_calibrationData(side_a);
+	  clear_calibrationData(side_b);
+
 	  clear_logA();
 	  clear_logB();
 
@@ -1397,18 +1403,21 @@ tmmm:
 		 make_settings(side_a);
 		 make_settings(side_b);
 
-		settings[0].pi_ = 407.3;   //399.25;   //798.35;
-		settings[0].pi_c = 391.64;   //383.89;  //760.33;
-		settings[1].pi_ = 399.25;   //798.35;
-		settings[1].pi_c = 383.89;  //760.33;
+		settings[0].pi_ = 797.15;   //798.1;  //407.3;   //399.25;   //798.35;
+		settings[0].pi_c = 797.15;  //767.40;  //391.64;   //383.89;  //760.33;
+		settings[1].pi_ = 799.8;    //799.25;  //399.25;   //798.35;
+		settings[1].pi_c = 799.8;   //768.51;   //383.89;  //760.33;
+
+//		Pulser_count1 = 15962 20|0.8|0.0
+//		Pulser_count2 = 15985 20|0.8|0.0
 
 //4650
 		 vol_real1 = 20;
 		 vol_real2 = 20;
-		 vol_calibrated1 = 20.8;   //21.0;
-		 vol_calibrated2 = 20.8;
-		 vol_effective1 = 20.8;    //21.0;
-		 vol_effective2 = 20.8;
+		 vol_calibrated1 = 20;  //20.8;   //21.0;
+		 vol_calibrated2 = 20;  //20.8;
+		 vol_effective1 = 20;   //20.8;    //21.0;
+		 vol_effective2 = 20;   //20.8;
 
 		 calib_pulser1 =  (settings[0].pi_c * vol_calibrated1);
 		 calib_pulser2 =  (settings[1].pi_c * vol_calibrated2);
@@ -1420,10 +1429,10 @@ tmmm:
 		 save_calibrationPulser(side_a);
 		 save_calibrationPulser(side_b);
 
-		 calibration_flag1 = CALIBRATED;
+		 calibration_flag1 = UNCALIBRATED;
 		 save_calibrationFlag(side_a);
 
-		 calibration_flag2 = CALIBRATED;
+		 calibration_flag2 = UNCALIBRATED;
 		 save_calibrationFlag(side_b);
 
 	//	 save_volumeTotaliser(side_a); //side_a
@@ -1564,6 +1573,75 @@ while(1)
     HAL_Delay(200);
 }
 skip_test:
+
+//extern char dma_result_buffer[100];
+//
+//extern volatile uint16_t adc_dma_result[2];
+//// This variable calculate the array length.
+//// In our case, array size in 3
+//extern int adc_channel_count;
+//// This flag will help to detect
+//// the DMA conversion completed or not
+//extern uint8_t adc_conv_complete_flag;
+//while(1)
+//{
+//		// when adc_conv_complete_flag is set to 1,
+//		// that means DMA conversion is completed
+//	   if(adc_conv_complete_flag == 1)
+//	   {
+//			  // this snprintf function helps to convert the adc_dma_result array
+//			  // into string and store in dma_result_buffer character array
+//			  snprintf(dma_result_buffer, 100, "CH_1: %d, CH_2: %d\r\n", adc_dma_result[0], adc_dma_result[1]);
+//			  // we just send the dma_result_buffer character array with ADC values
+//			  // to our computer serial terminal software (Tera Term) using UART peripheral of STM32
+////			  HAL_UART_Transmit(&huart2, (uint8_t *) dma_result_buffer, sizeof(dma_result_buffer), HAL_MAX_DELAY);
+//			  // adc_conv_complete_flag variable is set to 0, because,
+//		         // we alert this flag variable for new DMA conversion completion
+//			 adc_conv_complete_flag = 0;
+//		        // delay for 500 Milliseconds
+//			 HAL_Delay(500);
+//		}
+//}
+
+//while(1)
+//{
+////	sConfig.Rank = ADC_REGULAR_RANK_1;
+////	sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+////	sConfig.Channel = ADC_CHANNEL_9;
+////	HAL_ADC_ConfigChannel(&hadc1, &sConfig);
+////	HAL_ADC_Start(&hadc1);
+////	HAL_ADC_PollForConversion(&hadc1,1000);
+////	readValue1 = HAL_ADC_GetValue(&hadc1);
+////	HAL_ADC_Stop(&hadc1);
+////	sConfig.Channel = ADC_CHANNEL_8;
+////	HAL_ADC_ConfigChannel(&hadc1, &sConfig);
+////	HAL_ADC_Start(&hadc1);
+////	HAL_ADC_PollForConversion(&hadc1,1000);
+////	readValue2 = HAL_ADC_GetValue(&hadc1);
+////	HAL_ADC_Stop(&hadc1);
+////	sConfig.Channel = ADC_CHANNEL_7;
+////	HAL_ADC_ConfigChannel(&hadc1, &sConfig);
+////	HAL_ADC_Start(&hadc1);
+////	HAL_ADC_PollForConversion(&hadc1,1000);
+////	readValue3 = HAL_ADC_GetValue(&hadc1);
+////	HAL_ADC_Stop(&hadc1);
+////
+////	HAL_Delay(10);
+//
+//	float batt_val = battery_read();
+//	printDisp_i(batt_val, 2, 0, 8, LT, CLEAR);
+//
+//	HAL_Delay(100);
+//	HAL_GPIO_WritePin(batt_check_GPIO_Port, batt_check_Pin, GPIO_PIN_SET);;
+////	batt_val = battery_sense();
+//	HAL_GPIO_WritePin(batt_check_GPIO_Port, batt_check_Pin, GPIO_PIN_RESET);
+//	batt_val = battery_sense();
+//	printDisp_i(batt_val, 2, 0, 8, LT, CLEAR);
+//
+//	HAL_Delay(200);
+//}
+
+
 /*
   for (int i=0; i<2; i++) //512
    {
@@ -1776,10 +1854,17 @@ skip_test:
     retrieve_ctSettings(side_a);
     retrieve_ctSettings(side_b);
 
+
+    //============================================//
+    //xxxxxxxxxx FETCHES PULSER-COUNT xxxxxxxxxxxx//
+    //============================================//
+
     retrieve_calibrationPulser(side_a);
     retrieve_calibrationPulser(side_b);
 
-    retrieve_ctTimedSettings(side_a);
+    //============================================//
+
+
     retrieve_ctTimedSettings(side_b);
 
     retrieve_ctTimedFlag(side_a);
@@ -1798,6 +1883,9 @@ skip_test:
 
     retrieve_amountSend(side_a);
     retrieve_amountSend(side_b);
+
+    retrieve_calibrationData(side_a);
+    retrieve_calibrationData(side_b);
 //    startShiftTotaliser_vol1c = 500;
 //    startShiftTotaliser_amt1c = 500;
 
@@ -1815,6 +1903,29 @@ skip_test:
 ////	settings[0].pi_c = 180;
 //	make_settings(side_a);
 //	make_settings(side_b);
+
+//===============================================//
+//xxxxx Niyi's Calibration on Office's Pump xxxxx//
+//===============================================//
+//    Pulser_count1 = 15962 20|0.8|0.0
+//	  Pulser_count2 = 15985 20|0.8|0.0
+//===============================================//
+
+
+    pulser_benchMark1 = 15985;   //15987;
+    pulser_benchMark2 = 15962;   //15987;
+
+//    FRAM_Write_NUM (0, 0, 234);
+//
+//    HAL_Delay(1000);
+//
+//    float fram_read = FRAM_Read_NUM (0, 0);
+//
+//    EEPROM_Write_NUM (900, 0, 234);
+//
+//    HAL_Delay(1000);
+//
+//    fram_read = EEPROM_Read_NUM (900, 0);
 
 
 
@@ -1953,7 +2064,7 @@ skip_test:
  	          Multiplex(0,0);
 
  	    	  keynew = keypad_lcd(0,key_lcd);  //write lcd and read keypad.
- 			  if ( (keyold == 0)&&(keyold != keynew) )  //send key only if new key is pressed
+ 			  if ( (keyold == 0) &&  (keyold != keynew) )  //send key only if new key is pressed
  				  {
  					 //send_keyboard();
  				     keypress_flag = 1;  //indicate that a new press was detected.
@@ -2001,7 +2112,28 @@ void run()
 					   send_line2(date);
 			   }
 		*/
+	//	HAL_GPIO_WritePin(batt_check_GPIO_Port, batt_check_Pin, GPIO_PIN_SET);;
+	////	batt_val = battery_sense();
+	HAL_GPIO_WritePin(batt_check_GPIO_Port, batt_check_Pin, GPIO_PIN_RESET);
+	float batt_val = battery_sense();
 
+#if (sense_battery == 1)
+//	if( (batt_val < 2.00) && (batt_val >= 1.95) )
+	if( (batt_val < 1.8) && (batt_val >= 1.5) )
+	{
+//		batteryStatus = LOWBATTERY;
+		batteryStatus = BATTERYOK;
+	}
+//	else if(batt_val < 1.5)
+	else if(batt_val < 1.0)
+	{
+		batteryStatus = NOBATTERY;
+	}
+	else
+	{
+		batteryStatus = BATTERYOK;
+	}
+#endif     //#if (sense_battery == 1)
 
 	if(server_message_found == 1)
 	{
@@ -2018,6 +2150,8 @@ void run()
 		card2_rx_parse();
 		card2_message_found = 0;
 	}
+
+#if defined (DEV_MODE)
 
 	epSend_interval();
 
@@ -2036,6 +2170,8 @@ void run()
 //
 //	}
 
+#else
+
 	//============================================//
 	// 				EP's ROUTINE SENDING			  //
 	//============================================//
@@ -2049,6 +2185,8 @@ void run()
 		connected = 0;
 	}
 	//============================================//
+
+#endif     //#if defined (DEV_MODE)
 
 
 	if(operating_sideA)
@@ -2104,12 +2242,12 @@ void run()
 			 send_line3("Err5 ");
 	}
 
-	#if sense_battery == 1
-		if( battery_read() < 1.81 )   //1.81V @ 6.4V Low_cutOff
-		{
-
-		}
-	#endif    //#if sense_battery
+//	#if sense_battery == 1
+//		if( battery_read() < 1.81 )   //1.81V @ 6.4V Low_cutOff
+//		{
+//
+//		}
+//	#endif    //#if sense_battery
 
 
 //	pulsercheck = oldPulser1 - newPulser;
@@ -2158,7 +2296,7 @@ uint8_t  read_event1()
 
    			  keypress_ = keynew;  //key flag is also set...
 
-
+#ifndef DEV_MODE
    			 //--------------------------------------------------
 			  //  totaliser error.
 				if( (totaliser_flag == 0) && (drive1 != ACTIVATE) )
@@ -2167,7 +2305,7 @@ uint8_t  read_event1()
 					return _tot_error_Event;
 				}
    			  //--------------------------------------------------
-
+#endif     //#ifndef DEV_MODE
 
 
 	 //==========check for long press events.....========
@@ -2369,7 +2507,7 @@ int  read_event2()
 
    			  keypress_2 = keynew2;  //key flag is also set...
 
-
+#ifndef DEV_MODE
    			//--------------------------------------------------
 			  //  totaliser error.
 				if( (totaliser_flag2 == 0) && (drive2 != ACTIVATE) )
@@ -2378,7 +2516,7 @@ int  read_event2()
 					return _tot_error_Event;
 				}
 		    //--------------------------------------------------
-
+#endif     //#ifndef DEV_MODE
 
 
 	 //==========check for long press events.....========

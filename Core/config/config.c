@@ -520,12 +520,14 @@ void epSend_interval(void)
 		  effectiveMinusBase1,
 		  effectiveMinusBase2;
 
+#if defined (DEV_MODE)
 	//:::::::::::::::::::::::::::::::://
-		ep5a_sent = 1;
-		ep5b_sent = 1;
-		ep0_sent = 1;
-		ep31_sent = 1;
+//		ep5a_sent = 1;
+//		ep5b_sent = 1;
+//		ep0_sent = 1;
+//		ep31_sent = 1;
 	//:::::::::::::::::::::::::::::::://
+#endif  //#if !defined (DEV_MODE)
 
 	//================================================//
 	// 	      EP0, EP5 & EP31 ROUTINES SENDING	      //
@@ -587,14 +589,16 @@ void epSend_interval(void)
 			baseMinusOriginal1 = (vol_calibrated1 - vol_real1);
 
 			if(vol_effective1 != 0.0)
-				effectiveMinusBase1 = (vol_effective1 - vol_calibrated1);
+//				effectiveMinusBase1 = (vol_effective1 - vol_calibrated1);
+				effectiveMinusBase1 = (vol_effective1 - vol_real1);
 			else
 				effectiveMinusBase1 = 0.0;
 
 			baseMinusOriginal2 = (vol_calibrated2 - vol_real2);
 
 			if(vol_effective2 != 0.0)
-				effectiveMinusBase2 = (vol_effective2 - vol_calibrated2);
+//				effectiveMinusBase2 = (vol_effective2 - vol_calibrated2);
+				effectiveMinusBase2 = (vol_effective2 - vol_real2);
 			else
 				effectiveMinusBase2 = 0.0;
 
@@ -694,13 +698,13 @@ void epSend_interval(void)
 			if(ep1b_save.synched_tranxA != ep1b_save.total_tranxA)
 			{
 				ep2_send(side_a);
-				save_synchedTransaction_sides(side_a);
+//				save_synchedTransaction_sides(side_a);
 				timer_ep = 0;
 			}
 			else if(ep1b_save.synched_tranxB != ep1b_save.total_tranxB)
 			{
 				ep2_send(side_b);
-				save_synchedTransaction_sides(side_b);
+//				save_synchedTransaction_sides(side_b);
 				timer_ep = 0;
 			}
 
@@ -972,6 +976,7 @@ void serverResponse_parse(ep_ ep)
 
 					   if(ct_type == 2)
 					   {
+						  save_ctSettings(side_a);
 						  save_ctTimedSettings(side_a);
 						  ctTimed_flag1 = 1;
 
@@ -986,6 +991,7 @@ void serverResponse_parse(ep_ ep)
 
 					   if(ct_type == 2)
 					   {
+						  save_ctSettings(side_b);
 						  save_ctTimedSettings(side_b);
 						  ctTimed_flag2 = 1;
 					   }
@@ -1577,14 +1583,18 @@ void server_rx_parse(void)
 	   //	   res: ep:1a. {"st":0,"tk":24404,"ud":0,"tm":37424857,"am":0.0,"mt":{"ty":3,"pn":"all","pr":590.0,"sh":null,"fg":0,"tg":"p|all"},"pv":0.0,"wv":0.0,"sa":0.0,"bal":0.0,"dc":null,"wb":null,"ft":null}
 
 	   //	   {"st":0,"tk":36685,"sn":"MANAGER MANAGER","bn":"Efuel","ba":"18 Illupeju, lagos, Lagos, Nigeria","cn":"Demonstration Limited","si":"JL32814"}
+	   //	res: ep:31	   {"st":0,"tk":1060422946,,"pumps":[{"nm":"P1","nz":0,"ctt":2,"ct":"20|0.5|0.4-1500|20|0.5|0.6|2005},{"nm":"P2","nz":0,"ctt":2, "ct":"20|0.5|0.4-2310|20|0.5|0.0|0559"}]}
 
 	   if( (st == 0) && (statuss[0] == '0') )   //Successful Response --> status = 0
 	   {
 		   for(int8_t i = 0; i < 15; i++)
 		   	{
-//			    list[0].token = 36685;
-//			    list[0].ep = ep20_side_a;
+
+#if defined (DEV_MODE)
+//			    list[0].token = 1060422946;
+//			    list[0].ep = ep31;
 //			    list[0].ptrMessgResp_callBack = serverResponse_parse;
+#endif   //#if defined (DEV_MODE)
 
 			    snprintf(token_str, sizeof(token_str), "%lu", list[i].token);
 		   		if(strstr(rx_buf, token_str))
@@ -2680,6 +2690,7 @@ void send_ep0_ep5(void)
 }
 
 //{"st":0,"tk":1060422946,,"pumps":[{"nm":"P7","nz":0,"ctt":2,"ct":"1500|20|0.5|0.4|2005},{"nm":"P8","nz":0,"ctt":2, "ct":"2310|20|0.5|0.0|0559"}]}
+//{"st":0,"tk":1060422946,,"pumps":[{"nm":"P7","nz":0,"ctt":2,"ct":"20|0.5|0.4-1500|20|0.5|0.6|2005},{"nm":"P8","nz":0,"ctt":2, "ct":"20|0.5|0.4-2310|20|0.5|0.0|0559"}]}
 
 uint8_t ct_parse(pump_sid side)
 {
@@ -2692,10 +2703,20 @@ uint8_t ct_parse(pump_sid side)
 
 	char rx;
 
-	if(side == side_a){
-
+	if(side == side_a)
+	{
 		while( (head_pos < pump_rx_bufsize) && (ct_gotten == 0) )
 		{
+//		   if( rx_buf[head_pos] == 'c' && rx_buf[head_pos+1] == 't' &&
+//					rx_buf[head_pos+2] == 't' && rx_buf[head_pos+3] == ':' )
+//			{
+//				  head_pos += (3+1);
+//				  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+//					  rx = rx_buf[head_pos];
+//				  ep31_save.pump[0].calibrate_ct.ctt = (int)(rx); //atoi(rx);
+//				  ep31_save.pump[0].calibrate_ct.ctt -= 48;
+//			}
+
 		   if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
 			   rx = rx_buf[head_pos];
 
@@ -2767,7 +2788,45 @@ uint8_t ct_parse(pump_sid side)
 						  else if(rx == '2')
 						  {
 	//						  ctt":2,"ct":"1500|20|0.5|0.4|2005}
-							  head_pos += 7;
+//							  ctt":2,"ct":"20|0.5|0.4-1500|20|0.5|0.4|2005}
+
+							  while( (head_pos < pump_rx_bufsize) && (ct_gotten == 0) )
+							  {
+								  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+									 rx = rx_buf[head_pos];
+								  if( (rx == '|') && (pipe_found == 0) )
+								  {
+	//						    	  head_pos++;
+									  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+										  rx = rx_buf[head_pos];
+									  pipe_found = 1;
+	//								  pipeCounter++;
+								  }
+								  else if (pipe_found == 1)
+								  {
+									   if(rx == '|')
+									   {
+	//										 if(pipeCounter == 2)
+	//										 {
+										 do
+										 {
+											 head_pos++;
+											 if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+												   rx = rx_buf[head_pos];
+
+											   if(rx != '-')
+												   ep31_save.pump[0].calibrate_ct.ct_effectiveMinusBase[i++] = rx;
+										 }
+										 while(rx != '-');
+										 ct_gotten = 1;
+									   }
+								  }
+								  head_pos++;
+							  }
+
+//							  ctt":2,"ct":"20|0.5|0.4-1500|20|0.5|0.4|2005}
+
+							  head_pos--; //To re-point to '-'
 							  i = 0;
 
 							  memset(ep31_save.pump[0].calibrate_ct.ct_startTime,'\0', 6);
@@ -2779,6 +2838,8 @@ uint8_t ct_parse(pump_sid side)
 
 								   if(rx != '|')
 									   ep31_save.pump[0].calibrate_ct.ct_startTime[i++] = rx;
+
+//								   head_pos++;
 							  }
 							  while(rx != '|');
 
@@ -2836,6 +2897,9 @@ uint8_t ct_parse(pump_sid side)
 
 		else if(side == side_b){
 
+		//{"st":0,"tk":1060422946,,"pumps":[{"nm":"P7","nz":0,"ctt":2,"ct":"20|0.5|0.4-1500|20|0.5|0.6|2005},{"nm":"P8","nz":0,"ctt":2, "ct":"20|0.5|0.4-2310|20|0.5|0.0|0559"}]}
+
+
 		  while(curlyBracket == 0)
 		  {
 			 head_pos++;
@@ -2848,6 +2912,7 @@ uint8_t ct_parse(pump_sid side)
 		//	  i = 0;
 
 		//	{"st":0,"tk":1060422946,,"pumps":[{"nm":"P7","nz":0,"ctt":1,"ct":"20|0.5|0.4},{"nm":"P8","nz":0,"ctt":1, "ct":"20|0.5|0.0"}]}
+		//{"st":0,"tk":1060422946,,"pumps":[{"nm":"P7","nz":0,"ctt":2,"ct":"20|0.5|0.4-1500|20|0.5|0.6|2005},{"nm":"P8","nz":0,"ctt":2, "ct":"20|0.5|0.4-2310|20|0.5|0.0|0559"}]}
 
 			while( (head_pos < pump_rx_bufsize) && (ct_gotten == 0)  )
 			{
@@ -2917,18 +2982,52 @@ uint8_t ct_parse(pump_sid side)
 							  }
 
 		//{"st":0,"tk":1060422946,,"pumps":[{"nm":"P7","nz":0,"ctt":2,"ct":"1500|20|0.5|0.4|2005},{"nm":"P8","nz":0,"ctt":2, "ct":"2310|20|0.5|0.0|0559"}]}
+		//{"st":0,"tk":1060422946,,"pumps":[{"nm":"P7","nz":0,"ctt":2,"ct":"20|0.5|0.4-1500|20|0.5|0.6|2005},{"nm":"P8","nz":0,"ctt":2, "ct":"20|0.5|0.4-2310|20|0.5|0.0|0559"}]}
 
 							  else if(rx == '2')
 							  {
-								  while(rx != ':')
+								  while( (head_pos < pump_rx_bufsize) && (ct_gotten == 0) )
 								  {
-									 head_pos++;
-									 if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
-										   rx = rx_buf[head_pos];
+									  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+										 rx = rx_buf[head_pos];
+									  if( (rx == '|') && (pipe_found == 0) )
+									  {
+										  if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+											  rx = rx_buf[head_pos];
+										  pipe_found = 1;
+									  }
+									  else if (pipe_found == 1)
+									  {
+										   if(rx == '|')
+										   {
+											 do
+											 {
+												 head_pos++;
+												 if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+													   rx = rx_buf[head_pos];
+
+												   if(rx != '-')
+													   ep31_save.pump[1].calibrate_ct.ct_effectiveMinusBase[i++] = rx;
+											 }
+											 while(rx != '-');
+											 ct_gotten = 1;
+										   }
+									  }
+									  head_pos++;
 								  }
 
+//								  while(rx != ':')
+//								  {
+//									 head_pos++;
+//									 if( (head_pos >= 0) && (head_pos < pump_rx_bufsize) )
+//										   rx = rx_buf[head_pos];
+//								  }
+
 					//						  ctt":2,"ct":"1500|20|0.5|0.4|2005}
-								  head_pos += 1;
+//								  ctt":2,"ct":"20|0.5|0.4-1500|20|0.5|0.6|2005}
+
+//								  head_pos += 1;
+								  head_pos -= 1;   //To maintain the pointer at '-'
 								  i = 0;
 								  memset(ep31_save.pump[1].calibrate_ct.ct_startTime,'\0', 6);
 								  do
@@ -3002,6 +3101,19 @@ uint8_t ep1_ctCheck(void)
 	int head_pos = 0;
 
 	char rx;
+
+//	char* strptr = strstr(rx_buf, "\"ct\":");
+//	if(strptr != 0)
+//    {
+//
+//	   head_pos--;
+//	   ep1a_save.ct = (int) (*(strptr + 5));
+//	   ep1a_save.ct = (ep1a_save.ct - 48);
+//	   return ep1a_save.ct;
+//    }
+//    else
+//	   return 0;
+
 
    if(strstr(rx_buf, "\"ct\":"))
    {

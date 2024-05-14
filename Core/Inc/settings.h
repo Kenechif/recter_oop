@@ -30,14 +30,24 @@ extern "C" {
 
 //      #define DEV_MODE
 
+//	  #define OTP_ENABLE
+
 //:::::::::::::::::::::::::::::::::::::::::::://
 
 
 //============================================
-#define _USE_SOFT_PULSER            0
+
+#ifdef DEV_MODE
+	#define _USE_SOFT_PULSER            1
+	#define sense_battery 				0
+	#define sense_power  				0
+#else
+	#define _USE_SOFT_PULSER            0
+	#define sense_battery 				1
+	#define sense_power  				1
+#endif
+
 #define use_internal_rtc			0
-#define sense_power  				1
-#define sense_battery 				1
 #define delay_keypad                1
 
 #define test_battery        		0
@@ -53,10 +63,19 @@ extern "C" {
 #define pump_rx_bufsize  			1000
 
 #define CALIBRATED 					0b10011001
+#define UNCALIBRATED 				0b00000000
+
+#define POWERINTERRUPTION 			0b10011001
+#define NOPOWERINTERRUPTION 		0b00000000
 
 #define FRESHDAY					0b00000001
 #define VOUCHERNUMBERGOTTEN			0b00000011
 #define VOUCHER_DOWNLOADED          0b00000111
+
+
+#define BATTERYOK					0b00000000
+#define LOWBATTERY					0b00000001
+#define NOBATTERY					0b00000010
 
 
 
@@ -280,6 +299,13 @@ typedef struct
 
  typedef struct
  {
+	  int16_t pulser_benchMark;
+	  int16_t pulser_value;
+	  uint8_t power_interruption;
+ }_calibrationData;
+
+ typedef struct
+ {
 	 uint8_t original;   //1
 	 float base;         //1 + 4 => 5
 	 float effective;    //5 + 4 => 9
@@ -290,6 +316,7 @@ typedef struct
 	 float effective;
 	 unsigned int startTime;
 	 unsigned int endTime;
+	 uint8_t day;
  }ctTimed_settings;
 
 
@@ -694,6 +721,9 @@ int startTime1,
 	endTime1,
 	endTime2;
 
+uint8_t ctTimed_day1,
+		ctTimed_day2;
+
 float vol_calibrated1,
  	  vol_effective1,
 	  vol_calibrated2,
@@ -716,7 +746,9 @@ uint8_t calibrationCan_measure1,
 		calibrationCan_measure2;
 
 uint8_t calibration_flag1,
-		calibration_flag2;
+		calibration_flag2,
+		pwr1,
+		pwr2;
 
 float temppp_;
 
@@ -755,6 +787,18 @@ void clear_calibrationPulser(pump_sid side);
 void save_sessionId(pump_sid side);
 void retrieve_sessionId(pump_sid side);
 void clear_sessionId(pump_sid side);
+
+void save_calibrationFlag(pump_sid side);
+void retrieve_calibrationFlag(pump_sid side);
+void clear_calibrationFlag(pump_sid side);
+
+void save_calibrationData(pump_sid side);
+void retrieve_calibrationData(pump_sid side);
+void clear_calibrationData(pump_sid side);
+
+void save_amountSend(pump_sid side);
+void retrieve_amountSend(pump_sid side);
+void clear_amountSend(pump_sid side);
 
 void copy_settings(copy_dir dir);
 void load_settings(pump_sid side);

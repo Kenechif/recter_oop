@@ -111,6 +111,8 @@ extern float litre_price2;
 
 extern uint8_t calibration_flag1 = 0;
 
+extern uint8_t pwr1 = NOPOWERINTERRUPTION;
+
 extern float price_upper1 = 0.000,
 			 amt_middle1 = 0.000;
 
@@ -1550,7 +1552,9 @@ int8_t read_keypad()
 
         		  keypad_pw_xter1[temp++] = '-';
         		  keypad_pw_xter1[temp  ] = 0;
-        		  send_keypad(keypad_pw_xter1);
+
+        		  if ((progg == 1) && (auth == not_auth))
+        			  send_keypad(keypad_pw_xter1);
         	  }
                 return 0;
           }
@@ -2045,10 +2049,12 @@ eSystemState progstate_Handler(void)
 				 {
 				   strncpy(pass_, keypad_buf, sizeof(pass_));
 
-//				   if(strcmp(pass_, otp_code1) == 0)  //level 2 0r 3 access ?
+			#ifdef OTP_ENABLE
+				   if(strcmp(pass_, otp_code1) == 0)  //level 2 0r 3 access ?
+			#else
 				   if( (strcmp(pass_, otp_code1) == 0) || (strcmp(pass_, otp_code1) != 0) )  //level 2 0r 3 access ?
+			#endif      //#ifdef OTP_ENABLE
 				   {
-
 					   index_menu = 0;
 					   auth = authed;
 					   if(access == level2) access = level2;
@@ -2351,7 +2357,8 @@ eSystemState progstate_Handler(void)
 	   if (t >= 300)
 		 {
 			//send_line1();
-			if(copy[pump_indx-1].mode == AUTO)
+//			if(copy[pump_indx-1].mode == AUTO)
+			   if(copy[0].mode == AUTO)
 				{
 					send_line2(" Auto ");
 				}
@@ -2360,16 +2367,16 @@ eSystemState progstate_Handler(void)
 					send_line2("NNanual ");
 				}
 
-			 if (pump_indx == 1)
-				 {
+//			 if (pump_indx == 1)
+//				 {
 					//snprintf(line3, sizeof(line3), "an1.%d",log_indx_indx + 1);
 					send_line3("  A  ");
-				 }
-			 if (pump_indx == 2)
-				 {
-					//snprintf(line3, sizeof(line3), "an1.%d",log_indx_indx + 1);
-					send_line3("  B  ");
-				 }
+//				 }
+//			 if (pump_indx == 2)
+//				 {
+//					//snprintf(line3, sizeof(line3), "an1.%d",log_indx_indx + 1);
+//					send_line3("  B  ");
+//				 }
 			t = 0;
 		 }
 	// -------------- test keys....----------------
@@ -3496,7 +3503,7 @@ eSystemState progstate_Handler(void)
    				     // then dispense the selcted volume
 					volume_flag  = 1;   //set flag and goto dispense
 					calib_pulser1 = 0;  //clear pulser
-		           __HAL_TIM_SET_COUNTER(&htim5,0);   //clear harware pulser here...
+		           __HAL_TIM_SET_COUNTER(&htim5, 0);   //clear harware pulser here...
 					return prog_State;
    				}
 
@@ -3546,18 +3553,32 @@ eSystemState progstate_Handler(void)
 //				  do_calcs();
 //				  update_info();
 
-				  pulser_totalizer1 = ( (calib_pulser1 / (float) (pulser_benchMark1)) * calibrationCan_measure1 );
-				  totaliser_vol1c += pulser_totalizer1;
-				  totaliser_vol1 += pulser_totalizer1;
-				  totaliser_amt1c += (pulser_totalizer1 * litre_price);
-				  totaliser_amt1 += (pulser_totalizer1 * litre_price);
-				  amt_real1 = pulser_totalizer1;
-				  amt_middle1 = pulser_totalizer1;
-				  price_real1 = (pulser_totalizer1 * litre_price);
-				  price_upper1 = (pulser_totalizer1 * litre_price);
-				  save_volumeTotaliser(operating_side);
-				  save_amountTotaliser(operating_side);
-				  save_lastSale(operating_side);
+				  if(calibration_flag1 == CALIBRATED)
+				  {
+					  pulser_totalizer1 = ( (calib_pulser1 / (float) (pulser_benchMark1)) * calibrationCan_measure1 );
+					  totaliser_vol1c += pulser_totalizer1;
+					  totaliser_vol1 += pulser_totalizer1;
+					  totaliser_amt1c += (pulser_totalizer1 * litre_price);
+					  totaliser_amt1 += (pulser_totalizer1 * litre_price);
+					  amt_real1 = pulser_totalizer1;
+					  amt_middle1 = pulser_totalizer1;
+					  price_real1 = (pulser_totalizer1 * litre_price);
+					  price_upper1 = (pulser_totalizer1 * litre_price);
+					  save_volumeTotaliser(operating_side);
+					  save_amountTotaliser(operating_side);
+					  save_lastSale(operating_side);
+
+//					  pwr1 = POWERINTERRUPTION;
+//					  save_calibrationData(side_a);
+				  }
+				  else if(calibration_flag1 == UNCALIBRATED)
+				  {
+//					  calibrationData[0].pulser_value = calib_pulser1;
+
+					  pulser_benchMark1 = 0;
+					  pwr1 = POWERINTERRUPTION;
+					  save_calibrationData(side_a);
+				  }
 
 				  return write_flash_state;
 			  }
@@ -3578,7 +3599,10 @@ eSystemState progstate_Handler(void)
 				  	  calib_pulser1++; 							// use software counter.
 				  #endif
 
-				  pulser_totalizer1 = ( (calib_pulser1 / (float) (pulser_benchMark1)) * calibrationCan_measure1 );
+//				  pulser_totalizer1 = ( (calib_pulser1 / (float) (pulser_benchMark1)) * calibrationCan_measure1 );
+				  pulser_totalizer1 = ( (calib_pulser1 / (float) (calib_pulser1)) * calibrationCan_measure1 );
+
+				  pulser_benchMark1 = calib_pulser1;
 
 				  totaliser_vol1c += pulser_totalizer1;
 				  totaliser_vol1 += pulser_totalizer1;
@@ -3592,10 +3616,12 @@ eSystemState progstate_Handler(void)
 				  save_amountTotaliser(operating_side);
 				  save_lastSale(operating_side);
 
+				  save_calibrationData(side_a);
+
 
   //				  calib_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);  //use hardware counter
 				  send_line1("Set your");
-				  send_line2("Annount  ");
+				  send_line2("Volunne ");
 				  HAL_Delay(2000);
 				  volume_flag = 3;   //enter the price.
 
@@ -3619,7 +3645,7 @@ eSystemState progstate_Handler(void)
 	   {
 			  if(t > 400)
 			  {
-				send_line1("Annount  ");
+				send_line1("Volunne ");
 				printDisp_f(atoff(keyboard_entry), 2, 0, 7, RT, CLEAR);
 				t = 0;
 			  }
@@ -5514,39 +5540,58 @@ eSystemState idlestate_Handler(void)
 	  }
 	#endif
 
-	if(HAL_GPIO_ReadPin(pulser1_detect_GPIO_Port, pulser1_detect_Pin) == 1 )
-	{
-		send_line1(" Pulser ");
-		send_line2("  Error ");
-		send_line3(" Err24 ");
-
-	    return inactive_State;
-	}
-	else
-	{
-
-	}
-
-//	if(calib_pulser1 < 15800)  //15987, 15967 .... 1106247681
-	if(calibration_flag1 != CALIBRATED) //15800)  //15987, 15967 .... 1106247681
-	{
-		retrieve_calibrationFlag(side_a);
-
-		if(calibration_flag1 != CALIBRATED) //takes care of accidental clearing of calibration_flag1 by F-keys
+	#if !defined (DEV_MODE)
+		if(batteryStatus == LOWBATTERY)
 		{
-			calibration1_error = 1;
-
-			send_line1("Calibrat");
-			send_line2("  Error ");
-			send_line3(" Err23 ");
+			send_line1("  Louu   ");
+			send_line2("Battery  ");
+			send_line3(" Err70 ");
 
 			return inactive_State;
 		}
-	}   //if(calibration1_error == 1)
-	else
-	{
-		calibration1_error = 0;
-	}
+		else if(batteryStatus == NOBATTERY)
+		{
+			send_line1("Battery ");
+			send_line2("  Error ");
+			send_line3(" Err71 ");
+
+			return inactive_State;
+		}
+
+		if(HAL_GPIO_ReadPin(pulser1_detect_GPIO_Port, pulser1_detect_Pin) == 1 )
+		{
+			send_line1(" Pulser ");
+			send_line2("  Error ");
+			send_line3(" Err24 ");
+
+			return inactive_State;
+		}
+		else
+		{
+
+		}
+
+	//	if(calib_pulser1 < 15800)  //15987, 15967 .... 1106247681
+		if(calibration_flag1 != CALIBRATED) //15800)  //15987, 15967 .... 1106247681
+		{
+			retrieve_calibrationFlag(side_a);
+
+			if(calibration_flag1 != CALIBRATED) //takes care of accidental clearing of calibration_flag1 by F-keys
+			{
+				calibration1_error = 1;
+
+				send_line1("Calibrat");
+				send_line2("  Error ");
+				send_line3("Err 23 ");
+
+				return inactive_State;
+			}
+		}
+		else
+		{
+			calibration1_error = 0;
+		}
+	#endif    //#if !defined (DEV_MODE) ,,
 
 	if(nozzleUp_inProgMode1 == 1)
 	{
@@ -5554,22 +5599,51 @@ eSystemState idlestate_Handler(void)
 			prog_entry1 = 0;
 			prog_revisit1 = 1;
 
-		#ifndef DEV_MODE
+//		#ifndef DEV_MODE
 			prog_revisitt1 = 1;
-		#endif
+//		#endif
 
 			nozzleUp_inProgMode1 = 0;
 	}
 	if(ctTimed_flag1 == 1)
 	{
-		gerCtTime = get_ctTime1();
-		if( (gerCtTime >= ctTimed_settingsA.startTime) && (gerCtTime <= ctTimed_settingsA.endTime) )
+		day = DS1307_GetDate();
+		if( (ctTimed_day1 == day) || ((ctTimed_day1 + 1) == day) )
 		{
-			settings[0].pi_c = (calib_pulser1 / vol_effective1_1);
-		}
-		else
-		{
-			retrieve_originalPi_c(side_a);
+			gerCtTime = get_ctTime1();
+
+			//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+			//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx IF IT'S TIME xxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
+			//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+			if( (gerCtTime >= ctTimed_settingsA.startTime) && (gerCtTime <= ctTimed_settingsA.endTime) )
+			{
+				settings[0].pi_c = (calib_pulser1 / vol_effective1_1);
+			}
+			else
+			{
+				retrieve_originalPi_c(side_a);
+			}
+
+			//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+			//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx IF TIME ELAPSESxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
+			//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+			if(gerCtTime > ctTimed_settingsA.endTime)
+			{
+				if( ( (ctTimed_settingsA.startTime - ctTimed_settingsA.endTime) < 0) || ( (ctTimed_settingsA.startTime - ctTimed_settingsA.endTime) == 0) )
+				{
+					ctTimed_flag1 = 0;
+					save_ctTimedFlag(side_a);
+				}
+				else if( (ctTimed_settingsA.startTime - ctTimed_settingsA.endTime) > 0)
+				{
+					if( (ctTimed_day1 + 1) == day)
+					{
+						ctTimed_flag1 = 0;
+						save_ctTimedFlag(side_a);
+					}
+				}
+			}
+
 		}
 	}
 
@@ -5806,8 +5880,8 @@ eSystemState idlestate_Handler(void)
 		}
 		else if( (t > 2000) && (_auth_v == 1) )
 		{
-			 send_line1("  No   ");
-			 send_line2("Annount  ");
+			 send_line1("   No   ");
+			 send_line2("Volunne ");
 			 send_line3("Err10   ");
 			 if(t > 6000)
 			 {
@@ -5971,8 +6045,8 @@ eSystemState savesettings_State_Handler(void)
 		{
 		  if(t>500)
 		   {
-			  send_line1("1-  saue");
-			  send_line2("2-delete");
+			  send_line1("1-  Saue");
+			  send_line2("2-Cancel");
 			  t = 0;
 		   }
 		  respons = atoi(keyboard_entry);
@@ -6295,7 +6369,10 @@ uint32_t price2pulser(float price)
 //  original_pulse = temp;
   //temp = floor(temp);
   float temp = (price / litre_price);
-  temp -= 0.01;
+//  temp -= 0.01;
+
+  temp -= 0.004;
+
   temp *= pulser_index_c;
   original_pulse = temp;
 //  temp -= 4;
@@ -6306,7 +6383,10 @@ uint32_t amt2pulser(float amt)
 {
 	 float temp;
 
-	 amt -= 0.01;
+//	 amt -= 0.01;
+
+	 amt -= 0.004;
+
 	 temp = amt * pulser_index_c;
 //	 display_minimumPulser = (0.09 * pulser_index_c);   //9 centilitres
 	 original_pulse = temp;
@@ -6644,7 +6724,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 			  sprintf(keyboard_entry,"%2f",auth_p);
 			  key_value = atof(keyboard_entry);
-			  change_p = 0;      //reset tbe flag.
+			  change_p = 0;      //reset the flag.
 			  index_ = strlen(keyboard_entry);
 
 			  target_pulser1 = price2pulser(key_value);  //calculate pulse frm price.
@@ -7204,23 +7284,23 @@ eSystemState timeout_Handler(void)
   //compose the kind of timeout error
   if(eLastState1 == nozzleup_waitingforauth_State)
   {
-	 send_line3("err1 ");
+	 send_line3("Err1 ");
 	 nozzleup_awaitingauth_state_not_timedOut = 0;
   }
 
   if(eLastState1 == authorised_nozzledown_State)
   {
-     send_line3("err2 ");
+     send_line3("Err2 ");
   }
 
   if(eLastState1 == authorisation_paused_State)
   {
-	 send_line3("err3 ");
+	 send_line3("Err3 ");
   }
 
  if(eLastState1 == filling_paused_State)
   {
-	 send_line3("err4 ");
+	 send_line3("Err4 ");
   }
 
  if(eLastState1 == authorised_nozzleup_State)
@@ -7233,9 +7313,9 @@ eSystemState timeout_Handler(void)
 			  display_overflow1 = 0;
 	 }
 
-	 send_line1("    no ");
-	 send_line2("  flouu ");
-	 send_line3("err15 ");
+	 send_line1("    No ");
+	 send_line2("  Flouu ");
+	 send_line3("Err15 ");
  }
 // if(eLastState1 == power_failure)
 //  {
@@ -7841,6 +7921,24 @@ eSystemState filling_state_Handler(void)
 	  }
 
 //================================================================
+
+	#if !defined (DEV_MODE)
+	  	if(batteryStatus == NOBATTERY)
+		{
+			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+			  HAL_Delay(200);
+			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+			  filling1 = 0;
+			  stop_flow1();
+			  get_time();
+			  do_calcs();
+			  update_info();
+			  save_volumeTotaliser(operating_side);
+			  save_amountTotaliser(operating_side);
+			  save_lastSale(operating_side);
+			  return write_flash_state;
+		}
+
 //    power outage during filling1  end transaction...
 		#if sense_power == 1
 	  	  if( (readpwr() == 0)||(read_p_pwr() == 0) )
@@ -7860,21 +7958,22 @@ eSystemState filling_state_Handler(void)
 		  }
 		#endif
 
-	if(HAL_GPIO_ReadPin(pulser1_detect_GPIO_Port, pulser1_detect_Pin) == 1 )
-	{
-		  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-		  HAL_Delay(200);
-		  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
-		  filling1 = 0;
-		  stop_flow1();
-		  get_time();
-		  do_calcs();
-		  update_info();
-		  save_volumeTotaliser(operating_side);
-		  save_amountTotaliser(operating_side);
-		  save_lastSale(operating_side);
-		  return write_flash_state;
-	}
+		if(HAL_GPIO_ReadPin(pulser1_detect_GPIO_Port, pulser1_detect_Pin) == 1 )
+		{
+			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+			  HAL_Delay(200);
+			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+			  filling1 = 0;
+			  stop_flow1();
+			  get_time();
+			  do_calcs();
+			  update_info();
+			  save_volumeTotaliser(operating_side);
+			  save_amountTotaliser(operating_side);
+			  save_lastSale(operating_side);
+			  return write_flash_state;
+		}
+	#endif   //#if !defined (DEV_MODE)
 
 	if (stop_flag == 1)   //if stop key pressed
 	{

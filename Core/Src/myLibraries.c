@@ -25,6 +25,8 @@ uint32_t pulser2 = 0;
 drive drive1,
 	  drive2;
 
+extern ADC_ChannelConfTypeDef sConfig;
+
 //extern  displaytype  disp_type1;
 //extern  displaytype  disp_type2;
 extern pump disp_type1,
@@ -82,6 +84,21 @@ float battery_read(void)
 	uint16_t digital_reading;
 	float batt_v;
 
+	ADC_ChannelConfTypeDef sConfig = {0};
+
+	/** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+	  */
+	  sConfig.Channel = ADC_CHANNEL_2;
+	  sConfig.Rank = 1;
+	  sConfig.SamplingTime = ADC_SAMPLETIME_28CYCLES;
+	  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+	  {
+	    Error_Handler();
+	  }
+
+//	sConfig.Channel = ADC_CHANNEL_2;
+//	HAL_ADC_ConfigChannel(&hadc1, &sConfig);
+
 	HAL_ADC_Start(&hadc1); // start A/D conversion
 	if(HAL_ADC_PollForConversion(&hadc1, 500) == HAL_OK) //check if conversion is completed & 500ms Timeout
 	{
@@ -90,9 +107,80 @@ float battery_read(void)
 	HAL_ADC_Stop(&hadc1); // stop conversion
 	HAL_Delay(100);
 
-	batt_v = ( (digital_reading * 3.2 ) / 4095 );   //no_battery => 2.23V (@ 7.9V) low_cutoff => 1.81 (@ 6.4V)
-    return batt_v;
+	batt_v = ( (digital_reading * 3.3 ) / 4095 );   //no_battery => 2.23V (@ 7.9V) low_cutoff => 1.81 (@ 6.4V)
+	return batt_v;
 }
+
+float battery_sense(void)
+{
+	uint16_t digital_reading;
+	float batt_v;
+
+	ADC_ChannelConfTypeDef sConfig = {0};
+
+	 /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+	  */
+	  sConfig.Channel = ADC_CHANNEL_3;
+	  sConfig.Rank = 1;
+	  sConfig.SamplingTime = ADC_SAMPLETIME_84CYCLES;
+	  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+	  {
+	    Error_Handler();
+	  }
+
+//	sConfig.Channel = ADC_CHANNEL_2;
+//	HAL_ADC_ConfigChannel(&hadc1, &sConfig);
+
+	HAL_ADC_Start(&hadc1); // start A/D conversion
+	if(HAL_ADC_PollForConversion(&hadc1, 500) == HAL_OK) //check if conversion is completed & 500ms Timeout
+	{
+		digital_reading  = HAL_ADC_GetValue(&hadc1); // read digital value and save it inside uint32_t variable
+	}
+	HAL_ADC_Stop(&hadc1); // stop conversion
+	HAL_Delay(100);
+
+	batt_v = ( (digital_reading * 3.3 ) / 4095 );   //BATTERY : Fully-charged => 2.22V (@ 8.4V) low_cutoff => 1.98 (@ 6.4V); 1.91 (@ 6.0V)
+													//	1.88V (@ 5.90V)  1.8V (@5.5V)
+	return batt_v;
+}
+
+//float battery_sense(void)
+//{
+//	uint16_t digital_reading = 0;
+//	uint16_t digital_reading_array[10];
+//	uint8_t i;
+//	float batt_v;
+//
+//	sConfig.Channel = ADC_CHANNEL_3;
+//	HAL_ADC_ConfigChannel(&hadc1, &sConfig);
+//
+//	HAL_ADC_Start(&hadc1); // start A/D conversion
+//
+//	for(i = 0; i < 10; i++)
+//	{
+//		if(HAL_ADC_PollForConversion(&hadc1, 500) == HAL_OK) //check if conversion is completed & 500ms Timeout
+//		{
+//			digital_reading_array[i] = HAL_ADC_GetValue(&hadc1); // read digital value and save it inside uint32_t variable
+//		}
+//		HAL_Delay(20);
+//	}
+//
+//	HAL_ADC_Stop(&hadc1); // stop conversion
+//	HAL_Delay(100);
+//
+//	for(i = 0; i < 10; i++)
+//	{
+//		digital_reading += digital_reading_array[i];
+//	}
+//
+//	digital_reading = (digital_reading / 10);
+//
+////	batt_v = ( (digital_reading * 3.3 ) / 4095 );   //no_battery => 2.23V (@ 7.9V) low_cutoff => 1.81 (@ 6.4V)
+//	batt_v = ( (digital_reading * 3.3 ) / 4095 );   //no_battery => 2.22V (@ 8.4V) low_cutoff => 1.98 (@ 6.4V)
+//
+//	return batt_v;
+//}
+
 //=================================================================================
 ///                           HARDWARE  PERIPHERALS.
 //=================================================================================

@@ -240,9 +240,17 @@ float price_upper1,
  const int calibrationFlag1_loc = 800,
 		   calibrationFlag2_loc = 801;
 
- const int amountSend_loc  =  803;
+ const int amountSend_loc  =  803;       //For the intermittent transmission of regular-sized sale
  const int amountSend1_loc =  0;
  const int amountSend2_loc =  amountSend1_loc + (4 + 1);  // 808 -> 812
+
+ const int16_t ctTimed_settings_loc  =  813;
+ const int16_t ctTimed_settings1_loc =  0;
+ const int16_t ctTimed_settings2_loc =  ctTimed_settings1_loc + (1+(4*4));   // 830 -> 847
+
+ const int16_t calibrationDetails_loc  =  848;
+ const int16_t calibrationDetails1_loc =  0;
+ const int16_t calibrationDetails2_loc =  calibrationDetails1_loc + (1+(3*4));   // 861 -> 874
 
  const int16_t save_pumpType_loc = 400;
  const int16_t save_productType_loc = save_pumpType_loc + 1;
@@ -253,7 +261,7 @@ float price_upper1,
 // const int lastSale1_loc =  0;
 // const int lastSale2_loc =  lastSale1_loc + (2+(2*4));  //4bytes*2=8bytes+2 = 10bytes ahead.  // 50 -> 60
 
- const int8_t lastSale_loc = 282;
+ const int16_t lastSale_loc = 282;
  const int lastSale1_loc = 0;
  const int lastSale2_loc = ( lastSale1_loc + (4*4) );  //4bytes*4=16bytes = 16bytes ahead.  // 298 -> 314
 
@@ -278,9 +286,9 @@ float price_upper1,
  const int calib_pulser1_loc =  0;
  const int calib_pulser2_loc =  calib_pulser1_loc + (1 + 4);   // 153 -> 158
 
- const int8_t ctTimed_settings_loc  =  159;
- const int8_t ctTimed_settings1_loc =  0;
- const int8_t ctTimed_settings2_loc =  ctTimed_settings1_loc + (1+(3*4));   // 172 -> 185
+// const int8_t ctTimed_settings_loc  =  159;
+// const int8_t ctTimed_settings1_loc =  0;
+// const int8_t ctTimed_settings2_loc =  ctTimed_settings1_loc + (1+(3*4));   // 172 -> 185
 
  const int8_t ctTimed_flag_loc = 186;
  const int8_t ctTimed_flag1_loc = 0;
@@ -319,6 +327,8 @@ log_new log_a_new,
 log_new1 log_a_new1, log_b_new1;
 
 _amountSend amountSend[2];
+
+_calibrationData calibrationData[2];
 
 flash_store_info flash_infoA,flash_infoB;
 
@@ -956,7 +966,8 @@ void save_ctSettings(pump_sid side)
 
 	if (side == side_a)
 	  {
-		  vol_effective1 = ( (atof(ep31_save.pump[0].calibrate_ct.ct_effectiveMinusBase) + vol_calibrated1) + 0.00011);
+//		  vol_effective1 = ( (atof(ep31_save.pump[0].calibrate_ct.ct_effectiveMinusBase) + vol_calibrated1) + 0.00011);
+		  vol_effective1 = ( (atof(ep31_save.pump[0].calibrate_ct.ct_effectiveMinusBase) + vol_real1) + 0.00011);
 
 		  ct_settingsA.original = vol_real1;
 		  ct_settingsA.base = vol_calibrated1;
@@ -965,7 +976,8 @@ void save_ctSettings(pump_sid side)
 	  }
 	else if (side == side_b)
 	  {
-		  vol_effective2 = ( (atof(ep31_save.pump[1].calibrate_ct.ct_effectiveMinusBase) + vol_calibrated2) + 0.00011);
+//		  vol_effective2 = ( (atof(ep31_save.pump[1].calibrate_ct.ct_effectiveMinusBase) + vol_calibrated2) + 0.00011);
+		  vol_effective2 = ( (atof(ep31_save.pump[1].calibrate_ct.ct_effectiveMinusBase) + vol_real2) + 0.00011);
 
 		  ct_settingsB.original = vol_real2;
 		  ct_settingsB.base = vol_calibrated2;
@@ -1042,20 +1054,24 @@ void save_ctTimedSettings(pump_sid side)
 
 	if (side == side_a)
 	  {
-		  vol_effective1_1 = ( (atof(ep31_save.pump[0].calibrate_ct.ct_effectiveMinusBase) + vol_calibrated1) + 0.00011);
+//		  vol_effective1_1 = ( (atof(ep31_save.pump[0].calibrate_ct.ct_effectiveMinusBase) + vol_calibrated1) + 0.00011);
+		  vol_effective1_1 = ( (atof(ep31_save.pump[0].calibrate_ct.ct_effectiveMinusBase) + vol_real1) + 0.00011);
 
 		  ctTimed_settingsA.effective = vol_effective1_1;
 		  ctTimed_settingsA.startTime = atoi(ep31_save.pump[0].calibrate_ct.ct_startTime);
 	  	  ctTimed_settingsA.endTime = atoi(ep31_save.pump[0].calibrate_ct.ct_endTime);
+	  	  ctTimed_settingsA.day = settings[0].totalizer_day;
 	  	  EEPROM_Write(ctTimed_settings_loc, ctTimed_settings1_loc, &ctTimed_settingsA, sz);
 	  }
 	else if (side == side_b)
 	  {
-		  vol_effective2_2 = ( (atof(ep31_save.pump[1].calibrate_ct.ct_effectiveMinusBase) + vol_calibrated2) + 0.00011);
+//		  vol_effective2_2 = ( (atof(ep31_save.pump[1].calibrate_ct.ct_effectiveMinusBase) + vol_calibrated2) + 0.00011);
+		  vol_effective2_2 = ( (atof(ep31_save.pump[1].calibrate_ct.ct_effectiveMinusBase) + vol_real2) + 0.00011);
 
 		  ctTimed_settingsB.effective = vol_effective2_2;
 		  ctTimed_settingsB.startTime = atoi(ep31_save.pump[1].calibrate_ct.ct_startTime);
 	  	  ctTimed_settingsB.endTime = atoi(ep31_save.pump[1].calibrate_ct.ct_endTime);
+	  	  ctTimed_settingsB.day = settings[0].totalizer_day;
 	  	  EEPROM_Write(ctTimed_settings_loc, ctTimed_settings2_loc, &ctTimed_settingsB, sz);
 	  }
 }
@@ -1075,6 +1091,7 @@ void retrieve_ctTimedSettings(pump_sid side)
 		vol_effective1_1 =  ctTimed_settingsA.effective;
 		startTime1 = ctTimed_settingsA.startTime;
 		endTime1 = ctTimed_settingsA.endTime;
+		ctTimed_day1 = ctTimed_settingsA.day;
 
 	  	if(isnan(vol_effective1_1)) vol_effective1_1 = 0.0;
 
@@ -1086,6 +1103,7 @@ void retrieve_ctTimedSettings(pump_sid side)
 		 vol_effective2_2 =  ctTimed_settingsB.effective;
 		 startTime2 = ctTimed_settingsB.startTime;
 		 endTime2 = ctTimed_settingsB.endTime;
+		 ctTimed_day2 = ctTimed_settingsB.day;
 
 		 if(isnan(vol_effective2_2)) vol_effective2_2 = 0.0;
 
@@ -1483,7 +1501,7 @@ void save_amountTotaliser_startShift(pump_sid side)
  */
 void retrieve_amountTotaliser_startShift(pump_sid side)
 {
-  int sz = sizeof(startShiftTotaliser_amt_storeA);
+	int sz = sizeof(startShiftTotaliser_amt_storeA);
 	if (side == side_a)
 	{
 		EEPROM_Read(startShiftTotAmount_loc, startShiftTotAmount1_loc, &startShiftTotaliser_amt_storeA, sz);
@@ -1576,6 +1594,82 @@ void clear_calibrationFlag(pump_sid side)
 	else if (side == side_b)
 	{
 		EEPROM_Write_NUM (calibrationFlag2_loc, 0, 0);
+	}
+}
+
+
+//===================================================
+
+
+//===================================================
+/*
+ *  save Calibration Data
+ */
+void save_calibrationData(pump_sid side)
+{
+	uint8_t sz = sizeof(calibrationData[0]);
+
+	if (side == side_a)
+	{
+		calibrationData[0].pulser_benchMark = pulser_benchMark1;
+		calibrationData[0].pulser_value = calib_pulser1;
+		calibrationData[0].power_interruption = pwr1;
+		EEPROM_Write(calibrationDetails_loc, calibrationDetails1_loc, &calibrationData[0], sz);
+	}
+	else if (side == side_b)
+	{
+		calibrationData[1].pulser_benchMark = pulser_benchMark2;
+		calibrationData[1].pulser_value = calib_pulser2;
+		calibrationData[1].power_interruption = pwr2;
+		EEPROM_Write(calibrationDetails_loc, calibrationDetails2_loc, &calibrationData[1], sz);
+	}
+
+}
+
+//===================================================
+/*
+ *  read Calibration Data
+ */
+void retrieve_calibrationData(pump_sid side)
+{
+	uint8_t sz = sizeof(calibrationData[0]);
+	if (side == side_a)
+	{
+		EEPROM_Read(calibrationDetails_loc, calibrationDetails1_loc, &calibrationData[0], sz);
+		pulser_benchMark1 = calibrationData[0].pulser_benchMark;
+		calib_pulser1 = calibrationData[0].pulser_value;
+		pwr1 = calibrationData[0].power_interruption;
+	}
+	else if (side == side_b)
+	{
+		EEPROM_Read(calibrationDetails_loc, calibrationDetails2_loc, &calibrationData[1], sz);
+		pulser_benchMark2 = calibrationData[1].pulser_benchMark;
+		calib_pulser2 = calibrationData[1].pulser_value;
+		pwr2 = calibrationData[1].power_interruption;
+	}
+}
+
+//==============================================
+/*
+ * clear Calibration Data
+ */
+void clear_calibrationData(pump_sid side)
+{
+	uint8_t sz = sizeof(calibrationData[0]);
+
+	if (side == side_a)
+	{
+		calibrationData[0].pulser_benchMark = 0;
+		calibrationData[0].pulser_value = 0;
+		calibrationData[0].power_interruption = 0;
+		EEPROM_Write(calibrationDetails_loc, calibrationDetails1_loc, &calibrationData[0], sz);
+	}
+	else if (side == side_b)
+	{
+		calibrationData[1].pulser_benchMark = 0;
+		calibrationData[1].pulser_value = 0;
+		calibrationData[1].power_interruption = 0;
+		EEPROM_Write(calibrationDetails_loc, calibrationDetails2_loc, &calibrationData[1], sz);
 	}
 }
 

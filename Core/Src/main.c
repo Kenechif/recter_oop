@@ -47,6 +47,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
+DMA_HandleTypeDef hdma_adc1;
 
 I2C_HandleTypeDef hi2c1;
 
@@ -69,11 +70,15 @@ UART_HandleTypeDef huart3;
 extern uint32_t pulser1;
 extern uint32_t pulser2;
 extern char prn[40] ;
+
+ADC_ChannelConfTypeDef sConfig = {0};
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_RTC_Init(void);
 static void MX_SPI1_Init(void);
@@ -87,6 +92,19 @@ static void MX_USART3_UART_Init(void);
 static void MX_UART5_Init(void);
 static void MX_RNG_Init(void);
 /* USER CODE BEGIN PFP */
+
+// This array hold the the channels ADC value
+volatile uint16_t adc_dma_result[2];
+// This variable calculate the array length.
+// In our case, array size in 3
+int adc_channel_count = sizeof(adc_dma_result)/sizeof(adc_dma_result[0]);
+// This flag will help to detect
+// the DMA conversion completed or not
+uint8_t adc_conv_complete_flag = 0;
+
+// This character buffer array will
+// store the result after conversion complete
+char dma_result_buffer[100];
 
 /* USER CODE END PFP */
 
@@ -110,7 +128,7 @@ int main(void)
 
 	// stop_flow1();
 
-  	config_mode = 0;
+   	config_mode = 0;
 	//===========================================================================
 
 	SCnSCB->ACTLR |= SCnSCB_ACTLR_DISDEFWBUF_Msk; // disable the write buffer
@@ -140,6 +158,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_I2C1_Init();
   MX_RTC_Init();
   MX_SPI1_Init();
@@ -163,6 +182,31 @@ int main(void)
 //	  HAL_GPIO_WritePin(buzzer_GPIO_Port, GPIO_PIN_12, GPIO_PIN_SET);
 //	  HAL_Delay(500);
 //	  HAL_GPIO_WritePin(buzzer_GPIO_Port, GPIO_PIN_12, GPIO_PIN_RESET);
+
+
+  // Initialize the DMA conversion
+//   HAL_ADC_Start_DMA(&hadc1, (uint32_t *) adc_dma_result , adc_channel_count);
+
+//   while(1)
+//   {
+//   		// when adc_conv_complete_flag is set to 1,
+//   		// that means DMA conversion is completed
+//   	   if(adc_conv_complete_flag == 1)
+//   	   {
+//   			  // this snprintf function helps to convert the adc_dma_result array
+//   			  // into string and store in dma_result_buffer character array
+//   			  snprintf(dma_result_buffer, 100, "CH_1: %d, CH_2: %d\r\n", adc_dma_result[0], adc_dma_result[1]);
+//   			  // we just send the dma_result_buffer character array with ADC values
+//   			  // to our computer serial terminal software (Tera Term) using UART peripheral of STM32
+//   //			  HAL_UART_Transmit(&huart2, (uint8_t *) dma_result_buffer, sizeof(dma_result_buffer), HAL_MAX_DELAY);
+//   			  // adc_conv_complete_flag variable is set to 0, because,
+//   		         // we alert this flag variable for new DMA conversion completion
+//   			 adc_conv_complete_flag = 0;
+//   		        // delay for 500 Milliseconds
+//   			 HAL_Delay(500);
+//   		}
+//   	    HAL_Delay(10);
+//   }
 
 	setup();
   /* USER CODE END 2 */
@@ -236,20 +280,20 @@ static void MX_ADC1_Init(void)
 {
 
   /* USER CODE BEGIN ADC1_Init 0 */
-
+//
   /* USER CODE END ADC1_Init 0 */
 
   ADC_ChannelConfTypeDef sConfig = {0};
 
   /* USER CODE BEGIN ADC1_Init 1 */
-
+//
   /* USER CODE END ADC1_Init 1 */
   /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
   */
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
-  hadc1.Init.ScanConvMode = DISABLE;
+  hadc1.Init.ScanConvMode = ENABLE;
   hadc1.Init.ContinuousConvMode = ENABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
@@ -266,13 +310,13 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_2;
   sConfig.Rank = 1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  sConfig.SamplingTime = ADC_SAMPLETIME_28CYCLES;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
   }
   /* USER CODE BEGIN ADC1_Init 2 */
-
+//
   /* USER CODE END ADC1_Init 2 */
 
 }
@@ -702,6 +746,22 @@ static void MX_USART3_UART_Init(void)
   /* USER CODE BEGIN USART3_Init 2 */
 
   /* USER CODE END USART3_Init 2 */
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA2_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
 
 }
 

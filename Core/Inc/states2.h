@@ -144,6 +144,8 @@ eSystemState eNextState2,eLastState2,ePrevState2;
 
 int8_t nozzleup_awaitingauth_state_not_timedOut2;
 
+extern uint8_t batteryStatus;
+
 void state_ini2(void);
 void states2(void);
 void reset_timer2(int tm);
@@ -174,7 +176,11 @@ extern float lastVolumeSale2,
 			 lastAmountSale2,
 			 lastAmountSale2c;
 
+extern uint8_t ctTimed_day2;
+
 extern ctTimed_settings ctTimed_settingsB;
+
+extern _calibrationData calibrationData[2];
 
 bool leapYear_calc2(int8_t year);
 void save_date2(int8_t _entri);

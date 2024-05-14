@@ -66,6 +66,7 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern DMA_HandleTypeDef hdma_adc1;
 extern RNG_HandleTypeDef hrng;
 extern SPI_HandleTypeDef hspi2;
 extern UART_HandleTypeDef huart5;
@@ -102,6 +103,7 @@ void HardFault_Handler(void)
   /* USER CODE BEGIN HardFault_IRQn 0 */
 
 //	NVIC_SystemReset();
+	my_error_handler();
 
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
@@ -119,6 +121,7 @@ void MemManage_Handler(void)
   /* USER CODE BEGIN MemoryManagement_IRQn 0 */
 
 //	NVIC_SystemReset();
+	my_error_handler();
 
   /* USER CODE END MemoryManagement_IRQn 0 */
   while (1)
@@ -152,6 +155,7 @@ void UsageFault_Handler(void)
   /* USER CODE BEGIN UsageFault_IRQn 0 */
 
 //	NVIC_SystemReset();
+	my_error_handler();
 
   /* USER CODE END UsageFault_IRQn 0 */
   while (1)
@@ -313,6 +317,20 @@ void UART5_IRQHandler(void)
   card2_read();
 
   /* USER CODE END UART5_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA2 stream0 global interrupt.
+  */
+void DMA2_Stream0_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream0_IRQn 0 */
+
+  /* USER CODE END DMA2_Stream0_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_adc1);
+  /* USER CODE BEGIN DMA2_Stream0_IRQn 1 */
+
+  /* USER CODE END DMA2_Stream0_IRQn 1 */
 }
 
 /**

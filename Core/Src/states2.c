@@ -98,6 +98,8 @@ extern float litre_price2;
 
 extern uint8_t calibration_flag2 = 0;
 
+extern uint8_t pwr2 = NOPOWERINTERRUPTION;
+
 extern float price_upper2 = 0.000,
 			 amt_middle2 = 0.000;
 
@@ -663,10 +665,10 @@ sStateEventMachine2 asStateEventMachine2 [] =
 {
 	{prog_State, progstate_Handler2,{_keydown_Event,_keypress_Event}},
     {idle_State,idlestate_Handler2,{_operator_Event,_keyup_Event,_tot_error_Event,_keypress_Event,_nozzleup_Event,_auth_command_Event, _nozzledown_Event}},
-    {inactive_State,inactivestate_Handler2,{_error_clear_Event,_keypress_Event}},
+    {inactive_State,inactivestate_Handler2,{_error_clear_Event, _keyup_Event, _keypress_Event}},
     {nozzleup_waitingforauth_State,nozzleup_waitingforauthState_Handler2,{_authorise_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
 	{authorised_nozzledown_State,authorised_nozzledown_State_Handler2,{_nozzleup_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
-    {authorised_nozzleup_State,authorised_nozzleup_State_Handler2,{_filling_pulse_Event,_pause_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
+    {authorised_nozzleup_State,authorised_nozzleup_State_Handler2,{_filling_pulse_Event,_pause_Event,_timeout_Event,_nozzledown_Event,_keypress_Event,_function_key_Event}},
 	{authorisation_paused_State,authorisation_paused_State_Handler2,{_resume_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
 	{filling_State,filling_state_Handler2,{_filling_paused_Event,_keypress_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
 	{filling_paused_State,filling_paused_state_Handler2,{_filling_resumed_Event,_keypress_Event,_timeout_Event,_nozzledown_Event}},
@@ -1454,7 +1456,7 @@ eSystemState error_clear_Handler2(void)
 		}
 	    else
 	     {
-            return inactive_State;  //if the error is an irrecoverable error dont return to idle state.
+            return inactive_State;  //if the error is an irrecoverable error, dont return to idle state.
 	     }
 }
 //============================================================================================================
@@ -1488,7 +1490,9 @@ int8_t read_keypad2()
 
         		  keypad_pw_xter2[temp++] = '-';
         		  keypad_pw_xter2[temp  ] = 0;
-        		  send_keypad2(keypad_pw_xter2);
+
+        		  if ((progg2 == 1) && (auth2 == not_auth))
+        			  send_keypad2(keypad_pw_xter2);
         	  }
                 return 0;
           }
@@ -1967,7 +1971,11 @@ eSystemState progstate_Handler2(void)
 					 {
 					   strncpy(pass_, keypad_buf2, sizeof(pass_));
 
-					   if( (strcmp(pass_, otp_code2) == 0) || (strcmp(pass_, otp_code2) != 0) )//level 1 access ?
+					#ifdef OTP_ENABLE
+						   if(strcmp(pass_, otp_code2) == 0)  //level 2 0r 3 access ?
+					#else
+						   if( (strcmp(pass_, otp_code2) == 0) || (strcmp(pass_, otp_code2) != 0) )  //level 2 0r 3 access ?
+					#endif
 					   {
 
 						   index_menu = 0;
@@ -2003,12 +2011,12 @@ eSystemState progstate_Handler2(void)
       		 {
       			if(access == level2)
       			{
-      				if(index_menu == 17) index_menu = 0;
+      				if(index_menu == 20) index_menu = 0;
       				send_line12(menu_level2[index_menu]);   //show menu item.
       			}
       			else if(access == level3)
    			{
-      				if(index_menu == 19) index_menu = 0;
+      				if(index_menu == 23) index_menu = 0;
       				send_line12(menu_level3[index_menu]);   //show menu item.
    			}
 
@@ -2028,13 +2036,13 @@ eSystemState progstate_Handler2(void)
       //          					 if (index_menu < 13)  index_menu++;
       			 if (access == level2)
       			 {
-      				 if (index_menu <= 16)  index_menu++;
-      				 else if(index_menu == 17) index_menu = 0;
+      				 if (index_menu <= 20)  index_menu++;
+      				 else if(index_menu == 21) index_menu = 0;
       			 }
       			 else if (access == level3)
       			 {
-      				if (index_menu <= 18)  index_menu++;
-      				else if(index_menu == 19) index_menu = 0;
+      				if (index_menu <= 22)  index_menu++;
+      				else if(index_menu == 23) index_menu = 0;
       			 }
       			}
 
@@ -2044,12 +2052,12 @@ eSystemState progstate_Handler2(void)
       			    if (access == level2)
       			   	{
       			    	if (index_menu > 0) index_menu--;
-      			    	else if(index_menu == 0) index_menu = 16;
+      			    	else if(index_menu == 0) index_menu = 19;
       			   	}
       			    else if (access == level3)
       			   	{
       			    	if (index_menu > 0) index_menu--;
-      			    	else if(index_menu == 0) index_menu = 18;
+      			    	else if(index_menu == 0) index_menu = 22;
       			   	}
       			}
 
@@ -3418,10 +3426,10 @@ eSystemState progstate_Handler2(void)
       //				  update_info();
 
       				  pulser_totalizer2 = ( (calib_pulser2 / (float) (pulser_benchMark2)) * calibrationCan_measure2 );
-      				  totaliser_vol2c += pulser_totalizer2;
       				  totaliser_vol2 += pulser_totalizer2;
-      				  totaliser_amt2c += (pulser_totalizer2 * litre_price2);
+      				  totaliser_vol2c += pulser_totalizer2;
       				  totaliser_amt2 += (pulser_totalizer2 * litre_price2);
+      				  totaliser_amt2c += (pulser_totalizer2 * litre_price2);
       				  amt_real2 = pulser_totalizer2;
       				  amt_middle2 = pulser_totalizer2;
       				  price_real2 = (pulser_totalizer2 * litre_price2);
@@ -3466,7 +3474,7 @@ eSystemState progstate_Handler2(void)
 
         //				  calib_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);  //use hardware counter
       				  send_line12("Set your");
-      				  send_line22("Annount  ");
+      				  send_line22("Volunne ");
       				  HAL_Delay(2000);
       				  volume_flag2 = 3;   //enter the price.
 
@@ -3490,7 +3498,7 @@ eSystemState progstate_Handler2(void)
       	   {
       			  if(t2 > 400)
       				  {
-      					send_line12("Annount  ");
+      					send_line12("Volunne ");
       					printDisp_f2(atoff(keyboard_entry2), 2, 0, 7, RT, CLEAR);
       					t2 = 0;
       				  }
@@ -5262,7 +5270,7 @@ eSystemState progstate_Handler2(void)
 
      		   if (t2 >= 300)
      		   {
-     				snprintf(st__, sizeof(st__), "PC %05d", calib_pulser1);
+     				snprintf(st__, sizeof(st__), "PC %05d", calib_pulser2);
      				send_line12(st__);
 
      				send_line32("  B  ");
@@ -7247,35 +7255,54 @@ eSystemState idlestate_Handler2(void)
 
 	firstTime_nozz2 = 1;
 
-	if(HAL_GPIO_ReadPin(pulser2_detect_GPIO_Port, pulser2_detect_Pin) == 1 )
-	{
-		send_line12(" Pulser ");
-		send_line22("  Error ");
-		send_line32(" Err24 ");
-
-	    return inactive_State;
-	}
-
-//	if(calib_pulser2 < 15800)  //15987, 15967 .... 1106247681
-	if(calibration_flag2 != CALIBRATED) //15800)  //15987, 15967 .... 1106247681
-	{
-		retrieve_calibrationFlag(side_b);
-
-		if(calibration_flag2 != CALIBRATED) //takes care of accidental clearing of calibration_flag1 by F-keys
+	#if !defined (DEV_MODE)
+		if(batteryStatus == LOWBATTERY)
 		{
-			calibration2_error = 1;
-
-			send_line12("Calibrate");
-			send_line22("  Error ");
-			send_line32("Err 23 ");
+			send_line12("  Louu   ");
+			send_line22("Battery  ");
+			send_line32(" Err70 ");
 
 			return inactive_State;
 		}
-	}
-	else
-	{
-		calibration2_error = 0;
-	}
+		else if(batteryStatus == NOBATTERY)
+		{
+			send_line12("Battery ");
+			send_line22("  Error ");
+			send_line32(" Err71 ");
+
+			return inactive_State;
+		}
+
+		if(HAL_GPIO_ReadPin(pulser2_detect_GPIO_Port, pulser2_detect_Pin) == 1 )
+		{
+			send_line12(" Pulser ");
+			send_line22("  Error ");
+			send_line32(" Err24 ");
+
+			return inactive_State;
+		}
+
+	//	if(calib_pulser2 < 15800)  //15987, 15967 .... 1106247681
+		if(calibration_flag2 != CALIBRATED) //15800)  //15987, 15967 .... 1106247681
+		{
+			retrieve_calibrationFlag(side_b);
+
+			if(calibration_flag2 != CALIBRATED) //takes care of accidental clearing of calibration_flag1 by F-keys
+			{
+				calibration2_error = 1;
+
+				send_line12("Calibrate");
+				send_line22("  Error ");
+				send_line32("Err 23 ");
+
+				return inactive_State;
+			}
+		}
+		else
+		{
+			calibration2_error = 0;
+		}
+	#endif   //#if !defined (DEV_MODE)
 
 	if(nozzleUp_inProgMode2 == 1)
 	{
@@ -7283,23 +7310,55 @@ eSystemState idlestate_Handler2(void)
 			prog_entry2 = 0;
 			prog_revisit2 = 1;
 
-		#ifndef DEV_MODE
+//		#ifndef DEV_MODE
 			prog_revisitt2 = 1;
-		#endif
+//		#endif
 
 			nozzleUp_inProgMode2 = 0;
 	}
 	if(ctTimed_flag2 == 1)
 	{
-		gerCtTime = get_ctTime2();
+		day = DS1307_GetDate();
+		if(ctTimed_day2 == day)
+		{
+			gerCtTime = get_ctTime2();
 
-		if( (gerCtTime >= ctTimed_settingsB.startTime) && (gerCtTime <= ctTimed_settingsB.endTime) )
-		{
-			settings[1].pi_c = (calib_pulser2 / vol_effective2_2);
-		}
-		else
-		{
-			retrieve_originalPi_c(side_b);
+			//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+			//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx IF IT'S TIME xxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
+			//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+			if( (gerCtTime >= ctTimed_settingsB.startTime) && (gerCtTime <= ctTimed_settingsB.endTime) )
+			{
+				settings[1].pi_c = (calib_pulser2 / vol_effective2_2);
+			}
+//			if(gerCtTime > ctTimed_settingsB.endTime)
+//			{
+//				ctTimed_flag2 = 0;
+//				save_ctTimedFlag(side_b);
+//			}
+			else
+			{
+				retrieve_originalPi_c(side_b);
+			}
+
+			//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+			//xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx IF TIME ELAPSESxxxxxxxxxxxxxxxxxxxxxxxxxxxxx//
+			//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+			if(gerCtTime > ctTimed_settingsB.endTime)
+			{
+				if( ( (ctTimed_settingsB.startTime - ctTimed_settingsB.endTime) < 0) || ( (ctTimed_settingsB.startTime - ctTimed_settingsB.endTime) == 0) )
+				{
+					ctTimed_flag2 = 0;
+					save_ctTimedFlag(side_b);
+				}
+				else if( (ctTimed_settingsB.startTime - ctTimed_settingsB.endTime) > 0)
+				{
+					if( (ctTimed_day2 + 1) == day)
+					{
+						ctTimed_flag2 = 0;
+						save_ctTimedFlag(side_b);
+					}
+				}
+			}
 		}
 	}
 
@@ -7496,7 +7555,7 @@ eSystemState idlestate_Handler2(void)
 		else if( (t2 > 2000) && (_auth_v2 == 1) )
 		{
 			 send_line12("  No   ");
-			 send_line22("Annount  ");
+			 send_line22("Volunne ");
 			 send_line32("Err10   ");
 			 if(t2 > 6000)
 			 {
@@ -7504,17 +7563,17 @@ eSystemState idlestate_Handler2(void)
 				 _auth_v2 = 0;
 			 }
 		}
-		else if( (t2 > 2000) && (_auth_v2 == 1) )
-		{
-			 send_line12("  No   ");
-			 send_line22("Annount  ");
-			 send_line32("Err17   ");
-			 if(t2 > 6000)
-			 {
-				 t2 = 0;
-				 _auth_v2 = 0;
-			 }
-		}
+//		else if( (t2 > 2000) && (_auth_v2 == 1) )
+//		{
+//			 send_line12("  No   ");
+//			 send_line22("Annount  ");
+//			 send_line32("Err17   ");
+//			 if(t2 > 6000)
+//			 {
+//				 t2 = 0;
+//				 _auth_v2 = 0;
+//			 }
+//		}
 		else if( (t2 > 2000) && (nonValid_sale2 == 1) )
 		{
 			 send_line12("   Non   ");
@@ -7640,7 +7699,7 @@ eSystemState savesettings_State_Handler2(void)
 		  if(t2 > 500)
 		   {
 			  send_line12("1-  Saue");
-			  send_line22("2-Delete");
+			  send_line22("2-Cancel");
 			  t2 = 0;
 		   }
 		  respons = atoi(keyboard_entry2);
@@ -7921,17 +7980,34 @@ eSystemState authorised_nozzledown_State_Handler2(void)
 //----------------------
 uint32_t price2pulser2(float price2)
 {
-  float temp = (price2 / litre_price2) *  pulser_index_c2;
+//  float temp = (price2 / litre_price2) *  pulser_index_c2;
+//
+//  temp -= 0.004;
+//
+//  original_pulse2 = temp;
+
+  float temp = (price2 / litre_price2);
+//  temp -= 0.01;
+
+  temp -= 0.004;
+
+  temp *= pulser_index_c2;
+
   original_pulse2 = temp;
+
   //temp = floor(temp);
   return  floor(temp );
 }
 
 uint32_t amt2pulser2(float amt)
 {
-	 float temp = amt * pulser_index_c2;
+	 float temp;
+
+	 amt -= 0.004;
+
+	 temp = amt * pulser_index_c2;
 	 original_pulse2 = temp;
-	    return  floor(temp );
+	 return  floor(temp );
 }
 
 float pulser2price2(uint32_t pulse_)
@@ -9573,23 +9649,40 @@ eSystemState filling_state_Handler2(void)
 		}
 
 //================================================================
+
+		if(batteryStatus == NOBATTERY)
+		{
+			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+			  HAL_Delay(200);
+			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+			  filling2 = 0;
+			  stop_flow2();
+			  get_time();
+			  do_calcs2();
+			  update_info();
+			  save_volumeTotaliser(operating_side);
+			  save_amountTotaliser(operating_side);
+			  save_lastSale(operating_side);
+			  return write_flash_state;
+		}
+
 //    power outage during filling1  end transaction...
 		#if sense_power == 1
 	  	  if(  (readpwr() == 0)||(read_p_pwr() == 0) )
-			  {
-	  		      HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-	  			  HAL_Delay(200);
-	  			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
-				  filling2 = 0;
-				  stop_flow2();
-				  get_time();
-				  do_calcs2();
-				  update_info();
-				  save_volumeTotaliser(operating_side);
-				  save_amountTotaliser(operating_side);
-				  save_lastSale(operating_side);
-				  return write_flash_state;
-			  }
+		  {
+			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+			  HAL_Delay(200);
+			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+			  filling2 = 0;
+			  stop_flow2();
+			  get_time();
+			  do_calcs2();
+			  update_info();
+			  save_volumeTotaliser(operating_side);
+			  save_amountTotaliser(operating_side);
+			  save_lastSale(operating_side);
+			  return write_flash_state;
+		  }
 		#endif
 
 	if(HAL_GPIO_ReadPin(pulser2_detect_GPIO_Port, pulser2_detect_Pin) == 1 )

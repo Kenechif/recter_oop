@@ -202,9 +202,15 @@ extern float lastVolumeSale1,
 			 lastAmountSale1,
 			 lastAmountSale1c;
 
+extern uint8_t ctTimed_day1;
+
 extern ep1_mt mt_pump[2];
 
 extern ctTimed_settings ctTimed_settingsA;
+
+extern _calibrationData calibrationData[2];
+
+extern uint8_t batteryStatus;
 
 void state_ini(void);
 void states(void);
