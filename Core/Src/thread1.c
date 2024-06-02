@@ -59,7 +59,9 @@ extern TIM_HandleTypeDef htim5;
 
 extern I2C_HandleTypeDef hi2c1;
 
-extern  pump_settings settings[2], copy[2];
+extern  pump_settings settings[2],
+					  copy[2],
+					  settings0[2];
 
 extern pump pump_type,
  	 	 	disp_type1,
@@ -1383,6 +1385,12 @@ tmmm:
 	  clear_calibrationData(side_a);
 	  clear_calibrationData(side_b);
 
+	  clear_configFlag(side_a);
+	  clear_configFlag(side_b);
+
+	  clear_otp(side_a);
+	  clear_otp(side_b);
+
 	  clear_logA();
 	  clear_logB();
 
@@ -1886,6 +1894,8 @@ skip_test:
 
     retrieve_calibrationData(side_a);
     retrieve_calibrationData(side_b);
+    retrieve_configFlag(side_a);
+    retrieve_configFlag(side_b);
 //    startShiftTotaliser_vol1c = 500;
 //    startShiftTotaliser_amt1c = 500;
 
@@ -1896,6 +1906,8 @@ skip_test:
 //	 save_calibrationFlag(side_b);
 
 
+//    clear_configFlag(side_a);
+//    clear_otp(side_a);
 
 //	settings[0].max_amt_ = 1000;
 //	settings[1].max_amt_ = 1000;
@@ -2709,6 +2721,14 @@ void pumpType_configure(void)
 	  {
 		  EEPROM_Write_NUM (save_pumpType_loc, 0, 0b00000101);
 	  }
+	  else if((settings[0].display__ == LAFNG885) && (settings[0].keypad__ == LAFNG18_K))  //LAFENG885-NormalScreen | LAFENG18-Keypad
+	  {
+		  EEPROM_Write_NUM (save_pumpType_loc, 0, 0b00000110);
+	  }
+	  else if((settings[0].display__ == BLSKY886_N) && (settings[0].keypad__ == LAFNG18_K))  //BLSKY886_N-NormalScreen | LAFENG18-Keypad
+	  {
+		  EEPROM_Write_NUM (save_pumpType_loc, 0, 0b00000111);
+	  }
 
 
 
@@ -2765,10 +2785,20 @@ void pumpType_parse(void)
 		  settings[0].display__ = LAFNG885;
 		  settings[0].keypad__ = LAFNG17_K;
 	  }
+	  else if(settings[0].pump_type_ == DN_LAFNG18K)
+	  {
+		  settings[0].display__ = LAFNG885;
+		  settings[0].keypad__ = LAFNG18_K;
+	  }
 	  else if(settings[0].pump_type_ == DN_BLSKY18K)
 	  {
 		  settings[0].display__ = BLSKY886_N;
 		  settings[0].keypad__ = BLSKY18_K;
+	  }
+	  else if(settings[0].pump_type_ == BLSKY886_N_LAFNG18_K)
+	  {
+		  settings[0].display__ = BLSKY886_N;
+		  settings[0].keypad__ = LAFNG18_K;
 	  }
 	  else if(settings[0].pump_type_ == DN_BLSKY22)
 	  {

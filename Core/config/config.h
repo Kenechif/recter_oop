@@ -371,7 +371,8 @@ extern char uart2_rx_buf[pump_rx_bufsize];
 extern char uart3_rx_buf[pump_rx_bufsize];
 extern char uart5_rx_buf[pump_rx_bufsize];
 
-extern pump_settings settings[2];
+extern pump_settings settings[2],
+					 settings0[2];
 
 extern uint8_t day,
 			   serverTimeFlag;
@@ -416,6 +417,9 @@ uint8_t TSTA1,
 		LSTA2,
 		card_writeOp2;
 //		verifyResponse;
+
+extern char otp_code1[7],
+	 	 	otp_code2[7];
 
 void read_config();
 

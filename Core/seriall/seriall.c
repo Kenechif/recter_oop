@@ -341,6 +341,20 @@ void configure_pump(pumpCompPart _case)
 							settings[0].keypad__ = LAFNG17_K;
 							settings[1].keypad__ = LAFNG17_K;
 						   }
+						   else if(strstr(rx_buf,"lafeng18k"))
+						   {
+							settings[0].keypad__ = LAFNG18_K;
+							settings[1].keypad__ = LAFNG18_K;
+						   }
+
+						#ifdef DEV_MODE
+//						   else if(strstr(rx_buf,"bluesky22"))
+//						   {
+//							settings[0].keypad__ = BLSKY22;
+//							settings[1].keypad__ = LAFNG18_K;
+//						   }
+						#endif
+
 					   	   else if(strstr(rx_buf,"bluesky18k"))
 						   {
 							settings[0].keypad__ = BLSKY18_K;

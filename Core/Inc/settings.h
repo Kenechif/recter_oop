@@ -28,7 +28,7 @@ extern "C" {
 
 //:::::::::::::::::::::::::::::::::::::::::::://
 
-//      #define DEV_MODE
+      #define DEV_MODE
 
 //	  #define OTP_ENABLE
 
@@ -76,6 +76,9 @@ extern "C" {
 #define BATTERYOK					0b00000000
 #define LOWBATTERY					0b00000001
 #define NOBATTERY					0b00000010
+
+#define CONFIGMODIFIED				0b10011001
+#define CONFIGUNMODIFIED			0b00000000
 
 
 
@@ -377,7 +380,8 @@ typedef enum
 typedef enum
 {
    move_to_settings,
-   move_to_copy
+   move_to_copy,
+   move_to_settings0
 }copy_dir;
 
 
@@ -419,7 +423,8 @@ typedef enum
 {
   LAFNG17_K = 1,    //ie. 17 punch-keys + a turn-key
   BLSKY18_K,		//ie. 18 punch-keys + a turn-key
-  BLSKY22			//ie. 22 punch-keys + no turn-key
+  BLSKY22,			//ie. 22 punch-keys + no turn-key
+  LAFNG18_K    		//ie. 18 punch-keys + a turn-key
 }keypadtype;
 
 typedef enum
@@ -428,7 +433,9 @@ typedef enum
   DN_BLSKY18K,       			//Display->Normal, keypad->BLSKY-18K
   DN_BLSKY22,					//Display->Normal, keypad->BLSKY-22
   DIN_BLSKY18K,       			//Display->Inverted, keypad->BLSKY-18K
-  DIN_BLSKY22					//Display->Inverted, keypad->BLSKY-22
+  DIN_BLSKY22,					//Display->Inverted, keypad->BLSKY-22
+  DN_LAFNG18K,					//Display->Normal, keypad->LAFNG-18K
+  BLSKY886_N_LAFNG18_K  		//Display->Normal/BLSKY886_N, keypad->LAFNG-18K
 }pump;
 
 
@@ -477,6 +484,60 @@ typedef enum
 // displayMode displaymode;
 // keypressTone keypresstone;
 
+////==================================
+////structure for settings
+//typedef struct
+//{
+//	 opmode_  mode;
+//	 nozzle_overide noz;
+//	 sellmode_ def_t;
+//	 pump pump_type_;
+//	 float price_;
+//	 int id_;
+////	 int noflow_;
+//	 int noFlow_timeOut;
+//	 unsigned int max_amt_;
+//	 float pi_c;
+//	 float pi_;
+//	 uint8_t dp_price;
+//	 uint8_t dp_amount;
+//	 uint8_t dp_unitprice;
+//	 //peripherals
+//	 displaytype display__;
+//	 char product_[4];
+//	 keypadtype keypad__;
+//	 nozzleid noz_id;
+//	 uint8_t totalizer_day;
+//	 uint8_t side_size;   // 1/2    ==> default : 2   // Level 2      <== 40 Bytes
+//
+//	 displaymode display_mode;  // PL/LP   ==> default : PL  // Level 2
+//	 keypresstone keypress_tone;  // Yes/No   ==> default : No   // Level 2
+//	 uint8_t pulserError_status;  // 1/0   ==> default :   // Level 2
+//	 uint8_t idleState_maxPulseValue;  //    ==> default :   // Level 2
+//	 float startUp_suppressVol;  // (0 - 10) cL   ==> default : 4cL  // Level 2
+//	 uint8_t calibration_measureCan;  // 10L/20L   ==> default : 20L  // Level 2
+//	 uint8_t number_of_shifts;
+//	 calibrationType calibration_type;
+//	 bool commCard_enforced;
+//	 float valve_salesStart;
+//	 float valve_salesEnd;                         //<== 20 Bytes
+//
+//	 uint8_t pulser_type_;
+//	 uint8_t pulser_offset;                       //<== 2 Bytes + 20 Bytes + 40 Bytes
+//
+//}pump_settings_stream1;
+//
+//
+//typedef struct
+//{
+//	 uint16_t non_calibration_seed;
+//	 char passwd1[9];
+//	 char passwd2[9];
+//	 char passwd3[9];
+//	 shiftlogintype shift_login_type;
+//}pump_settings_stream2;
+
+
 //==================================
 //structure for settings
 typedef struct
@@ -522,6 +583,7 @@ typedef struct
 	 uint16_t non_calibration_seed;
 
 }pump_settings;
+
 
 typedef struct
 {
@@ -748,7 +810,9 @@ uint8_t calibrationCan_measure1,
 uint8_t calibration_flag1,
 		calibration_flag2,
 		pwr1,
-		pwr2;
+		pwr2,
+		configMode1,
+		configMode2;
 
 float temppp_;
 
@@ -759,8 +823,10 @@ void clr_pulser2();
 
 void dp_init(pump_sid sdd);
 
-void retrieve_settings();
-void save_settings();
+void save_settings(void);
+void save_settings0(void);
+void retrieve_settings(void);
+void retrieve_settings0(void);
 
 void save_volumeTotaliser(pump_sid side);
 void retrieve_volumeTotaliser(pump_sid side);
@@ -799,6 +865,14 @@ void clear_calibrationData(pump_sid side);
 void save_amountSend(pump_sid side);
 void retrieve_amountSend(pump_sid side);
 void clear_amountSend(pump_sid side);
+
+void save_configFlag(pump_sid side);
+void retrieve_configFlag(pump_sid side);
+void clear_configFlag(pump_sid side);
+
+void save_otp(pump_sid side);
+void retrieve_otp(pump_sid side);
+void clear_otp(pump_sid side);
 
 void copy_settings(copy_dir dir);
 void load_settings(pump_sid side);

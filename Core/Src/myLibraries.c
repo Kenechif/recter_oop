@@ -32,6 +32,8 @@ extern ADC_ChannelConfTypeDef sConfig;
 extern pump disp_type1,
             disp_type2;
 
+extern pump_settings settings[2];
+
 extern ADC_HandleTypeDef hadc1;
 extern uint16_t motor_tmr1,
 				motor_tmr2;
@@ -392,7 +394,8 @@ void shiftOut(uint8_t data_byte,uint8_t lat)
 		// check first bit, second bit ...
 		//if high set dp high
 //      if(disp_type1 == BLSKY886_N )
-      if( (disp_type1 == DN_BLSKY18K ) || (disp_type1 == DN_BLSKY22 ) )
+//      if( (disp_type1 == DN_BLSKY18K ) || (disp_type1 == DN_BLSKY22 ) )
+		if(settings[0].display__ == BLSKY886_N)
       {
 			if ( byteRead(data_byte, i) == 0 )
 				HAL_GPIO_WritePin(dataPin_GPIO_Port, dataPin_Pin, GPIO_PIN_SET);
@@ -402,7 +405,8 @@ void shiftOut(uint8_t data_byte,uint8_t lat)
 			//set clock pin high
 			HAL_GPIO_WritePin(clockPin_GPIO_Port, clockPin_Pin, GPIO_PIN_SET);
       }
-      else if( (disp_type1 == DIN_BLSKY18K ) || (disp_type1 == DIN_BLSKY22 ) )
+//      else if( (disp_type1 == DIN_BLSKY18K ) || (disp_type1 == DIN_BLSKY22 ) )
+      else if(settings[0].display__ == BLSKY886_IN)
 	  {
 			if ( byteRead(data_byte, i) == 0 )
 				HAL_GPIO_WritePin(dataPin_GPIO_Port, dataPin_Pin, GPIO_PIN_RESET);
@@ -414,7 +418,8 @@ void shiftOut(uint8_t data_byte,uint8_t lat)
 	  }
 
 //      else if(disp_type1 == LAFNG885 )
-      else if(disp_type1 == DN_LAFNG17K)
+//      else if(disp_type1 == DN_LAFNG17K)
+         else if(settings[0].display__ == LAFNG885)
          {
    			if ( byteRead(data_byte, i) == 1 )
    				HAL_GPIO_WritePin(dataPin_GPIO_Port, dataPin_Pin, GPIO_PIN_SET);
@@ -451,7 +456,8 @@ void shiftOut2(uint8_t data_byte,uint8_t lat)
 		// check first bit, second bit ...
 		//if high set dp high
 //      if(disp_type2 == BLSKY886_N)
-      if( (disp_type2 == DN_BLSKY18K) || (disp_type2 == DN_BLSKY22) )
+//      if( (disp_type2 == DN_BLSKY18K) || (disp_type2 == DN_BLSKY22) )
+	  if(settings[1].display__ == BLSKY886_N)
       {
 			if ( byteRead2(data_byte, i) == 0 )
 				HAL_GPIO_WritePin(dataPin2_GPIO_Port, dataPin2_Pin, GPIO_PIN_SET);
@@ -461,7 +467,8 @@ void shiftOut2(uint8_t data_byte,uint8_t lat)
 			//set clock pin high
 			HAL_GPIO_WritePin(clockPin2_GPIO_Port, clockPin2_Pin, GPIO_PIN_SET);
       }
-      else if( (disp_type2 == DIN_BLSKY18K ) || (disp_type2 == DIN_BLSKY22 ) )
+//      else if( (disp_type2 == DIN_BLSKY18K ) || (disp_type2 == DIN_BLSKY22 ) )
+	  else if(settings[1].display__ == BLSKY886_IN)
 	  {
 			if ( byteRead(data_byte, i) == 0 )
 				HAL_GPIO_WritePin(dataPin_GPIO_Port, dataPin_Pin, GPIO_PIN_RESET);
@@ -473,7 +480,8 @@ void shiftOut2(uint8_t data_byte,uint8_t lat)
 	  }
 
 //      else if(disp_type2 == LAFNG885 )
-    	 else if(disp_type2 == DN_LAFNG17K)
+//    	 else if(disp_type2 == DN_LAFNG17K)
+	  	 else if(settings[1].display__ == LAFNG885)
          {
    			if ( byteRead2(data_byte, i) == 1 )
    				HAL_GPIO_WritePin(dataPin2_GPIO_Port, dataPin2_Pin, GPIO_PIN_SET);

@@ -223,8 +223,22 @@ float price_upper1,
 
 // const int save_settings1_loc = 0;
 // const int save_settings2_loc = 5;
- const int save_settings1_loc = 500;
- const int save_settings2_loc = 581;   //581 --> 660
+// const int save_settings1_loc = 500;
+// const int save_settings2_loc = 581;   //581 --> 660
+
+ const int save_settings01_loc = 863;  //size => 96 Bytes
+ const int save_settings02_loc = 960;   //960 --> 1056
+
+ const int configFlag1_loc = 1057,
+		   configFlag2_loc = 1058;
+
+ const int save_settings1_loc = 1059;  //size => 96
+ const int save_settings2_loc = 1156;   //1156 --> 1251
+
+ const int otp_loc = 1252,
+		   otp1_loc = 0,
+		   otp2_loc = otp1_loc + 7;  ////1259 --> 1266
+
  const int sessionId_loc = 661,
 		   sessionId1_loc = 0,
 		   sessionId2_loc = sessionId1_loc + 9;  ////670 --> 678
@@ -240,6 +254,7 @@ float price_upper1,
  const int calibrationFlag1_loc = 800,
 		   calibrationFlag2_loc = 801;
 
+
  const int amountSend_loc  =  803;       //For the intermittent transmission of regular-sized sale
  const int amountSend1_loc =  0;
  const int amountSend2_loc =  amountSend1_loc + (4 + 1);  // 808 -> 812
@@ -248,9 +263,9 @@ float price_upper1,
  const int16_t ctTimed_settings1_loc =  0;
  const int16_t ctTimed_settings2_loc =  ctTimed_settings1_loc + (1+(4*4));   // 830 -> 847
 
- const int16_t calibrationDetails_loc  =  848;
+ const int16_t calibrationDetails_loc  =  848;   //Size => 6 Bytes
  const int16_t calibrationDetails1_loc =  0;
- const int16_t calibrationDetails2_loc =  calibrationDetails1_loc + (1+(3*4));   // 861 -> 874
+ const int16_t calibrationDetails2_loc =  calibrationDetails1_loc + (1+(3*2));   // 855 -> 862
 
  const int16_t save_pumpType_loc = 400;
  const int16_t save_productType_loc = save_pumpType_loc + 1;
@@ -317,7 +332,7 @@ float price_upper1,
  // define the settings structure of the settings.
  //==============================================================
 
- pump_settings settings[2], copy[2];
+ pump_settings settings[2], copy[2], settings0[2];
 
 log_new log_a_new,
 		log_b_new,
@@ -387,32 +402,10 @@ const uint32_t flash_endB   = 0x7fffff;
 
  char* login_type[4] = {"[ None ]", "[ Code ]", "[ Card ]"};
 
-//-------------------------------------
-void retrieve_settings()
-{
-   extern const int save_settings1_loc;
-   extern const int save_settings2_loc;
-   int sz;
-//   sz = sizeof(settings[0].display_mode);  // PL/LP   ==> default : PL  // Level 2
-//   sz = sizeof(settings[0]);
-   sz = sizeof(copy[0]);
 
-   if( EEPROM_Read(save_settings1_loc, 0, &settings[0], sz) );
-   else
-	   storage_fail = 1;
-   if( EEPROM_Read(save_settings2_loc, 0, &settings[1], sz) );
-   else
-	   storage_fail = 1;
-
-
-   dp_init(side_a);
-   dp_init(side_b);
-
-   //read totaliser settings..
-}
-
-/*
- *
+ //========================================
+ /*
+  *   Load Settings
  */
 void load_settings(pump_sid side)
 {
@@ -522,9 +515,10 @@ void load_settings(pump_sid side)
 		calibrationCan_measure2 = settings[sdd].calibration_measureCan;  // 10L/20L   ==> default : 20L  // Level 2
    }
 }
+
 //========================================
 /*
- *
+ *   Make Settings
  */
 void make_settings(pump_sid side)
 {
@@ -598,10 +592,10 @@ void make_settings(pump_sid side)
 }
 //==============================================
 /*
- *
+ *  Save Settings
  */
 
-void save_settings()
+void save_settings(void)
 {
 	extern const int save_settings1_loc;
 	extern const int save_settings2_loc;
@@ -612,6 +606,73 @@ void save_settings()
 	   EEPROM_Write(save_settings1_loc, 0, &settings[0], sz);
 	   EEPROM_Write(save_settings2_loc, 0, &settings[1], sz);
   // }
+}
+
+//==============================================
+/*
+ * save_settings0
+ */
+
+void save_settings0(void)
+{
+	extern const int save_settings01_loc;
+	extern const int save_settings02_loc;
+    int8_t sz = sizeof(copy[0]);
+
+  // for (int i = 0 ; i < sz;i++)
+  // {
+	   EEPROM_Write(save_settings01_loc, 0, &settings0[0], sz);
+	   EEPROM_Write(save_settings02_loc, 0, &settings0[1], sz);
+  // }
+}
+
+
+
+//-------------------------------------
+
+
+//==============================================
+/*
+ *  Retrieve Settings
+ */
+void retrieve_settings(void)
+{
+   extern const int save_settings1_loc;
+   extern const int save_settings2_loc;
+   int sz;
+//   sz = sizeof(settings[0].display_mode);  // PL/LP   ==> default : PL  // Level 2
+//   sz = sizeof(settings[0]);
+   sz = sizeof(copy[0]);
+
+   if( EEPROM_Read(save_settings1_loc, 0, &settings[0], sz) );
+   else
+	   storage_fail = 1;
+   if( EEPROM_Read(save_settings2_loc, 0, &settings[1], sz) );
+   else
+	   storage_fail = 1;
+
+
+   dp_init(side_a);
+   dp_init(side_b);
+
+   //read totaliser settings..
+}
+
+
+
+//==============================================
+/*
+ *  Retrieve Settings
+ */
+void retrieve_settings0(void)
+{
+   extern const int save_settings01_loc;
+   extern const int save_settings02_loc;
+   int8_t sz;
+
+   sz = sizeof(copy[0]);
+   EEPROM_Read(save_settings01_loc, 0, &settings0[0], sz);
+   EEPROM_Read(save_settings02_loc, 0, &settings0[1], sz);
 }
 
 
@@ -1514,7 +1575,7 @@ void retrieve_amountTotaliser_startShift(pump_sid side)
 	}
 	else if (side == side_b)
 	{
-		 EEPROM_Read(totAmount_loc, startShiftTotAmount2_loc, &startShiftTotaliser_amt_storeB, sz);
+		 EEPROM_Read(startShiftTotAmount_loc, startShiftTotAmount2_loc, &startShiftTotaliser_amt_storeB, sz);
 		 startShiftTotaliser_amt2c = startShiftTotaliser_amt_storeB.totaliserVol_cal;
 		 startShiftTotaliser_amt2  = startShiftTotaliser_amt_storeB.totaliserVol_real;
 
@@ -1677,6 +1738,56 @@ void clear_calibrationData(pump_sid side)
 //===================================================
 
 
+//===================================================
+/*
+ *  save Configuration Flag
+ */
+void save_configFlag(pump_sid side)
+{
+	if (side == side_a)
+	{
+		EEPROM_Write_NUM (configFlag1_loc, 0, configMode1);
+	}
+	else if (side == side_b)
+	{
+		EEPROM_Write_NUM (configFlag2_loc, 0, configMode2);
+	}
+
+}
+
+//===================================================
+/*
+ *  read Configuration Flag
+ */
+void retrieve_configFlag(pump_sid side)
+{
+	if (side == side_a)
+	{
+		configMode1 = EEPROM_Read_NUM (configFlag1_loc, 0);
+	}
+	else if (side == side_b)
+	{
+		configMode2 = EEPROM_Read_NUM (configFlag2_loc, 0);
+	}
+}
+
+//==============================================
+/*
+ * clear Configuration Flag
+ */
+void clear_configFlag(pump_sid side)
+{
+	if (side == side_a)
+	{
+		EEPROM_Write_NUM (configFlag1_loc, 0, 0);
+	}
+	else if (side == side_b)
+	{
+		EEPROM_Write_NUM (configFlag2_loc, 0, 0);
+	}
+}
+//==============================================
+
 //==============================================
 /*
  * save amountSend
@@ -1741,30 +1852,98 @@ void clear_amountSend(pump_sid side)
 	  }
 }
 
+
+
+
+//==============================================
+/*
+ * save OTP
+ */
+void save_otp(pump_sid side)
+{
+	uint8_t sz = sizeof(otp_code1);
+
+	if (side == side_a)
+	{
+	  	EEPROM_Write(otp_loc, otp1_loc, &otp_code1, sz);
+	}
+	else if (side == side_b)
+	{
+	  	EEPROM_Write(otp_loc, otp2_loc, &otp_code2, sz);
+	}
+}
+
+//===================================================
+/*
+ *  read OTP
+ */
+void retrieve_otp(pump_sid side)
+{
+	uint8_t sz = sizeof(otp);
+	if (side == side_a)
+	{
+		EEPROM_Read(otp_loc, otp1_loc, &otp_code1, sz);
+	}
+	else if (side == side_b)
+	{
+	  	 EEPROM_Read(otp_loc, otp2_loc, &otp_code2, sz);
+	}
+}
+
+//==============================================
+/*
+ * clear OTP
+ */
+void clear_otp(pump_sid side)
+{
+	int sz = sizeof(otp_code1);
+
+	if (side == side_a)
+	  {
+		  memset(otp_code1, '\0', sizeof(otp_code1) );
+		  EEPROM_Write(otp_loc, otp1_loc, &otp_code1, sz);
+	  }
+	else if (side == side_b)
+	  {
+		  memset(otp_code2, '\0', sizeof(otp_code2) );
+		  EEPROM_Write(otp_loc, otp2_loc, &otp_code2, sz);
+	  }
+}
+
+//==============================================
+
+
+
 //==============================================
 /*
  *  copy settings to the structure to be used for prog.
  */
 void copy_settings(copy_dir dir)
 {
-	int sz = sizeof(copy[0]);
+	int8_t sz = sizeof(copy[0]);
 	uint8_t* cpy;
 	uint8_t* sett;
+	uint8_t* sett0;
 
-	 for(int sd = 0;sd<2;sd++ )
+	 for(int sd = 0; sd < 2; sd++ )
 	 {
 		cpy = &copy[sd];
 		sett = &settings[sd];
+		sett0 = &settings0[sd];
 
-		   for (int i = 0 ; i < sz;i++)
+		   for (int i = 0; i < sz; i++)
 		   {
 			   if (dir == move_to_copy)
 			   {
 				   *cpy++ = *sett++;
 			   }
-				 else
+			   else if (dir == move_to_settings)
 			   {
 				   *sett++ = *cpy++;
+			   }
+			   else if (dir == move_to_settings0)
+			   {
+				   *sett0++ = *sett++;
 			   }
 		   }
 	 }
@@ -1775,13 +1954,13 @@ int get_auth()
 	auth_flag = 0;
 
 	if(opmode == MANUAL)
-		{
-		  //if (t > 500)
-		  //{
-	         auth_flag = 1;
-	         //t = 0;
-		  //}
-		}
+	{
+	  //if (t > 500)
+	  //{
+		 auth_flag = 1;
+		 //t = 0;
+	  //}
+	}
 	else
 	{
       //wait for "GO" to send authorise signal.

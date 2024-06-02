@@ -13,6 +13,8 @@ static char buf[9] = {0};  //keypad LCD display graphics array.
 // extern int8_t pump_type;
  extern pump pump_type;
 
+ extern pump_settings settings[2];
+
  extern char keyboard_entry[10];
 
 ///////////////////////////////////////////////////////////////////
@@ -713,7 +715,8 @@ int keypad_lcd(int fxn,char* num)
 {
 
 //	if(pump_type != lafeng)
-	if(pump_type != DN_LAFNG17K)
+//	if(pump_type != DN_LAFNG17K)
+	if( (settings[0].keypad__ != LAFNG17_K) && (settings[0].keypad__ != LAFNG18_K) )
 	{
 	  int rr =	write_keypad_lcd(fxn,num);
 	  return rr;
@@ -752,7 +755,9 @@ int keypad_lcd(int fxn,char* num)
  // move the buf[] array into the shift register.
 
 //	if (pump_type == lafeng) disp_len_pad = 5;
-	if (pump_type == DN_LAFNG17K) disp_len_pad = 5;
+//	if (pump_type == DN_LAFNG17K)
+	if ( (settings[0].keypad__ == LAFNG17_K) || (settings[0].keypad__ == LAFNG18_K) )
+		disp_len_pad = 5;
 
 	for(int i = 0; i < disp_len_pad; i++)  //7 bytes for bluesky 5 bytes for lafeng
 		{
@@ -764,11 +769,13 @@ int keypad_lcd(int fxn,char* num)
 
 	HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
 
-int fill = 24;
+    int fill = 24;
 //if(pump_type == lafeng) fill = 16;
-if(pump_type == DN_LAFNG17K) fill = 16;
+//if(pump_type == DN_LAFNG17K)
+	if ( (settings[0].keypad__ == LAFNG17_K) || (settings[0].keypad__ == LAFNG18_K) )
+		fill = 16;
 
-	for(int i=1;i<fill;i++)
+	for(int i = 1; i < fill; i++)
 		{
 			HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
 			//	_Delay(1);
@@ -818,11 +825,13 @@ if(pump_type == DN_LAFNG17K) fill = 16;
 
    fill = 22;
 //   if(pump_type == lafeng) fill = 17;
-   if(pump_type == DN_LAFNG17K) fill = 17;
+//   if(pump_type == DN_LAFNG17K)
+   if ( (settings[0].keypad__ == LAFNG17_K) || (settings[0].keypad__ == LAFNG18_K) )
+	   fill = 17;
 
    HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
 
-   for(int i=2;i<fill;i++)
+   for(int i = 2; i < fill; i++)
 	{
 		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
 		//_Delay(1);
@@ -1070,7 +1079,7 @@ int write_keypad_lcd2(int fxn,char* num)
 
 	    HAL_GPIO_WritePin(datak2_GPIO_Port, datak2_Pin, GPIO_PIN_SET);
 
-	  for(int i=2;i<fill;i++)
+	  for(int i = 2; i < fill; i++)
 	   	{
 	   		HAL_GPIO_WritePin(clkk2_GPIO_Port, clkk2_Pin, GPIO_PIN_RESET);
 	   		//_Delay(1);
@@ -1352,7 +1361,8 @@ int keypad_lcd2(int fxn,char* num)
 {
 
 //	if(pump_type2 != lafeng)
-	if(pump_type != DN_LAFNG17K)
+//	if(pump_type != DN_LAFNG17K)
+	if( (settings[1].keypad__ != LAFNG17_K) && (settings[1].keypad__ != LAFNG18_K) )
 	{
 	  int rr =	write_keypad_lcd2(fxn,num);
 	  return rr;
@@ -1391,7 +1401,9 @@ int keypad_lcd2(int fxn,char* num)
  // move the buf[] array into the shift register.
 
 //	if (pump_type == lafeng) disp_len_pad2 = 5;
-	if (pump_type == DN_LAFNG17K) disp_len_pad2 = 5;
+//	if (pump_type == DN_LAFNG17K) disp_len_pad2 = 5;
+	if ( (settings[1].keypad__ == LAFNG17_K) || (settings[1].keypad__ == LAFNG18_K) )
+		disp_len_pad2 = 5;
 
 	for(int i = 0; i < disp_len_pad2; i++)  //7 bytes for bluesky 5 bytes for lafeng
 		{
@@ -1405,9 +1417,11 @@ int keypad_lcd2(int fxn,char* num)
 
 int fill = 24;
 //if(pump_type == lafeng) fill = 16;
-if(pump_type == DN_LAFNG17K) fill = 16;
+//if(pump_type == DN_LAFNG17K)
+	if ( (settings[1].keypad__ == LAFNG17_K) || (settings[1].keypad__ == LAFNG18_K) )
+		fill = 16;
 
-	for(int i=1;i<fill;i++)
+	for(int i = 1; i < fill; i++)
 		{
 			HAL_GPIO_WritePin(clkk2_GPIO_Port, clkk2_Pin, GPIO_PIN_SET);
 			//	_Delay(1);
@@ -1428,7 +1442,7 @@ if(pump_type == DN_LAFNG17K) fill = 16;
 //==========================================================================
 
     HAL_GPIO_WritePin(datak2_GPIO_Port, datak2_Pin, GPIO_PIN_SET);
-    for(int i=0;i<5;i++)
+    for(int i = 0; i < 5; i++)
    	{
    		HAL_GPIO_WritePin(clkk2_GPIO_Port, clkk2_Pin, GPIO_PIN_SET);
    		//_Delay(1);
@@ -1457,11 +1471,12 @@ if(pump_type == DN_LAFNG17K) fill = 16;
 
    fill = 22;
 //   if(pump_type == lafeng) fill = 17;
-   if(pump_type == DN_LAFNG17K) fill = 17;
+//   if(pump_type == DN_LAFNG17K)
+   if ( (settings[1].keypad__ == LAFNG17_K) || (settings[1].keypad__ == LAFNG18_K) ) fill = 17;
 
    HAL_GPIO_WritePin(datak2_GPIO_Port, datak2_Pin, GPIO_PIN_SET);
 
-   for(int i=2;i<fill;i++)
+   for(int i = 2; i < fill; i++)
 	{
 		HAL_GPIO_WritePin(clkk2_GPIO_Port, clkk2_Pin, GPIO_PIN_SET);
 		//_Delay(1);

@@ -96,7 +96,8 @@ extern float pulser_index_c2;
 extern float litre_price1;
 extern float litre_price2;
 
-extern uint8_t calibration_flag2 = 0;
+extern uint8_t calibration_flag2 = 0,
+			   configMode2 = 0;
 
 extern uint8_t pwr2 = NOPOWERINTERRUPTION;
 
@@ -107,7 +108,9 @@ extern uint8_t ep1a_priceChangeFlag2 = 0;
 
 //extern log_ log_a[50],log_b[50];
 
-extern pump_settings settings[2] , copy[2] ;
+extern pump_settings settings[2],
+					 copy[2],
+					 settings0[2];
 
 extern int8_t ttime2[3],
 			  ddate2[4];
@@ -532,11 +535,11 @@ void write_v2(int i, char lcd_[9])
 
 	if (i == 3)   //third line
 	{
-		 for(int ii = 0 ; ii<7 ; ii++)
-					{
-						keyboard2[ii] = lcd_[ii];
-						keyboard2[ii+1] = 0;
-					}
+		for(int ii = 0 ; ii<7 ; ii++)
+		{
+			keyboard2[ii] = lcd_[ii];
+			keyboard2[ii+1] = 0;
+		}
 	}
 }
 //---------------------------------------
@@ -1973,11 +1976,12 @@ eSystemState progstate_Handler2(void)
 
 					#ifdef OTP_ENABLE
 						   if(strcmp(pass_, otp_code2) == 0)  //level 2 0r 3 access ?
+						   {
+							   save_otp(side_b);
 					#else
 						   if( (strcmp(pass_, otp_code2) == 0) || (strcmp(pass_, otp_code2) != 0) )  //level 2 0r 3 access ?
+						   {
 					#endif
-					   {
-
 						   index_menu = 0;
 						   auth2 = authed;
 						   if(access == level2) access = level2;
@@ -7267,7 +7271,7 @@ eSystemState idlestate_Handler2(void)
 		else if(batteryStatus == NOBATTERY)
 		{
 			send_line12("Battery ");
-			send_line22("  Error ");
+			send_line22(" Error  ");
 			send_line32(" Err71 ");
 
 			return inactive_State;
@@ -7483,6 +7487,7 @@ eSystemState idlestate_Handler2(void)
 						  send_line22(upper2);
 					  }
 
+					 send_line32("        ");
 					 char str__[8]= {0};
 					 snprintf(str__, sizeof(str__), "%.2f", litre_price2); send_line32(str__);
 					 firstTime_display_overflow2 = 0;
@@ -7513,6 +7518,7 @@ eSystemState idlestate_Handler2(void)
 						  send_line22(upper2);
 					  }
 
+					 send_line32("        ");
 					 char str__[8]= {0};
 					 snprintf(str__, sizeof(str__), "%.2f", litre_price2); send_line32(str__);
 				 }
@@ -7626,6 +7632,7 @@ eSystemState idlestate_Handler2(void)
 			 send_line12("  Price ");
 			 send_line22(" Changed ");
 
+			 send_line32("        ");
 			 char str__[8]= {0};
 			 snprintf(str__, sizeof(str__), "%.2f", litre_price2); send_line32(str__);
 
@@ -7722,6 +7729,12 @@ eSystemState savesettings_State_Handler2(void)
 		{
 		 	send_line12(" Sauing ");
 		 	send_line22("Settings");
+
+		 	copy_settings(move_to_settings0);
+		 	save_settings0();
+
+			configMode2 = CONFIGMODIFIED;
+			save_configFlag(side_b);
 
 	    	copy_settings(move_to_settings); // copy the structure.
 	    	save_settings();   //save to eeprom
@@ -8147,6 +8160,48 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 
 	slowFlow_startThreshold2 = (fast_flow_threshold2 * settings[1].valve_salesStart);
 	slowFlow_endThreshold2 = (fast_flow_threshold2 * settings[1].valve_salesEnd);
+
+
+	if (stop_flag2 == 1)   //if stop key pressed
+	{
+		filling2 = 0;
+		stop_flag2 = 0;
+		stop_flow2(); //send_solenoid(1);  //stop solenoid.
+
+	  //--------------------------------------------------------
+		dpFlag2 = 0;
+		error_clr_flag2 = 1;
+		 index_2 = 0;
+		 _index2 = 0;
+		 for(int i = 0; i < 9; i++)
+		 {
+		   keypad_pw_xter2[i] = 0;
+		   keyboard_entry2[i] = 0;   //clear the buffer
+		 }
+
+		 for(int i = 0; i <= 8; i++)
+		 {
+			 keyboard2[i] = 0;
+		 }
+		 //--------------------------------------------------------------------
+		 if (sellmode2 == P)
+		 {
+			  write_v2(3, "P     0");  //send_keypad("p    ");  //5 xters  lafeng..
+		 }
+		 else if(sellmode2 == L)
+		 {
+			  write_v2(3, "L     0");  //send_keypad("l    ");  //5 xters lafeng
+		 }
+	//	 else if(sellmode2 == V)
+	//	 {
+	//		  write_v2(3, "v    0");  //send_keypad("p    ");  //5 xters  lafeng..
+	//	 }
+		 send_keypad2(keyboard2);
+
+		//--------------------------------------------------------------------
+
+	       return idle_State;
+		}
 
 
 	if( firstTime_nozz2 == 1)
@@ -9227,13 +9282,15 @@ eSystemState keypress_Handler2(void)
 	extern int8_t keyEntry2_len;
 
 //	 if(pump_type == lafeng)
-	 if(pump_type == DN_LAFNG17K)
+//	 if(pump_type == DN_LAFNG17K)
+	 if( (settings[1].keypad__ == LAFNG17_K) || (settings[1].keypad__ == LAFNG18_K) )
 	 {
 	   kkey2 =  lafeng_keypad[keypress_2];
 	   allowed_xters = 6;
 	 }
 //	 else if(pump_type == bluesky)
-	 else if( (pump_type == DN_BLSKY18K) || (pump_type == DN_BLSKY22) )
+//	 else if( (pump_type == DN_BLSKY18K) || (pump_type == DN_BLSKY22) )
+	 else if( (settings[1].keypad__ == BLSKY18_K) || (settings[1].keypad__ == BLSKY22) )
 	 {
 	    kkey2 =  bluesky_keypad[keypress_2];
 	    allowed_xters = 7;
@@ -9430,12 +9487,14 @@ if(
 	   static int lcd_size = 5;
 
 //	   if(disp_type2 == LAFNG885)
-	   if(disp_type2 == DN_LAFNG17K)
+//	   if(disp_type2 == DN_LAFNG17K)
+	   if( (settings[1].keypad__  == LAFNG17_K) || (settings[1].keypad__  == LAFNG18_K) )
 	   {
 		    lcd_size = 5; //change this latter to accomodate other lcds.
 	   }
 //	   else if(disp_type2 == BLSKY886_N)
-	   else if( (disp_type2 == DN_BLSKY18K) ||  (disp_type2 == DN_BLSKY22) )
+//	   else if( (disp_type2 == DN_BLSKY18K) ||  (disp_type2 == DN_BLSKY22) )
+	   else if( (settings[1].keypad__  == BLSKY18_K) || (settings[1].keypad__  == BLSKY22) )
 	   {
 		    lcd_size = 7;   //6;
 	   }

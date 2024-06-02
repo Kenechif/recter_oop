@@ -522,10 +522,10 @@ void epSend_interval(void)
 
 #if defined (DEV_MODE)
 	//:::::::::::::::::::::::::::::::://
-//		ep5a_sent = 1;
-//		ep5b_sent = 1;
-//		ep0_sent = 1;
-//		ep31_sent = 1;
+		ep5a_sent = 1;
+		ep5b_sent = 1;
+		ep0_sent = 1;
+		ep31_sent = 1;
 	//:::::::::::::::::::::::::::::::://
 #endif  //#if !defined (DEV_MODE)
 
@@ -634,8 +634,8 @@ void epSend_interval(void)
 	// 		         EP20 ROUTINES SENDING   	      //
 	//================================================//
 
-	else if ( (timer_ep >= 10000)  &&
-			!( (ep0_sent == 0) || (ep5a_sent == 0) )
+	else if ( (timer_ep >= 10000)  //&&
+			//!( (ep0_sent == 0) || (ep5a_sent == 0) )
 			&& ( (ep20_available1 == 1) || (ep20_available2 == 1) ) )
 	{
 		if (ep20_available1 == 1)
@@ -651,6 +651,153 @@ void epSend_interval(void)
 
 	}
 
+#ifdef OTP_ENABLE
+	else if ( (timer_ep >= 10000) && (configMode1 == CONFIGMODIFIED) )
+	{
+			char ep200[1000];
+			char str[80];
+
+			retrieve_settings0();
+			retrieve_otp(side_a);
+
+			memset(ep200, '\0', sizeof(ep200));
+
+			sprintf(str, "{\"ep\":200,\"pn\":\"%s\"", pumpName[0].pump_name);
+			strcpy(ep200, str);
+
+			sprintf(str, ",\"otp1\":\"%s\"", otp_code1);
+			strcat(ep200, str);
+
+			if(settings0[0].id_ != settings[0].id_)
+			{
+				sprintf(str, ",\"na\":\"%d|%d\"", settings0[0].id_, settings[0].id_);
+				strcat(ep200, str);
+			}
+			if(settings0[0].mode != settings[0].mode)
+			{
+				sprintf(str, ",\"md\":\"%d|%d\"", settings0[0].mode, settings[0].mode);
+				strcat(ep200, str);
+			}
+			if(settings0[0].noz != settings[0].noz)
+			{
+				sprintf(str, ",\"no\":\"%d|%d\"", settings0[0].noz, settings[0].noz);
+				strcat(ep200, str);
+			}
+			if(settings0[0].price_ != settings[0].price_)
+			{
+				sprintf(str, ",\"pr\":\"%0.2f|%0.2f\"", settings0[0].price_, settings[0].price_);
+				strcat(ep200, str);
+			}
+			if(settings0[0].noFlow_timeOut != settings[0].noFlow_timeOut)
+			{
+				sprintf(str, ",\"nfl\":\"%d|%d\"", settings0[0].noFlow_timeOut, settings[0].noFlow_timeOut);
+				strcat(ep200, str);
+			}
+			if(settings0[0].max_amt_ != settings[0].max_amt_)
+			{
+				sprintf(str, ",\"lmt\":\"%d|%d\"", settings0[0].max_amt_, settings[0].max_amt_);
+				strcat(ep200, str);
+			}
+			if(settings0[0].dp_price != settings[0].dp_price)
+			{
+				sprintf(str, ",\"dpp\":\"%d|%d\"", settings0[0].dp_price, settings[0].dp_price);
+				strcat(ep200, str);
+			}
+			if(settings0[0].dp_amount != settings[0].dp_amount)
+			{
+				sprintf(str, ",\"dpa\":\"%d|%d\"", settings0[0].dp_amount, settings[0].dp_amount);
+				strcat(ep200, str);
+			}
+			if(settings0[0].dp_unitprice != settings[0].dp_unitprice)
+			{
+				sprintf(str, ",\"dpu\":\"%d|%d\"", settings0[0].dp_unitprice, settings[0].dp_unitprice);
+				strcat(ep200, str);
+			}
+			if(settings0[0].side_size != settings[0].side_size)
+			{
+				sprintf(str, ",\"ss\":\"%d|%d\"", settings0[0].side_size, settings[0].side_size);
+				strcat(ep200, str);
+			}
+			if(settings0[0].display_mode != settings[0].display_mode)
+			{
+				sprintf(str, ",\"dm\":\"%d|%d\"", settings0[0].display_mode, settings[0].display_mode);
+				strcat(ep200, str);
+			}
+			if(settings0[0].keypress_tone != settings[0].keypress_tone)
+			{
+				sprintf(str, ",\"kt\":\"%d|%d\"", settings0[0].keypress_tone, settings[0].keypress_tone);
+				strcat(ep200, str);
+			}
+			if(settings0[0].startUp_suppressVol != settings[0].startUp_suppressVol)
+			{
+				sprintf(str, ",\"sv\":\"%0.2f|%0.2f\"", settings0[0].startUp_suppressVol, settings[0].startUp_suppressVol);
+				strcat(ep200, str);
+			}
+			if(settings0[0].calibration_measureCan != settings[0].calibration_measureCan)
+			{
+				sprintf(str, ",\"mc\":\"%d|%d\"", settings0[0].calibration_measureCan, settings[0].calibration_measureCan);
+				strcat(ep200, str);
+			}
+			if(settings0[0].number_of_shifts != settings[0].number_of_shifts)
+			{
+				sprintf(str, ",\"sn\":\"%d|%d\"", settings0[0].number_of_shifts, settings[0].number_of_shifts);
+				strcat(ep200, str);
+			}
+			if(settings0[0].calibration_type != settings[0].calibration_type)
+			{
+				sprintf(str, ",\"ct\":\"%d|%d\"", settings0[0].calibration_type, settings[0].calibration_type);
+				strcat(ep200, str);
+			}
+			if(settings0[0].commCard_enforced != settings[0].commCard_enforced)
+			{
+				sprintf(str, ",\"cc\":\"%d|%d\"", settings0[0].commCard_enforced, settings[0].commCard_enforced);
+				strcat(ep200, str);
+			}
+			if(strcmp(settings0[0].passwd1, settings[0].passwd1) != 0)
+			{
+				sprintf(str, ",\"pwd1\":\"%s|%s\"", settings0[0].passwd1, settings[0].passwd1);
+				strcat(ep200, str);
+			}
+			if(strcmp(settings0[0].passwd2, settings[0].passwd2) != 0)
+			{
+				sprintf(str, ",\"pwd2\":\"%s|%s\"", settings0[0].passwd2, settings[0].passwd2);
+				strcat(ep200, str);
+			}
+			if(strcmp(settings0[0].passwd3, settings[0].passwd3) != 0)
+			{
+				sprintf(str, ",\"pwd3\":\"%s|%s\"", settings0[0].passwd3, settings[0].passwd3);
+				strcat(ep200, str);
+			}
+			if(settings0[0].shift_login_type != settings[0].shift_login_type)
+			{
+				sprintf(str, ",\"lt\":\"%d|%d\"", settings0[0].shift_login_type, settings[0].shift_login_type);
+				strcat(ep200, str);
+			}
+			if(settings0[0].pulser_type_ != settings[0].pulser_type_)
+			{
+				sprintf(str, ",\"pt\":\"%d|%d\"", settings0[0].pulser_type_, settings[0].pulser_type_);
+				strcat(ep200, str);
+			}
+			if(settings0[0].pulser_offset != settings[0].pulser_offset)
+			{
+				sprintf(str, ",\"pof\":\"%d|%d\"", settings0[0].pulser_offset, settings[0].pulser_offset);
+				strcat(ep200, str);
+			}
+			if(settings0[0].valve_salesStart != settings[0].valve_salesStart)
+			{
+				sprintf(str, ",\"vs\":\"%0.2f|%0.2f\"", settings0[0].mode, settings[0].valve_salesStart);
+				strcat(ep200, str);
+			}
+			if(settings0[0].valve_salesEnd != settings[0].valve_salesEnd)
+			{
+				sprintf(str, ",\"ve\":\"%0.2f|%0.2f\"", settings0[0].valve_salesEnd, settings[0].valve_salesEnd);
+				strcat(ep200, str);
+			}
+
+			strcat(ep200, "}");
+
+	}
+	#endif      //#ifdef OTP_ENABLE
 
 	else if( (timer_ep >= 12000) && ( (ep1a_priceChangeFlag1 == 1) || (ep1a_priceChangeFlag2 == 1) ||
 			(ep1a_priceChangeFlag_bothSides == 1) ) )
@@ -773,7 +920,6 @@ void epSend_interval(void)
 		//============================================//
 	}
 }
-
 
 void synchedLog_get(pump_sid ab)
 {
