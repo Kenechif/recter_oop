@@ -281,89 +281,89 @@ void configure_pump(pumpCompPart _case)
 	{
 		case nozzle_name:  if(strstr(nozz_id,"p1"))
 	   	   	   	   	   	   {
-								settings[0].noz_id = P1;
-								settings[1].noz_id = P2;
+								settings_stream1[0].noz_id = P1;
+								settings_stream1[1].noz_id = P2;
 	   	   	   	   	   	   }
 						   else if(strstr(nozz_id,"p2"))
 		   	   	   	   	   {
-								settings[0].noz_id = P2;
-								settings[1].noz_id = P3;
+							   settings_stream1[0].noz_id = P2;
+							   settings_stream1[1].noz_id = P3;
 		   	   	   	   	   }
 						   else if(strstr(nozz_id,"p3"))
 		   	   	   	   	   {
-								settings[0].noz_id = P3;
-								settings[1].noz_id = P4;
+							   settings_stream1[0].noz_id = P3;
+							   settings_stream1[1].noz_id = P4;
 		   	   	   	   	   }
 						   else if(strstr(nozz_id,"p4"))
 		   	   	   	   	   {
-								settings[0].noz_id = P4;
-								settings[1].noz_id = P5;
+							   settings_stream1[0].noz_id = P4;
+							   settings_stream1[1].noz_id = P5;
 		   	   	   	   	   }
 						   break;
 
 
 		case product_name: if(strstr(rx_buf,"pms"))
 		   	   	   	   	   {
-								strcpy(settings[0].product_, "PMS");
-								strcpy(settings[1].product_, "PMS");
+								strcpy(settings_stream1[0].product_, "PMS");
+								strcpy(settings_stream1[1].product_, "PMS");
 		   	   	   	   	   }
 						   else if(strstr(rx_buf,"dpk"))
 		   	   	   	   	   {
-								strcpy(settings[0].product_, "DPK");
-								strcpy(settings[1].product_, "DPK");
+								strcpy(settings_stream1[0].product_, "DPK");
+								strcpy(settings_stream1[1].product_, "DPK");
 		   	   	   	   	   }
 						   else if(strstr(rx_buf,"ago"))
 		   	   	   	   	   {
-								strcpy(settings[0].product_, "AGO");
-								strcpy(settings[1].product_, "AGO");
+								strcpy(settings_stream1[0].product_, "AGO");
+								strcpy(settings_stream1[1].product_, "AGO");
 		   	   	   	   	   }
 						   break;
 
 		case disp_type:   if(strstr(rx_buf,"lafeng885"))
 						   {
-							settings[0].display__ = LAFNG885;
-							settings[1].display__ = LAFNG885;
+							settings_stream1[0].display__ = LAFNG885;
+							settings_stream1[1].display__ = LAFNG885;
 						   }
 					   	   else if(strstr(rx_buf,"bluesky886n"))
 						   {
-							settings[0].display__ = BLSKY886_N;
-							settings[1].display__ = BLSKY886_N;
+					   		settings_stream1[0].display__ = BLSKY886_N;
+					   		settings_stream1[1].display__ = BLSKY886_N;
 						   }
 					   	   else if(strstr(rx_buf,"bluesky886i"))
 						   {
-							settings[0].display__ = BLSKY886_IN;
-							settings[1].display__ = BLSKY886_IN;
+					   		settings_stream1[0].display__ = BLSKY886_IN;
+					   		settings_stream1[1].display__ = BLSKY886_IN;
 						   }
 					   	   break;
 
 		case keypad_type:  if(strstr(rx_buf,"lafeng17k"))
 						   {
-							settings[0].keypad__ = LAFNG17_K;
-							settings[1].keypad__ = LAFNG17_K;
+							settings_stream1[0].keypad__ = LAFNG17_K;
+							settings_stream1[1].keypad__ = LAFNG17_K;
 						   }
 						   else if(strstr(rx_buf,"lafeng18k"))
 						   {
-							settings[0].keypad__ = LAFNG18_K;
-							settings[1].keypad__ = LAFNG18_K;
+							   settings_stream1[0].keypad__ = LAFNG18_K;
+							   settings_stream1[1].keypad__ = LAFNG18_K;
 						   }
 
 						#ifdef DEV_MODE
 //						   else if(strstr(rx_buf,"bluesky22"))
 //						   {
-//							settings[0].keypad__ = BLSKY22;
-//							settings[1].keypad__ = LAFNG18_K;
+//							settings_stream1[0].keypad__ = BLSKY22;
+//							settings_stream1[1].keypad__ = LAFNG18_K;
 //						   }
 						#endif
 
 					   	   else if(strstr(rx_buf,"bluesky18k"))
 						   {
-							settings[0].keypad__ = BLSKY18_K;
-							settings[1].keypad__ = BLSKY18_K;
+					   		settings_stream1[0].keypad__ = BLSKY18_K;
+							settings_stream1[1].keypad__ = BLSKY18_K;
 						   }
 					   	   else if(strstr(rx_buf,"bluesky22"))
 						   {
-							settings[0].keypad__ = BLSKY22;
-							settings[1].keypad__ = BLSKY22;
+					   		settings_stream1[0].keypad__ = BLSKY22;
+					   		settings_stream1[1].keypad__ = BLSKY22;
 						   }
 					   	   break;
 	}

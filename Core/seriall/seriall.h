@@ -93,7 +93,17 @@ extern long tranxA_token,
 
 extern int8_t config_mode;
 
-extern pump_settings settings[2];
+//extern pump_settings settings[2];
+
+extern pump_settings_stream1 settings_stream1[2],
+					 	 	 settings0_stream1[2];
+
+extern pump_settings_stream2 settings_stream2[2],
+							 settings0_stream2[2];
+
+extern pump_settings_stream3 settings_stream3[2],
+				       	     settings0_stream3[2],
+							 copy_stream3[2];
 
 void config_rx(void);
 void configure_pump(pumpCompPart _case);

@@ -30,7 +30,17 @@ Name_address name_address;
 
 char temp[15] = {0};
 
-extern pump_settings settings[2];
+//extern pump_settings settings[2];
+
+extern pump_settings_stream1 settings_stream1[2],
+					 	 	 settings0_stream1[2];
+
+extern pump_settings_stream2 settings_stream2[2],
+							 settings0_stream2[2];
+
+extern pump_settings_stream3 settings_stream3[2],
+				       	     settings0_stream3[2],
+							 copy_stream3[2];
 
 extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart5;
@@ -130,8 +140,8 @@ void getUnitPrice(void)
 
 void setUnitPrice(void)
 {
-	settings[0].price_ = set_p;
-	settings[1].price_ = set_p;
+	settings_stream1[0].price_ = set_p;
+	settings_stream1[1].price_ = set_p;
 	save_settings();   //save to eeprom
 	load_settings(side_a); //load the settings into the internal variables
 	load_settings(side_b);

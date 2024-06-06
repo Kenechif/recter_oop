@@ -167,7 +167,7 @@ void ep_send(ep_ designation)
 					ep1a_save.pump[0].totalizer = totaliser_vol1c;
 					ep1a_save.pump[0].tolalizer_first = ep5_save.firstTotalizer[0].totalizer;
 					ep1a_save.pump[0].totalizerFirst_timestamp = ep5_save.firstTotalizer[0].timestamp;
-					ep1a_save.pump[0].nozzle_id = settings[0].noz_id;
+					ep1a_save.pump[0].nozzle_id = settings_stream1[0].noz_id;
 					ep1a_save.pump[0].totalizer_real = totaliser_vol1;
 					ep1a_save.pump[0].tolalizerReal_first = ep5_save.firstTotalizer[0].totalizer_real;
 					strcpy(ep1a_save.pump[0].nozzle_name, pumpName[0].pump_name);
@@ -177,7 +177,7 @@ void ep_send(ep_ designation)
 					ep1a_save.pump[1].tolalizer_first = ep5_save.firstTotalizer[1].totalizer;
 					ep1a_save.pump[1].totalizerFirst_timestamp = ep5_save.firstTotalizer[0].timestamp;
 					strcpy(ep1a_save.pump[1].nozzle_name, pumpName[1].pump_name);
-					ep1a_save.pump[1].nozzle_id = (settings[0].noz_id + 1);
+					ep1a_save.pump[1].nozzle_id = (settings_stream1[0].noz_id + 1);
 					ep1a_save.pump[1].totalizer_real = totaliser_vol2;
 					ep1a_save.pump[1].tolalizerReal_first = ep5_save.firstTotalizer[1].totalizer_real;
 
@@ -218,10 +218,10 @@ void ep_send(ep_ designation)
 					ep1b_save.total_tranx = (ep1b_save.total_tranxA + ep1b_save.total_tranxB);
 					ep1b_save.synched_tranx = (ep1b_save.synched_tranxA + ep1b_save.synched_tranxB);
 
-					ep1b_save.pump[0].nozzle_id = (settings[0].noz_id);
+					ep1b_save.pump[0].nozzle_id = (settings_stream1[0].noz_id);
 					ep1b_save.pump[0].totalizer_real = totaliser_vol1;
 					ep1b_save.pump[0].tolalizerReal_first = ep5_save.firstTotalizer[0].totalizer_real;
-					ep1b_save.pump[1].nozzle_id = (settings[0].noz_id + 1);
+					ep1b_save.pump[1].nozzle_id = (settings_stream1[0].noz_id + 1);
 					ep1b_save.pump[1].totalizer_real = totaliser_vol2;
 					ep1b_save.pump[1].tolalizerReal_first = ep5_save.firstTotalizer[1].totalizer_real;
 
@@ -339,8 +339,8 @@ void ep_send(ep_ designation)
 
 		case ep31 :			ep31_save.timestamp = RtcToInt(2019);
 							ep31_save.token = generate_tk();
-							ep31_save.pump[0].nozzle_id = (settings[0].noz_id);
-							ep31_save.pump[1].nozzle_id = (settings[0].noz_id + 1);
+							ep31_save.pump[0].nozzle_id = (settings_stream1[0].noz_id);
+							ep31_save.pump[1].nozzle_id = (settings_stream1[0].noz_id + 1);
 							memset(ep31_save.pump[0].nozzle_name, '\0', sizeof(ep31_save.pump[0].nozzle_name));
 							strcpy(ep31_save.pump[0].nozzle_name, pumpName[0].pump_name);
 							memset(ep31_save.pump[1].nozzle_name, '\0', sizeof(ep31_save.pump[1].nozzle_name));
@@ -367,7 +367,7 @@ void ep_send(ep_ designation)
 							ep1a_save.pump[0].totalizer = totaliser_vol1c;
 							ep1a_save.pump[0].tolalizer_first = ep5_save.firstTotalizer[0].totalizer;
 							ep1a_save.pump[0].totalizerFirst_timestamp = ep5_save.firstTotalizer[0].timestamp;
-							ep1a_save.pump[0].nozzle_id = settings[0].noz_id;
+							ep1a_save.pump[0].nozzle_id = settings_stream1[0].noz_id;
 							ep1a_save.pump[0].totalizer_real = totaliser_vol1;
 							ep1a_save.pump[0].tolalizerReal_first = ep5_save.firstTotalizer[0].totalizer_real;
 							strcpy(ep1a_save.pump[0].nozzle_name, pumpName[0].pump_name);
@@ -377,7 +377,7 @@ void ep_send(ep_ designation)
 							ep1a_save.pump[1].tolalizer_first = ep5_save.firstTotalizer[1].totalizer;
 							ep1a_save.pump[1].totalizerFirst_timestamp = ep5_save.firstTotalizer[0].timestamp;
 							strcpy(ep1a_save.pump[1].nozzle_name, pumpName[1].pump_name);
-							ep1a_save.pump[1].nozzle_id = (settings[0].noz_id + 1);
+							ep1a_save.pump[1].nozzle_id = (settings_stream1[0].noz_id + 1);
 							ep1a_save.pump[1].totalizer_real = totaliser_vol2;
 							ep1a_save.pump[1].tolalizerReal_first = ep5_save.firstTotalizer[1].totalizer_real;
 
@@ -412,7 +412,7 @@ void ep_send(ep_ designation)
 							ep1a_save.pump[0].totalizer = totaliser_vol1c;
 							ep1a_save.pump[0].tolalizer_first = ep5_save.firstTotalizer[0].totalizer;
 							ep1a_save.pump[0].totalizerFirst_timestamp = ep5_save.firstTotalizer[0].timestamp;
-							ep1a_save.pump[0].nozzle_id = settings[0].noz_id;
+							ep1a_save.pump[0].nozzle_id = settings_stream1[0].noz_id;
 							ep1a_save.pump[0].totalizer_real = totaliser_vol1;
 							ep1a_save.pump[0].tolalizerReal_first = ep5_save.firstTotalizer[0].totalizer_real;
 							strcpy(ep1a_save.pump[0].nozzle_name, pumpName[0].pump_name);
@@ -422,7 +422,7 @@ void ep_send(ep_ designation)
 							ep1a_save.pump[1].tolalizer_first = ep5_save.firstTotalizer[1].totalizer;
 							ep1a_save.pump[1].totalizerFirst_timestamp = ep5_save.firstTotalizer[0].timestamp;
 							strcpy(ep1a_save.pump[1].nozzle_name, pumpName[1].pump_name);
-							ep1a_save.pump[1].nozzle_id = (settings[0].noz_id + 1);
+							ep1a_save.pump[1].nozzle_id = (settings_stream1[0].noz_id + 1);
 							ep1a_save.pump[1].totalizer_real = totaliser_vol2;
 							ep1a_save.pump[1].tolalizerReal_first = ep5_save.firstTotalizer[1].totalizer_real;
 
@@ -456,7 +456,7 @@ void ep_send(ep_ designation)
 									ep1a_save.pump[0].totalizer = totaliser_vol1c;
 									ep1a_save.pump[0].tolalizer_first = ep5_save.firstTotalizer[0].totalizer;
 									ep1a_save.pump[0].totalizerFirst_timestamp = ep5_save.firstTotalizer[0].timestamp;
-									ep1a_save.pump[0].nozzle_id = settings[0].noz_id;
+									ep1a_save.pump[0].nozzle_id = settings_stream1[0].noz_id;
 									ep1a_save.pump[0].totalizer_real = totaliser_vol1;
 									ep1a_save.pump[0].tolalizerReal_first = ep5_save.firstTotalizer[0].totalizer_real;
 									strcpy(ep1a_save.pump[0].nozzle_name, pumpName[0].pump_name);
@@ -466,7 +466,7 @@ void ep_send(ep_ designation)
 									ep1a_save.pump[1].tolalizer_first = ep5_save.firstTotalizer[1].totalizer;
 									ep1a_save.pump[1].totalizerFirst_timestamp = ep5_save.firstTotalizer[0].timestamp;
 									strcpy(ep1a_save.pump[1].nozzle_name, pumpName[1].pump_name);
-									ep1a_save.pump[1].nozzle_id = (settings[0].noz_id + 1);
+									ep1a_save.pump[1].nozzle_id = (settings_stream1[0].noz_id + 1);
 									ep1a_save.pump[1].totalizer_real = totaliser_vol2;
 									ep1a_save.pump[1].tolalizerReal_first = ep5_save.firstTotalizer[1].totalizer_real;
 
@@ -540,7 +540,7 @@ void epSend_interval(void)
 		day = DS1307_GetDate();
 
 
-		if(settings[0].totalizer_day == day)
+		if(settings_stream2[0].totalizer_day == day)
 		{
 			ep5a_sent = 1;
 			ep5b_sent = 1;
@@ -561,7 +561,7 @@ void epSend_interval(void)
 		// 				EP5 ROUTINE SENDING			  //
 		//============================================//
 
-		else if(settings[0].totalizer_day != day)
+		else if(settings_stream2[0].totalizer_day != day)
 		{
 			retrieve_1stVolTotaliser_day(side_a);
 			retrieve_1stVolTotaliser_day(side_b);
@@ -668,129 +668,129 @@ void epSend_interval(void)
 			sprintf(str, ",\"otp1\":\"%s\"", otp_code1);
 			strcat(ep200, str);
 
-			if(settings0[0].id_ != settings[0].id_)
+			if(settings0_stream1[0].id_ != settings_stream1[0].id_)
 			{
-				sprintf(str, ",\"na\":\"%d|%d\"", settings0[0].id_, settings[0].id_);
+				sprintf(str, ",\"na\":\"%d|%d\"", settings0_stream1[0].id_, settings_stream1[0].id_);
 				strcat(ep200, str);
 			}
-			if(settings0[0].mode != settings[0].mode)
+			if(settings0_stream1[0].mode != settings_stream1[0].mode)
 			{
-				sprintf(str, ",\"md\":\"%d|%d\"", settings0[0].mode, settings[0].mode);
+				sprintf(str, ",\"md\":\"%d|%d\"", settings0_stream1[0].mode, settings_stream1[0].mode);
 				strcat(ep200, str);
 			}
-			if(settings0[0].noz != settings[0].noz)
+			if(settings0_stream1[0].noz != settings_stream1[0].noz)
 			{
-				sprintf(str, ",\"no\":\"%d|%d\"", settings0[0].noz, settings[0].noz);
+				sprintf(str, ",\"no\":\"%d|%d\"", settings0_stream1[0].noz, settings_stream1[0].noz);
 				strcat(ep200, str);
 			}
-			if(settings0[0].price_ != settings[0].price_)
+			if(settings0_stream1[0].price_ != settings_stream1[0].price_)
 			{
-				sprintf(str, ",\"pr\":\"%0.2f|%0.2f\"", settings0[0].price_, settings[0].price_);
+				sprintf(str, ",\"pr\":\"%0.2f|%0.2f\"", settings0_stream1[0].price_, settings_stream1[0].price_);
 				strcat(ep200, str);
 			}
-			if(settings0[0].noFlow_timeOut != settings[0].noFlow_timeOut)
+			if(settings0_stream2[0].noFlow_timeOut != settings_stream2[0].noFlow_timeOut)
 			{
-				sprintf(str, ",\"nfl\":\"%d|%d\"", settings0[0].noFlow_timeOut, settings[0].noFlow_timeOut);
+				sprintf(str, ",\"nfl\":\"%d|%d\"", settings0_stream2[0].noFlow_timeOut, settings_stream2[0].noFlow_timeOut);
 				strcat(ep200, str);
 			}
-			if(settings0[0].max_amt_ != settings[0].max_amt_)
+			if(settings0_stream1[0].max_amt_ != settings_stream1[0].max_amt_)
 			{
-				sprintf(str, ",\"lmt\":\"%d|%d\"", settings0[0].max_amt_, settings[0].max_amt_);
+				sprintf(str, ",\"lmt\":\"%d|%d\"", settings0_stream1[0].max_amt_, settings_stream1[0].max_amt_);
 				strcat(ep200, str);
 			}
-			if(settings0[0].dp_price != settings[0].dp_price)
+			if(settings0_stream1[0].dp_price != settings_stream1[0].dp_price)
 			{
-				sprintf(str, ",\"dpp\":\"%d|%d\"", settings0[0].dp_price, settings[0].dp_price);
+				sprintf(str, ",\"dpp\":\"%d|%d\"", settings0_stream1[0].dp_price, settings_stream1[0].dp_price);
 				strcat(ep200, str);
 			}
-			if(settings0[0].dp_amount != settings[0].dp_amount)
+			if(settings0_stream1[0].dp_amount != settings_stream1[0].dp_amount)
 			{
-				sprintf(str, ",\"dpa\":\"%d|%d\"", settings0[0].dp_amount, settings[0].dp_amount);
+				sprintf(str, ",\"dpa\":\"%d|%d\"", settings0_stream1[0].dp_amount, settings_stream1[0].dp_amount);
 				strcat(ep200, str);
 			}
-			if(settings0[0].dp_unitprice != settings[0].dp_unitprice)
+			if(settings0_stream1[0].dp_unitprice != settings_stream1[0].dp_unitprice)
 			{
-				sprintf(str, ",\"dpu\":\"%d|%d\"", settings0[0].dp_unitprice, settings[0].dp_unitprice);
+				sprintf(str, ",\"dpu\":\"%d|%d\"", settings0_stream1[0].dp_unitprice, settings_stream1[0].dp_unitprice);
 				strcat(ep200, str);
 			}
-			if(settings0[0].side_size != settings[0].side_size)
+			if(settings0_stream2[0].side_size != settings_stream2[0].side_size)
 			{
-				sprintf(str, ",\"ss\":\"%d|%d\"", settings0[0].side_size, settings[0].side_size);
+				sprintf(str, ",\"ss\":\"%d|%d\"", settings0_stream2[0].side_size, settings_stream2[0].side_size);
 				strcat(ep200, str);
 			}
-			if(settings0[0].display_mode != settings[0].display_mode)
+			if(settings0_stream1[0].display_mode != settings_stream1[0].display_mode)
 			{
-				sprintf(str, ",\"dm\":\"%d|%d\"", settings0[0].display_mode, settings[0].display_mode);
+				sprintf(str, ",\"dm\":\"%d|%d\"", settings0_stream1[0].display_mode, settings_stream1[0].display_mode);
 				strcat(ep200, str);
 			}
-			if(settings0[0].keypress_tone != settings[0].keypress_tone)
+			if(settings0_stream2[0].keypress_tone != settings_stream2[0].keypress_tone)
 			{
-				sprintf(str, ",\"kt\":\"%d|%d\"", settings0[0].keypress_tone, settings[0].keypress_tone);
+				sprintf(str, ",\"kt\":\"%d|%d\"", settings0_stream2[0].keypress_tone, settings_stream2[0].keypress_tone);
 				strcat(ep200, str);
 			}
-			if(settings0[0].startUp_suppressVol != settings[0].startUp_suppressVol)
+			if(settings0_stream2[0].startUp_suppressVol != settings_stream2[0].startUp_suppressVol)
 			{
-				sprintf(str, ",\"sv\":\"%0.2f|%0.2f\"", settings0[0].startUp_suppressVol, settings[0].startUp_suppressVol);
+				sprintf(str, ",\"sv\":\"%0.2f|%0.2f\"", settings0_stream2[0].startUp_suppressVol, settings_stream2[0].startUp_suppressVol);
 				strcat(ep200, str);
 			}
-			if(settings0[0].calibration_measureCan != settings[0].calibration_measureCan)
+			if(settings0_stream2[0].calibration_measureCan != settings_stream2[0].calibration_measureCan)
 			{
-				sprintf(str, ",\"mc\":\"%d|%d\"", settings0[0].calibration_measureCan, settings[0].calibration_measureCan);
+				sprintf(str, ",\"mc\":\"%d|%d\"", settings0_stream2[0].calibration_measureCan, settings_stream2[0].calibration_measureCan);
 				strcat(ep200, str);
 			}
-			if(settings0[0].number_of_shifts != settings[0].number_of_shifts)
+			if(settings0_stream2[0].number_of_shifts != settings_stream2[0].number_of_shifts)
 			{
-				sprintf(str, ",\"sn\":\"%d|%d\"", settings0[0].number_of_shifts, settings[0].number_of_shifts);
+				sprintf(str, ",\"sn\":\"%d|%d\"", settings0_stream2[0].number_of_shifts, settings_stream2[0].number_of_shifts);
 				strcat(ep200, str);
 			}
-			if(settings0[0].calibration_type != settings[0].calibration_type)
+			if(settings0_stream2[0].calibration_type != settings_stream2[0].calibration_type)
 			{
-				sprintf(str, ",\"ct\":\"%d|%d\"", settings0[0].calibration_type, settings[0].calibration_type);
+				sprintf(str, ",\"ct\":\"%d|%d\"", settings0_stream2[0].calibration_type, settings_stream2[0].calibration_type);
 				strcat(ep200, str);
 			}
-			if(settings0[0].commCard_enforced != settings[0].commCard_enforced)
+			if(settings0_stream2[0].commCard_enforced != settings_stream2[0].commCard_enforced)
 			{
-				sprintf(str, ",\"cc\":\"%d|%d\"", settings0[0].commCard_enforced, settings[0].commCard_enforced);
+				sprintf(str, ",\"cc\":\"%d|%d\"", settings0_stream2[0].commCard_enforced, settings_stream2[0].commCard_enforced);
 				strcat(ep200, str);
 			}
-			if(strcmp(settings0[0].passwd1, settings[0].passwd1) != 0)
+			if(strcmp(settings0_stream3[0].passwd1, settings_stream3[0].passwd1) != 0)
 			{
-				sprintf(str, ",\"pwd1\":\"%s|%s\"", settings0[0].passwd1, settings[0].passwd1);
+				sprintf(str, ",\"pwd1\":\"%s|%s\"", settings0_stream3[0].passwd1, settings_stream3[0].passwd1);
 				strcat(ep200, str);
 			}
-			if(strcmp(settings0[0].passwd2, settings[0].passwd2) != 0)
+			if(strcmp(settings0_stream3[0].passwd2, settings_stream3[0].passwd2) != 0)
 			{
-				sprintf(str, ",\"pwd2\":\"%s|%s\"", settings0[0].passwd2, settings[0].passwd2);
+				sprintf(str, ",\"pwd2\":\"%s|%s\"", settings0_stream3[0].passwd2, settings_stream3[0].passwd2);
 				strcat(ep200, str);
 			}
-			if(strcmp(settings0[0].passwd3, settings[0].passwd3) != 0)
+			if(strcmp(settings0_stream3[0].passwd3, settings_stream3[0].passwd3) != 0)
 			{
-				sprintf(str, ",\"pwd3\":\"%s|%s\"", settings0[0].passwd3, settings[0].passwd3);
+				sprintf(str, ",\"pwd3\":\"%s|%s\"", settings0_stream3[0].passwd3, settings_stream3[0].passwd3);
 				strcat(ep200, str);
 			}
-			if(settings0[0].shift_login_type != settings[0].shift_login_type)
+			if(settings0_stream2[0].shift_login_type != settings_stream2[0].shift_login_type)
 			{
-				sprintf(str, ",\"lt\":\"%d|%d\"", settings0[0].shift_login_type, settings[0].shift_login_type);
+				sprintf(str, ",\"lt\":\"%d|%d\"", settings0_stream2[0].shift_login_type, settings_stream2[0].shift_login_type);
 				strcat(ep200, str);
 			}
-			if(settings0[0].pulser_type_ != settings[0].pulser_type_)
+			if(settings0_stream2[0].pulser_type_ != settings_stream2[0].pulser_type_)
 			{
-				sprintf(str, ",\"pt\":\"%d|%d\"", settings0[0].pulser_type_, settings[0].pulser_type_);
+				sprintf(str, ",\"pt\":\"%d|%d\"", settings0_stream2[0].pulser_type_, settings_stream2[0].pulser_type_);
 				strcat(ep200, str);
 			}
-			if(settings0[0].pulser_offset != settings[0].pulser_offset)
+			if(settings0_stream2[0].pulser_offset != settings_stream2[0].pulser_offset)
 			{
-				sprintf(str, ",\"pof\":\"%d|%d\"", settings0[0].pulser_offset, settings[0].pulser_offset);
+				sprintf(str, ",\"pof\":\"%d|%d\"", settings0_stream2[0].pulser_offset, settings_stream2[0].pulser_offset);
 				strcat(ep200, str);
 			}
-			if(settings0[0].valve_salesStart != settings[0].valve_salesStart)
+			if(settings0_stream2[0].valve_salesStart != settings_stream2[0].valve_salesStart)
 			{
-				sprintf(str, ",\"vs\":\"%0.2f|%0.2f\"", settings0[0].mode, settings[0].valve_salesStart);
+				sprintf(str, ",\"vs\":\"%0.2f|%0.2f\"", settings0_stream2[0].valve_salesStart, settings_stream2[0].valve_salesStart);
 				strcat(ep200, str);
 			}
-			if(settings0[0].valve_salesEnd != settings[0].valve_salesEnd)
+			if(settings0_stream2[0].valve_salesEnd != settings_stream2[0].valve_salesEnd)
 			{
-				sprintf(str, ",\"ve\":\"%0.2f|%0.2f\"", settings0[0].valve_salesEnd, settings[0].valve_salesEnd);
+				sprintf(str, ",\"ve\":\"%0.2f|%0.2f\"", settings0_stream2[0].valve_salesEnd, settings_stream2[0].valve_salesEnd);
 				strcat(ep200, str);
 			}
 
@@ -1765,8 +1765,8 @@ void server_rx_parse(void)
 
 		   					if(ep5b_sent == 1)
 		   					{
-		   						settings[0].totalizer_day = day;
-		   						EEPROM_Write_NUM (totalizerDay_loc, 0, settings[0].totalizer_day);
+		   						settings_stream2[0].totalizer_day = day;
+		   						EEPROM_Write_NUM (totalizerDay_loc, 0, settings_stream2[0].totalizer_day);
 		   					}
 		   					break;
 		   				}
@@ -1776,8 +1776,8 @@ void server_rx_parse(void)
 
 							if(ep5a_sent == 1)
 							{
-								settings[0].totalizer_day = day;
-								EEPROM_Write_NUM (totalizerDay_loc, 0, settings[0].totalizer_day);
+								settings_stream2[0].totalizer_day = day;
+								EEPROM_Write_NUM (totalizerDay_loc, 0, settings_stream2[0].totalizer_day);
 							}
 							break;
 						}
@@ -2019,7 +2019,7 @@ void card1_rx_parse(void)
 
 	   if(verifyResponse1 == 0)
 	   {
-		   if( (_check_sum == check_sum1) && (settings[0].shift_login_type == Card_) )
+		   if( (_check_sum == check_sum1) && (settings_stream2[0].shift_login_type == Card_) )
 		   {
 			   TSTA1 = 1;
 		   }
@@ -2157,7 +2157,7 @@ void card2_rx_parse(void)
 
 	   if(verifyResponse2 == 0)
 	   {
-		   if( (_check_sum == check_sum2) && (settings[1].shift_login_type == Card_) )
+		   if( (_check_sum == check_sum2) && (settings_stream2[1].shift_login_type == Card_) )
 		   {
 			   TSTA2 = 1;
 		   }
@@ -2380,8 +2380,8 @@ void ep1_mtResponse(void)
 					   price_change2 = atoff(mt_pump[1].price);
 //					   price_change2  += 0.00011;  //make small correction for the inherent rounddown.
 
-					   priceChange_check1 = price_change1 - settings[0].price_;
-					   priceChange_check2 = price_change2 - settings[1].price_;
+					   priceChange_check1 = price_change1 - settings_stream1[0].price_;
+					   priceChange_check2 = price_change2 - settings_stream1[1].price_;
 
 
 					   if( (mt_pump[0].type[0] == '3') && ( (priceChange_check1 > 0.1) || (priceChange_check1 < -0.1)) )
@@ -2442,7 +2442,7 @@ void ep1_mtResponse(void)
 						   price_change1 = atoff(mt_pump[0].price);
 //						   price_change1  += 0.00011;  //make small correction for the inherent rounddown.
 
-						   priceChange_check1 = price_change1 - settings[0].price_;
+						   priceChange_check1 = price_change1 - settings_stream1[0].price_;
 
 
 //						   if( (mt_pump[0].type[0] == '3') && (price_change1 != settings[0].price_) )
@@ -2487,7 +2487,7 @@ void ep1_mtResponse(void)
 						   price_change2 = atoff(mt_pump[1].price);
 //						   price_change2  += 0.00011;  //make small correction for the inherent rounddown.
 
-	   					   priceChange_check2 = price_change2 - settings[1].price_;
+	   					   priceChange_check2 = price_change2 - settings_stream1[1].price_;
 
 //						   if( (mt_pump[1].type[0] == '3') && (price_change2 != settings[1].price_) )
 						   if( (mt_pump[1].type[0] == '3') && ( (priceChange_check2 > 0.1) || (priceChange_check2 < -0.1)) )
@@ -2759,8 +2759,8 @@ void ep20_send(pump_sid side)
 
 void online_setUnitPrice1(void)
 {
-	settings[0].price_ = atof(mt_pump[0].price);
-	settings[0].price_  += 0.00011;  //make small correction for the inherent rounddown.
+	settings_stream1[0].price_ = atof(mt_pump[0].price);
+	settings_stream1[0].price_  += 0.00011;  //make small correction for the inherent rounddown.
 
 	save_settings();   //save to eeprom
 	load_settings(side_a); //load the settings into the internal variables
@@ -2768,8 +2768,8 @@ void online_setUnitPrice1(void)
 
 void online_setUnitPrice2(void)
 {
-	settings[1].price_ = atof(mt_pump[1].price);
-	settings[1].price_  += 0.00011;  //make small correction for the inherent rounddown.
+	settings_stream1[1].price_ = atof(mt_pump[1].price);
+	settings_stream1[1].price_  += 0.00011;  //make small correction for the inherent rounddown.
 
 	save_settings();   //save to eeprom
 	load_settings(side_b); //load the settings into the internal variables
@@ -2798,7 +2798,7 @@ void send_ep0_ep5(void)
 
 	day = DS1307_GetDate();
 
-	if(settings[0].totalizer_day != day)
+	if(settings_stream2[0].totalizer_day != day)
 	{
 		ep5_save.firstTotalizer[0].totalizer = totaliser_vol1c;
 		ep5_save.firstTotalizer[1].totalizer = totaliser_vol2c;

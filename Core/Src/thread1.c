@@ -48,6 +48,8 @@
 //uint8_t MSG[200] = {0};
 extern int8_t change_p, change_v;
 
+extern uint16_t eeprom_pageNum;
+
 extern float auth_v, auth_p;
 
 extern w25qxx_t w25qxx;
@@ -59,9 +61,22 @@ extern TIM_HandleTypeDef htim5;
 
 extern I2C_HandleTypeDef hi2c1;
 
-extern  pump_settings settings[2],
-					  copy[2],
-					  settings0[2];
+//extern  pump_settings settings[2],
+//					  copy[2],
+//					  settings0[2];
+
+
+extern pump_settings_stream1 settings_stream1[2],
+						     settings0_stream1[2],
+						     copy_stream1[2];
+
+extern pump_settings_stream2 settings_stream2[2],
+				       	     settings0_stream2[2],
+							 copy_stream2[2];
+
+extern pump_settings_stream3 settings_stream3[2],
+				       	     settings0_stream3[2],
+							 copy_stream3[2];
 
 extern pump pump_type,
  	 	 	disp_type1,
@@ -1004,6 +1019,55 @@ void compose_printer()
 //		 }
 //	 }
 
+ while(1)
+ {
+
+//     FRAM_Write_NUM (0, 0, 234);
+//
+//     HAL_Delay(1000);
+
+     float fram_read;
+
+//     fram_read; = FRAM_Read_NUM (0, 0);
+
+     EEPROM_Write_NUM (900, 0, 234);
+
+     HAL_Delay(1000);
+
+     fram_read = EEPROM_Read_NUM (900, 0);
+
+     HAL_Delay(1000);
+
+     // ===========================================================================
+		 //==============================================
+		 //    This step is to compose the settings.
+		 //==============================================
+		 make_settings(side_a);
+		 make_settings(side_b);
+
+		 settings_stream1[0].pi_ = 797.15;   //798.1;  //407.3;   //399.25;   //798.35;
+		 settings_stream1[0].pi_c = 797.15;  //767.40;  //391.64;   //383.89;  //760.33;
+		 settings_stream1[1].pi_ = 799.8;    //799.25;  //399.25;   //798.35;
+		 settings_stream1[1].pi_c = 799.8;   //768.51;   //383.89;  //760.33;
+
+ //		Pulser_count1 = 15962 20|0.8|0.0
+ //		Pulser_count2 = 15985 20|0.8|0.0
+
+ //4650
+		 vol_real1 = 20;
+		 vol_real2 = 20;
+		 vol_calibrated1 = 20;  //20.8;   //21.0;
+		 vol_calibrated2 = 20;  //20.8;
+		 vol_effective1 = 20;   //20.8;    //21.0;
+		 vol_effective2 = 20;   //20.8;
+
+//     		 calib_pulser1 =  (settings_stream1[0].pi_c * vol_calibrated1);
+//     		 calib_pulser2 =  (settings_stream1[1].pi_c * vol_calibrated2);
+
+		 save_settings();
+
+		 retrieve_settings();
+ }
 
 //	srand(time(NULL));
 
@@ -1021,8 +1085,9 @@ void compose_printer()
 	//------------------------------
 	//initialise realtime clock
 	    setup_ds1307();
+//	    get_time();
+//	    set_time();
 	    get_time();
-	//  set_time();
 	//-----------------------------
 
 
@@ -1349,6 +1414,11 @@ tmmm:
 //	  EEPROM_Write(lastSynchedFlashA_loc, 0, &flash_beginA_page, sizeof(flash_beginA_page));
 //	  EEPROM_Write(lastSynchedFlashB_loc, 0, &flash_beginB_page, sizeof(flash_beginB_page));
 
+//	  for (int i = 0; i < eeprom_pageNum; i++)
+//	  {
+//		  EEPROM_PageErase(i);
+//	  }
+
 	  clear_totalTransaction_sides(side_a);
 	  clear_totalTransaction_sides(side_b);
 
@@ -1411,10 +1481,10 @@ tmmm:
 		 make_settings(side_a);
 		 make_settings(side_b);
 
-		settings[0].pi_ = 797.15;   //798.1;  //407.3;   //399.25;   //798.35;
-		settings[0].pi_c = 797.15;  //767.40;  //391.64;   //383.89;  //760.33;
-		settings[1].pi_ = 799.8;    //799.25;  //399.25;   //798.35;
-		settings[1].pi_c = 799.8;   //768.51;   //383.89;  //760.33;
+		 settings_stream1[0].pi_ = 797.15;   //798.1;  //407.3;   //399.25;   //798.35;
+		 settings_stream1[0].pi_c = 797.15;  //767.40;  //391.64;   //383.89;  //760.33;
+		 settings_stream1[1].pi_ = 799.8;    //799.25;  //399.25;   //798.35;
+		 settings_stream1[1].pi_c = 799.8;   //768.51;   //383.89;  //760.33;
 
 //		Pulser_count1 = 15962 20|0.8|0.0
 //		Pulser_count2 = 15985 20|0.8|0.0
@@ -1427,8 +1497,8 @@ tmmm:
 		 vol_effective1 = 20;   //20.8;    //21.0;
 		 vol_effective2 = 20;   //20.8;
 
-		 calib_pulser1 =  (settings[0].pi_c * vol_calibrated1);
-		 calib_pulser2 =  (settings[1].pi_c * vol_calibrated2);
+		 calib_pulser1 =  (settings_stream1[0].pi_c * vol_calibrated1);
+		 calib_pulser2 =  (settings_stream1[1].pi_c * vol_calibrated2);
 
 		 save_settings();
 
@@ -1806,8 +1876,8 @@ skip_test:
 //	settings[0].noz_id;
 
 
-    settings[0].mode = MANUAL;  //AUTO;  //MANUAL;
-    settings[1].mode = MANUAL;  //AUTO;   //MANUAL;
+    settings_stream1[0].mode = MANUAL;  //AUTO;  //MANUAL;
+    settings_stream1[1].mode = MANUAL;  //AUTO;   //MANUAL;
 
 
     // ===========================================================================
@@ -1946,10 +2016,10 @@ skip_test:
 
     ep0_save.boot_time = RtcToInt(2019);
 
-    slowFlow_startThreshold1 = (fast_flow_threshold1 * settings[0].valve_salesStart);
-    slowFlow_endThreshold1 = (fast_flow_threshold1 * settings[0].valve_salesEnd);
-	slowFlow_startThreshold2 = (fast_flow_threshold2 * settings[1].valve_salesStart);
-	slowFlow_endThreshold2 = (fast_flow_threshold2 * settings[1].valve_salesEnd);
+    slowFlow_startThreshold1 = (fast_flow_threshold1 * settings_stream2[0].valve_salesStart);
+    slowFlow_endThreshold1 = (fast_flow_threshold1 * settings_stream2[0].valve_salesEnd);
+	slowFlow_startThreshold2 = (fast_flow_threshold2 * settings_stream2[1].valve_salesStart);
+	slowFlow_endThreshold2 = (fast_flow_threshold2 * settings_stream2[1].valve_salesEnd);
 
 //	settings[1].noz = overide;   //nooveride;
 //	overide_2 = settings[1].noz;
@@ -1960,7 +2030,7 @@ skip_test:
 
     day = DS1307_GetDate();
 
-	if(settings[0].totalizer_day != day)
+	if(settings_stream2[0].totalizer_day != day)
 	{
 		save_1stVolTotaliser_day(side_a);
 		save_1stVolTotaliser_day(side_b);
@@ -2701,51 +2771,51 @@ int  read_event2()
 
 void pumpType_configure(void)
 {
-	  if((settings[0].display__ == LAFNG885) && (settings[0].keypad__ == LAFNG17_K))  //LAFENG885-NormalScreen | LAFENG16-Keypad
+	  if((settings_stream1[0].display__ == LAFNG885) && (settings_stream1[0].keypad__ == LAFNG17_K))  //LAFENG885-NormalScreen | LAFENG16-Keypad
 	  {
 		  EEPROM_Write_NUM (save_pumpType_loc, 0, 0b00000001);
 	  }
-	  else if((settings[0].display__ == BLSKY886_N) && (settings[0].keypad__ == BLSKY18_K))  //BLUESKY886-NormalScreen | BLUESKY18K-Keypad
+	  else if((settings_stream1[0].display__ == BLSKY886_N) && (settings_stream1[0].keypad__ == BLSKY18_K))  //BLUESKY886-NormalScreen | BLUESKY18K-Keypad
 	  {
 		  EEPROM_Write_NUM (save_pumpType_loc, 0, 0b00000010);
 	  }
-	  else if((settings[0].display__ == BLSKY886_N) && (settings[0].keypad__ == BLSKY22))  //BLUESKY886-NormalScreen | BLUESKY22-Keypad
+	  else if((settings_stream1[0].display__ == BLSKY886_N) && (settings_stream1[0].keypad__ == BLSKY22))  //BLUESKY886-NormalScreen | BLUESKY22-Keypad
 	  {
 		  EEPROM_Write_NUM (save_pumpType_loc, 0, 0b00000011);
 	  }
-	  else if((settings[0].display__ == BLSKY886_IN) && (settings[0].keypad__ == BLSKY18_K))  //BLUESKY886-InvertedScreen | BLUESKY18K-Keypad
+	  else if((settings_stream1[0].display__ == BLSKY886_IN) && (settings_stream1[0].keypad__ == BLSKY18_K))  //BLUESKY886-InvertedScreen | BLUESKY18K-Keypad
 	  {
 		  EEPROM_Write_NUM (save_pumpType_loc, 0, 0b00000100);
 	  }
-	  else if((settings[0].display__ == BLSKY886_IN) && (settings[0].keypad__ == BLSKY22))  //BLUESKY886-InvertedScreen | BLUESKY22-Keypad
+	  else if((settings_stream1[0].display__ == BLSKY886_IN) && (settings_stream1[0].keypad__ == BLSKY22))  //BLUESKY886-InvertedScreen | BLUESKY22-Keypad
 	  {
 		  EEPROM_Write_NUM (save_pumpType_loc, 0, 0b00000101);
 	  }
-	  else if((settings[0].display__ == LAFNG885) && (settings[0].keypad__ == LAFNG18_K))  //LAFENG885-NormalScreen | LAFENG18-Keypad
+	  else if((settings_stream1[0].display__ == LAFNG885) && (settings_stream1[0].keypad__ == LAFNG18_K))  //LAFENG885-NormalScreen | LAFENG18-Keypad
 	  {
 		  EEPROM_Write_NUM (save_pumpType_loc, 0, 0b00000110);
 	  }
-	  else if((settings[0].display__ == BLSKY886_N) && (settings[0].keypad__ == LAFNG18_K))  //BLSKY886_N-NormalScreen | LAFENG18-Keypad
+	  else if((settings_stream1[0].display__ == BLSKY886_N) && (settings_stream1[0].keypad__ == LAFNG18_K))  //BLSKY886_N-NormalScreen | LAFENG18-Keypad
 	  {
 		  EEPROM_Write_NUM (save_pumpType_loc, 0, 0b00000111);
 	  }
 
 
 
-		if(strcmp(settings[0].product_, "PMS") == 0)
+		if(strcmp(settings_stream1[0].product_, "PMS") == 0)
 		{
 			EEPROM_Write_NUM (save_productType_loc, 0, PMS);
 		}
-		else if(strcmp(settings[0].product_, "AGO") == 0)
+		else if(strcmp(settings_stream1[0].product_, "AGO") == 0)
 		{
 			EEPROM_Write_NUM (save_productType_loc, 0, AGO);
 		}
-		else if(strcmp(settings[0].product_, "DPK") == 0)
+		else if(strcmp(settings_stream1[0].product_, "DPK") == 0)
 		{
 			EEPROM_Write_NUM (save_productType_loc, 0, DPK);
 		}
 
-		EEPROM_Write_NUM (save_nozzleId_loc, 0, settings[0].noz_id);
+		EEPROM_Write_NUM (save_nozzleId_loc, 0, settings_stream1[0].noz_id);
 }
 
 
@@ -2780,40 +2850,40 @@ void pumpType_configure(void)
 
 void pumpType_parse(void)
 {
-	  if(settings[0].pump_type_ == DN_LAFNG17K)
+	  if(settings_stream1[0].pump_type_ == DN_LAFNG17K)
 	  {
-		  settings[0].display__ = LAFNG885;
-		  settings[0].keypad__ = LAFNG17_K;
+		  settings_stream1[0].display__ = LAFNG885;
+		  settings_stream1[0].keypad__ = LAFNG17_K;
 	  }
-	  else if(settings[0].pump_type_ == DN_LAFNG18K)
+	  else if(settings_stream1[0].pump_type_ == DN_LAFNG18K)
 	  {
-		  settings[0].display__ = LAFNG885;
-		  settings[0].keypad__ = LAFNG18_K;
+		  settings_stream1[0].display__ = LAFNG885;
+		  settings_stream1[0].keypad__ = LAFNG18_K;
 	  }
-	  else if(settings[0].pump_type_ == DN_BLSKY18K)
+	  else if(settings_stream1[0].pump_type_ == DN_BLSKY18K)
 	  {
-		  settings[0].display__ = BLSKY886_N;
-		  settings[0].keypad__ = BLSKY18_K;
+		  settings_stream1[0].display__ = BLSKY886_N;
+		  settings_stream1[0].keypad__ = BLSKY18_K;
 	  }
-	  else if(settings[0].pump_type_ == BLSKY886_N_LAFNG18_K)
+	  else if(settings_stream1[0].pump_type_ == BLSKY886_N_LAFNG18_K)
 	  {
-		  settings[0].display__ = BLSKY886_N;
-		  settings[0].keypad__ = LAFNG18_K;
+		  settings_stream1[0].display__ = BLSKY886_N;
+		  settings_stream1[0].keypad__ = LAFNG18_K;
 	  }
-	  else if(settings[0].pump_type_ == DN_BLSKY22)
+	  else if(settings_stream1[0].pump_type_ == DN_BLSKY22)
 	  {
-		  settings[0].display__ = BLSKY886_N;
-		  settings[0].keypad__ = BLSKY22;
+		  settings_stream1[0].display__ = BLSKY886_N;
+		  settings_stream1[0].keypad__ = BLSKY22;
 	  }
-	  else if(settings[0].pump_type_ == DIN_BLSKY18K)
+	  else if(settings_stream1[0].pump_type_ == DIN_BLSKY18K)
 	  {
-		  settings[0].display__ = BLSKY886_IN;
-		  settings[0].keypad__ = BLSKY18_K;
+		  settings_stream1[0].display__ = BLSKY886_IN;
+		  settings_stream1[0].keypad__ = BLSKY18_K;
 	  }
-	  else if(settings[0].pump_type_ == DIN_BLSKY22)
+	  else if(settings_stream1[0].pump_type_ == DIN_BLSKY22)
 	  {
-		  settings[0].display__ = BLSKY886_IN;
-		  settings[0].keypad__ = BLSKY22;
+		  settings_stream1[0].display__ = BLSKY886_IN;
+		  settings_stream1[0].keypad__ = BLSKY22;
 	  }
 
 }
@@ -2850,10 +2920,10 @@ void pumpType_parse(void)
 
 void pumpType_write(void)
 {
-	settings[0].pump_type_ = EEPROM_Read_NUM (save_pumpType_loc, 0);
-	settings[1].pump_type_ = EEPROM_Read_NUM (save_pumpType_loc, 0);
-	disp_type1 = settings[0].pump_type_;
-	disp_type2 = settings[1].pump_type_;
+	settings_stream1[0].pump_type_ = EEPROM_Read_NUM (save_pumpType_loc, 0);
+	settings_stream1[1].pump_type_ = EEPROM_Read_NUM (save_pumpType_loc, 0);
+	disp_type1 = settings_stream1[0].pump_type_;
+	disp_type2 = settings_stream1[1].pump_type_;
 }
 
 
@@ -2865,8 +2935,8 @@ void firstTotalizer_day(void)
 
 void firstTotalizerDay_write(void)
 {
-	settings[0].totalizer_day = EEPROM_Read_NUM (totalizerDay_loc, 0);
-	settings[1].totalizer_day = EEPROM_Read_NUM (totalizerDay_loc, 0);
+	settings_stream2[0].totalizer_day = EEPROM_Read_NUM (totalizerDay_loc, 0);
+	settings_stream2[1].totalizer_day = EEPROM_Read_NUM (totalizerDay_loc, 0);
 }
 
 
@@ -2877,36 +2947,36 @@ void pumpName_parse(void)
 
 		int8_t productType;
 
-		settings[0].noz_id = EEPROM_Read_NUM (save_nozzleId_loc, 0);
+		settings_stream1[0].noz_id = EEPROM_Read_NUM (save_nozzleId_loc, 0);
 
 		productType = EEPROM_Read_NUM (save_productType_loc, 0);
 
 	 	if( productType == PMS)
 	 	{
-	 		strcpy(settings[0].product_, "PMS");
+	 		strcpy(settings_stream1[0].product_, "PMS");
 
-	 		snprintf(str, 5,"P%d", settings[0].noz_id);
+	 		snprintf(str, 5,"P%d", settings_stream1[0].noz_id);
 			strcpy(pumpName[0].pump_name, str);
-			snprintf(str, 5, "P%d", (settings[0].noz_id + 1));
+			snprintf(str, 5, "P%d", (settings_stream1[0].noz_id + 1));
 			strcpy(pumpName[1].pump_name, str);
 	 	}
 
 		else if( productType == AGO)
 		{
-	 		strcpy(settings[0].product_, "AGO");
+	 		strcpy(settings_stream1[0].product_, "AGO");
 
-	 		snprintf(str, 5,"A%d", settings[0].noz_id);
+	 		snprintf(str, 5,"A%d", settings_stream1[0].noz_id);
 			strcpy(pumpName[0].pump_name, str);
-			snprintf(str, 5, "A%d", (settings[0].noz_id + 1));
+			snprintf(str, 5, "A%d", (settings_stream1[0].noz_id + 1));
 			strcpy(pumpName[1].pump_name, str);
 		}
 		else if( productType == DPK)
 		{
-	 		strcpy(settings[0].product_, "DPK");
+	 		strcpy(settings_stream1[0].product_, "DPK");
 
-	 		snprintf(str, 5,"D%d", settings[0].noz_id);
+	 		snprintf(str, 5,"D%d", settings_stream1[0].noz_id);
 			strcpy(pumpName[0].pump_name, str);
-			snprintf(str, 5, "D%d", (settings[0].noz_id + 1));
+			snprintf(str, 5, "D%d", (settings_stream1[0].noz_id + 1));
 			strcpy(pumpName[1].pump_name, str);
 		}
 }

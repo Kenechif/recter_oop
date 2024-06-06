@@ -30,7 +30,7 @@ extern "C" {
 
       #define DEV_MODE
 
-//	  #define OTP_ENABLE
+	  #define OTP_ENABLE
 
 //:::::::::::::::::::::::::::::::::::::::::::://
 
@@ -484,6 +484,138 @@ typedef enum
 // displayMode displaymode;
 // keypressTone keypresstone;
 
+
+ //==================================
+ //structure for settings
+ typedef struct
+ {
+ 	 opmode_  mode;
+ 	 nozzle_overide noz;
+ 	 sellmode_ def_t;
+ 	 pump pump_type_;
+ 	 float price_;
+ 	 unsigned int max_amt_;
+ 	 float pi_c;
+ 	 float pi_;
+ 	 uint8_t id_;
+ 	 uint8_t dp_price;
+ 	 uint8_t dp_amount;
+ 	 uint8_t dp_unitprice;
+
+	 nozzleid noz_id;
+	 displaymode display_mode;  // PL/LP   ==> default : PL  // Level 2
+ 	 //peripherals
+ 	 displaytype display__;
+ 	 keypadtype keypad__;
+
+ 	 char product_[4];							//<== 32 Bytes
+
+ }pump_settings_stream1;
+
+
+
+ //==================================
+ //structure for settings
+ typedef struct
+ {
+	 uint16_t noFlow_timeOut;
+ 	 uint8_t totalizer_day;
+ 	 uint8_t side_size;   // 1/2    ==> default : 2   // Level 2
+
+ 	 float valve_salesStart;
+ 	 float valve_salesEnd;
+
+ 	 uint8_t calibration_measureCan;  // 10L/20L   ==> default : 20L  // Level 2
+ 	 keypresstone keypress_tone;  // Yes/No   ==> default : No   // Level 2
+ 	 uint8_t pulserError_status;  // 1/0   ==> default :   // Level 2
+ 	 uint8_t idleState_maxPulseValue;  //    ==> default :   // Level 2
+
+ 	 float startUp_suppressVol;  // (0 - 10) cL   ==> default : 4cL  // Level 2
+
+ 	 uint8_t pulser_type_;
+ 	 uint8_t pulser_offset;
+ 	 uint8_t number_of_shifts;
+ 	 calibrationType calibration_type;
+
+ 	 bool commCard_enforced;
+ 	 shiftlogintype shift_login_type;
+ 	 uint16_t non_calibration_seed;       //<== 28 Bytes
+
+ }pump_settings_stream2;
+
+
+
+ typedef struct
+ {
+ 	 char passwd1[9];
+ 	 char passwd2[9];
+ 	 char passwd3[9];			  //<==  (27 + 1) Bytes   ==> 28 Bytes
+
+ }pump_settings_stream3;
+
+
+
+
+
+////==================================
+////structure for settings
+//typedef struct
+//{
+//	 opmode_  mode;
+//	 nozzle_overide noz;
+//	 sellmode_ def_t;
+//	 pump pump_type_;
+//	 float price_;
+//	 int id_;
+////	 int noflow_;
+//	 int noFlow_timeOut;
+//	 unsigned int max_amt_;
+//	 float pi_c;
+//	 float pi_;
+//	 uint8_t dp_price;
+//	 uint8_t dp_amount;
+//	 uint8_t dp_unitprice;
+//
+//	 //peripherals
+//	 displaytype display__;
+//	 char product_[4];
+//	 keypadtype keypad__;
+//	 nozzleid noz_id;
+//	 uint8_t totalizer_day;
+//	 uint8_t side_size;   // 1/2    ==> default : 2   // Level 2      <== 40 Bytes
+//
+//	 displaymode display_mode;  // PL/LP   ==> default : PL  // Level 2
+//	 keypresstone keypress_tone;  // Yes/No   ==> default : No   // Level 2
+//	 uint8_t pulserError_status;  // 1/0   ==> default :   // Level 2
+//	 uint8_t idleState_maxPulseValue;  //    ==> default :   // Level 2
+////	 float startUp_suppressVol;  // (0 - 10) cL   ==> default : 4cL  // Level 2
+//	 uint8_t calibration_measureCan;  // 10L/20L   ==> default : 20L  // Level 2
+//	 uint8_t number_of_shifts;
+//	 calibrationType calibration_type;
+//	 bool commCard_enforced;
+//	 float valve_salesStart;
+//	 float valve_salesEnd;                         //<== 20 Bytes
+//
+//	 uint8_t pulser_type_;
+//	 uint8_t pulser_offset;                        //<== { ( 2 Bytes + 20 Bytes + 40 Bytes ) + 2 Bytes Padding } ==> 64 Bytes
+//
+//}pump_settings_stream1;
+//
+//
+//typedef struct
+//{
+////	 uint16_t non_calibration_seed;
+//	 float startUp_suppressVol;  // (0 - 10) cL   ==> default : 4cL  // Level 2
+//	 char passwd1[9];
+//	 char passwd2[9];
+//	 char passwd3[9];
+//
+//	 shiftlogintype shift_login_type;    //<==  30 Bytes
+//
+//	 uint16_t non_calibration_seed;
+//}pump_settings_stream2;
+
+
 ////==================================
 ////structure for settings
 //typedef struct
@@ -508,8 +640,7 @@ typedef enum
 //	 keypadtype keypad__;
 //	 nozzleid noz_id;
 //	 uint8_t totalizer_day;
-//	 uint8_t side_size;   // 1/2    ==> default : 2   // Level 2      <== 40 Bytes
-//
+//	 uint8_t side_size;   // 1/2    ==> default : 2   // Level 2
 //	 displaymode display_mode;  // PL/LP   ==> default : PL  // Level 2
 //	 keypresstone keypress_tone;  // Yes/No   ==> default : No   // Level 2
 //	 uint8_t pulserError_status;  // 1/0   ==> default :   // Level 2
@@ -519,70 +650,17 @@ typedef enum
 //	 uint8_t number_of_shifts;
 //	 calibrationType calibration_type;
 //	 bool commCard_enforced;
-//	 float valve_salesStart;
-//	 float valve_salesEnd;                         //<== 20 Bytes
-//
-//	 uint8_t pulser_type_;
-//	 uint8_t pulser_offset;                       //<== 2 Bytes + 20 Bytes + 40 Bytes
-//
-//}pump_settings_stream1;
-//
-//
-//typedef struct
-//{
-//	 uint16_t non_calibration_seed;
 //	 char passwd1[9];
 //	 char passwd2[9];
 //	 char passwd3[9];
 //	 shiftlogintype shift_login_type;
-//}pump_settings_stream2;
-
-
-//==================================
-//structure for settings
-typedef struct
-{
-	 opmode_  mode;
-	 nozzle_overide noz;
-	 sellmode_ def_t;
-	 pump pump_type_;
-	 float price_;
-	 int id_;
-//	 int noflow_;
-	 int noFlow_timeOut;
-	 unsigned int max_amt_;
-	 float pi_c;
-	 float pi_;
-	 uint8_t dp_price;
-	 uint8_t dp_amount;
-	 uint8_t dp_unitprice;
-	 //peripherals
-	 displaytype display__;
-	 char product_[4];
-	 keypadtype keypad__;
-	 nozzleid noz_id;
-	 uint8_t totalizer_day;
-	 uint8_t side_size;   // 1/2    ==> default : 2   // Level 2
-	 displaymode display_mode;  // PL/LP   ==> default : PL  // Level 2
-	 keypresstone keypress_tone;  // Yes/No   ==> default : No   // Level 2
-	 uint8_t pulserError_status;  // 1/0   ==> default :   // Level 2
-	 uint8_t idleState_maxPulseValue;  //    ==> default :   // Level 2
-	 float startUp_suppressVol;  // (0 - 10) cL   ==> default : 4cL  // Level 2
-	 uint8_t calibration_measureCan;  // 10L/20L   ==> default : 20L  // Level 2
-	 uint8_t number_of_shifts;
-	 calibrationType calibration_type;
-	 bool commCard_enforced;
-	 char passwd1[9];
-	 char passwd2[9];
-	 char passwd3[9];
-	 shiftlogintype shift_login_type;
-	 uint8_t pulser_type_;
-	 uint8_t pulser_offset;
-	 float valve_salesStart;
-	 float valve_salesEnd;
-	 uint16_t non_calibration_seed;
-
-}pump_settings;
+//	 uint8_t pulser_type_;
+//	 uint8_t pulser_offset;
+//	 float valve_salesStart;
+//	 float valve_salesEnd;
+//	 uint16_t non_calibration_seed;
+//
+//}pump_settings;
 
 
 typedef struct

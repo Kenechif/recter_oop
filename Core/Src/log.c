@@ -340,7 +340,7 @@ eSystemState write_flash_state_Handler(void)
 
 		log_a_new.timestamp = RtcToInt_synchedTranx(2019, side_a);
 		strcpy(log_a_new.nozzle_name, pumpName[0].pump_name);
-		strcpy(log_a_new.nozzle_product, settings[0].product_);
+		strcpy(log_a_new.nozzle_product, settings_stream1[0].product_);
 
 		memset(log_a_new.device_id, '\0', sizeof(log_a_new.device_id));
 		strncpy(log_a_new.device_id, device_id, 15);
@@ -371,7 +371,7 @@ eSystemState write_flash_state_Handler(void)
 
 		log_b_new.timestamp = RtcToInt_synchedTranx(2019, side_b);
 		strcpy(log_b_new.nozzle_name, pumpName[1].pump_name);
-		strcpy(log_b_new.nozzle_product, settings[0].product_);
+		strcpy(log_b_new.nozzle_product, settings_stream1[0].product_);
 
 		memset(log_b_new.device_id, '\0', sizeof(log_b_new.device_id));
 		strncpy(log_b_new.device_id, device_id, 15);
