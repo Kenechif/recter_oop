@@ -1032,7 +1032,9 @@ void compose_printer()
 
      EEPROM_Write_NUM (900, 0, 234);
 
-     HAL_Delay(1000);
+//     HAL_Delay(1000);
+
+     get_time();
 
      fram_read = EEPROM_Read_NUM (900, 0);
 
