@@ -53,6 +53,8 @@
 /* USER CODE BEGIN PV */
 	extern int key;
 
+	uint32_t server_flag = 0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -282,6 +284,7 @@ void USART2_IRQHandler(void)
 //  else
 //  {
 	  server_read();
+	  server_flag++;
 //	  card_read();
 //  }
   /* USER CODE END USART2_IRQn 1 */

@@ -662,46 +662,56 @@ void make_settings(pump_sid side)
 /*
  *  Save Settings
  */
-//void save_settings(void)
-//{
-//	uint8_t sz;
-//
-//	sz = sizeof(copy_stream1[0]);
-//
-//	EEPROM_Write(save_settings1_loc, 0, &settings_stream1[0], sz);
-//	EEPROM_Write(save_settings2_loc, 0, &settings_stream1[1], sz);
-//
-//	sz = sizeof(copy_stream2[0]);
-//
-//	EEPROM_Write(save_settings3_loc, 0, &settings_stream2[0], sz);
-//	EEPROM_Write(save_settings4_loc, 0, &settings_stream2[1], sz);
-//
-//	sz = sizeof(copy_stream3[0]);
-//
-//	EEPROM_Write(save_settings5_loc, 0, &settings_stream3[0], sz);
-//	EEPROM_Write(save_settings6_loc, 0, &settings_stream3[1], sz);
-//}
-
-
 void save_settings(void)
 {
 	uint8_t sz;
 
 	sz = sizeof(copy_stream1[0]);
 
-	EEPROM_Write(0, 0, &settings_stream1[0], sz);
-	EEPROM_Write(1, 0, &settings_stream1[1], sz);
+	EEPROM_Write(save_settings1_loc, 0, &settings_stream1[0], sz);
+	HAL_Delay(2);
+	EEPROM_Write(save_settings2_loc, 0, &settings_stream1[1], sz);
+	HAL_Delay(2);
 
 	sz = sizeof(copy_stream2[0]);
 
-	EEPROM_Write(2, 0, &settings_stream2[0], sz);
-	EEPROM_Write(3, 0, &settings_stream2[1], sz);
+	EEPROM_Write(save_settings3_loc, 0, &settings_stream2[0], sz);
+	HAL_Delay(2);
+	EEPROM_Write(save_settings4_loc, 0, &settings_stream2[1], sz);
+	HAL_Delay(2);
 
 	sz = sizeof(copy_stream3[0]);
 
-	EEPROM_Write(4, 0, &settings_stream3[0], sz);
-	EEPROM_Write(5, 0, &settings_stream3[1], sz);
+	EEPROM_Write(save_settings5_loc, 0, &settings_stream3[0], sz);
+	HAL_Delay(2);
+	EEPROM_Write(save_settings6_loc, 0, &settings_stream3[1], sz);
 }
+
+
+//void save_settings(void)
+//{
+//	uint8_t sz;
+//
+//	sz = sizeof(copy_stream1[0]);
+//
+//	EEPROM_Write(0, 0, &settings_stream1[0], sz);
+//	HAL_Delay(10);
+//	EEPROM_Write(1, 0, &settings_stream1[1], sz);
+//	HAL_Delay(10);
+//
+//	sz = sizeof(copy_stream2[0]);
+//
+//	EEPROM_Write(2, 0, &settings_stream2[0], sz);
+//	HAL_Delay(10);
+//	EEPROM_Write(3, 0, &settings_stream2[1], sz);
+//	HAL_Delay(10);
+//
+//	sz = sizeof(copy_stream3[0]);
+//
+//	EEPROM_Write(4, 0, &settings_stream3[0], sz);
+//	HAL_Delay(10);
+//	EEPROM_Write(5, 0, &settings_stream3[1], sz);
+//}
 
 ////==============================================
 ///*
@@ -758,60 +768,76 @@ void save_settings0(void)
  *  Retrieve Settings
  */
 
-//void retrieve_settings(void)
-//{
-//	uint8_t sz;
-//
-//	sz = sizeof(copy_stream1[0]);
-//
-//   if( EEPROM_Read(save_settings1_loc, 0, &settings0_stream1[0], sz) );
-//   else
-//	   storage_fail = 1;
-//   if( EEPROM_Read(save_settings2_loc, 0, &settings0_stream1[1], sz) );
-//   else
-//	   storage_fail = 1;
-//
-//	sz = sizeof(copy_stream2[0]);
-//
-//   EEPROM_Read(save_settings3_loc, 0, &settings0_stream2[0], sz);
-//   EEPROM_Read(save_settings4_loc, 0, &settings0_stream2[1], sz);
-//
-//	sz = sizeof(copy_stream3[0]);
-//
-//   EEPROM_Read(save_settings5_loc, 0, &settings0_stream3[0], sz);
-//   EEPROM_Read(save_settings6_loc, 0, &settings0_stream3[1], sz);
-//
-//   dp_init(side_a);
-//   dp_init(side_b);
-//}
-
-
 void retrieve_settings(void)
 {
 	uint8_t sz;
 
 	sz = sizeof(copy_stream1[0]);
 
-   if( EEPROM_Read(0, 0, &settings0_stream1[0], sz) );
-   else
-	   storage_fail = 1;
-   if( EEPROM_Read(1, 0, &settings0_stream1[1], sz) );
-   else
-	   storage_fail = 1;
+//   if( EEPROM_Read(save_settings1_loc, 0, &settings0_stream1[0], sz) );
+//   else
+//	   storage_fail = 1;
+   EEPROM_Read(save_settings1_loc, 0, &settings_stream1[0], sz);
+   HAL_Delay(2);
+   EEPROM_Read(save_settings2_loc, 0, &settings_stream1[1], sz);
+
+//   if( EEPROM_Read(save_settings2_loc, 0, &settings0_stream1[1], sz) );
+//   else
+//	   storage_fail = 1;
 
 	sz = sizeof(copy_stream2[0]);
 
-   EEPROM_Read(2, 0, &settings0_stream2[0], sz);
-   EEPROM_Read(3, 0, &settings0_stream2[1], sz);
+   HAL_Delay(2);
+   EEPROM_Read(save_settings3_loc, 0, &settings_stream2[0], sz);
+   HAL_Delay(2);
+   EEPROM_Read(save_settings4_loc, 0, &settings_stream2[1], sz);
 
 	sz = sizeof(copy_stream3[0]);
 
-   EEPROM_Read(4, 0, &settings0_stream3[0], sz);
-   EEPROM_Read(5, 0, &settings0_stream3[1], sz);
+   HAL_Delay(2);
+   EEPROM_Read(save_settings5_loc, 0, &settings_stream3[0], sz);
+   HAL_Delay(2);
+   EEPROM_Read(save_settings6_loc, 0, &settings_stream3[1], sz);
 
    dp_init(side_a);
    dp_init(side_b);
 }
+
+
+//void retrieve_settings(void)
+//{
+//	uint8_t sz;
+//
+//	sz = sizeof(copy_stream1[0]);
+//
+//   if( EEPROM_Read(0, 0, &settings0_stream1[0], sz) );
+//   else
+//	   storage_fail = 1;
+//
+//   HAL_Delay(10);
+//
+//   if( EEPROM_Read(1, 0, &settings0_stream1[1], sz) );
+//   else
+//	   storage_fail = 1;
+//
+//   HAL_Delay(10);
+//
+//	sz = sizeof(copy_stream2[0]);
+//
+//   EEPROM_Read(2, 0, &settings0_stream2[0], sz);
+//   HAL_Delay(10);
+//   EEPROM_Read(3, 0, &settings0_stream2[1], sz);
+//   HAL_Delay(10);
+//
+//	sz = sizeof(copy_stream3[0]);
+//
+//   EEPROM_Read(4, 0, &settings0_stream3[0], sz);
+//   HAL_Delay(10);
+//   EEPROM_Read(5, 0, &settings0_stream3[1], sz);
+//
+//   dp_init(side_a);
+//   dp_init(side_b);
+//}
 
 
 ////==============================================
@@ -841,16 +867,21 @@ void retrieve_settings0(void)
 	sz = sizeof(settings0_stream1[0]);
 
 	EEPROM_Read(save_settings01_loc, 0, &settings0_stream1[0], sz);
+	HAL_Delay(2);
 	EEPROM_Read(save_settings02_loc, 0, &settings0_stream1[1], sz);
+	HAL_Delay(2);
 
 	sz = sizeof(settings0_stream2[0]);
 
 	EEPROM_Read(save_settings03_loc, 0, &settings0_stream2[0], sz);
+	HAL_Delay(2);
 	EEPROM_Read(save_settings04_loc, 0, &settings0_stream2[1], sz);
+	HAL_Delay(2);
 
 	sz = sizeof(settings0_stream3[0]);
 
 	EEPROM_Read(save_settings05_loc, 0, &settings0_stream3[0], sz);
+	HAL_Delay(2);
 	EEPROM_Read(save_settings06_loc, 0, &settings0_stream3[1], sz);
 }
 
@@ -2226,6 +2257,28 @@ char lafeng_keypad[17] =
 	'.',	//14
 	'F',    //15    //clear
 	'0'     //16
+};
+
+char lafeng_keypad_18K[18] =
+{
+	'-',	//0
+	'B',	//1   //Back
+	'1',	//2
+	'5',	//3
+	'3',	//4
+	'8',	//5
+	'2',	//6
+	'4',	//7
+	'7',	//8
+	'6',	//9
+	'9',	//10
+	'C',	//11   //Up-Key
+	'A',	//12   //Down-Key
+	'D',	//13	//Select-Key
+	'.',	//14
+	'F',    //15    //clear
+	'0',    //16
+	'J'     //17   //Totalizer
 };
 
 

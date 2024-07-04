@@ -550,6 +550,8 @@ void ttostr(uint32_t time_integer, uint8_t typ); // typ: 1=> time 2=>date
 
 void serverTime_parse(void);
 
+void refresh_uart2RxIt(void);
+
 
 #ifdef __cplusplus
 }

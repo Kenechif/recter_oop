@@ -26,11 +26,18 @@ extern "C" {
 
 #define randnum(min, max) \ ((rand() % (int)(((max) + 1) - (min))) + (min))
 
+
+//#define _PMS      1
+//#define _AGO      2
+//#define _DPK      3
+
 //:::::::::::::::::::::::::::::::::::::::::::://
 
-      #define DEV_MODE
+//	#define product (_DPK)
 
-	  #define OTP_ENABLE
+//      #define DEV_MODE
+
+//	  #define OTP_ENABLE
 
 //:::::::::::::::::::::::::::::::::::::::::::://
 
@@ -38,12 +45,14 @@ extern "C" {
 //============================================
 
 #ifdef DEV_MODE
-	#define _USE_SOFT_PULSER            1
+//	#define _USE_SOFT_PULSER            1
+	#define _USE_SOFT_PULSER            0
 	#define sense_battery 				0
 	#define sense_power  				0
 #else
 	#define _USE_SOFT_PULSER            0
-	#define sense_battery 				1
+//	#define sense_battery 				1
+	#define sense_battery 				0
 	#define sense_power  				1
 #endif
 

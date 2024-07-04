@@ -233,8 +233,11 @@ extern char* login_type[4]; //= {"[ None ]", "[ PIN ] ", "[ Card ]"};
 
 //=====================================================
 
-extern char lafeng_keypad[16];
-extern char bluesky_keypad[21];
+extern char lafeng_keypad[17],
+			lafeng_keypad_18K[17];
+
+extern char bluesky_keypad[22];
+
 //extern int pump_type;
 extern pump pump_type;
 extern int auth_cmd_flag;
@@ -759,9 +762,12 @@ uint8_t long_press_key()
 		int ky;
 
 //		if(pump_type == bluesky)
-		if( (pump_type == DN_BLSKY18K) || (pump_type == DN_BLSKY22) ||
-			(pump_type == DIN_BLSKY18K) || (pump_type == DIN_BLSKY22) ||
-			(pump_type == DN_LAFNG17K) )
+//		if( (pump_type == DN_BLSKY18K) || (pump_type == DN_BLSKY22) ||
+//			(pump_type == DIN_BLSKY18K) || (pump_type == DIN_BLSKY22) ||
+//			(pump_type == DN_LAFNG17K) )
+
+		if( (settings_stream1[0].keypad__ == BLSKY18_K) || (settings_stream1[0].keypad__ == BLSKY22) ||
+			(settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) )
 		{
 //		   ky = 19;  //F4 key
 		   ky = 15;  //clear key
@@ -793,9 +799,11 @@ uint8_t long_press_progExit()
 		int ky;
 
 //		if(pump_type == bluesky)
-		if( (pump_type == DN_BLSKY18K) || (pump_type == DN_BLSKY22) ||
-			(pump_type == DIN_BLSKY18K) || (pump_type == DIN_BLSKY22) ||
-			(pump_type == DN_LAFNG17K) )
+//		if( (pump_type == DN_BLSKY18K) || (pump_type == DN_BLSKY22) ||
+//			(pump_type == DIN_BLSKY18K) || (pump_type == DIN_BLSKY22) ||
+//			(pump_type == DN_LAFNG17K) )
+		if( (settings_stream1[0].keypad__ == BLSKY18_K) || (settings_stream1[0].keypad__ == BLSKY22) ||
+			(settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) )
 		{
 		   ky = 14;  //'.' key
 		}
@@ -850,7 +858,9 @@ uint8_t long_press_tot()
 	int ky;
 
 //	if(pump_type == lafeng) ky = 11;  //keypad type mapping...
-	if(pump_type == DN_LAFNG17K) ky = 11;  //keypad type mapping...
+//	if(pump_type == DN_LAFNG17K) ky = 11;  //keypad type mapping...
+	if( (settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) )
+		ky = 11;  //keypad type mapping...
 	else
 	  ky = 21;                      //mapped to print key...
 
@@ -6588,7 +6598,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 	if (stop_flag == 1)   //if stop key pressed
 	{
-		filling1 = 0,  nozzle_bit = 0;
+ 		filling1 = 0,  nozzle_bit = 0;
 		stop_flag = 0;
 		stop_flow1(); //send_solenoid(1);  //stop solenoid.
 
@@ -6707,14 +6717,16 @@ eSystemState authorised_nozzleup_State_Handler(void)
 				{
 					  sellPrice_max_pump = (litre_price1 * pump_max_litres1);
 
-					  if( (key_value > sellPrice_max_pump) || (key_value > sellPrice_max_dpp) || (key_value < half_litre1) )
+//					  if( (key_value > sellPrice_max_pump) || (key_value > sellPrice_max_dpp) || (key_value < half_litre1) )
+					  if( (key_value > sellPrice_max_pump) || (key_value > sellPrice_max_dpp) )  // || (key_value < half_litre1) )
 					  {
-						  if(key_value < half_litre1)
-						  {
-							 nonValid_sale1 = 1;
-							 return idle_State;
-						  }
-						  else if(sellPrice_max_pump < sellPrice_max_dpp)
+//						  if(key_value < half_litre1)
+//						  {
+////							 nonValid_sale1 = 1;
+//							 nonValid_sale1 = 0;
+//							 return idle_State;
+//						  }
+						  if(sellPrice_max_pump < sellPrice_max_dpp)
 						  {
 							  key_value = sellPrice_max_pump;
 							  pump_LitreOverflow = 1;
@@ -6732,14 +6744,16 @@ eSystemState authorised_nozzleup_State_Handler(void)
 				}
 				else  //amt was selected.
 				{
-					 if( (key_value > pump_max_litres1) || (key_value > sellPrice_max_dpp) || (key_value < 0.5) )
+//					 if( (key_value > pump_max_litres1) || (key_value > sellPrice_max_dpp) || (key_value < 0.5) )
+					 if( (key_value > pump_max_litres1) || (key_value > sellPrice_max_dpp) )  // || (key_value < 0.5) )
 					 {
-						 if(key_value < 0.5)
-						 {
-							 nonValid_sale1 = 1;
-							 return idle_State;
-						 }
-						 else if(pump_max_litres1 < sellPrice_max_dpp)
+//						 if(key_value < 0.5)
+//						 {
+////							 nonValid_sale1 = 1;
+//							 nonValid_sale1 = 0;
+//							 return idle_State;
+//						 }
+						 if(pump_max_litres1 < sellPrice_max_dpp)
 						 {
 							  key_value = pump_max_litres1;
 							  pump_LitreOverflow = 1;
@@ -6836,14 +6850,16 @@ eSystemState authorised_nozzleup_State_Handler(void)
 				if (sellmode == P)
 				{
 					  sellPrice_max_pump = (litre_price1 * pump_max_litres1);
-					  if( (key_value > sellPrice_max_pump) || (key_value > sellPrice_max_dpp) || (key_value < half_litre1) )
+//					  if( (key_value > sellPrice_max_pump) || (key_value > sellPrice_max_dpp) || (key_value < half_litre1) )
+					  if( (key_value > sellPrice_max_pump) || (key_value > sellPrice_max_dpp)) //|| (key_value < half_litre1) )
 					  {
-						  if(key_value < half_litre1)
-						  {
-							 nonValid_sale1 = 1;
-							 return idle_State;
-						  }
-						  else if (sellPrice_max_pump < sellPrice_max_dpp)
+//						  if(key_value < half_litre1)
+//						  {
+////							 nonValid_sale1 = 1;
+//							 nonValid_sale1 = 0;
+//							 return idle_State;
+//						  }
+						  if (sellPrice_max_pump < sellPrice_max_dpp)
 						  {
 							  key_value = sellPrice_max_pump;
 							  pump_LitreOverflow = 1;
@@ -6861,14 +6877,16 @@ eSystemState authorised_nozzleup_State_Handler(void)
 				}
 				else  //amt was selected.
 				{
-					if( (key_value > pump_max_litres1) || (key_value > sellPrice_max_dpp) || (key_value < 0.5) )
+//					if( (key_value > pump_max_litres1) || (key_value > sellPrice_max_dpp) || (key_value < 0.5) )
+					if( (key_value > pump_max_litres1) || (key_value > sellPrice_max_dpp) ) //|| (key_value < 0.5) )
 					{
-						if(key_value < 0.5)
-						{
-							 nonValid_sale1 = 1;
-							 return idle_State;
-						}
-						else if(pump_max_litres1 < sellPrice_max_dpp)
+//						if(key_value < 0.5)
+//						{
+////							 nonValid_sale1 = 1;
+//							 nonValid_sale1 = 0;
+//							 return idle_State;
+//						}
+						if(pump_max_litres1 < sellPrice_max_dpp)
 						{
 							key_value = pump_max_litres1;
 							pump_LitreOverflow = 1;
@@ -7477,10 +7495,20 @@ eSystemState keypress_Handler(void)
 
 //	 if(pump_type == lafeng)
 //	 if(pump_type == DN_LAFNG17K)
-	 if( (settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) )
+//	 if( (settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) )
+//	 {
+//	   kkey =  lafeng_keypad[keypress_];
+//	   allowed_xters = 6;
+//	 }
+	 if(settings_stream1[0].keypad__ == LAFNG17_K)
 	 {
 	   kkey =  lafeng_keypad[keypress_];
 	   allowed_xters = 6;
+	 }
+	 else if (settings_stream1[0].keypad__ == LAFNG18_K)
+	 {
+	   kkey =  lafeng_keypad_18K[keypress_];
+	   allowed_xters = 7;
 	 }
 //	 else if(pump_type == bluesky)
 //	 else if( (pump_type == DN_BLSKY18K) || (pump_type == DN_BLSKY22) ||
@@ -7598,7 +7626,7 @@ if(
            return keypad_entry_State;
 	 	}
 
-      if ( (kkey == 'A')&&(progg == 0)&&(eNextState1 == filling_State) ) //stop sales.
+      if ( (kkey == 'A')&&(progg == 0)&&( (eNextState1 == filling_State) || (eNextState1 == authorised_nozzleup_State)) ) //stop sales.
 		{
 		   stop_flag = 1;  //activate auth cmd.
 		}

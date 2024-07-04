@@ -1019,57 +1019,59 @@ void compose_printer()
 //		 }
 //	 }
 
- while(1)
- {
-
-//     FRAM_Write_NUM (0, 0, 234);
+// while(1)
+// {
+//
+////     FRAM_Write_NUM (0, 0, 234);
+////
+////     HAL_Delay(1000);
+//
+//     float fram_read;
+//
+////     fram_read; = FRAM_Read_NUM (0, 0);
+//
+//     EEPROM_Write_NUM (900, 0, 234);
 //
 //     HAL_Delay(1000);
-
-     float fram_read;
-
-//     fram_read; = FRAM_Read_NUM (0, 0);
-
-     EEPROM_Write_NUM (900, 0, 234);
-
+//
+////     get_time();
+//
+//     fram_read = EEPROM_Read_NUM (900, 0);
+//
 //     HAL_Delay(1000);
-
-     get_time();
-
-     fram_read = EEPROM_Read_NUM (900, 0);
-
-     HAL_Delay(1000);
-
-     // ===========================================================================
-		 //==============================================
-		 //    This step is to compose the settings.
-		 //==============================================
-		 make_settings(side_a);
-		 make_settings(side_b);
-
-		 settings_stream1[0].pi_ = 797.15;   //798.1;  //407.3;   //399.25;   //798.35;
-		 settings_stream1[0].pi_c = 797.15;  //767.40;  //391.64;   //383.89;  //760.33;
-		 settings_stream1[1].pi_ = 799.8;    //799.25;  //399.25;   //798.35;
-		 settings_stream1[1].pi_c = 799.8;   //768.51;   //383.89;  //760.33;
-
- //		Pulser_count1 = 15962 20|0.8|0.0
- //		Pulser_count2 = 15985 20|0.8|0.0
-
- //4650
-		 vol_real1 = 20;
-		 vol_real2 = 20;
-		 vol_calibrated1 = 20;  //20.8;   //21.0;
-		 vol_calibrated2 = 20;  //20.8;
-		 vol_effective1 = 20;   //20.8;    //21.0;
-		 vol_effective2 = 20;   //20.8;
-
-//     		 calib_pulser1 =  (settings_stream1[0].pi_c * vol_calibrated1);
-//     		 calib_pulser2 =  (settings_stream1[1].pi_c * vol_calibrated2);
-
-		 save_settings();
-
-		 retrieve_settings();
- }
+//
+//     // ===========================================================================
+//		 //==============================================
+//		 //    This step is to compose the settings.
+//		 //==============================================
+//		 make_settings(side_a);
+//		 make_settings(side_b);
+//
+//		 settings_stream1[0].pi_ = 797.15;   //798.1;  //407.3;   //399.25;   //798.35;
+//		 settings_stream1[0].pi_c = 797.15;  //767.40;  //391.64;   //383.89;  //760.33;
+//		 settings_stream1[1].pi_ = 799.8;    //799.25;  //399.25;   //798.35;
+//		 settings_stream1[1].pi_c = 799.8;   //768.51;   //383.89;  //760.33;
+//
+// //		Pulser_count1 = 15962 20|0.8|0.0
+// //		Pulser_count2 = 15985 20|0.8|0.0
+//
+// //4650
+//		 vol_real1 = 20;
+//		 vol_real2 = 20;
+//		 vol_calibrated1 = 20;  //20.8;   //21.0;
+//		 vol_calibrated2 = 20;  //20.8;
+//		 vol_effective1 = 20;   //20.8;    //21.0;
+//		 vol_effective2 = 20;   //20.8;
+//
+////     		 calib_pulser1 =  (settings_stream1[0].pi_c * vol_calibrated1);
+////     		 calib_pulser2 =  (settings_stream1[1].pi_c * vol_calibrated2);
+//
+//		 save_settings();
+//
+////		 I2C1->CR1 |= (1<<9);  // Stop I2C
+//
+//		 retrieve_settings();
+// }
 
 //	srand(time(NULL));
 
@@ -1078,8 +1080,32 @@ void compose_printer()
 
 	buffer_init(&dat_str,buffer_length);    //initialise the buffer
 
-	HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_1 |TIM_CHANNEL_2  ); //TIM_CHANNEL_ALL); //start encoder acquinsition.
-	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);  //TIM_CHANNEL_1 |TIM_CHANNEL_2); //TIM_CHANNEL_ALL);
+//	HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_1 |TIM_CHANNEL_2  ); //TIM_CHANNEL_ALL); //start encoder acquinsition.
+//	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);  //TIM_CHANNEL_1 |TIM_CHANNEL_2); //TIM_CHANNEL_ALL);
+
+
+//	settings_stream2[0].pulser_type_ = non_quadrature;   //quadrature;
+//	settings_stream2[1].pulser_type_ = non_quadrature;   //quadrature;
+
+	retrieve_settings();
+
+	if(settings_stream2[0].pulser_type_ == quadrature)
+	{
+		HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_1 |TIM_CHANNEL_2); //TIM_CHANNEL_ALL); //start encoder acquinsition.
+	}
+	else if(settings_stream2[0].pulser_type_ == non_quadrature)
+	{
+		HAL_TIM_Base_Start(&htim5);
+	}
+
+	if(settings_stream2[1].pulser_type_ == quadrature)
+	{
+		HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);  //TIM_CHANNEL_1 |TIM_CHANNEL_2); //TIM_CHANNEL_ALL);
+	}
+	else if(settings_stream2[1].pulser_type_ == non_quadrature)
+	{
+		HAL_TIM_Base_Start(&htim2);
+	}
 
 	//keypad_ini();
 	//   uint16_t CounterTicks1 = 0;
@@ -1139,6 +1165,7 @@ void compose_printer()
 //
 //	HAL_Delay(2000);
 //
+//	HAL_Delay(20);
 //}
 
 //while(1)
@@ -1338,6 +1365,10 @@ tmmm:
 
 //goto skip;
 
+//while(1)
+//{
+//	calib_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);  //use hardware counter
+//}
 
 //  if( HAL_GPIO_ReadPin(nLed_GPIO_Port, nLed_Pin) == 1)  // config
   if( (HAL_GPIO_ReadPin(settings1_GPIO_Port, settings1_Pin) == 1 ) || ( HAL_GPIO_ReadPin(settings2_GPIO_Port, settings2_Pin) == 1) )
@@ -1778,7 +1809,7 @@ skip_test:
 //	save_settings();
 
 
-    retrieve_settings();         //read pump settings from eeprom.
+//    retrieve_settings();         //read pump settings from eeprom.
 
 
     // ===========================================================================
@@ -1996,6 +2027,10 @@ skip_test:
 //===============================================//
 
 
+//    strcpy(settings_stream1[0].product_, "DPK");
+//    strcpy(settings_stream1[1].product_, "DPK");
+
+
     pulser_benchMark1 = 15985;   //15987;
     pulser_benchMark2 = 15962;   //15987;
 
@@ -2029,6 +2064,9 @@ skip_test:
 //	settings[1].pulser_offset = 0;
 
 //    calib_pulser1 = 15800;
+
+//	settings_stream2[0].pulser_type_ = non_quadrature;   //quadrature;
+//	settings_stream2[1].pulser_type_ = non_quadrature;   //quadrature;
 
     day = DS1307_GetDate();
 

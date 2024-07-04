@@ -225,8 +225,11 @@ extern char* login_type[4]; //= {"[ None ]", "[ PIN ] ", "[ Card ]"};
 
 //=====================================================
 
-extern char lafeng_keypad[16];
-extern char bluesky_keypad[21];
+extern char lafeng_keypad[17],
+			lafeng_keypad_18K[18];
+
+extern char bluesky_keypad[22];
+
 //extern int pump_type;
 extern pump pump_type;
 extern int auth_cmd_flag2;
@@ -737,9 +740,12 @@ uint8_t long_press_key2()
 		int ky;
 
 //		if(pump_type == bluesky)
-		if( (pump_type == DN_BLSKY18K) || (pump_type == DN_BLSKY22) ||
-				(pump_type == DIN_BLSKY18K) || (pump_type == DIN_BLSKY22) ||
-				(pump_type == DN_LAFNG17K) )
+//		if( (pump_type == DN_BLSKY18K) || (pump_type == DN_BLSKY22) ||
+//				(pump_type == DIN_BLSKY18K) || (pump_type == DIN_BLSKY22) ||
+//				(pump_type == DN_LAFNG17K) )
+
+		if( (settings_stream1[1].keypad__ == BLSKY18_K) || (settings_stream1[1].keypad__ == BLSKY22) ||
+		(settings_stream1[1].keypad__ == LAFNG17_K) || (settings_stream1[1].keypad__ == LAFNG18_K) )
 		{
 //		   ky = 19;  //F4 key
 		   ky = 15;  //clear key
@@ -771,9 +777,11 @@ uint8_t long_press_progExit2()
 		int ky;
 
 //		if(pump_type == bluesky)
-		if( (pump_type == DN_BLSKY18K) || (pump_type == DN_BLSKY22) ||
-			(pump_type == DIN_BLSKY18K) || (pump_type == DIN_BLSKY22) ||
-			(pump_type == DN_LAFNG17K) )
+//		if( (pump_type == DN_BLSKY18K) || (pump_type == DN_BLSKY22) ||
+//			(pump_type == DIN_BLSKY18K) || (pump_type == DIN_BLSKY22) ||
+//			(pump_type == DN_LAFNG17K) )
+		if( (settings_stream1[1].keypad__ == BLSKY18_K) || (settings_stream1[1].keypad__ == BLSKY22) ||
+			(settings_stream1[1].keypad__ == LAFNG17_K) || (settings_stream1[1].keypad__ == LAFNG18_K) )
 		{
 		   ky = 14;  //'.' key
 		}
@@ -825,7 +833,11 @@ uint8_t long_press_tot2()
 	int ky;
 
 //	if(pump_type == lafeng) ky = 11;  //keypad type mapping...
-	if(pump_type == DN_LAFNG17K) ky = 11;  //keypad type mapping...
+//	if(pump_type == DN_LAFNG17K)
+	if(settings_stream1[1].keypad__ == LAFNG17_K)
+		ky = 11;  //keypad type mapping...
+	else if (settings_stream1[1].keypad__ == LAFNG18_K)
+		ky = 17;
 	else
 	  ky = 21;                      //mapped to print key...
 
@@ -8297,7 +8309,8 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 					  {
 						  if(key_value2 < half_litre2)
 						  {
-							 nonValid_sale2 = 1;
+//							 nonValid_sale2 = 1;
+							 nonValid_sale2 = 0;
 							 return idle_State;
 						  }
 						  else if(sellPrice_max_pump < sellPrice_max_dpp)
@@ -8320,7 +8333,8 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 					{
 						 if(key_value2 < 0.5)
 						 {
-							 nonValid_sale2 = 1;
+//							 nonValid_sale2 = 1;
+							 nonValid_sale2 = 0;
 							 return idle_State;
 						 }
 						 else if(pump_max_litres2 < sellPrice_max_dpp)
@@ -8464,7 +8478,8 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 					  {
 						  if(key_value2 < half_litre2)
 						  {
-							 nonValid_sale2 = 1;
+//							 nonValid_sale2 = 1;
+							 nonValid_sale2 = 0;
 							 return idle_State;
 						  }
 						  else if (sellPrice_max_pump < sellPrice_max_dpp)
@@ -8489,7 +8504,8 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 					  {
 						  if(key_value2 < 0.5)
 						  {
-							 nonValid_sale2 = 1;
+//							 nonValid_sale2 = 1;
+							 nonValid_sale2 = 0;
 							 return idle_State;
 						  }
 						  else if(pump_max_litres2 < sellPrice_max_dpp)
@@ -9296,10 +9312,15 @@ eSystemState keypress_Handler2(void)
 
 //	 if(pump_type == lafeng)
 //	 if(pump_type == DN_LAFNG17K)
-	 if( (settings_stream1[1].keypad__ == LAFNG17_K) || (settings_stream1[1].keypad__ == LAFNG18_K) )
+	 if(settings_stream1[1].keypad__ == LAFNG17_K)
 	 {
 	   kkey2 =  lafeng_keypad[keypress_2];
 	   allowed_xters = 6;
+	 }
+	 else if (settings_stream1[1].keypad__ == LAFNG18_K)
+	 {
+	   kkey2 =  lafeng_keypad_18K[keypress_2];
+	   allowed_xters = 7;
 	 }
 //	 else if(pump_type == bluesky)
 //	 else if( (pump_type == DN_BLSKY18K) || (pump_type == DN_BLSKY22) )
@@ -9352,17 +9373,17 @@ if(
                  index_2 = 0;
                  _index2 = 0;
                  for(int i = 0;i<9;i++)
-					 {
-					   keypad_pw_xter2[i] = 0;
-					   upper2[i] = 0;
-					   middle2[i] = 0;
-					 }
+				 {
+				   keypad_pw_xter2[i] = 0;
+				   upper2[i] = 0;
+				   middle2[i] = 0;
+				 }
 
                  for(int i = 0; i <= 6; i++)
-					 {
-						 keyboard_entry2[i] = 0;   //clear the buffer
-						 keyboard2[i]= 0;
-					 }
+				 {
+					 keyboard_entry2[i] = 0;   //clear the buffer
+					 keyboard2[i]= 0;
+				 }
 
                  if(settings_stream1[1].display_mode == PL)
 				  {
@@ -9380,7 +9401,10 @@ if(
 		  	 {
 			    send_keypad2("       ");
 			    if (auth2 == not_auth)
-			    	send_keypad2(keypad_pw_xter2);
+			    {
+//			    	if(keypad_pw_xter2[0] != '\0')
+			    		send_keypad2(keypad_pw_xter2);
+			    }
 			    else
 			    {
 					 int8_t keyBoard_len = strlen(keyboard_entry2);
@@ -9390,6 +9414,14 @@ if(
 						 if(keyboard2[keyBoard_len - 1] == '.')
 						 {
 							 keyboard2[keyBoard_len] = '0';
+
+							 if(keyboard2[0] == '.')
+							 {
+								 keyboard2[0] = '0';
+								 keyboard2[1] = '.';
+								 keyboard2[2] = '0';
+							 }
+
 						 }
 					 }
 					 send_keypad2(keyboard2);
@@ -9406,10 +9438,10 @@ if(
            return keypad_entry_State;
 	 	}
 
-      if ( (kkey2 == 'A')&&(progg2 == 0)&&(eNextState2 == filling_State) ) //stop sales.
-    	 	{
-               stop_flag2 = 1;  //activate auth2 cmd.
-    	 	}
+      if ( (kkey2 == 'A')&&(progg2 == 0)&&( (eNextState2 == filling_State) || (eNextState2 == authorised_nozzleup_State)) ) //stop sales.
+		{
+		   stop_flag2 = 1;  //activate auth2 cmd.
+		}
 
 //====================================================
  if ( (kkey2 == 'C')&&(progg2 == 0) )  //if change sales mode
@@ -9452,27 +9484,27 @@ if(
 
 // int space2 = 7 - index_2;   //6 - index_2;
  if ((sellmode2 == L)&&(progg2 == 0) )
-         {
-	 	 	   memset(middle2, '\0', sizeof(middle2));
-	 	 	   middle2[0] = 'L';     //Append price to display.
-            // if((index_-1) >= 6) space = 2;
-                while (space2 > 0) //write spaces first..
-                {
-                   middle2[ind++] = ' ';
-             	   space2--;
-                }
-              space2 = index_2;     //reload with len of actual number
- 			   while(space2 > 0)
- 				 {
- 			    	 middle2[ind++] = keyboard_entry2[index_2 - space2];
- 					 space2--;
- 				 }
-         	  //  send_line22("p       ");
+ {
+	   memset(middle2, '\0', sizeof(middle2));
+	   middle2[0] = 'L';     //Append price to display.
+	// if((index_-1) >= 6) space = 2;
+		while (space2 > 0) //write spaces first..
+		{
+		   middle2[ind++] = ' ';
+		   space2--;
+		}
+	  space2 = index_2;     //reload with len of actual number
+	   while(space2 > 0)
+		 {
+			 middle2[ind++] = keyboard_entry2[index_2 - space2];
+			 space2--;
+		 }
+	  //  send_line22("p       ");
 
- 			  write_v2(1,"p       ");
+	  write_v2(1,"p       ");
 
-         	  //  send_line22(middle1);
-           }
+	  //  send_line22(middle1);
+   }
 //--------------------------------------------------------------------
 
        if ( (sellmode2 == P)&&(progg2 == 0) )
@@ -9501,9 +9533,13 @@ if(
 
 //	   if(disp_type2 == LAFNG885)
 //	   if(disp_type2 == DN_LAFNG17K)
-	   if( (settings_stream1[1].keypad__  == LAFNG17_K) || (settings_stream1[1].keypad__  == LAFNG18_K) )
+	   if(settings_stream1[1].keypad__  == LAFNG17_K)
 	   {
 		    lcd_size = 5; //change this latter to accomodate other lcds.
+	   }
+	   else if(settings_stream1[1].keypad__  == LAFNG18_K)
+	   {
+		    lcd_size = 7; //change this latter to accomodate other lcds.
 	   }
 //	   else if(disp_type2 == BLSKY886_N)
 //	   else if( (disp_type2 == DN_BLSKY18K) ||  (disp_type2 == DN_BLSKY22) )
@@ -10330,12 +10366,12 @@ void state_ini2(void)
 
 //	filling2 = 0;
 //	stop_flow2();
-	if(settings_stream1[1].display_mode == PL)
+	if(settings_stream1[0].display_mode == PL)
 	{
 		send_line12("P        ");
 		write_v2(1, "p        ");
 	}
-	else if(settings_stream1[1].display_mode == LP)
+	else if(settings_stream1[0].display_mode == LP)
 	{
 		send_line12("L        ");
 		write_v2(1, "l        ");
@@ -10347,8 +10383,8 @@ void state_ini2(void)
 		send_line22("L        ");
 		write_v2(2, "l        ");
 
-	    make_string2(P, dp2(lastAmountSale2c, dp_price2) );
-	    make_string2(L, dp2(lastVolumeSale2c, dp_amount2) );
+//	    make_string2(P, dp2(lastAmountSale2c, dp_price2) );
+//	    make_string2(L, dp2(lastVolumeSale2c, dp_amount2) );
 	}
 	else if(settings_stream1[1].display_mode == LP)
 	{
