@@ -283,9 +283,10 @@ void USART2_IRQHandler(void)
 //  }
 //  else
 //  {
-	  server_read();
-	  server_flag++;
+//	  server_read();
+//	  server_flag++;
 //	  card_read();
+	  go_read();
 //  }
   /* USER CODE END USART2_IRQn 1 */
 }

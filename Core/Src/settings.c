@@ -32,6 +32,8 @@ const uint16_t firmware_version = 25100;
 uint16_t  pump_SN = 77;
 char session_id[9] = {0};
 
+unsigned char pumpno = 0x01;
+
 //##################################################
 
 

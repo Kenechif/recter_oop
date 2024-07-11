@@ -65,6 +65,28 @@ typedef enum
 	STATUS_SWITCHED_OFF
 }pump_status_enum;
 
+//PUMP_NOT_PROGRAMMED,
+//RESET0,
+//AUTHORIZED,
+//FILLING,
+//FILLING_COMPLETED,
+//MAX_AMOUNTVOLUME_REACHED,
+//SWITCHED_OFF,
+//
+///* enum for pump status */
+//typedef enum
+//{
+//	STATUS_PUMP_ON = 255,
+//
+//	STATUS_IDLE = 1,
+//	STATUS_NOZZLE_DOWN,
+//	STATUS_NOZZLE_UP,
+//	STATUS_AUTHORIZED_NOZZLE_DOWN,
+//	STATUS_AUTHORIZED_NOZZLE_UP,
+//	STATUS_FILLING_
+//}pump_status_enum_4G;
+
+
 
 ///* enum for pump status */
 //typedef enum
@@ -259,7 +281,7 @@ char* getProduct(int ind);
 
  int8_t controller_authorise(void);
 
- void stop(int ind);
+ void stop();
  setIndex(int ind,	int i );
  int getIndex(int ind);
 

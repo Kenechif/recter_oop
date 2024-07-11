@@ -15,6 +15,7 @@ extern "C" {
 #include "settings.h"
 
 extern const uint16_t totalizerDay_loc;
+//extern nozzle_state_enum nozzle_state;		//state of nozzle returned from pump
 
 uint8_t awaiting_masterResponse;
 

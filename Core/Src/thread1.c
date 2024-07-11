@@ -37,6 +37,7 @@
 #include "../printer/printer.h"
 #include "../timers/timers.h"
 #include "../config/config.h"
+#include "../dart_protocol/dart_.h"
 
 #include "pump_comm.h"
 
@@ -995,6 +996,8 @@ void compose_printer()
 	 pump_status_ = STATUS_UNKNOWN;
 
 	 pump1_status_4G = STATUS_PUMP_ON;
+
+	 dart_init();
 
 //	 ep_send(ep0);
 
@@ -2257,25 +2260,26 @@ void run()
 	}
 #endif     //#if (sense_battery == 1)
 
-	if(server_message_found == 1)
-	{
-		server_rx_parse();
-		server_message_found = 0;
-	}
-	if(card1_message_found == 1)
-	{
-		card1_rx_parse();
-		card1_message_found = 0;
-	}
-	else if(card2_message_found == 1)
-	{
-		card2_rx_parse();
-		card2_message_found = 0;
-	}
+//	if(server_message_found == 1)
+//	{
+////		server_rx_parse();
+//		parse_extract();
+//		server_message_found = 0;
+//	}
+//	if(card1_message_found == 1)
+//	{
+//		card1_rx_parse();
+//		card1_message_found = 0;
+//	}
+//	else if(card2_message_found == 1)
+//	{
+//		card2_rx_parse();
+//		card2_message_found = 0;
+//	}
 
 #if defined (DEV_MODE)
 
-	epSend_interval();
+//	epSend_interval();   //********//
 
 //	if ( (ep20_available1 == 1) || (ep20_available2 == 1) )
 //	{
@@ -2310,59 +2314,80 @@ void run()
 
 #endif     //#if defined (DEV_MODE)
 
-
-	if(operating_sideA)
-	{
-		 operating_side = side_a;
-		 house_keeping();
-		 states();
-
-		 operating_sideA = false;
-		 operating_sideB = true;
-	}
-	else if(operating_sideB)
-	{
-		 operating_side = side_b;
-		 house_keeping2();
-		 states2();
-
-		 operating_sideA = true;
-		 operating_sideB = false;
-	}
-
 	if(server_message_found == 1)
 	{
-		server_rx_parse();
+//		server_rx_parse();
+		parse_extract();
 		server_message_found = 0;
 	}
-	if(card1_message_found == 1)
+	else if(resp != NOREPLY)
 	{
-		card1_rx_parse();
-		card1_message_found = 0;
+		process_response(resp);
+//		resp = NOREPLY;
 	}
-	else if(card2_message_found == 1)
-	{
-		card2_rx_parse();
-		card2_message_found = 0;
-	}
-	else if( (pump_message_found == 1)  && (awaiting_masterResponse == 0) )
-	{
-		 pump_message_found = 0;
-		 uint8_t res = msg_parse_pump( pump_buf );
-		 awaiting_masterResponse = 1;
-		 _tt1 = 0;
-	}
-	else if( (pump_message_found == 1)  && (awaiting_masterResponse == 1) )
-	{
-		 pump_message_found = 0;
-		 awaiting_masterResponse = 0;
 
-	}
-	else if(awaiting_masterResponse == 1)
-	{
-		 if(_tt1 > 2000)
-			 send_line3("Err5 ");
-	}
+
+//	  HAL_UART_Transmit (&huart2, "Hello", 5, 1000);
+//	  HAL_Delay(3000);
+
+//	if(operating_sideA)
+//	{
+//		 operating_side = side_a;
+//		 house_keeping();
+//		 states();
+//
+//		 operating_sideA = false;
+//		 operating_sideB = true;
+//	}
+//	else if(operating_sideB)
+//	{
+//		 operating_side = side_b;
+//		 house_keeping2();
+//		 states2();
+//
+//		 operating_sideA = true;
+//		 operating_sideB = false;
+//	}
+//
+//	if(server_message_found == 1)
+//	{
+////		server_rx_parse();
+//		parse_extract();
+//		server_message_found = 0;
+//	}
+//	else if(resp != NOREPLY)
+//	{
+//		process_response(resp);
+//	}
+//
+//	if(card1_message_found == 1)
+//	{
+//		card1_rx_parse();
+//		card1_message_found = 0;
+//	}
+//	else if(card2_message_found == 1)
+//	{
+//		card2_rx_parse();
+//		card2_message_found = 0;
+//	}
+//	else if( (pump_message_found == 1)  && (awaiting_masterResponse == 0) )
+//	{
+//		 pump_message_found = 0;
+//		 uint8_t res = msg_parse_pump( pump_buf );
+//		 awaiting_masterResponse = 1;
+//		 _tt1 = 0;
+//	}
+//	else if( (pump_message_found == 1)  && (awaiting_masterResponse == 1) )
+//	{
+//		 pump_message_found = 0;
+//		 awaiting_masterResponse = 0;
+//
+//	}
+//	else if(awaiting_masterResponse == 1)
+//	{
+//		 if(_tt1 > 2000)
+//			 send_line3("Err5 ");
+//	}
 
 //	#if sense_battery == 1
 //		if( battery_read() < 1.81 )   //1.81V @ 6.4V Low_cutOff
