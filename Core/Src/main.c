@@ -67,6 +67,7 @@ UART_HandleTypeDef huart5;
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
+DMA_HandleTypeDef hdma_usart2_rx;
 
 /* USER CODE BEGIN PV */
 extern uint32_t pulser1;
@@ -120,83 +121,83 @@ char dma_result_buffer[100];
 //}
 
 
-//#define RxBuf_SIZE   512
-//#define MainBuf_SIZE 2048
-//
-//uint8_t RxBuf[RxBuf_SIZE];
-//uint8_t MainBuf[MainBuf_SIZE];
-//
-//uint16_t oldPos = 0,
-//		 newPos = 0;
-//
-//bool go_message = false;
-//
-//int16_t head = 0,
-//		tail = 0;
-//
-////int isOK = 0;
-//
-//
-//void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
-//{
-//	if (huart->Instance == USART2)
+#define RxBuf_SIZE   512
+#define MainBuf_SIZE 2048
+
+uint8_t RxBuf[RxBuf_SIZE];
+uint8_t MainBuf[MainBuf_SIZE];
+
+uint16_t oldPos = 0,
+		 newPos = 0;
+
+bool go_message = false;
+
+int16_t head = 0,
+		tail = 0;
+
+//int isOK = 0;
+
+
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+{
+	if (huart->Instance == USART2)
+	{
+		oldPos = newPos;  // Update the last position before copying new data
+
+		/* If the data in large and it is about to exceed the buffer size, we have to route it to the start of the buffer
+		 * This is to maintain the circular buffer
+		 * The old data in the main buffer will be overlapped
+		 */
+		if (oldPos+Size > MainBuf_SIZE)  // If the current position + new data size is greater than the main buffer
+		{
+			uint16_t datatocopy = MainBuf_SIZE-oldPos;  // find out how much space is left in the main buffer
+			memcpy ((uint8_t *)MainBuf+oldPos, RxBuf, datatocopy);  // copy data in that remaining space
+
+			oldPos = 0;  // point to the start of the buffer
+			memcpy ((uint8_t *)MainBuf, (uint8_t *)RxBuf+datatocopy, (Size-datatocopy));  // copy the remaining data
+			newPos = (Size-datatocopy);  // update the position
+		}
+
+		/* if the current position + new data size is less than the main buffer
+		 * we will simply copy the data into the buffer and update the position
+		 */
+		else
+		{
+			memcpy ((uint8_t *)MainBuf+oldPos, RxBuf, Size);
+			newPos = Size+oldPos;
+		}
+
+		head = newPos - Size;
+		tail = newPos - 1;
+
+		if (head < 0)  //checks for a wrap-around / overflow
+		{
+			head = MainBuf_SIZE - Size;
+		}
+
+		if( (MainBuf[tail] == 0xFA) && (MainBuf[head] == 0x51) )
+		{
+			go_message = true;
+		}
+
+		/* start the DMA again */
+		HAL_UARTEx_ReceiveToIdle_DMA(&huart2, (uint8_t *) RxBuf, RxBuf_SIZE);
+		__HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
+
+	}
+
+
+	/****************** PROCESS (Little) THE DATA HERE *********************/
+
+//	/* Let's say we want to check for the keyword "OK" within our incoming DATA */
+//	for (int i=0; i<Size; i++)
 //	{
-//		oldPos = newPos;  // Update the last position before copying new data
-//
-//		/* If the data in large and it is about to exceed the buffer size, we have to route it to the start of the buffer
-//		 * This is to maintain the circular buffer
-//		 * The old data in the main buffer will be overlapped
-//		 */
-//		if (oldPos+Size > MainBuf_SIZE)  // If the current position + new data size is greater than the main buffer
+//		if ((RxBuf[i] == 'O') && (RxBuf[i+1] == 'K'))
 //		{
-//			uint16_t datatocopy = MainBuf_SIZE-oldPos;  // find out how much space is left in the main buffer
-//			memcpy ((uint8_t *)MainBuf+oldPos, RxBuf, datatocopy);  // copy data in that remaining space
-//
-//			oldPos = 0;  // point to the start of the buffer
-//			memcpy ((uint8_t *)MainBuf, (uint8_t *)RxBuf+datatocopy, (Size-datatocopy));  // copy the remaining data
-//			newPos = (Size-datatocopy);  // update the position
+//			isOK = 1;
 //		}
-//
-//		/* if the current position + new data size is less than the main buffer
-//		 * we will simply copy the data into the buffer and update the position
-//		 */
-//		else
-//		{
-//			memcpy ((uint8_t *)MainBuf+oldPos, RxBuf, Size);
-//			newPos = Size+oldPos;
-//		}
-//
-//		head = newPos - Size;
-//		tail = newPos - 1;
-//
-//		if (head < 0)  //checks for a wrap-around / overflow
-//		{
-//			head = MainBuf_SIZE - Size;
-//		}
-//
-//		if( (MainBuf[tail] == 0xFA) && (MainBuf[head] == 0x51) )
-//		{
-//			go_message = true;
-//		}
-//
-//		/* start the DMA again */
-//		HAL_UARTEx_ReceiveToIdle_DMA(&huart2, (uint8_t *) RxBuf, RxBuf_SIZE);
-//		__HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
-//
 //	}
-//
-//
-//	/****************** PROCESS (Little) THE DATA HERE *********************/
-//
-////	/* Let's say we want to check for the keyword "OK" within our incoming DATA */
-////	for (int i=0; i<Size; i++)
-////	{
-////		if ((RxBuf[i] == 'O') && (RxBuf[i+1] == 'K'))
-////		{
-////			isOK = 1;
-////		}
-////	}
-//}
+}
 /* USER CODE END 0 */
 
 /**
@@ -304,7 +305,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-		run();
+//		run();
 	}
   /* USER CODE END 3 */
 }
@@ -839,8 +840,12 @@ static void MX_DMA_Init(void)
 
   /* DMA controller clock enable */
   __HAL_RCC_DMA2_CLK_ENABLE();
+  __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
+  /* DMA1_Stream5_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
   /* DMA2_Stream0_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
