@@ -138,7 +138,8 @@ uint8_t	 r_raw_data1[128];
 
 				PRICE_UPDATE,
 				SET_MAMO,
-				REQUEST_VOL_TOTAL_COUNT
+				REQUEST_VOL_TOTAL_COUNT,
+				NO_COMMAND
 			}command_enum1;
 
 	/* flags for raw RESPONSE RECEIVED */
@@ -328,6 +329,7 @@ uint8_t	 r_raw_data1[128];
 	void parse_decode(void); 						//GETs each data from the raw data
 	void process_response(response_enum response);
 	void process_response1(response_enum response);
+	void send_acknowledgement(response_enum response);
 
 
 	int handle_resp(command_enum cmd); 	//ret  = -10 : ended with a nack, -1: ended with

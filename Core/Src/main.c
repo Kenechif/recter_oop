@@ -28,6 +28,8 @@
 #include "write__.h"
 #include "stdio.h"
 #include "myLibraries.h"
+#include "string.h"
+#include "stdbool.h"
 
 /* USER CODE END Includes */
 
@@ -115,6 +117,85 @@ char dma_result_buffer[100];
 //void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 //{
 //   HAL_UART_Transmit_IT(&huart1, data, sizeof (data));
+//}
+
+
+//#define RxBuf_SIZE   512
+//#define MainBuf_SIZE 2048
+//
+//uint8_t RxBuf[RxBuf_SIZE];
+//uint8_t MainBuf[MainBuf_SIZE];
+//
+//uint16_t oldPos = 0,
+//		 newPos = 0;
+//
+//bool go_message = false;
+//
+//int16_t head = 0,
+//		tail = 0;
+//
+////int isOK = 0;
+//
+//
+//void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+//{
+//	if (huart->Instance == USART2)
+//	{
+//		oldPos = newPos;  // Update the last position before copying new data
+//
+//		/* If the data in large and it is about to exceed the buffer size, we have to route it to the start of the buffer
+//		 * This is to maintain the circular buffer
+//		 * The old data in the main buffer will be overlapped
+//		 */
+//		if (oldPos+Size > MainBuf_SIZE)  // If the current position + new data size is greater than the main buffer
+//		{
+//			uint16_t datatocopy = MainBuf_SIZE-oldPos;  // find out how much space is left in the main buffer
+//			memcpy ((uint8_t *)MainBuf+oldPos, RxBuf, datatocopy);  // copy data in that remaining space
+//
+//			oldPos = 0;  // point to the start of the buffer
+//			memcpy ((uint8_t *)MainBuf, (uint8_t *)RxBuf+datatocopy, (Size-datatocopy));  // copy the remaining data
+//			newPos = (Size-datatocopy);  // update the position
+//		}
+//
+//		/* if the current position + new data size is less than the main buffer
+//		 * we will simply copy the data into the buffer and update the position
+//		 */
+//		else
+//		{
+//			memcpy ((uint8_t *)MainBuf+oldPos, RxBuf, Size);
+//			newPos = Size+oldPos;
+//		}
+//
+//		head = newPos - Size;
+//		tail = newPos - 1;
+//
+//		if (head < 0)  //checks for a wrap-around / overflow
+//		{
+//			head = MainBuf_SIZE - Size;
+//		}
+//
+//		if( (MainBuf[tail] == 0xFA) && (MainBuf[head] == 0x51) )
+//		{
+//			go_message = true;
+//		}
+//
+//		/* start the DMA again */
+//		HAL_UARTEx_ReceiveToIdle_DMA(&huart2, (uint8_t *) RxBuf, RxBuf_SIZE);
+//		__HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
+//
+//	}
+//
+//
+//	/****************** PROCESS (Little) THE DATA HERE *********************/
+//
+////	/* Let's say we want to check for the keyword "OK" within our incoming DATA */
+////	for (int i=0; i<Size; i++)
+////	{
+////		if ((RxBuf[i] == 'O') && (RxBuf[i+1] == 'K'))
+////		{
+////			isOK = 1;
+////		}
+////	}
 //}
 /* USER CODE END 0 */
 

@@ -2320,7 +2320,7 @@ void run()
 		parse_extract();
 		server_message_found = 0;
 	}
-	else if(resp != NOREPLY)
+	else if( (resp != NOREPLY) && (resp != JUNK) )
 	{
 		process_response(resp);
 //		resp = NOREPLY;
