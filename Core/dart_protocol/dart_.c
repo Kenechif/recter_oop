@@ -70,6 +70,9 @@ uint8_t checked = 0,
 bool ack_send = false,
 	 outstanding_command = false;
 
+int16_t header = 0,
+		footer = 0;
+
 //unsigned char price_update_bcd[MAX_NON*MAX_NOP][3];
 
 void dart_init(void)
@@ -430,12 +433,18 @@ void process_response(response_enum response)
 //void parse_message(unsigned char* arr, int size)
 void parse_extract(void)
 {
+	uint16_t i,
+			 j;
+
+	header = head;
+	footer = tail;
+
 	memset(r_raw_data1, 0, sizeof(r_raw_data1));
-//	r_addr = arr[0];
-	r_addr = rx_buf1[0];
-	r_pumpno = r_addr-0x4F;			//pumpno i.e either pump 1 or 2 on
+
+	r_addr = MainBuf[header];
+	r_pumpno = r_addr - 0x4F;			//pumpno i.e either pump 1 or 2 on
 //	r_ctrl = arr[1];				//control character that specifies the type of message received
-	r_ctrl = rx_buf1[1];
+	r_ctrl = MainBuf[header + 1];
 
 	//===  GO's TX#  ===//
 	r_TX = r_ctrl & 0x0F;		//the TX of the received message (from slave) attached to the ctrl character
@@ -444,17 +453,20 @@ void parse_extract(void)
 
 	if (r_pumpno == pumpno)
 	{
-		for (int16_t i = 2, j = 0; i < 150; i++, j++)
+		for (i = 2, j = 0; i < 125; i++, j++)
 		{
 //			r_raw_data1[j] = arr[i];	//shift the data in the array into the r_raw_data vector
-			r_raw_data1[j] = rx_buf1[i];	//shift the data in the array into the r_raw_data vector
+			r_raw_data1[j] = MainBuf[header + i];	//shift the data in the array into the r_raw_data vector
 //			if( (arr[i] == ETX) && (arr[i+1] == SF) )
 //			if( (rx_buf1[i] == ETX) && (rx_buf1[i+1] == SF) )
-			if(rx_buf1[i] == SF)
+			if(r_raw_data1[j] == SF)
 			{
 				break;
 			}
 		}
+
+//		r_raw_data1[j] = MainBuf[tail];
+
 		parse_decode();
 	}
 	else
@@ -464,6 +476,48 @@ void parse_extract(void)
 	}
 	//include a condition to ensure that the message parsed is more than a particular value
 }
+
+
+//
+////void parse_message(unsigned char* arr, int size)
+//void parse_extract(void)
+//{
+//	memset(r_raw_data1, 0, sizeof(r_raw_data1));
+//
+////	r_addr = arr[0];
+//	r_addr = rx_buf1[0];
+//	r_pumpno = r_addr-0x4F;			//pumpno i.e either pump 1 or 2 on
+////	r_ctrl = arr[1];				//control character that specifies the type of message received
+//	r_ctrl = rx_buf1[1];
+//
+//	//===  GO's TX#  ===//
+//	r_TX = r_ctrl & 0x0F;		//the TX of the received message (from slave) attached to the ctrl character
+//	// r_trans = arr[2];				//received transaction ID
+//	// r_lng = arr[3];					//length of data byte
+//
+//	if (r_pumpno == pumpno)
+//	{
+//		for (int16_t i = 2, j = 0; i < 150; i++, j++)
+//		{
+////			r_raw_data1[j] = arr[i];	//shift the data in the array into the r_raw_data vector
+//			r_raw_data1[j] = rx_buf1[i];	//shift the data in the array into the r_raw_data vector
+////			if( (arr[i] == ETX) && (arr[i+1] == SF) )
+////			if( (rx_buf1[i] == ETX) && (rx_buf1[i+1] == SF) )
+//			if(rx_buf1[i] == SF)
+//			{
+//				break;
+//			}
+//		}
+//		parse_decode();
+//	}
+//	else
+//	{
+////		TRACE_DART("<%s> Not for me Pump[%d]<>", __FUNCTION__, pumpno);
+//		resp = NOREPLY;
+//	}
+//	//include a condition to ensure that the message parsed is more than a particular value
+//}
+
 
 //function overload of the parsed message to parse ack, nack, eot messages
 //void parse_message1(unsigned char* arr){
@@ -707,9 +761,10 @@ void parse_decode()
 							// TRACE_DART("<>--- msg - ack\n");
 //							MSN = (r_ctrl & 0x0F);
 //							if(MSN == 0x00)
-//							{
-//								checked = 1;
-//							}
+							if(r_ctrl == 0x32)
+							{
+								checked = 1;
+							}
 							TX++;
 
 							command_ = NO_COMMAND;
@@ -1509,7 +1564,8 @@ void process_response1(response_enum response)
 
 				uint16_t crc;
 
-				ctrl |= 0x30 ;
+				ctrl = 0x02;
+				ctrl |= 0x30;
 				trans = 0x02;
 				lng = 0x08;
 

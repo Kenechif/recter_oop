@@ -372,6 +372,11 @@ void configure_pump(pumpCompPart _case)
 
 //{"ni":"p17","pn":"pms","dt":"bluesky886n",kt":"bluesky22"}
 
+//lafeng885
+//lafeng18k
+
+//{"ni":"p17","pn":"pms","dt":"lafeng885",kt":"lafeng18k"}
+
 //Display Type
 //"lafeng885" -> LAFNG885
 //"bluesky886n" -> BLSKY886_N

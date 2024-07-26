@@ -36,7 +36,9 @@ extern uint16_t _tt1,
 				priceChange_timer1,
 				priceChange_timer2,
 				timer_config1,
-				timer_config2;
+				timer_config2,
+				key19Timer1,
+				key19Timer2;
 //				ep2_timer;
 
 extern uint32_t timer_ep,
@@ -59,6 +61,9 @@ void dec_var()
 		if(_tt1 > 65534) _tt1 = 0;
 		if(_tt2 > 65534) _tt2 = 0;
 		ttt1++; ttt2++;
+
+		key19Timer1++;
+		key19Timer2++;
 
 		priceChange_timer1++;
 		priceChange_timer2++;
@@ -111,7 +116,7 @@ void toggle_led(void)
 	 static int count;
 	 dec_var();
 	 count++;
-	 if(count >= 1000)
+	 if(count >= 1000)  //1 sec
 	 {
 		 //=====================//
 		 // shutdown timer

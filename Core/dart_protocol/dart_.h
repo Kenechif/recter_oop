@@ -59,6 +59,14 @@ extern pump_settings_stream3 settings_stream3[2],
 				       	     settings0_stream3[2],
 							 copy_stream3[2];
 
+extern bool go_message;
+
+extern uint8_t RxBuf[RxBuf_SIZE],
+			   MainBuf[MainBuf_SIZE];
+
+extern int16_t head,
+			   tail;
+
 extern float litre_price,
 			 price_real1,
 			 amt_real1;

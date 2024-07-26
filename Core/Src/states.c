@@ -65,8 +65,14 @@ extern uint8_t prog_entry1;
 
 int8_t index_menu = 0;
 
+uint8_t dummyValue = 0;
+
 uint8_t  prog_revisit1 = 1,
-		 prog_revisitt1 = 1;
+		 prog_revisitt1 = 1,
+		 firstTime_key19 = 1;
+
+uint8_t key19State = 0,
+		lastKey19State = 0;
 
 
 int data_size = 0; //w25qxx.PageSize;    //0;
@@ -165,7 +171,8 @@ extern  int t;
 extern uint16_t _tt1,
 				totalizer1Timer,
 				priceChange_timer1,
-				timer_config1;
+				timer_config1,
+				key19Timer1;
 
 extern uint32_t num ;
 
@@ -832,9 +839,9 @@ uint8_t long_press_log()
 	static int pressed_ = 0;
 	//static int pressed_old = 0;
 	int ky = 0;
-ky = readkey19_state();
-//	if (readkey19_state() != 1)
-if (ky != 1)
+	ky = readkey19_state();
+	//	if (readkey19_state() != 1)
+	if (ky != 1)
 	{
         pressed_ = 0;
         log_buttonpress_tmr = 0;   //clr timer.
@@ -853,29 +860,141 @@ if (ky != 1)
 /////////////////////////////////////////////////////////////////
 uint8_t long_press_tot()
 {
-	static int pressed_ = 0;
+	static uint8_t pressed_ = 0;
 	//static int pressed_old = 0;
-	int ky;
+	uint8_t ky;
+
+	static uint8_t	key19StateCount = 0;
+
+//	static uint8_t lastKey19State = 0;
+//				   firstTime_key19 = 1;
+
+    dummyValue = 0;
+
+	static bool doublePressDetected = false,
+				click_in_progress = false;
+
+	int doublePressThreshold = 2000;
 
 //	if(pump_type == lafeng) ky = 11;  //keypad type mapping...
 //	if(pump_type == DN_LAFNG17K) ky = 11;  //keypad type mapping...
 	if( (settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) )
-		ky = 11;  //keypad type mapping...
-	else
-	  ky = 21;                      //mapped to print key...
-
-
-	if(keypress_ != ky)
 	{
-        pressed_ = 0;
-        tot_buttonpress_tmr = 0;  //clr timer.
+//		ky = 11;  //keypad type mapping...
+		key19State = readkey19_state();
+
+		if( (firstTime_key19 == 1) && (key19State == 1) )
+		{
+			key19Timer1 = 0;
+			firstTime_key19 = 2;
+		}
+//	}
+//	else
+//	  ky = 21;                      //mapped to print key...
+
+//	 unsigned long currentTime = millis();
+//	  buttonState = digitalRead(buttonPin);
+
+//	  if (key19State != lastKey19State)
+//	  {
+//	    if (key19State == 1)   // Key19 is pressed
+//	    {
+//
+////	    	  if ( (key19Timer1 > 0) && (key19Timer1 <= doublePressThreshold) )
+////			  {
+////				doublePressDetected = true;
+////			  }
+////			  else if (key19Timer1 > doublePressThreshold)
+////			  {
+////				  firstTime_key19 = 1;
+////				  key19Timer1 = 0;
+////			  }
+//
+//	    	key19State1++;
+//	    	if(key19Timer1 > doublePressThreshold)
+//	    	{
+//	    		if(key19State1 >= 2)
+//	    		{
+//	    			doublePressDetected = true;
+//	    		}
+//
+//	    		 firstTime_key19 = 1;
+//				 key19Timer1 = 0;
+//	    	}
+////	      lastPressTime = currentTime;
+//	    }
+////	    delay(debounceDelay);  // Debounce
+//	  }
+
+	  if (key19State != lastKey19State)
+	  {
+		  //we keep checking for clicks, we don't care about the non-click detection (it will be most of the time)
+		  if (key19State == 1)   // Key19 is pressed
+		  {
+				 if(key19StateCount == 0)
+				 {
+					 key19Timer1 = 0; //reset the timer only on the first click
+					 click_in_progress = true; //we are in the clicking phase
+				 }
+				 key19StateCount++ ; // it will start as 1 and will keep incrementing
+		  }
+
+			 if(click_in_progress == true)
+			 {
+				 if(key19Timer1 >= 500)   //now we have passed the 500ms let's check how many clicks happened
+				 {
+					 if(key19StateCount > 1)
+					 {
+
+						//it's a double or multiple click
+						 doublePressDetected = true;
+
+	//	            	 key19StateCount = 0;
+
+					 }
+					 else
+					 {
+
+						 //has to be at least 1 so it's a single click, it can never be zero
+					 }
+
+					 //reset everything
+					 key19StateCount = 0;
+					 click_in_progress = false;
+					 //no need to waste processor time resetting lastClickTime as it won't be checked until the next click_in_progress = 1 and it will be reset before that anyway
+
+				 }
+			 }
+	  }
+
+	  lastKey19State = key19State;
+
+	  if (doublePressDetected) {
+//	    Serial.println("Double press detected!");
+		  doublePressDetected = false;
+		  tot_buttonpress_tmr = 3;
+		  pressed_ = 1;
+		  firstTime_key19 = 1;
+		  return 1;
+	  }
 	}
-	 if((tot_buttonpress_tmr >= 3)&&(pressed_ == 0) )
+	else
+	{
+		ky = 21;                      //mapped to print key...
+
+		if(keypress_ != ky)
+		{
+			pressed_ = 0;
+			tot_buttonpress_tmr = 0;  //clr timer.
+		}
+		 if((tot_buttonpress_tmr >= 3) && (pressed_ == 0) )
 		 {
 		   tot_buttonpress_tmr = 3;
-		    pressed_ = 1;
-		    return 1;
+			pressed_ = 1;
+			return 1;
 		 }
+	}
+
 	 return 0;
 }
 /////////////////////////////////////////////////////////////////
@@ -2687,7 +2806,7 @@ eSystemState progstate_Handler(void)
 				}
 
 			 if (pkey == 'D')  //store entered value.
-				{
+			 {
 				 if (pump_indx == 1)   // if side A
 				 {
 					 copy_stream1[0].price_ =  atof(keyboard_entry);
@@ -2696,7 +2815,8 @@ eSystemState progstate_Handler(void)
 				 {
 					 copy_stream1[1].price_ =  atof(keyboard_entry);
 				  }
-				}
+				 fxn = nothing;
+			 }
 
 			 if (pkey == 'A')  // back key
 				{
@@ -2752,24 +2872,25 @@ eSystemState progstate_Handler(void)
 
 				}
 
-			 if (pkey == 'C')  // down key
+			 else if (pkey == 'C')  // down key
 				{
 
 				}
 
-			 if (pkey == 'D')  //enter key
+			 else if (pkey == 'D')  //enter key
 				{
 					 if (pump_indx == 1)   // if side A
 						{
 						 copy_stream1[0].id_ =  atoi(keyboard_entry);
 						}
-					 if (pump_indx == 2)   // if side b
+					 else if (pump_indx == 2)   // if side b
 						{
 						 copy_stream1[1].id_ =  atoi(keyboard_entry);
 						}
+					 fxn = nothing;
 				}
 
-			 if (pkey == 'A')  // back key
+			 else if (pkey == 'A')  // back key
 				{
 					 fxn = nothing;
 					 clr_screen1();
@@ -2796,7 +2917,7 @@ eSystemState progstate_Handler(void)
 			send_line3("  A  ");
 		 }
 
-		 if (pump_indx == 2)
+		 else if (pump_indx == 2)
 		 {
 			//snprintf(line3, sizeof(line3), "an1.%d",log_indx_indx + 1);
 			send_line3("  B  ");
@@ -2825,24 +2946,26 @@ eSystemState progstate_Handler(void)
 
 				}
 
-			 if (pkey == 'C')  // down key
+			 else if (pkey == 'C')  // down key
 				{
 
 				}
 
-			 if (pkey == 'D')  //enter key
+			 else if (pkey == 'D')  //enter key
 				{
 					 if (pump_indx == 1)   // if side A
 						{
 						 copy_stream2[0].noFlow_timeOut =  atoi(keyboard_entry);
 						}
-					 if (pump_indx == 2)   // if side b
+					 else if (pump_indx == 2)   // if side b
 						{
 						 copy_stream2[1].noFlow_timeOut =  atoi(keyboard_entry);
 						}
+
+					 fxn = nothing;
 				}
 
-			 if (pkey == 'A')  // back key
+			 else if (pkey == 'A')  // back key
 				{
 					 fxn = nothing;
 					 clr_screen1();
@@ -2868,7 +2991,7 @@ eSystemState progstate_Handler(void)
 			send_line3("  A  ");
 		 }
 
-		 if (pump_indx == 2)
+		 else if (pump_indx == 2)
 		 {
 			send_line3("  B  ");
 		 }
@@ -2896,12 +3019,12 @@ eSystemState progstate_Handler(void)
 
 				}
 
-			 if (pkey == 'C')  // down key
+			 else if (pkey == 'C')  // down key
 				{
 
 				}
 
-			 if (pkey == 'D')  //enter key
+			 else if (pkey == 'D')  //enter key
 				{
 					 if (pump_indx == 1)   // if side A
 						{
@@ -2911,9 +3034,11 @@ eSystemState progstate_Handler(void)
 						{
 						 copy_stream1[1].max_amt_ =  atoi(keyboard_entry);
 						}
+
+					 fxn = nothing;
 				}
 
-			 if (pkey == 'A')  // back key
+			 else if (pkey == 'A')  // back key
 				{
 					 fxn = nothing;
 					 clr_screen1();
@@ -3425,6 +3550,8 @@ eSystemState progstate_Handler(void)
 						 }
 						 chg_pw = 1;
 					  }
+
+// 				 	 fxn = nothing;
  				}
 
  			 if (pkey == 'A')  // back key
@@ -3786,31 +3913,31 @@ eSystemState progstate_Handler(void)
 				send_line1("   P    ");
 			 }
 
-			if (ln_ == 2)
+		    else if (ln_ == 2)
 			 {
 				send_line1("   L    ");
 			 }
 
-			if (ln_ == 3)
+		    else if (ln_ == 3)
 			 {
 				send_line1(" Unit p ");
 			 }
        //---------------------------------
-		    if (dp_ == 1)
+		     if (dp_ == 1)
 			 {
 				send_line2(" 999999.9");
 			 }
 
-		    if (dp_ == 2)
+		    else if (dp_ == 2)
 			 {
 				send_line2(" 99999.99");
 			 }
 
-		    if (dp_ == 3)
+		    else if (dp_ == 3)
 			 {
 		    	send_line2(" 9999.999");
 			 }
-		    if (dp_ == 4)
+		    else if (dp_ == 4)
 			 {
 				send_line2(" 999.9999");
 			 }
@@ -3820,7 +3947,7 @@ eSystemState progstate_Handler(void)
 				send_line3("  A  ");
 			 }
 
-			 if (pump_indx == 2)
+			 else if (pump_indx == 2)
 			 {
 				send_line3("  B  ");
 			 }
@@ -3849,13 +3976,13 @@ eSystemState progstate_Handler(void)
 				 	 if(dp_ > max_dp) dp_ = 1;
 				}
 
-			 if (pkey == 'C')  // down key
+			 else if (pkey == 'C')  // down key
 				{
 				 	 ln_++;
 				 	 if(ln_ > 3)ln_ = 1;
 				}
 
-			 if (pkey == 'D')  //enter key
+			 else if (pkey == 'D')  //enter key
 				{
 					 if (pump_indx == 1)   // if side A
 					 {
@@ -3878,7 +4005,7 @@ eSystemState progstate_Handler(void)
 					 return prog_State;
 				}
 
-			 if (pkey == 'A')  // back key
+			 else if (pkey == 'A')  // back key
 				{
 					 fxn = nothing;
 					 clr_screen1();
@@ -7812,20 +7939,22 @@ if(
      }
 //----------------------------------------------------------------
 //                            write to the keypad
-	   static int lcd_size = 5;
 
-//	   if(disp_type1 == LAFNG885 )
-//	   if(disp_type1 == DN_LAFNG17K)
-	   if( (settings_stream1[0].keypad__  == LAFNG17_K) || (settings_stream1[0].keypad__  == LAFNG18_K) )
-	   {
-		    lcd_size = 5; //change this latter to accomodate other lcds.
-	   }
-//	   else if(disp_type1 == BLSKY886_N)
-//	   else if( (disp_type1 == DN_BLSKY18K) || (disp_type1 == DN_BLSKY22) )
-	   else if( (settings_stream1[0].keypad__  == BLSKY18_K) || (settings_stream1[0].keypad__  == BLSKY22) )
-	   {
-		    lcd_size = 7;
-	   }
+ 	   static int lcd_size = 5;
+
+ 	   if(settings_stream1[0].keypad__  == LAFNG17_K)
+ 	   {
+ 		    lcd_size = 5; //change this latter to accomodate other lcds.
+ 	   }
+ 	   else if(settings_stream1[0].keypad__  == LAFNG18_K)
+ 	   {
+ 		    lcd_size = 7; //change this latter to accomodate other lcds.
+ 	   }
+ 	   else if( (settings_stream1[0].keypad__  == BLSKY18_K) || (settings_stream1[0].keypad__  == BLSKY22) )
+ 	   {
+ 		    lcd_size = 7;   //6;
+ 	   }
+
 //================================================================
 	 int8_t size = lcd_size - 1;   // 1 xter to display 'P/L'
 //	 if(strchr(keyboard_entry, '.')) size = lcd_size;

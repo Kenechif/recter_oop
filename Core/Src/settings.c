@@ -95,6 +95,8 @@ extern uint8_t calibrationCan_measure1,
  int auth_flag2 = 0;
 
  int operating_side = 0;
+
+// uint8_t dummyValue = 0;
  //-------------------------------------
 //.....        Access level       .....
 int access_level = non;    //default

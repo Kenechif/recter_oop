@@ -741,13 +741,19 @@ int keypad_lcd(int fxn,char* num)
 	int8_t keynumber = 0;
 	int8_t count = 0;
 	int8_t scan_code = 0;
+	int8_t inv = 0;
+	int8_t postn = 0;
 
 	count = strlen(num);      //snprintf(buf2, sz, "%ld", num);
 
+//	inv = count;
+
 	//count = cnv;
-	int8_t postn = 6;
+	postn = 6;
 
 	if(strchr(num, '.') ) --count;
+
+	inv = count;
 
 	while(count < 7)
 	{
@@ -794,6 +800,14 @@ int keypad_lcd(int fxn,char* num)
 		postn--;
 	}
 
+	if(settings_stream1[0].keypad__  == LAFNG18_K)
+	{
+		for (int8_t i = 8; i >= inv; i--)
+		{
+			buf[i] = (buf[i] ^ 0xFF);
+		}
+	}
+
 //	count =   strlen(num);      //snprintf(buf2, sz, "%ld", num);
 //
 //	//count = cnv;
@@ -820,13 +834,19 @@ int keypad_lcd(int fxn,char* num)
 
 //	if (pump_type == lafeng) disp_len_pad = 5;
 //	if (pump_type == DN_LAFNG17K)
-	if ( (settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) )
-		disp_len_pad = 5;
+	if (settings_stream1[0].keypad__ == LAFNG17_K)
+	{
+	    	disp_len_pad = 5;
+	}
+    else if(settings_stream1[0].keypad__  == LAFNG18_K)
+    {
+    	disp_len_pad = 7;
+    }
 
 	for(int i = 0; i < disp_len_pad; i++)  //7 bytes for bluesky 5 bytes for lafeng
-		{
-			shift_(buf[i],0);
-		}
+	{
+		shift_(buf[i], 0);
+	}
 
 	//push in "1"s past the keyboard registers memory of 24-1 places
 	HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
@@ -1626,7 +1646,8 @@ int keypad_lcd2(int fxn, char* num)
    fill = 22;
 //   if(pump_type == lafeng) fill = 17;
 //   if(pump_type == DN_LAFNG17K)
-   if ( (settings_stream1[1].keypad__ == LAFNG17_K) || (settings_stream1[1].keypad__ == LAFNG18_K) ) fill = 17;
+   if ( (settings_stream1[1].keypad__ == LAFNG17_K) || (settings_stream1[1].keypad__ == LAFNG18_K) )
+	   fill = 17;
 
    HAL_GPIO_WritePin(datak2_GPIO_Port, datak2_Pin, GPIO_PIN_SET);
 

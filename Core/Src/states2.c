@@ -159,7 +159,8 @@ extern uint32_t num2 ;
 extern  int16_t _tt2,
 				totalizer2Timer,
 				priceChange_timer2,
-				timer_config2;
+				timer_config2,
+				key19Timer2;
 
 extern uint32_t transaction_period2;
 
@@ -830,28 +831,121 @@ uint8_t long_press_tot2()
 {
 	static int pressed_ = 0;
 	//static int pressed_old = 0;
-	int ky;
+	uint8_t ky;
+
+	static uint8_t	key19StateCount = 0;
+
+	static bool doublePressDetected = false,
+				click_in_progress = false;
+
+	int doublePressThreshold = 2000;
+
+	static uint8_t lastKey19State = 0,
+				   firstTime_key192 = 1;
+
+	uint8_t key19State;
 
 //	if(pump_type == lafeng) ky = 11;  //keypad type mapping...
 //	if(pump_type == DN_LAFNG17K)
-	if(settings_stream1[1].keypad__ == LAFNG17_K)
-		ky = 11;  //keypad type mapping...
-	else if (settings_stream1[1].keypad__ == LAFNG18_K)
-		ky = 17;
-	else
-	  ky = 21;                      //mapped to print key...
+//	if(settings_stream1[1].keypad__ == LAFNG17_K)
+//		ky = 11;  //keypad type mapping...
+//	else if (settings_stream1[1].keypad__ == LAFNG18_K)
+//		ky = 17;
+//	else
+//	  ky = 21;                      //mapped to print key...
 
-	if(keypress_2 != ky)
+	if( (settings_stream1[1].keypad__ == LAFNG17_K) || (settings_stream1[1].keypad__ == LAFNG18_K) )
 	{
-        pressed_ = 0;
-        tot_buttonpress_tmr2 = 0;  //clr timer.
-	}
-	 if((tot_buttonpress_tmr2 >= 3)&&(pressed_ == 0) )
-		 {
-		   tot_buttonpress_tmr2 = 3;
-		    pressed_ = 1;
-		    return 1;
-		 }
+//		ky = 11;  //keypad type mapping...
+		key19State = readkey192_state();
+
+		if( (firstTime_key192 == 1) && (key19State == 1) )
+		{
+			key19Timer2 = 0;
+			firstTime_key192 = 2;
+		}
+
+		if (key19State != lastKey19State)
+		{
+			  //we keep checking for clicks, we don't care about the non-click detection (it will be most of the time)
+			  if (key19State == 1)   // Key19 is pressed
+			  {
+					 if(key19StateCount == 0)
+					 {
+						 key19Timer2 = 0; //reset the timer only on the first click
+						 click_in_progress = true; //we are in the clicking phase
+					 }
+					 key19StateCount++ ; // it will start as 1 and will keep incrementing
+			  }
+
+				 if(click_in_progress == true)
+				 {
+					 if(key19Timer2 >= 500)   //now we have passed the 500ms let's check how many clicks happened
+					 {
+						 if(key19StateCount > 1)
+						 {
+
+							//it's a double or multiple click
+							 doublePressDetected = true;
+
+		//	            	 key19StateCount = 0;
+
+						 }
+						 else
+						 {
+
+							 //has to be at least 1 so it's a single click, it can never be zero
+						 }
+
+						 //reset everything
+						 key19StateCount = 0;
+						 click_in_progress = false;
+						 //no need to waste processor time resetting lastClickTime as it won't be checked until the next click_in_progress = 1 and it will be reset before that anyway
+
+					 }
+				 }
+			  }
+
+			  lastKey19State = key19State;
+
+			  if (doublePressDetected) {
+		//	    Serial.println("Double press detected!");
+				  doublePressDetected = false;
+				  tot_buttonpress_tmr2 = 3;
+				  pressed_ = 1;
+				  firstTime_key192 = 1;
+				  return 1;
+			  }
+			}
+			else
+			{
+				ky = 21;                      //mapped to print key...
+
+				if(keypress_2 != ky)
+				{
+					pressed_ = 0;
+					tot_buttonpress_tmr2 = 0;  //clr timer.
+				}
+				 if((tot_buttonpress_tmr2 >= 3) && (pressed_ == 0) )
+				 {
+				   tot_buttonpress_tmr2 = 3;
+					pressed_ = 1;
+					return 1;
+				 }
+			}
+
+
+//	if(keypress_2 != ky)
+//	{
+//        pressed_ = 0;
+//        tot_buttonpress_tmr2 = 0;  //clr timer.
+//	}
+//	 if((tot_buttonpress_tmr2 >= 3)&&(pressed_ == 0) )
+//		 {
+//		   tot_buttonpress_tmr2 = 3;
+//		    pressed_ = 1;
+//		    return 1;
+//		 }
 	 return 0;
 }
 /////////////////////////////////////////////////////////////////

@@ -71,6 +71,9 @@ extern "C" {
 
 #define pump_rx_bufsize  			1000
 
+#define RxBuf_SIZE   				512
+#define MainBuf_SIZE 				2048
+
 #define CALIBRATED 					0b10011001
 #define UNCALIBRATED 				0b00000000
 

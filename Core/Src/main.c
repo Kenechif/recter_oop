@@ -72,7 +72,9 @@ DMA_HandleTypeDef hdma_usart2_rx;
 /* USER CODE BEGIN PV */
 extern uint32_t pulser1;
 extern uint32_t pulser2;
-extern char prn[40] ;
+extern char prn[40];
+
+extern pump_settings_stream2 settings_stream2[2];
 
 ADC_ChannelConfTypeDef sConfig = {0};
 
@@ -121,11 +123,12 @@ char dma_result_buffer[100];
 //}
 
 
-#define RxBuf_SIZE   512
-#define MainBuf_SIZE 2048
+//#define RxBuf_SIZE   512
+//#define MainBuf_SIZE 2048
 
-uint8_t RxBuf[RxBuf_SIZE];
-uint8_t MainBuf[MainBuf_SIZE];
+uint8_t RxBuf[RxBuf_SIZE],
+		MainBuf[MainBuf_SIZE],
+		SOP;  //Start-Of-Packet
 
 uint16_t oldPos = 0,
 		 newPos = 0;
@@ -137,9 +140,15 @@ int16_t head = 0,
 
 //int isOK = 0;
 
+extern unsigned char pumpno;
+
+
+
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
+	SOP = pumpno + 0x4F;
+
 	if (huart->Instance == USART2)
 	{
 		oldPos = newPos;  // Update the last position before copying new data
@@ -175,7 +184,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 			head = MainBuf_SIZE - Size;
 		}
 
-		if( (MainBuf[tail] == 0xFA) && (MainBuf[head] == 0x51) )
+		if( (MainBuf[tail] == 0xFA) && (MainBuf[head] == SOP) )
 		{
 			go_message = true;
 		}
@@ -198,6 +207,8 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 //		}
 //	}
 }
+
+uint8_t END_MSG[35] = "Overflow Reached! Counter Reset!\n\r";
 /* USER CODE END 0 */
 
 /**
@@ -212,6 +223,10 @@ int main(void)
 
 
 	config_mode = 0;
+
+	uint8_t MSG[35] = {'\0'};
+	uint16_t CounterTicks = 0;
+
 	//===========================================================================
 
 	SCnSCB->ACTLR |= SCnSCB_ACTLR_DISDEFWBUF_Msk; // disable the write buffer
@@ -237,6 +252,8 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
 
+//  	  retrieve_settings();
+
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -246,6 +263,11 @@ int main(void)
   MX_RTC_Init();
   MX_SPI1_Init();
   MX_SPI2_Init();
+
+  /* USER CODE BEGIN 2 */
+
+  retrieve_settings();    //Retrieves settings prior to Timers Initialisation
+
   MX_TIM2_Init();
   MX_TIM5_Init();
   MX_USART1_UART_Init();
@@ -254,7 +276,6 @@ int main(void)
   MX_USART3_UART_Init();
   MX_UART5_Init();
   MX_RNG_Init();
-  /* USER CODE BEGIN 2 */
 
   //--------------------------------------
 
@@ -291,6 +312,10 @@ int main(void)
 //   	    HAL_Delay(10);
 //   }
 
+
+  HAL_UARTEx_ReceiveToIdle_DMA(&huart2, RxBuf, RxBuf_SIZE);
+   __HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
+
 	setup();
   /* USER CODE END 2 */
 
@@ -305,7 +330,14 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 
-//		run();
+		   // Read The Counter Ticks Register
+		CounterTicks = TIM2->CNT;
+		// Print The Ticks Count Via UART1
+		sprintf(MSG, "Ticks = %d\n\r", CounterTicks);
+		HAL_UART_Transmit(&huart2, MSG, sizeof(MSG), 100);
+		HAL_Delay(100);
+
+		run();
 	}
   /* USER CODE END 3 */
 }
@@ -602,6 +634,84 @@ static void MX_SPI2_Init(void)
 
 }
 
+///**
+//  * @brief TIM2 Initialization Function
+//  * @param None
+//  * @retval None
+//  */
+//static void MX_TIM2_Init(void)
+//{
+//
+//  /* USER CODE BEGIN TIM2_Init 0 */
+//
+//	TIM_Encoder_InitTypeDef sConfig = {0};
+//	TIM_SlaveConfigTypeDef sSlaveConfig = {0};
+//	TIM_MasterConfigTypeDef sMasterConfig = {0};
+//
+//  /* USER CODE END TIM2_Init 0 */
+//
+//  /* USER CODE BEGIN TIM2_Init 1 */
+//
+//  /* USER CODE END TIM2_Init 1 */
+//  htim2.Instance = TIM2;
+//  htim2.Init.Prescaler = 0;
+//  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+//  htim2.Init.Period = 4294967295;
+//  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+//  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+//
+//
+//  /* USER CODE BEGIN TIM2_Init 2 */
+//
+//
+//	if(settings_stream2[1].pulser_type_ == quadrature)
+//	{
+//		sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
+//		  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+//		  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+//		  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
+//		  sConfig.IC1Filter = 7;
+//		  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
+//		  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+//		  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
+//		  sConfig.IC2Filter = 7;
+//		  if (HAL_TIM_Encoder_Init(&htim2, &sConfig) != HAL_OK)
+//		  {
+//		    Error_Handler();
+//		  }
+//		  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+//		  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+//		  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+//		  {
+//		    Error_Handler();
+//		  }
+//	}
+//	else if(settings_stream2[1].pulser_type_ == non_quadrature)
+//	{
+//		  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+//		  {
+//			Error_Handler();
+//		  }
+//		  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_EXTERNAL1;
+//		  sSlaveConfig.InputTrigger = TIM_TS_TI1FP1;
+//		  sSlaveConfig.TriggerPolarity = TIM_TRIGGERPOLARITY_RISING;
+//		  sSlaveConfig.TriggerFilter = 0;
+//		  if (HAL_TIM_SlaveConfigSynchro(&htim2, &sSlaveConfig) != HAL_OK)
+//		  {
+//			Error_Handler();
+//		  }
+//		  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+//		  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+//		  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+//		  {
+//			Error_Handler();
+//		  }
+//	}
+//
+//  /* USER CODE END TIM2_Init 2 */
+//
+//}
+
 /**
   * @brief TIM2 Initialization Function
   * @param None
@@ -614,7 +724,7 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 0 */
 
-  TIM_Encoder_InitTypeDef sConfig = {0};
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
   TIM_MasterConfigTypeDef sMasterConfig = {0};
 
   /* USER CODE BEGIN TIM2_Init 1 */
@@ -626,16 +736,15 @@ static void MX_TIM2_Init(void)
   htim2.Init.Period = 4294967295;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
-  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
-  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
-  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-  sConfig.IC1Filter = 7;
-  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
-  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
-  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
-  sConfig.IC2Filter = 7;
-  if (HAL_TIM_Encoder_Init(&htim2, &sConfig) != HAL_OK)
+  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_ETRMODE2;
+  sClockSourceConfig.ClockPolarity = TIM_CLOCKPOLARITY_NONINVERTED;
+  sClockSourceConfig.ClockPrescaler = TIM_CLOCKPRESCALER_DIV1;
+  sClockSourceConfig.ClockFilter = 15;
+  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
   {
     Error_Handler();
   }
@@ -651,6 +760,7 @@ static void MX_TIM2_Init(void)
 
 }
 
+
 /**
   * @brief TIM5 Initialization Function
   * @param None
@@ -661,10 +771,14 @@ static void MX_TIM5_Init(void)
 
   /* USER CODE BEGIN TIM5_Init 0 */
 
+	TIM_Encoder_InitTypeDef sConfig = {0};
+	TIM_SlaveConfigTypeDef sSlaveConfig = {0};
+	TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+	settings_stream2[0].pulser_type_ = non_quadrature;
+
   /* USER CODE END TIM5_Init 0 */
 
-  TIM_Encoder_InitTypeDef sConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
 
   /* USER CODE BEGIN TIM5_Init 1 */
 
@@ -675,30 +789,58 @@ static void MX_TIM5_Init(void)
   htim5.Init.Period = 4294967295;
   htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
-  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
-  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
-  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-  sConfig.IC1Filter = 7;
-  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
-  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
-  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
-  sConfig.IC2Filter = 7;
-  if (HAL_TIM_Encoder_Init(&htim5, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM5_Init 2 */
+
+
+    /* USER CODE BEGIN TIM5_Init 2 */
+
+	if(settings_stream2[0].pulser_type_ == quadrature)
+	{
+		  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
+		  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+		  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+		  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
+		  sConfig.IC1Filter = 7;
+		  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
+		  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+		  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
+		  sConfig.IC2Filter = 7;
+		  if (HAL_TIM_Encoder_Init(&htim5, &sConfig) != HAL_OK)
+		  {
+		    Error_Handler();
+		  }
+		  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+		  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+		  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
+		  {
+		    Error_Handler();
+		  }
+	}
+	else if(settings_stream2[0].pulser_type_ == non_quadrature)
+	{
+		  if (HAL_TIM_Base_Init(&htim5) != HAL_OK)
+		  {
+		    Error_Handler();
+		  }
+		  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_EXTERNAL1;
+		  sSlaveConfig.InputTrigger = TIM_TS_TI1FP1;
+		  sSlaveConfig.TriggerPolarity = TIM_TRIGGERPOLARITY_RISING;
+		  sSlaveConfig.TriggerFilter = 0;
+		  if (HAL_TIM_SlaveConfigSynchro(&htim5, &sSlaveConfig) != HAL_OK)
+		  {
+		    Error_Handler();
+		  }
+		  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+		  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+		  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
+		  {
+		    Error_Handler();
+		  }
+	}
 
   /* USER CODE END TIM5_Init 2 */
 
 }
+
 
 /**
   * @brief UART5 Initialization Function

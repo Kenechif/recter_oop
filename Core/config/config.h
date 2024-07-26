@@ -401,6 +401,8 @@ extern uint8_t config_found,
 			   card2_message_found;
 //			  connected;
 
+extern bool go_message;
+
 extern uint8_t connected;
 
 extern uint16_t //timer_ep,

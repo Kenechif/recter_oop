@@ -167,7 +167,9 @@ uint16_t _tt1 = 0,
 		 priceChange_timer1 = 0,
 		 priceChange_timer2 = 0,
 		 timer_config1 = 0,
-		 timer_config2 = 0;
+		 timer_config2 = 0,
+		 key19Timer1 = 0,
+		 key19Timer2 = 0;
 //		 ep2_timer = 0;
 
 uint32_t timer_ep1,
@@ -182,6 +184,8 @@ unsigned int ttt1 = 0,
 uint8_t server_message_found = 0,
 	    card1_message_found = 0,
 	    card2_message_found = 0;
+
+extern bool go_message;
 
 uint16_t shutdown_timer1 = 0,
 		 shutdown_timer2 = 0;
@@ -1087,10 +1091,10 @@ void compose_printer()
 //	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);  //TIM_CHANNEL_1 |TIM_CHANNEL_2); //TIM_CHANNEL_ALL);
 
 
-//	settings_stream2[0].pulser_type_ = non_quadrature;   //quadrature;
-//	settings_stream2[1].pulser_type_ = non_quadrature;   //quadrature;
+	settings_stream2[0].pulser_type_ = non_quadrature;   //quadrature;
+	settings_stream2[1].pulser_type_ = non_quadrature;   //quadrature;
 
-	retrieve_settings();
+//	retrieve_settings();
 
 	if(settings_stream2[0].pulser_type_ == quadrature)
 	{
@@ -1107,7 +1111,9 @@ void compose_printer()
 	}
 	else if(settings_stream2[1].pulser_type_ == non_quadrature)
 	{
-		HAL_TIM_Base_Start(&htim2);
+//		HAL_TIM_Base_Start(&htim2);
+
+		HAL_TIM_Base_Start_IT(&htim2);
 	}
 
 	//keypad_ini();
@@ -1131,7 +1137,7 @@ void compose_printer()
 
 	HAL_UART_Receive_IT(&huart1, uart1_rx_buf, pump_rx_bufsize);
 
-	HAL_UART_Receive_IT(&huart2, uart2_rx_buf, pump_rx_bufsize);
+//	HAL_UART_Receive_IT(&huart2, uart2_rx_buf, pump_rx_bufsize);
 
 	HAL_UART_Receive_IT(&huart3, uart3_rx_buf, pump_rx_bufsize);
 
@@ -1149,6 +1155,12 @@ void compose_printer()
 ////	      extern char pump_rx_buf[pump_rx_bufsize];
 ////	      HAL_UART_Receive(&huart1,&pump_rx_buf, 10,10000);
 //		}
+
+//	while(1)
+//	{
+//		current_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);
+//		HAL_Delay(1000);
+//	}
 
 
 //unsigned long otp_seed1 = 9071;  //1000;
@@ -1407,6 +1419,10 @@ tmmm:
 //	  HAL_UART_Transmit (&huart1, "Hey!", 4, 1000);
 
 //	  {"ni":"p1","pn":"pms","dt":"bluesky886n","kt":"bluesky22"}
+
+//	  {"ni":"p17","pn":"pms","dt":"lafeng885",kt":"lafeng18k"}
+
+//	  {"ni":"p1","pn":"ago","dt":"bluesky886n","kt":"bluesky22","pi":"860537065690737","tn":"0003"}
 
 //	  {"ni":"p17","pn":"pms","dt":"bluesky886i","kt":"bluesky22"}
 
@@ -2314,11 +2330,13 @@ void run()
 
 #endif     //#if defined (DEV_MODE)
 
-	if(server_message_found == 1)
+//	if(server_message_found == 1)
+	if(go_message == true)
 	{
 //		server_rx_parse();
 		parse_extract();
-		server_message_found = 0;
+//		server_message_found = 0;
+		go_message = false;
 	}
 	else if( (resp != NOREPLY) && (resp != JUNK) )
 	{
@@ -2330,71 +2348,75 @@ void run()
 //	  HAL_UART_Transmit (&huart2, "Hello", 5, 1000);
 //	  HAL_Delay(3000);
 
-//	if(operating_sideA)
-//	{
-//		 operating_side = side_a;
-//		 house_keeping();
-//		 states();
-//
-//		 operating_sideA = false;
-//		 operating_sideB = true;
-//	}
-//	else if(operating_sideB)
-//	{
-//		 operating_side = side_b;
-//		 house_keeping2();
-//		 states2();
-//
-//		 operating_sideA = true;
-//		 operating_sideB = false;
-//	}
-//
-//	if(server_message_found == 1)
-//	{
-////		server_rx_parse();
-//		parse_extract();
-//		server_message_found = 0;
-//	}
-//	else if(resp != NOREPLY)
-//	{
-//		process_response(resp);
-//	}
-//
-//	if(card1_message_found == 1)
-//	{
-//		card1_rx_parse();
-//		card1_message_found = 0;
-//	}
-//	else if(card2_message_found == 1)
-//	{
-//		card2_rx_parse();
-//		card2_message_found = 0;
-//	}
-//	else if( (pump_message_found == 1)  && (awaiting_masterResponse == 0) )
-//	{
-//		 pump_message_found = 0;
-//		 uint8_t res = msg_parse_pump( pump_buf );
-//		 awaiting_masterResponse = 1;
-//		 _tt1 = 0;
-//	}
-//	else if( (pump_message_found == 1)  && (awaiting_masterResponse == 1) )
-//	{
-//		 pump_message_found = 0;
-//		 awaiting_masterResponse = 0;
-//
-//	}
-//	else if(awaiting_masterResponse == 1)
-//	{
-//		 if(_tt1 > 2000)
-//			 send_line3("Err5 ");
-//	}
+	if(operating_sideA)
+	{
+		 operating_side = side_a;
+		 house_keeping();
+		 states();
 
-//	#if sense_battery == 1
-//		if( battery_read() < 1.81 )   //1.81V @ 6.4V Low_cutOff
-//		{
-//
-//		}
-//	#endif    //#if sense_battery
+		 operating_sideA = false;
+		 operating_sideB = true;
+	}
+	else if(operating_sideB)
+	{
+		 operating_side = side_b;
+		 house_keeping2();
+		 states2();
+
+		 operating_sideA = true;
+		 operating_sideB = false;
+	}
+
+//	if(server_message_found == 1)
+	if(go_message == true)
+	{
+//		server_rx_parse();
+		parse_extract();
+//		server_message_found = 0;
+		go_message = false;
+	}
+	else if( (resp != NOREPLY) && (resp != JUNK) )
+	{
+		process_response(resp);
+//		resp = NOREPLY;
+	}
+
+
+	if(card1_message_found == 1)
+	{
+		card1_rx_parse();
+		card1_message_found = 0;
+	}
+	else if(card2_message_found == 1)
+	{
+		card2_rx_parse();
+		card2_message_found = 0;
+	}
+	else if( (pump_message_found == 1)  && (awaiting_masterResponse == 0) )
+	{
+		 pump_message_found = 0;
+		 uint8_t res = msg_parse_pump( pump_buf );
+		 awaiting_masterResponse = 1;
+		 _tt1 = 0;
+	}
+	else if( (pump_message_found == 1)  && (awaiting_masterResponse == 1) )
+	{
+		 pump_message_found = 0;
+		 awaiting_masterResponse = 0;
+
+	}
+	else if(awaiting_masterResponse == 1)
+	{
+		 if(_tt1 > 2000)
+			 send_line3("Err5 ");
+	}
+
+	#if sense_battery == 1
+		if( battery_read() < 1.81 )   //1.81V @ 6.4V Low_cutOff
+		{
+
+		}
+	#endif    //#if sense_battery
 
 
 //	pulsercheck = oldPulser1 - newPulser;
