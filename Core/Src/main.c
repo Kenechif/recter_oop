@@ -31,6 +31,8 @@
 #include "string.h"
 #include "stdbool.h"
 
+#include "UartRingbuffer.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -67,7 +69,6 @@ UART_HandleTypeDef huart5;
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart3;
-DMA_HandleTypeDef hdma_usart2_rx;
 
 /* USER CODE BEGIN PV */
 extern uint32_t pulser1;
@@ -75,6 +76,8 @@ extern uint32_t pulser2;
 extern char prn[40];
 
 extern pump_settings_stream2 settings_stream2[2];
+
+//uint8_t dummyValue = 0;
 
 ADC_ChannelConfTypeDef sConfig = {0};
 
@@ -130,6 +133,8 @@ uint8_t RxBuf[RxBuf_SIZE],
 		MainBuf[MainBuf_SIZE],
 		SOP;  //Start-Of-Packet
 
+uint8_t go_buff[RxBuf_SIZE];
+
 uint16_t oldPos = 0,
 		 newPos = 0;
 
@@ -138,6 +143,20 @@ bool go_message = false;
 int16_t head = 0,
 		tail = 0;
 
+
+int millis = 0;
+
+extern unsigned long t_exec1,
+					 t_exec2,
+					 t_exec3,
+					 t_exec4,
+					 t_exec5,
+					 t_exec6,
+					 t_exec7,
+					 t_exec8,
+					 t_exec9;
+
+
 //int isOK = 0;
 
 extern unsigned char pumpno;
@@ -145,70 +164,75 @@ extern unsigned char pumpno;
 
 
 
-void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
-{
-	SOP = pumpno + 0x4F;
-
-	if (huart->Instance == USART2)
-	{
-		oldPos = newPos;  // Update the last position before copying new data
-
-		/* If the data in large and it is about to exceed the buffer size, we have to route it to the start of the buffer
-		 * This is to maintain the circular buffer
-		 * The old data in the main buffer will be overlapped
-		 */
-		if (oldPos+Size > MainBuf_SIZE)  // If the current position + new data size is greater than the main buffer
-		{
-			uint16_t datatocopy = MainBuf_SIZE-oldPos;  // find out how much space is left in the main buffer
-			memcpy ((uint8_t *)MainBuf+oldPos, RxBuf, datatocopy);  // copy data in that remaining space
-
-			oldPos = 0;  // point to the start of the buffer
-			memcpy ((uint8_t *)MainBuf, (uint8_t *)RxBuf+datatocopy, (Size-datatocopy));  // copy the remaining data
-			newPos = (Size-datatocopy);  // update the position
-		}
-
-		/* if the current position + new data size is less than the main buffer
-		 * we will simply copy the data into the buffer and update the position
-		 */
-		else
-		{
-			memcpy ((uint8_t *)MainBuf+oldPos, RxBuf, Size);
-			newPos = Size+oldPos;
-		}
-
-		head = newPos - Size;
-		tail = newPos - 1;
-
-		if (head < 0)  //checks for a wrap-around / overflow
-		{
-			head = MainBuf_SIZE - Size;
-		}
-
-		if( (MainBuf[tail] == 0xFA) && (MainBuf[head] == SOP) )
-		{
-			go_message = true;
-		}
-
-		/* start the DMA again */
-		HAL_UARTEx_ReceiveToIdle_DMA(&huart2, (uint8_t *) RxBuf, RxBuf_SIZE);
-		__HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
-
-	}
-
-
-	/****************** PROCESS (Little) THE DATA HERE *********************/
-
-//	/* Let's say we want to check for the keyword "OK" within our incoming DATA */
-//	for (int i=0; i<Size; i++)
+//void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+//{
+//	SOP = pumpno + 0x4F;
+//
+//	if (huart->Instance == USART2)
 //	{
-//		if ((RxBuf[i] == 'O') && (RxBuf[i+1] == 'K'))
+//		oldPos = newPos;  // Update the last position before copying new data
+//
+//		/* If the data in large and it is about to exceed the buffer size, we have to route it to the start of the buffer
+//		 * This is to maintain the circular buffer
+//		 * The old data in the main buffer will be overlapped
+//		 */
+//		if (oldPos+Size > MainBuf_SIZE)  // If the current position + new data size is greater than the main buffer
 //		{
-//			isOK = 1;
+//			uint16_t datatocopy = MainBuf_SIZE-oldPos;  // find out how much space is left in the main buffer
+//			memcpy ((uint8_t *)MainBuf+oldPos, RxBuf, datatocopy);  // copy data in that remaining space
+//
+//			oldPos = 0;  // point to the start of the buffer
+//			memcpy ((uint8_t *)MainBuf, (uint8_t *)RxBuf+datatocopy, (Size-datatocopy));  // copy the remaining data
+//			newPos = (Size-datatocopy);  // update the position
 //		}
+//
+//		/* if the current position + new data size is less than the main buffer
+//		 * we will simply copy the data into the buffer and update the position
+//		 */
+//		else
+//		{
+//			memcpy ((uint8_t *)MainBuf+oldPos, RxBuf, Size);
+//			newPos = Size+oldPos;
+//		}
+//
+//		head = newPos - Size;
+//		tail = newPos - 1;
+//
+//		if (head < 0)  //checks for a wrap-around / overflow
+//		{
+//			head = MainBuf_SIZE - Size;
+//		}
+//
+//		if( (MainBuf[tail] == 0xFA) && (MainBuf[head] == SOP) )
+//		{
+//			go_message = true;
+//		}
+//
+//		/* start the DMA again */
+//		HAL_UARTEx_ReceiveToIdle_DMA(&huart2, (uint8_t *) RxBuf, RxBuf_SIZE);
+//		__HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
+//
 //	}
-}
+
+
+//	/****************** PROCESS (Little) THE DATA HERE *********************/
+//
+////	/* Let's say we want to check for the keyword "OK" within our incoming DATA */
+////	for (int i=0; i<Size; i++)
+////	{
+////		if ((RxBuf[i] == 'O') && (RxBuf[i+1] == 'K'))
+////		{
+////			isOK = 1;
+////		}
+////	}
+
+
+//}
 
 uint8_t END_MSG[35] = "Overflow Reached! Counter Reset!\n\r";
+
+char buffer[5];
+
 /* USER CODE END 0 */
 
 /**
@@ -226,6 +250,19 @@ int main(void)
 
 	uint8_t MSG[35] = {'\0'};
 	uint16_t CounterTicks = 0;
+
+
+	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+	DWT->CYCCNT = 0;
+	DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+
+
+//	unsigned long t1 = DWT->CYCCNT;
+//	/* do something */
+//	unsigned long t2 = DWT->CYCCNT;
+//	unsigned long diff = t2 - t1;
+
+//	int millis = HAL_GetTick();
 
 	//===========================================================================
 
@@ -263,7 +300,14 @@ int main(void)
   MX_RTC_Init();
   MX_SPI1_Init();
   MX_SPI2_Init();
-
+  MX_TIM2_Init();
+  MX_TIM5_Init();
+  MX_USART1_UART_Init();
+  MX_USART2_UART_Init();
+  MX_ADC1_Init();
+  MX_USART3_UART_Init();
+  MX_UART5_Init();
+  MX_RNG_Init();
   /* USER CODE BEGIN 2 */
 
   retrieve_settings();    //Retrieves settings prior to Timers Initialisation
@@ -313,8 +357,13 @@ int main(void)
 //   }
 
 
-  HAL_UARTEx_ReceiveToIdle_DMA(&huart2, RxBuf, RxBuf_SIZE);
-   __HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
+
+  	Ringbuf_init ();
+
+  	SOP = pumpno + 0x4F;
+
+//  HAL_UARTEx_ReceiveToIdle_DMA(&huart2, RxBuf, RxBuf_SIZE);
+//   __HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
 
 	setup();
   /* USER CODE END 2 */
@@ -326,16 +375,44 @@ int main(void)
 	{
 	//	 __HAL_TIM_SET_COUNTER(&htim5,4017);
 	//	 demo[1000000] = 0;
+
+
+//		Uart_write(3);
+
+		int i = 0;
+
+		memset(go_buff, 0, RxBuf_SIZE);
+
+		t_exec1 = DWT->CYCCNT;
+
+		while (IsDataAvailable())
+		{
+//		  int data = Uart_read();  // read the data in the rx_buffer
+//		  Uart_write(data);  // send the data to the uart
+
+		  go_buff[i] = Uart_read();  // read the data in the rx_buffer
+		  i++;
+		}
+
+		t_exec4 = DWT->CYCCNT;
+		t_exec5 = t_exec4 - t_exec1;
+
+//		if( (MainBuf[tail] == 0xFA) && (MainBuf[head] == SOP) )
+		if( (go_buff[i - 1] == 0xFA) && (go_buff[0] == SOP) )
+		{
+			go_message = true;
+		}
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
 
 		   // Read The Counter Ticks Register
-		CounterTicks = TIM2->CNT;
-		// Print The Ticks Count Via UART1
-		sprintf(MSG, "Ticks = %d\n\r", CounterTicks);
-		HAL_UART_Transmit(&huart2, MSG, sizeof(MSG), 100);
-		HAL_Delay(100);
+//		CounterTicks = TIM2->CNT;
+//		// Print The Ticks Count Via UART1
+//		sprintf(MSG, "Ticks = %d\n\r", CounterTicks);
+//		HAL_UART_Transmit(&huart2, MSG, sizeof(MSG), 100);
+//		HAL_Delay(100);
 
 		run();
 	}
@@ -634,34 +711,54 @@ static void MX_SPI2_Init(void)
 
 }
 
-///**
-//  * @brief TIM2 Initialization Function
-//  * @param None
-//  * @retval None
-//  */
-//static void MX_TIM2_Init(void)
-//{
-//
-//  /* USER CODE BEGIN TIM2_Init 0 */
+/**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
 //
 //	TIM_Encoder_InitTypeDef sConfig = {0};
 //	TIM_SlaveConfigTypeDef sSlaveConfig = {0};
 //	TIM_MasterConfigTypeDef sMasterConfig = {0};
 //
-//  /* USER CODE END TIM2_Init 0 */
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_Encoder_InitTypeDef sConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
 //
-//  /* USER CODE BEGIN TIM2_Init 1 */
-//
-//  /* USER CODE END TIM2_Init 1 */
-//  htim2.Instance = TIM2;
-//  htim2.Init.Prescaler = 0;
-//  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-//  htim2.Init.Period = 4294967295;
-//  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-//  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-//
-//
-//  /* USER CODE BEGIN TIM2_Init 2 */
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 0;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 4294967295;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
+  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC1Filter = 7;
+  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC2Filter = 7;
+  if (HAL_TIM_Encoder_Init(&htim2, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
 //
 //
 //	if(settings_stream2[1].pulser_type_ == quadrature)
@@ -708,58 +805,9 @@ static void MX_SPI2_Init(void)
 //		  }
 //	}
 //
-//  /* USER CODE END TIM2_Init 2 */
-//
-//}
-
-/**
-  * @brief TIM2 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_TIM2_Init(void)
-{
-
-  /* USER CODE BEGIN TIM2_Init 0 */
-
-  /* USER CODE END TIM2_Init 0 */
-
-  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
-
-  /* USER CODE BEGIN TIM2_Init 1 */
-
-  /* USER CODE END TIM2_Init 1 */
-  htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 0;
-  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 4294967295;
-  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_ETRMODE2;
-  sClockSourceConfig.ClockPolarity = TIM_CLOCKPOLARITY_NONINVERTED;
-  sClockSourceConfig.ClockPrescaler = TIM_CLOCKPRESCALER_DIV1;
-  sClockSourceConfig.ClockFilter = 15;
-  if (HAL_TIM_ConfigClockSource(&htim2, &sClockSourceConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN TIM2_Init 2 */
-
   /* USER CODE END TIM2_Init 2 */
 
 }
-
 
 /**
   * @brief TIM5 Initialization Function
@@ -771,14 +819,16 @@ static void MX_TIM5_Init(void)
 
   /* USER CODE BEGIN TIM5_Init 0 */
 
-	TIM_Encoder_InitTypeDef sConfig = {0};
-	TIM_SlaveConfigTypeDef sSlaveConfig = {0};
-	TIM_MasterConfigTypeDef sMasterConfig = {0};
+//	TIM_Encoder_InitTypeDef sConfig = {0};
+//	TIM_SlaveConfigTypeDef sSlaveConfig = {0};
+//	TIM_MasterConfigTypeDef sMasterConfig = {0};
 
 	settings_stream2[0].pulser_type_ = non_quadrature;
 
   /* USER CODE END TIM5_Init 0 */
 
+  TIM_Encoder_InitTypeDef sConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
 
   /* USER CODE BEGIN TIM5_Init 1 */
 
@@ -789,58 +839,74 @@ static void MX_TIM5_Init(void)
   htim5.Init.Period = 4294967295;
   htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
+  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC1Filter = 7;
+  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC2Filter = 7;
+  if (HAL_TIM_Encoder_Init(&htim5, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM5_Init 2 */
 
-
-    /* USER CODE BEGIN TIM5_Init 2 */
-
-	if(settings_stream2[0].pulser_type_ == quadrature)
-	{
-		  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
-		  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
-		  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
-		  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-		  sConfig.IC1Filter = 7;
-		  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
-		  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
-		  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
-		  sConfig.IC2Filter = 7;
-		  if (HAL_TIM_Encoder_Init(&htim5, &sConfig) != HAL_OK)
-		  {
-		    Error_Handler();
-		  }
-		  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-		  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-		  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
-		  {
-		    Error_Handler();
-		  }
-	}
-	else if(settings_stream2[0].pulser_type_ == non_quadrature)
-	{
-		  if (HAL_TIM_Base_Init(&htim5) != HAL_OK)
-		  {
-		    Error_Handler();
-		  }
-		  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_EXTERNAL1;
-		  sSlaveConfig.InputTrigger = TIM_TS_TI1FP1;
-		  sSlaveConfig.TriggerPolarity = TIM_TRIGGERPOLARITY_RISING;
-		  sSlaveConfig.TriggerFilter = 0;
-		  if (HAL_TIM_SlaveConfigSynchro(&htim5, &sSlaveConfig) != HAL_OK)
-		  {
-		    Error_Handler();
-		  }
-		  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-		  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-		  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
-		  {
-		    Error_Handler();
-		  }
-	}
+//	if(settings_stream2[0].pulser_type_ == quadrature)
+//	{
+//		  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
+//		  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+//		  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+//		  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
+//		  sConfig.IC1Filter = 7;
+//		  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
+//		  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+//		  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
+//		  sConfig.IC2Filter = 7;
+//		  if (HAL_TIM_Encoder_Init(&htim5, &sConfig) != HAL_OK)
+//		  {
+//		    Error_Handler();
+//		  }
+//		  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+//		  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+//		  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
+//		  {
+//		    Error_Handler();
+//		  }
+//	}
+//	else if(settings_stream2[0].pulser_type_ == non_quadrature)
+//	{
+//		  if (HAL_TIM_Base_Init(&htim5) != HAL_OK)
+//		  {
+//		    Error_Handler();
+//		  }
+//		  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_EXTERNAL1;
+//		  sSlaveConfig.InputTrigger = TIM_TS_TI1FP1;
+//		  sSlaveConfig.TriggerPolarity = TIM_TRIGGERPOLARITY_RISING;
+//		  sSlaveConfig.TriggerFilter = 0;
+//		  if (HAL_TIM_SlaveConfigSynchro(&htim5, &sSlaveConfig) != HAL_OK)
+//		  {
+//		    Error_Handler();
+//		  }
+//		  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+//		  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+//		  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
+//		  {
+//		    Error_Handler();
+//		  }
+//	}
 
   /* USER CODE END TIM5_Init 2 */
 
 }
-
 
 /**
   * @brief UART5 Initialization Function
@@ -982,12 +1048,8 @@ static void MX_DMA_Init(void)
 
   /* DMA controller clock enable */
   __HAL_RCC_DMA2_CLK_ENABLE();
-  __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
-  /* DMA1_Stream5_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
   /* DMA2_Stream0_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);

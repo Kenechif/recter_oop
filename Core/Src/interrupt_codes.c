@@ -91,6 +91,10 @@ extern uint16_t totalizer1Timer,
 uint16_t motor_tmr1 = 0,
 		 motor_tmr2 = 0;
 
+
+extern void Uart_isr (UART_HandleTypeDef *huart);
+extern uint16_t timeout;
+
 /*
 HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {

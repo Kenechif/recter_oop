@@ -64,6 +64,8 @@ extern bool go_message;
 extern uint8_t RxBuf[RxBuf_SIZE],
 			   MainBuf[MainBuf_SIZE];
 
+extern uint8_t go_buff[RxBuf_SIZE];
+
 extern int16_t head,
 			   tail;
 
@@ -101,6 +103,12 @@ uint8_t  DART_BUFF1[128],
 uint8_t	 r_raw_data1[128];
 
 //uint8_t rx_buf1[pump_rx_bufsize] = {0};
+
+extern int millis;
+
+int millis2;
+
+extern uint8_t dummyValue;
 
 
 

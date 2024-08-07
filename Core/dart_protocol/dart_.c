@@ -73,6 +73,17 @@ bool ack_send = false,
 int16_t header = 0,
 		footer = 0;
 
+unsigned long t_exec1 = 0,
+		      t_exec2 = 0,
+			  t_exec3 = 0,
+			  t_exec4 = 0,
+			  t_exec5 = 0,
+			  t_exec6 = 0,
+			  t_exec7 = 0,
+			  t_exec8 = 0,
+			  t_exec9 = 0;
+
+
 //unsigned char price_update_bcd[MAX_NON*MAX_NOP][3];
 
 void dart_init(void)
@@ -166,9 +177,11 @@ void process_response(response_enum response)
 		DART_BUFF1[1] = ctrl;
 		DART_BUFF1[2] = SF;
 
+		array_len = 3;
+
 	}
 
-	//=== Slave Responding to Mater's Poll ===//
+	//=== Slave Responding to Master's Poll ===//
 	else if (response == r_POLL || response == r_ACK || response == r_NACK || response == r_ACKPOLL || response == r_EOT)
 	{
 		memset(DART_BUFF1, 0, sizeof(DART_BUFF1));
@@ -179,41 +192,74 @@ void process_response(response_enum response)
 			//fOR THE BASIC ctrls
 
 			case r_POLL:   // 20H
+
+							//If having nothing to send, send EOT
+
 //							ctrl = 0x20;
 //							if(pump_status_ == STATUS_PNP)
 //							{
 //								pump_unprogrammed = 1;
 //							}
 //							process_response1(DATA_COMMAND);
-							if(command_ != NO_COMMAND)
+
+				            //==========================================================//
+							//==========  If having nothing to send, send EOT ==========//
+							//==========================================================//
+							if(command_ == NO_COMMAND)
 							{
+								ctrl = 0x70;    //EOT
+
+								DART_BUFF1[1] = ctrl;
+								DART_BUFF1[2] = SF;
+
+								array_len = 3;
+
+								go_write(DART_BUFF1);
+							}
+							else if(command_ != NO_COMMAND)
+							{
+//								t_exec1 = DWT->CYCCNT;
 								process_response1(DATA_COMMAND);
+								go_write(DART_BUFF1);
+								t_exec2 = DWT->CYCCNT;
+								t_exec3 = t_exec2 - t_exec1;
 							}
 							break;
 			case r_ACK:   //C0H -> CFH
-							ctrl = 0xC0 | r_TX;	//reply with the previous msg tx
+
+//							ctrl = 0xC0 | r_TX;	//reply with the previous msg tx
 							resp = NOREPLY;
 							break;
+
 			case r_NACK:   //50H -> 5FH
 							ctrl = 0x50 | TX;
 							process_response1(DATA_COMMAND);
+							go_write(DART_BUFF1);
 							break;
 			case r_ACKPOLL:    //E0H -> EFH
 							ctrl = 0xE0 | r_TX;
 							break;
 			case r_EOT:   // 70H -> 7FH
-							ctrl = 0xE0 | r_TX;
+							ctrl = 0x70 | r_TX;
 							break;
 			default:
 							break;
 		}
-		DART_BUFF1[1] = ctrl;
-		DART_BUFF1[2] = SF;
+
+//		if (response != r_NACK)
+//		{
+//			DART_BUFF1[1] = ctrl;
+//			DART_BUFF1[2] = SF;
+//
+//			array_len = 3;
+//		}
 	}
 	else
 	{
 		process_response1(response);
+		go_write(DART_BUFF1);
 	}
+}
 
 //	else if(response == DATA_COMMAND)   //This transaction is sent by the pump if the status is changed or if the pump receives the command 'RETURN STATUS’.
 //	{
@@ -427,8 +473,9 @@ void process_response(response_enum response)
 //			}
 //	}
 
-	go_write(DART_BUFF1);
-}
+//	go_write(DART_BUFF1);
+//}
+
 
 //void parse_message(unsigned char* arr, int size)
 void parse_extract(void)
@@ -436,27 +483,30 @@ void parse_extract(void)
 	uint16_t i,
 			 j;
 
-	header = head;
-	footer = tail;
+//	header = head;
+//	footer = tail;
 
 	memset(r_raw_data1, 0, sizeof(r_raw_data1));
 
-	r_addr = MainBuf[header];
+	r_addr = go_buff[0];   //MainBuf[header];
 	r_pumpno = r_addr - 0x4F;			//pumpno i.e either pump 1 or 2 on
 //	r_ctrl = arr[1];				//control character that specifies the type of message received
-	r_ctrl = MainBuf[header + 1];
+	r_ctrl = go_buff[1];   //MainBuf[header + 1];
 
 	//===  GO's TX#  ===//
 	r_TX = r_ctrl & 0x0F;		//the TX of the received message (from slave) attached to the ctrl character
 	// r_trans = arr[2];				//received transaction ID
 	// r_lng = arr[3];					//length of data byte
 
+//	t_exec6 = DWT->CYCCNT;
+//	t_exec7 = t_exec6 - t_exec4;
+
 	if (r_pumpno == pumpno)
 	{
 		for (i = 2, j = 0; i < 125; i++, j++)
 		{
 //			r_raw_data1[j] = arr[i];	//shift the data in the array into the r_raw_data vector
-			r_raw_data1[j] = MainBuf[header + i];	//shift the data in the array into the r_raw_data vector
+			r_raw_data1[j] = go_buff[i];   //MainBuf[header + i];	//shift the data in the array into the r_raw_data vector
 //			if( (arr[i] == ETX) && (arr[i+1] == SF) )
 //			if( (rx_buf1[i] == ETX) && (rx_buf1[i+1] == SF) )
 			if(r_raw_data1[j] == SF)
@@ -465,7 +515,13 @@ void parse_extract(void)
 			}
 		}
 
+		t_exec8 = DWT->CYCCNT;
+		t_exec9 = t_exec8 - t_exec6;
+
 //		r_raw_data1[j] = MainBuf[tail];
+
+//		t_exec6 = DWT->CYCCNT;
+//		t_exec7 = t_exec6 - t_exec4;
 
 		parse_decode();
 	}
@@ -476,6 +532,55 @@ void parse_extract(void)
 	}
 	//include a condition to ensure that the message parsed is more than a particular value
 }
+
+
+
+////void parse_message(unsigned char* arr, int size)
+//void parse_extract(void)
+//{
+//	uint16_t i,
+//			 j;
+//
+//	header = head;
+//	footer = tail;
+//
+//	memset(r_raw_data1, 0, sizeof(r_raw_data1));
+//
+//	r_addr = MainBuf[header];
+//	r_pumpno = r_addr - 0x4F;			//pumpno i.e either pump 1 or 2 on
+////	r_ctrl = arr[1];				//control character that specifies the type of message received
+//	r_ctrl = MainBuf[header + 1];
+//
+//	//===  GO's TX#  ===//
+//	r_TX = r_ctrl & 0x0F;		//the TX of the received message (from slave) attached to the ctrl character
+//	// r_trans = arr[2];				//received transaction ID
+//	// r_lng = arr[3];					//length of data byte
+//
+//	if (r_pumpno == pumpno)
+//	{
+//		for (i = 2, j = 0; i < 125; i++, j++)
+//		{
+////			r_raw_data1[j] = arr[i];	//shift the data in the array into the r_raw_data vector
+//			r_raw_data1[j] = MainBuf[header + i];	//shift the data in the array into the r_raw_data vector
+////			if( (arr[i] == ETX) && (arr[i+1] == SF) )
+////			if( (rx_buf1[i] == ETX) && (rx_buf1[i+1] == SF) )
+//			if(r_raw_data1[j] == SF)
+//			{
+//				break;
+//			}
+//		}
+//
+////		r_raw_data1[j] = MainBuf[tail];
+//
+//		parse_decode();
+//	}
+//	else
+//	{
+////		TRACE_DART("<%s> Not for me Pump[%d]<>", __FUNCTION__, pumpno);
+//		resp = NOREPLY;
+//	}
+//	//include a condition to ensure that the message parsed is more than a particular value
+//}
 
 
 //
@@ -559,6 +664,13 @@ void parse_decode()
 			case 0x30:	//if control character == 0x30
 						// TRACE_DART("<%s>-- [reply_transaction]: %x\n",__FUNCTION__ ,  r_raw_data[0]);
 						//loop through all characters in the message, find the characters of interest then move to the next set of characters
+
+//				millis = HAL_GetTick();
+//				t_exec1 = DWT->CYCCNT;
+					/* do something */
+//					unsigned long t2 = DWT->CYCCNT;
+//					unsigned long diff = t2 - t1;
+
 							for (int16_t i = 0; i < 150; i++)
 							{
 								//check the r_trans and r_lng byte ... NB: r_trans = r_raw_data[i] and r_lng = r_raw_data[i+1]
@@ -620,6 +732,9 @@ void parse_decode()
 									{
 										resp = DATA_COMMAND;
 										ack_send = true;
+
+										millis2 = HAL_GetTick();
+										t_exec2 = DWT->CYCCNT;
 									}
 									else
 									{
@@ -629,6 +744,9 @@ void parse_decode()
 									i += 3; //no. of data(1) plus 2 for the r_trans and r_lng
 									a++; //to count if this iteration enters any of the conditions
 
+									dummyValue = 0;
+
+									t_exec3 = t_exec2 - t_exec1;
 									break;
 								}
 
@@ -686,6 +804,7 @@ void parse_decode()
 									if(crc_check == crc_original)
 									{
 										resp = DATA_PRESET_VOL;
+										ack_send = true;
 									}
 									else
 									{
@@ -738,6 +857,7 @@ void parse_decode()
 									if(crc_check == crc_original)
 									{
 										resp = DATA_PRESET_AMO;
+										ack_send = true;
 									}
 									else
 									{
@@ -747,6 +867,7 @@ void parse_decode()
 									i += 6; //no. of data(8) plus 2 for the r_trans and r_lng
 									a++;
 
+									millis = HAL_GetTick();
 									break;
 								}
 							}
@@ -755,23 +876,36 @@ void parse_decode()
 
 			case 0x20	:	resp = r_POLL;
 							// TRACE_DART("<>--- msg - poll\n");
+
+//							t_exec6 = DWT->CYCCNT;
+//							t_exec7 = t_exec6 - t_exec4;
+
 							break;
 
 			case 0xC0	: 	resp = r_ACK;
 							// TRACE_DART("<>--- msg - ack\n");
-//							MSN = (r_ctrl & 0x0F);
-//							if(MSN == 0x00)
-							if(r_ctrl == 0x32)
+							MSN = (r_ctrl & 0x0F);
+							if(MSN == TX)
+//							if(r_ctrl == 0x32)
 							{
 								checked = 1;
+//							}
+								TX++;
 							}
-							TX++;
 
 							command_ = NO_COMMAND;
+							resp = NOREPLY;
 
 							break;//increase the tx on receiving an ACK
+
 			case 0x50	:	resp = r_NACK;
 							// TRACE_DART("<>--- msg - nack\n");
+							MSN = (r_ctrl & 0x0F);
+							if(MSN == TX)
+							{
+
+							}
+
 //							TX = 0;
 							break;
 
@@ -1511,7 +1645,15 @@ void go_write(uint8_t* write_array)
 //		  memset(sndd, 0, sizeof(sndd));
 //		  sprintf(sndd, "((((((|1|0|%d%s))\r\n", id, write_string);
 
-		  HAL_UART_Transmit (&huart2, DART_BUFF1, array_len, 1000);
+//		  HAL_UART_Transmit (&huart2, DART_BUFF1, array_len, 1000);
+//		  id++;
+
+//		  t_exec1 = DWT->CYCCNT;
+		  Uart_sendstring(DART_BUFF1, array_len);
+//		  t_exec2 = DWT->CYCCNT;
+//
+//		  t_exec3 = t_exec2 - t_exec1;
+
 		  id++;
 
 	//=======================================================================
@@ -1534,7 +1676,7 @@ void process_response1(response_enum response)
 		if(ack_send == true)
 		{
 			//==> send ack
-			send_acknowledgement(r_ACK);
+			send_acknowledgement(ACK);
 //			outstanding_command = true;
 			ack_send = false;
 		}
@@ -1872,31 +2014,30 @@ void send_acknowledgement(response_enum response)
 	{
 		//fOR THE BASIC ctrls
 
-//		case r_POLL:   // 20H
-//	//							ctrl = 0x20;
-//						if(pump_status_ == STATUS_PNP)
-//						{
-//							pump_unprogrammed = 1;
-//						}
-//						process_response1(DATA_COMMAND);
-//						break;
-		case r_ACK:   //C0H -> CFH
+		case ACK:   //C0H -> CFH
 						ctrl = 0xC0 | r_TX;	//reply with the previous msg tx
 						break;
-		case r_NACK:   //50H -> 5FH
+
+		case NACK:   //50H -> 5FH
 						ctrl = 0x50 | r_TX;
 						break;
-		case r_ACKPOLL:    //E0H -> EFH
+
+		case ACKPOLL:    //E0H -> EFH
 						ctrl = 0xE0 | r_TX;
 						break;
-		case r_EOT:   // 70H -> 7FH
-						ctrl = 0xE0 | r_TX;
+
+		case EOT:   // 70H -> 7FH
+						ctrl = 0x70 | r_TX;
+//						ctrl = 0x70;
 						break;
 		default:
 						break;
 	}
+
 	DART_BUFF1[1] = ctrl;
 	DART_BUFF1[2] = SF;
+
+	array_len = 3;
 }
 
 

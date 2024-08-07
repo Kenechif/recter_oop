@@ -121,6 +121,19 @@ int8_t ttime[3],
 	   ttime2[3],
 	   ddate2[4];
 
+
+extern unsigned long t_exec1,
+					 t_exec2,
+					 t_exec3,
+					 t_exec4,
+					 t_exec5,
+					 t_exec6,
+					 t_exec7,
+					 t_exec8,
+					 t_exec9;
+
+int checkk = 0;
+
 extern uint8_t hour,minute,second,day,month,year,dayofweek;
 
 extern const int lastSynchedFlashA_loc,
@@ -2255,8 +2268,35 @@ void run()
 		*/
 	//	HAL_GPIO_WritePin(batt_check_GPIO_Port, batt_check_Pin, GPIO_PIN_SET);;
 	////	batt_val = battery_sense();
-	HAL_GPIO_WritePin(batt_check_GPIO_Port, batt_check_Pin, GPIO_PIN_RESET);
-	float batt_val = battery_sense();
+
+	t_exec5 = DWT->CYCCNT;
+
+	if(go_message == true)
+		{
+	//		server_rx_parse();
+
+//			t_exec6 = DWT->CYCCNT;
+//			t_exec7 = t_exec6 - t_exec4;
+
+			parse_extract();
+	//		server_message_found = 0;
+			go_message = false;
+		}
+		if( (resp != NOREPLY) && (resp != JUNK) )
+		{
+			process_response(resp);
+	//		resp = NOREPLY;
+			checkk++;
+		}
+
+//		t_exec6 = DWT->CYCCNT;
+//		t_exec7 = t_exec6 - t_exec4;
+
+//	HAL_GPIO_WritePin(batt_check_GPIO_Port, batt_check_Pin, GPIO_PIN_RESET);
+//	float batt_val = battery_sense();
+
+//	t_exec6 = DWT->CYCCNT;
+//	t_exec7 = t_exec6 - t_exec4;
 
 #if (sense_battery == 1)
 //	if( (batt_val < 2.00) && (batt_val >= 1.95) )
@@ -2331,85 +2371,90 @@ void run()
 #endif     //#if defined (DEV_MODE)
 
 //	if(server_message_found == 1)
-	if(go_message == true)
-	{
-//		server_rx_parse();
-		parse_extract();
-//		server_message_found = 0;
-		go_message = false;
-	}
-	else if( (resp != NOREPLY) && (resp != JUNK) )
-	{
-		process_response(resp);
-//		resp = NOREPLY;
-	}
+//	if(go_message == true)
+//	{
+////		server_rx_parse();
+//
+//		t_exec6 = DWT->CYCCNT;
+//		t_exec7 = t_exec6 - t_exec4;
+//
+//		parse_extract();
+////		server_message_found = 0;
+//		go_message = false;
+//	}
+//	if( (resp != NOREPLY) && (resp != JUNK) )
+//	{
+//		process_response(resp);
+////		resp = NOREPLY;
+//		checkk++;
+//	}
 
 
 //	  HAL_UART_Transmit (&huart2, "Hello", 5, 1000);
 //	  HAL_Delay(3000);
 
-	if(operating_sideA)
-	{
-		 operating_side = side_a;
-		 house_keeping();
-		 states();
-
-		 operating_sideA = false;
-		 operating_sideB = true;
-	}
-	else if(operating_sideB)
-	{
-		 operating_side = side_b;
-		 house_keeping2();
-		 states2();
-
-		 operating_sideA = true;
-		 operating_sideB = false;
-	}
-
-//	if(server_message_found == 1)
-	if(go_message == true)
-	{
-//		server_rx_parse();
-		parse_extract();
-//		server_message_found = 0;
-		go_message = false;
-	}
-	else if( (resp != NOREPLY) && (resp != JUNK) )
-	{
-		process_response(resp);
-//		resp = NOREPLY;
-	}
-
-
-	if(card1_message_found == 1)
-	{
-		card1_rx_parse();
-		card1_message_found = 0;
-	}
-	else if(card2_message_found == 1)
-	{
-		card2_rx_parse();
-		card2_message_found = 0;
-	}
-	else if( (pump_message_found == 1)  && (awaiting_masterResponse == 0) )
-	{
-		 pump_message_found = 0;
-		 uint8_t res = msg_parse_pump( pump_buf );
-		 awaiting_masterResponse = 1;
-		 _tt1 = 0;
-	}
-	else if( (pump_message_found == 1)  && (awaiting_masterResponse == 1) )
-	{
-		 pump_message_found = 0;
-		 awaiting_masterResponse = 0;
-
-	}
-	else if(awaiting_masterResponse == 1)
-	{
-		 if(_tt1 > 2000)
-			 send_line3("Err5 ");
-	}
+//	if(operating_sideA)
+//	{
+//		 operating_side = side_a;
+//		 house_keeping();
+//		 states();
+//
+//		 operating_sideA = false;
+//		 operating_sideB = true;
+//	}
+//	else if(operating_sideB)
+//	{
+//		 operating_side = side_b;
+//		 house_keeping2();
+//		 states2();
+//
+//		 operating_sideA = true;
+//		 operating_sideB = false;
+//	}
+//
+////	if(server_message_found == 1)
+//	if(go_message == true)
+//	{
+////		server_rx_parse();
+//		parse_extract();
+////		server_message_found = 0;
+//		go_message = false;
+//	}
+//	else if( (resp != NOREPLY) && (resp != JUNK) )
+//	{
+//		process_response(resp);
+////		resp = NOREPLY;
+//	}
+//
+//
+//	if(card1_message_found == 1)
+//	{
+//		card1_rx_parse();
+//		card1_message_found = 0;
+//	}
+//	else if(card2_message_found == 1)
+//	{
+//		card2_rx_parse();
+//		card2_message_found = 0;
+//	}
+//	else if( (pump_message_found == 1)  && (awaiting_masterResponse == 0) )
+//	{
+//		 pump_message_found = 0;
+//		 uint8_t res = msg_parse_pump( pump_buf );
+//		 awaiting_masterResponse = 1;
+//		 _tt1 = 0;
+//	}
+//	else if( (pump_message_found == 1)  && (awaiting_masterResponse == 1) )
+//	{
+//		 pump_message_found = 0;
+//		 awaiting_masterResponse = 0;
+//
+//	}
+//	else if(awaiting_masterResponse == 1)
+//	{
+//		 if(_tt1 > 2000)
+//			 send_line3("Err5 ");
+//	}
 
 	#if sense_battery == 1
 		if( battery_read() < 1.81 )   //1.81V @ 6.4V Low_cutOff
