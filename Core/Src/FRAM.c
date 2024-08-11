@@ -797,7 +797,7 @@
 //#define FRAM_I2C &hi2c1
 //
 //// FRAM ADDRESS (8bits)
-//#define FRAM_ADDR 0x51
+//#define FRAM_ADDR 0x54
 //
 //// Define the Page Size and number of pages
 //#define PAGE_SIZE 32     //64     // in Bytes

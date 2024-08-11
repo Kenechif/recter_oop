@@ -93,14 +93,17 @@ extern uint16_t //timer_ep,
 extern uint32_t timer_ep1,
 				timer_ep;
 
-extern unsigned char pumpno;
+extern unsigned char pumpno,
+					 pumpno2;
 
 uint8_t  DART_BUFF1[128],
 		 DART_BUFF2[128],
-		 array_len;
+		 array_len,
+		 array_len2;
 
 
-uint8_t	 r_raw_data1[128];
+uint8_t	 r_raw_data1[128],
+		 r_raw_data2[128];
 
 //uint8_t rx_buf1[pump_rx_bufsize] = {0};
 
@@ -232,11 +235,13 @@ extern uint8_t dummyValue;
 	/*************************************************************
 	 * Control characters in the WAYNE protocol for sending and receiving messages
 	 **************************************************************/
-		unsigned char addr;				//address of pump
+		unsigned char addr,				//address of pump
+					  addr2;
 		unsigned short trans;			//transaction no. .. CD1, CD2 e.t.c
 		unsigned char lng;				//length of data
 		unsigned char ctrl;				//ctrl character
-		unsigned char TX; 			//the LSB (second 4 bit) of the ctrl byte
+		unsigned char TX, 			//the LSB (second 4 bit) of the ctrl byte
+					  TX2;
 			//int TX_cnt;
 
 		unsigned char crc1;
@@ -279,7 +284,7 @@ extern uint8_t dummyValue;
 //		static unsigned char price_update_bcd[MAX_NOP*MAX_NON][3];
 
 
-		extern unsigned char pumpno;
+//		extern unsigned char pumpno;
 //				 addr;
 
 		void dart_init(void);
@@ -312,7 +317,8 @@ extern uint8_t dummyValue;
 	 *
 	 ************************************************************/
 //		command_enum command;			//the commands the user passes into the send_command method
-		response_enum resp;				//response flag for type of message received... intended to use "map<string, unsigned char> response" initially
+		response_enum resp,				//response flag for type of message received... intended to use "map<string, unsigned char> response" initially
+					  resp2;
 
 //		pump_state_input_enum status_input;	//this is a function of the two below, used in the mearly FSM
 //			pump_status_enum status;			//status returned from pump
@@ -343,9 +349,13 @@ extern uint8_t dummyValue;
 	void parse_extract(void);
 //		void parse_message(unsigned char*);
 	void parse_decode(void); 						//GETs each data from the raw data
+	void parse_decode2(void);
 	void process_response(response_enum response);
-	void process_response1(response_enum response);
+	void process_response2(response_enum response);
+	void _process_response(response_enum response);
 	void send_acknowledgement(response_enum response);
+	void _process_response2(response_enum response);
+	void send_acknowledgement2(response_enum response);
 
 
 	int handle_resp(command_enum cmd); 	//ret  = -10 : ended with a nack, -1: ended with
@@ -427,6 +437,8 @@ uint16_t calculate_crc(uint8_t *data, size_t length);
 uint32_t packed_bcd_to_decimal(uint32_t bcd);
 
 void go_read(void);
+void go_write(uint8_t* write_array);
+void go_write2(uint8_t* write_array);
 
 //function overload of the parsed message to parse ack, nack, eot messages
 void parse_message1(unsigned char* arr);

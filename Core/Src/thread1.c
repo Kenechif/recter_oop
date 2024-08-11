@@ -134,6 +134,8 @@ extern unsigned long t_exec1,
 
 int checkk = 0;
 
+unsigned long cheq3 = 0;
+
 extern uint8_t hour,minute,second,day,month,year,dayofweek;
 
 extern const int lastSynchedFlashA_loc,
@@ -1042,23 +1044,25 @@ void compose_printer()
 // while(1)
 // {
 //
-////     FRAM_Write_NUM (0, 0, 234);
-////
-////     HAL_Delay(1000);
+//     FRAM_Write_NUM (0, 0, 234);
+//
+//     HAL_Delay(1000);
 //
 //     float fram_read;
 //
-////     fram_read; = FRAM_Read_NUM (0, 0);
+//     fram_read = FRAM_Read_NUM (0, 0);
 //
-//     EEPROM_Write_NUM (900, 0, 234);
+////     EEPROM_Write_NUM (900, 0, 234);
 //
-//     HAL_Delay(1000);
+////     HAL_Delay(1000);
 //
 ////     get_time();
 //
-//     fram_read = EEPROM_Read_NUM (900, 0);
+////     fram_read = EEPROM_Read_NUM (900, 0);
 //
 //     HAL_Delay(1000);
+//
+//}
 //
 //     // ===========================================================================
 //		 //==============================================
@@ -1104,8 +1108,8 @@ void compose_printer()
 //	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);  //TIM_CHANNEL_1 |TIM_CHANNEL_2); //TIM_CHANNEL_ALL);
 
 
-	settings_stream2[0].pulser_type_ = non_quadrature;   //quadrature;
-	settings_stream2[1].pulser_type_ = non_quadrature;   //quadrature;
+	settings_stream2[0].pulser_type_ = quadrature; //non_quadrature;   //quadrature;
+	settings_stream2[1].pulser_type_ = quadrature;   //non_quadrature;   //quadrature;
 
 //	retrieve_settings();
 
@@ -1807,6 +1811,16 @@ skip_test:
 
    datar3 = EEPROM_Read_NUM (6, 0);   */
 
+//	while(1)
+//	{
+//
+//		FRAM_Write_NUM (0, 0, 234);
+//
+//		 HAL_Delay(1000);
+//
+//		 float fram_read = FRAM_Read_NUM (0, 0);
+//	}
+
 
 
   //==============================================
@@ -2269,25 +2283,45 @@ void run()
 	//	HAL_GPIO_WritePin(batt_check_GPIO_Port, batt_check_Pin, GPIO_PIN_SET);;
 	////	batt_val = battery_sense();
 
-	t_exec5 = DWT->CYCCNT;
+//	t_exec5 = DWT->CYCCNT;
 
 	if(go_message == true)
-		{
+	{
 	//		server_rx_parse();
+
+			t_exec1 = DWT->CYCCNT;
+//			t_exec7 = t_exec6 - t_exec4;
+
+			parse_extract();
+
+//			t_exec2 = DWT->CYCCNT;
+//			t_exec3 = t_exec2 - t_exec1;
+
+	//		server_message_found = 0;
+			go_message = false;
+//		}
+		if( (resp != NOREPLY) && (resp != JUNK) )
+		{
+
+			t_exec2 = DWT->CYCCNT;
+			t_exec3 = t_exec2 - t_exec1;
+
+			process_response(resp);
+	//		resp = NOREPLY;
 
 //			t_exec6 = DWT->CYCCNT;
 //			t_exec7 = t_exec6 - t_exec4;
 
-			parse_extract();
-	//		server_message_found = 0;
-			go_message = false;
-		}
-		if( (resp != NOREPLY) && (resp != JUNK) )
-		{
-			process_response(resp);
-	//		resp = NOREPLY;
 			checkk++;
 		}
+
+		else if( (resp2 != NOREPLY) && (resp2 != JUNK) )
+		{
+			process_response2(resp2);
+		}
+
+		cheq3++;
+	}
 
 //		t_exec6 = DWT->CYCCNT;
 //		t_exec7 = t_exec6 - t_exec4;
@@ -2393,25 +2427,25 @@ void run()
 //	  HAL_UART_Transmit (&huart2, "Hello", 5, 1000);
 //	  HAL_Delay(3000);
 
-//	if(operating_sideA)
-//	{
-//		 operating_side = side_a;
-//		 house_keeping();
-//		 states();
-//
-//		 operating_sideA = false;
-//		 operating_sideB = true;
-//	}
-//	else if(operating_sideB)
-//	{
-//		 operating_side = side_b;
-//		 house_keeping2();
-//		 states2();
-//
-//		 operating_sideA = true;
-//		 operating_sideB = false;
-//	}
-//
+	if(operating_sideA)
+	{
+		 operating_side = side_a;
+		 house_keeping();
+		 states();
+
+		 operating_sideA = false;
+		 operating_sideB = true;
+	}
+	else if(operating_sideB)
+	{
+		 operating_side = side_b;
+		 house_keeping2();
+		 states2();
+
+		 operating_sideA = true;
+		 operating_sideB = false;
+	}
+
 ////	if(server_message_found == 1)
 //	if(go_message == true)
 //	{

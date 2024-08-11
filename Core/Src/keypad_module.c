@@ -285,11 +285,18 @@ int write_keypad_lcd(int fxn,char* num)
 {
 	extern int8_t keyEntry_len;
 
-	keypad_ini();
 	int8_t count = 0,
-		   decimalPoint_flag = 0;
+		   decimalPoint_flag = 0,
+		   postn,
+		   scan_code = 0;
 
 	dpFlag = 0;
+
+	int8_t cnv = strlen(num);      //snprintf(buf2, sz, "%ld", num);
+
+	count = cnv;
+
+	keypad_ini();
 
 
 	//char buf2[9]  = {0};
@@ -323,9 +330,7 @@ int write_keypad_lcd(int fxn,char* num)
 	/*
 	*/
 
-	int8_t cnv = strlen(num);      //snprintf(buf2, sz, "%ld", num);
 
-	count = cnv;
 
 //	 int8_t space2, c;
 //	 c = strlen(num);
@@ -350,8 +355,7 @@ int write_keypad_lcd(int fxn,char* num)
 //	 }
 
 //	count = cnv;
-	int8_t postn,
-		   scan_code = 0;
+
 
 //	 int8_t c;
 //	 c = strlen(num);
@@ -774,6 +778,7 @@ int keypad_lcd(int fxn,char* num)
 			{
 				scan_code += 0x80;
 				buf[postn] = (scan_code ^ 0xFF);
+//				buf[postn] = scan_code;
 			}
 			else
 			{
@@ -791,6 +796,7 @@ int keypad_lcd(int fxn,char* num)
 				if(settings_stream1[0].keypad__  == LAFNG18_K)
 				{
 					buf[postn] = (scan_code ^ 0xFF);
+//					buf[postn] = scan_code;
 				}
 				else
 				{
