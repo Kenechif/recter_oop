@@ -62,6 +62,7 @@ typedef enum
 	STATUS_FILLING,
 	STATUS_FILLING_COMP,
 	STATUS_MAMO_REACHED,
+	STATUS_SUSPENDED,
 	STATUS_SWITCHED_OFF
 }pump_status_enum;
 
@@ -244,9 +245,14 @@ void pump_ini();
 void pump_rx();
 
 //===================================
-extern int8_t  change_p, change_v;
+extern uint8_t change_p1,
+			   change_v1,
+			   change_p2,
+			   change_v2;
 
-pump_status_enum pump_status_;
+pump_status_enum pump_status_,
+				 pump_status_2;
+
 extern pump_status_enum_4G pump1_status_4G,
 					pump2_status_4G;
 

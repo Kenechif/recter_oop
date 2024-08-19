@@ -47,11 +47,17 @@
 
 
 //uint8_t MSG[200] = {0};
-extern int8_t change_p, change_v;
+extern uint8_t change_p1,
+			   change_v1,
+			   change_p2,
+			   change_v2;
 
 extern uint16_t eeprom_pageNum;
 
-extern float auth_v, auth_p;
+extern float auth_v1,
+			 auth_p1,
+			 auth_v2,
+			 auth_p2;
 
 extern w25qxx_t w25qxx;
 
@@ -78,6 +84,9 @@ extern pump_settings_stream2 settings_stream2[2],
 extern pump_settings_stream3 settings_stream3[2],
 				       	     settings0_stream3[2],
 							 copy_stream3[2];
+
+extern pump_status_enum pump_status_,
+						pump_status_2;
 
 extern pump pump_type,
  	 	 	disp_type1,
@@ -135,6 +144,15 @@ extern unsigned long t_exec1,
 int checkk = 0;
 
 unsigned long cheq3 = 0;
+
+extern uint8_t mamo_reached_flag1,
+			   mamo_reached_flag1_1,
+			   fillingComplete_flag1 = 0,
+			   nozzlezUp1 = 0,
+			   authsuspend_flag1 = 0,
+			   fillingsuspend_flag1 = 0,
+			   authresume_flag1 = 0,
+			   fillingresume_flag1 = 0;
 
 extern uint8_t hour,minute,second,day,month,year,dayofweek;
 
@@ -224,9 +242,9 @@ int retn;
  //=====================variables from master===========================
  int totaliser_flag, totaliser_flag2 = 0;
  int key19_flag ,key19_flag2 = 0;
- int auth_cmd_flag , auth_cmd_flag2 = 0;
+ uint8_t auth_cmd_flag = 0, auth_cmd_flag2 = 0;
  nozzle_overide overide_ , overide_2;
- int stop_flag ,stop_flag2 = 0;
+ uint8_t stop_flag,stop_flag2 = 0;
  int error_clr_flag , error_clr_flag2 = 0;
 
  int key_flag, key_flag_old , key_flag2, key_flag_old2 = 0;
@@ -1013,6 +1031,7 @@ void compose_printer()
  void setup()
 {
 	 pump_status_ = STATUS_UNKNOWN;
+	 pump_status_2 = STATUS_UNKNOWN;
 
 	 pump1_status_4G = STATUS_PUMP_ON;
 
@@ -1955,8 +1974,11 @@ skip_test:
 //	settings[0].noz_id;
 
 
-    settings_stream1[0].mode = MANUAL;  //AUTO;  //MANUAL;
-    settings_stream1[1].mode = MANUAL;  //AUTO;   //MANUAL;
+    settings_stream1[0].mode = AUTO_MODE;   //MANUAL_MODE;
+    settings_stream1[1].mode = MANUAL_MODE;  //AUTO;   //MANUAL;
+
+    settings_stream1[0].noz = nooveride;
+    settings_stream1[0].keypad__ = BLSKY22;    //LAFNG18_K;
 
 
     // ===========================================================================
@@ -2204,6 +2226,9 @@ skip_test:
 //	    char str__[8]= {0};
 //		snprintf(str__, sizeof(str_), "%.2f", litre_price);
 //		send_line3(str__);
+
+//   pump_status_ = STATUS_PNP;
+//   pump_status_2 = STATUS_PNP;
  }
 
  //-----------------------------------------------------------
@@ -2317,7 +2342,7 @@ void run()
 
 		else if( (resp2 != NOREPLY) && (resp2 != JUNK) )
 		{
-			process_response2(resp2);
+//			process_response2(resp2);
 		}
 
 		cheq3++;
@@ -2431,7 +2456,8 @@ void run()
 	{
 		 operating_side = side_a;
 		 house_keeping();
-		 states();
+//		 states();
+		 states_1();
 
 		 operating_sideA = false;
 		 operating_sideB = true;
@@ -2440,7 +2466,7 @@ void run()
 	{
 		 operating_side = side_b;
 		 house_keeping2();
-		 states2();
+//		 states2();
 
 		 operating_sideA = true;
 		 operating_sideB = false;
@@ -2634,7 +2660,7 @@ uint8_t  read_event1()
 			  //{
 				auth_cmd_flag = 0;
 
-				eNextState1 = authorised_nozzledown_State;
+//				eNextState1 = authorised_nozzledown_State;
 					//---------------------------------------------
 					//                nozzle-up overide
 					if (eNextState1 == authorised_nozzledown_State)
@@ -3181,3 +3207,265 @@ void pumpName_parse(void)
 //
 //	  }
 //}
+
+
+
+uint8_t read_event1_1(void)
+{
+	extern bool lock_clr;
+	   key19_flag = 0;
+	 //  auth_cmd_flag = 0;
+	 //  totaliser_flag = 0;
+	 //  keypress_flag = 0;
+
+	//READ STATES OF INPUTS PIN AND KEYPAD...
+	  totaliser_flag =  readtotaliser1_state();
+
+	  //key19_flag =  readkey19_state();
+
+	  key_flag =  readsettingskey_state();
+
+	  nozzle_flag = readNozzle1();
+
+	  keypress_ = keynew;  //key flag is also set...
+
+#ifndef DEV_MODE
+   			 //--------------------------------------------------
+			  //  totaliser error.
+				if( (totaliser_flag == 0) && (drive1 != ACTIVATE) )
+				{
+					totaliser_flag = 1;
+					return _tot_error_Event;
+				}
+   			  //--------------------------------------------------
+#endif     //#ifndef DEV_MODE
+
+
+	 //==========check for long press events.....========
+	 //==================================================
+	 //      then select the  operator  view mode...
+	 //--------------------------------------------------
+		tot_longpress_flag = long_press_tot();
+		log_longpress_flag = long_press_log();
+		key_longpress_flag = long_press_key();
+		progExit_longpress_flag = long_press_progExit();
+
+		  if(tot_longpress_flag == 1)
+		  {
+			   operatorfxn = totaliser_view;
+			   return _operator_Event;
+		  }
+
+		  else if(log_longpress_flag == 1)
+		  {
+			   operatorfxn = log_view;
+			   return _operator_Event;
+		  }
+		  else if(key_longpress_flag == 1)
+		  {
+			//if not previously activated,
+//				 if (key_longpress_status == 0)
+//				 {
+//					key_longpress_status = 1;
+				prog_entry1 = 1;   //variable used to clear the var. states in settings menu.
+				return _keyup_Event;
+//				 }
+//				 else
+//				 {
+//					key_longpress_status = 0;
+//					prog_entry1 = 0;
+//					return _keydown_Event;
+//				 }
+		  }
+		  else if(progExit_longpress_flag == 1)
+		  {
+			//if not previously activated,
+//				 if (key_longpress_status == 0)
+//				 {
+//					key_longpress_status = 1;
+//					prog_entry1 = 1;   //variable used to clear the var. states in settings menu.
+//					return _keyup_Event;
+//				 }
+//				 else
+//				 {
+//					key_longpress_status = 0;
+					prog_entry1 = 0;
+					return _keydown_Event;
+//				 }
+			  }
+
+       //--------------------------------------------------
+	   //          error clear flag...
+	   if( error_clr_flag == 1)
+		 {
+			error_clr_flag = 0;
+
+			filling1 = 0;
+
+			return _error_clear_Event;
+		 }
+	  //--------------------------------------------------
+			 // authorise  event capture.
+	   else if ( auth_flag  == 1 )
+		{
+			auth_flag = 0;
+			return _authorise_Event;
+		}
+
+		//--------------------------------------------------
+				// authorise  command event.
+	   else if ( auth_cmd_flag  == 1 )
+		{
+		  //if(settings[operating_side-1].mode == offline_)
+		  //{
+			auth_cmd_flag = 0;
+
+//				eNextState1 = authorised_nozzledown_State;
+				//---------------------------------------------
+				//                nozzle-up overide
+				if (eNextState1 == authorised_nozzledown_State)
+				{
+					if (overide_ == overide)
+					{
+						return _nozzleup_Event;
+					}
+				}
+				//---------------------------------------------
+
+				if(settings_stream1[0].mode == AUTO_MODE)
+				{
+					if(nozzlezUp1 == 1)   //A NozzleUp that triggers a transaction
+					{
+//						nozzlezUp1 = 0;
+						return _authorisecommand_Event;
+					}
+				}
+
+			  return _auth_command_Event;
+		  //}
+		}
+
+		// mamo reach  event capture...
+	   else if(mamo_reached_flag1 == 1)
+		{
+			mamo_reached_flag1 = 0;
+			return _mamo_Event;
+		}
+
+	   // idle state due-return event capture...
+	   else if (fillingComplete_flag1 == 1)
+	   {
+		   fillingComplete_flag1 = 0;
+		   return _fillingcomplete_Event;
+	   }
+	   else if (reset_flag1 == 1)
+	   {
+		   reset_flag1 = 0;
+		   return _resetcommand_Event;
+	   }
+	   else if (authsuspend_flag1 == 1)
+	   {
+		   authsuspend_flag1 = 0;
+		   return  _auth_suspendcommand_Event;
+	   }
+	   else if (fillingsuspend_flag1 == 1)
+	   {
+		   fillingsuspend_flag1 = 0;
+		   return _filling_suspendcommand_Event;
+	   }
+	   else if (authresume_flag1 == 1)
+	   {
+		   authresume_flag1 = 0;
+		   return _auth_resumecommand_Event;
+	   }
+	   else if (fillingresume_flag1 == 1)
+	   {
+		   fillingresume_flag1 = 0;
+		   return _filling_resumecommand_Event;
+	   }
+
+	   // nozzle up  event capture...
+	   else if( (nozzle_flag_old == 0)&&(nozzle_flag == 1) )
+		{
+			nozzle_flag_old = 1;
+			if (overide_ != overide)
+			{
+				//send nozzleup command only in MANUAL mode
+				nozzlezUp1 = 1;
+				return _nozzleup_Event;
+			}
+			else 		// NozzlezUp, awaiting authorisation
+			{
+
+			}
+		}
+	  //-----------------------
+	  // nozzle down  event capture...
+	   else if( (nozzle_flag_old == 1)&&(nozzle_flag == 0) )
+		{
+			nozzle_flag_old = 0;
+			if (overide_ != overide) return _nozzledown_Event;
+		}
+		//	nozzle_flag_old = nozzle_flag;
+	  //--------------------------------------------------
+	  //--------------------------------------------------
+		// key up  event capture...
+	   else if( (key_flag_old == 0)&&(key_flag == 1) )
+			{
+					key_flag_old = 1;
+			      return _keyup_Event;
+			}
+	  //-----------------------
+		// key down  event capture...
+	   else if( (key_flag_old == 1)&&(key_flag == 0) )
+			{
+					key_flag_old = 0;
+				  return _keydown_Event;
+			}
+			key_flag_old = key_flag;
+	  //--------------------------------------------------
+	  //--------------------------------------------------
+		// key press event capture...
+	   if (keypress_flag == 1)
+		{
+			keypress__ = 1;
+			keypress_flag = 0;
+			return _keypress_Event;
+		}
+	  //--------------------------------------------------
+	  /*	  if (key19_flag == 1)
+			{
+				return _key19_Event;
+			}                              */
+	  //--------------------------------------------------
+	  //  totaliser error.
+//		if( (totaliser_flag == 0) && (drive1 != ACTIVATE) )
+//		{
+//			totaliser_flag = 1;
+//			return _tot_error_Event;
+//		}
+	  //--------------------------------------------------
+	   //filling1 pulse detection.
+	   if ( (pulser_count_old < pulser_new) && ( eNextState1 == authorised_nozzleup_State ) )
+			{
+				pulser_count_old = pulser_new;
+				lock_clr = 0;
+				return _filling_pulse_Event;
+			}
+		 pulser_count_old = pulser_new;
+
+	  //--------------------------------------------------
+			  // timeout   event capture...
+		if( (timer_flag_old == 0)&&(timer_flag == 1) )
+		{
+				  timer_flag_old = 1;
+
+				  filling1 = 0;
+
+			  return _timeout_Event;
+		}
+			timer_flag_old = timer_flag;
+
+	  return _no_Event;
+}
+

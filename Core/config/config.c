@@ -46,7 +46,7 @@ extern uint8_t hour,
 
 //extern pump_names pumpName[2];
 
-extern int8_t changeLitrePrice1 = 0,
+extern uint8_t changeLitrePrice1 = 0,
 			  changeLitrePrice2 = 0;
 
 uint8_t synchedTranxA_flag = 0,

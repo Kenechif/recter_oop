@@ -20,8 +20,8 @@ void update_info(void);          //save_log();
 
 //void read_log();
 
-eSystemState read_flash_state_Handler(void);
-eSystemState write_flash_state_Handler(void);
+eSystemState read_flash_State_Handler(void);
+eSystemState write_flash_State_Handler(void);
 
 void clear_logA(void);
 void clear_logB(void);

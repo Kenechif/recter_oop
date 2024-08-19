@@ -83,7 +83,7 @@ extern  float totaliser_amt1,
 			  totaliser_amt2c;
 
 
-extern float auth_p, auth_v, set_p;
+extern float auth_p1, auth_v1, set_p;
 extern uint8_t  change_price, change_volume;
 
 
@@ -162,7 +162,7 @@ void getfilled_vol(void)
 	memset(temp,0,15);
 	memcpy(temp,pump_buf[4],10);
 //	auth_v = atof(temp);
-	auth_v = atoff(temp);
+	auth_v1 = atoff(temp);
 
 }
 
@@ -174,7 +174,7 @@ void getFilledAmo(void)
 	memset(temp,0,15);
     memcpy(temp,pump_buf[4],10);
 //    auth_p = atof(temp);
-    auth_p = atoff(temp);
+    auth_p1 = atoff(temp);
 }
 
 
@@ -507,7 +507,7 @@ int pmp_no = 2;
     	    getFilledAmo();
     		cmd_frame[13] = get_checksum(&cmd_frame[1], 12);
 //    		change_price = 1;
-       		change_p = 1;
+       		change_p1 = 1;
        		controller_authorise();
     		break;
 
@@ -515,7 +515,7 @@ int pmp_no = 2;
     		getfilled_vol();
     		cmd_frame[13] = get_checksum(&cmd_frame[1], 12);
 //    		change_volume = 1;
-    		change_v = 1;
+    		change_v1 = 1;
     		controller_authorise();
     		break;
 

@@ -59,11 +59,15 @@ uint8_t serverTimeFlag = 0;
 		 slowFlow_endThreshold1 = 0,
 		 slowFlow_endThreshold2 = 0;
 
-extern int8_t change_p,
-			  change_v;
+extern uint8_t change_p1,
+			   change_v1,
+			   change_p2,
+			   change_v2;
 
-extern float auth_v,
-			 auth_p;
+extern float auth_v1,
+			 auth_p1,
+			 auth_v2,
+			 auth_p2;
 
 extern float amt_real1,
 		  	 amt_real2,
@@ -159,9 +163,9 @@ int access_level = non;    //default
  float pulser_index2 = 500;
  float pulser_index_c2 = 500;
 
- int8_t dp_price1 = 2,
+ uint8_t dp_amount1 = 2,
 		dp_price2 = 2,
-		dp_amount1 = 2,
+		dp_vol1 = 2,
 		dp_amount2 = 2,
 		dp_unitprice1 = 2,
 		dp_unitprice2 = 2;
@@ -182,8 +186,8 @@ float price_upper1,
 	  amt_middle2;
 
 
- int8_t opmode  = MANUAL;
- int8_t opmode2 = MANUAL;
+ int8_t opmode  = MANUAL_MODE;
+ int8_t opmode2 = MANUAL_MODE;
 
  nozzle_overide overide_ = nooveride;
  nozzle_overide overide_2 = nooveride;
@@ -502,8 +506,8 @@ void load_settings(pump_sid side)
 //	    password_level2 = settings[sdd].passwd2;
 //	    password_level3 = settings[sdd].passwd3;
 
-	    dp_price1 = settings_stream1[sdd].dp_price;
-	    dp_amount1 = settings_stream1[sdd].dp_amount;
+	    dp_amount1 = settings_stream1[sdd].dp_price;
+	    dp_vol1 = settings_stream1[sdd].dp_amount;
 	    dp_unitprice1 = settings_stream1[sdd].dp_unitprice;
 	    pump_max_litres1 = settings_stream1[sdd].max_amt_;
 
@@ -596,7 +600,7 @@ void make_settings(pump_sid side)
 //	  	settings[0].pi_c = 391.64;   //383.89;  //760.33;
 //	    settings[1].pi_ = 399.25;   //798.35;
 //	  	settings[1].pi_c = 383.89;  //760.33;
-   	settings_stream1[sdd].mode = MANUAL;   //AUTO;
+   	settings_stream1[sdd].mode = MANUAL_MODE;   //AUTO;
 
    	settings_stream1[sdd].price_ = 648.00;
 
@@ -2211,7 +2215,7 @@ int get_auth()
 {
 	auth_flag = 0;
 
-	if(opmode == MANUAL)
+	if(opmode == MANUAL_MODE)
 	{
 	  //if (t > 500)
 	  //{
@@ -2231,7 +2235,7 @@ int get_auth()
 int get_auth2()
 {
 	auth_flag2 = 0;
-	if(opmode2 == MANUAL)
+	if(opmode2 == MANUAL_MODE)
 		{
 	       auth_flag2 = 1;
 		}

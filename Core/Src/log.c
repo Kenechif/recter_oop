@@ -10,6 +10,7 @@
 #include "../flash_mem/w25qxx.h"
 
 #include "config.h"
+#include "pump_comm.h"
 
 #define W25QXX_DUMMY_BYTE 0xA5
 
@@ -37,6 +38,12 @@ extern uint32_t transaction_period,
 extern uint8_t firstTime_filling1,
 			   firstTime_filling2;
 
+extern uint8_t mamo_reached_flag1,
+			   mamo_reached_flag1_1,
+			   stopFlag_source1 = 0,
+			   nozzleDown_source1 = 0,
+			   reset_flag1 = 0;
+
 uint32_t flash_write_id;    //read and write.
 uint32_t flash_read_id;     //address of the flash.
 
@@ -54,6 +61,9 @@ const int max = 50-1;
 //
 //extern log_new log_a_new;
 //extern log_new log_b_new;
+
+extern pump_status_enum pump_status_,
+						pump_status_2;
 
 extern log_new log_a_new,
 			   log_b_new,
@@ -229,7 +239,7 @@ void update_info()       //save_log( )
 //===================================================
 //             flash memory states.
 //ooooooooooooooooooooooooooooooooooooooooooooooooooo
-eSystemState read_flash_state_Handler(void)
+eSystemState read_flash_State_Handler(void)
 {
 	static int flshr = 0;
 	uint32_t flash_read_id_ = 0;
@@ -254,7 +264,7 @@ eSystemState read_flash_state_Handler(void)
 
 		if(flshr == 0)
 		{
-		   while (w25qxx.Lock == 1) return read_flash_state;   //wait for pending job
+		   while (w25qxx.Lock == 1) return read_flash_State;   //wait for pending job
 		   w25qxx.Lock = 1;  // lock access to flash mem. operations.
 		   prev_state_sto = ePrevState;
 		   //------------------------------------------------------
@@ -273,7 +283,7 @@ eSystemState read_flash_state_Handler(void)
 		  			   }
 		   //-------------------------------------------------------
 		   flshr = 1;
-		      return read_flash_state;
+		      return read_flash_State;
 		}
 
 		if(flshr == 1)
@@ -306,11 +316,11 @@ eSystemState read_flash_state_Handler(void)
 
 			return prev_state_sto; //prog_State; //return to the calling state.
 		}
-    return read_flash_state;
+    return read_flash_State;
 }
 
 //----------------------------------------
-eSystemState write_flash_state_Handler(void)
+eSystemState write_flash_State_Handler(void)
 {
 	static int flshw = 0;
 	uint32_t flash_write_id_ = 0;
@@ -324,11 +334,11 @@ eSystemState write_flash_state_Handler(void)
 		log_a_new.transaction_period = transaction_period;
 	    firstTime_filling1 = 1;
 
-		if(opmode == AUTO)
+		if(opmode == AUTO_MODE)
 		{
 			log_a_new.autoTranxFlag = 1;
 		}
-		else if(opmode == MANUAL)
+		else if(opmode == MANUAL_MODE)
 		{
 			log_a_new.autoTranxFlag = 0;
 		}
@@ -355,11 +365,11 @@ eSystemState write_flash_state_Handler(void)
 		log_b_new.transaction_period = transaction_period2;
 		firstTime_filling2 = 1;
 
-		if(opmode2 == AUTO)
+		if(opmode2 == AUTO_MODE)
 		{
 			log_b_new.autoTranxFlag = 1;
 		}
-		else if(opmode2 == MANUAL)
+		else if(opmode2 == MANUAL_MODE)
 		{
 			log_b_new.autoTranxFlag = 0;
 		}
@@ -398,7 +408,7 @@ eSystemState write_flash_state_Handler(void)
 //			 ep1b_save.total_tranxA++;
 			 save_totalTransaction_sides(side_a);
 
-			 if(opmode == AUTO)
+			 if(opmode == AUTO_MODE)
 			 {
 				save_totalAutoTransaction_sides(side_a);
 			 }
@@ -430,7 +440,7 @@ eSystemState write_flash_state_Handler(void)
 //			 ep1b_save.total_tranxB++;
 			 save_totalTransaction_sides(side_b);
 
-			 if(opmode2 == AUTO)
+			 if(opmode2 == AUTO_MODE)
 			 {
 				save_totalAutoTransaction_sides(side_b);
 			 }
@@ -454,6 +464,29 @@ eSystemState write_flash_state_Handler(void)
 		w25qxx.Lock = 0;       // unlock the flash memory.
 		flshw = 0;             // reset the sub state.
 
+		if(stopFlag_source1 == 1)
+		{
+			stopFlag_source1 = 0;
+
+			pump_status_ = STATUS_FILLING_COMP;
+
+			status_change_noz1 = 1;
+		}
+		else if(nozzleDown_source1 == 1)
+		{
+			nozzleDown_source1 = 0;
+
+			pump_status_ = STATUS_FILLING_COMP;
+
+			status_change_noz1 = 1;
+			status_change_pump1 = 1;
+		}
+		else if (mamo_reached_flag1_1 == 1)
+		{
+			mamo_reached_flag1_1 = 0;
+			mamo_reached_flag1 = 1;
+		}
+
 		return idle_State;     //write complete go back to idle state.
 //=========================================================================================
 
@@ -461,7 +494,7 @@ eSystemState write_flash_state_Handler(void)
 
 	if(flshw == 0)
 	{
-		while (w25qxx.Lock == 1) return write_flash_state; //wait for pending job
+		while (w25qxx.Lock == 1) return read_flash_State; //wait for pending job
 		  w25qxx.Lock = 1;  // lock access to flash mem. operations.
 		  //----------------------------------------------------
 		  //   assign the writing address.
@@ -475,7 +508,7 @@ eSystemState write_flash_state_Handler(void)
 		   }
 		  //-----------------------------------------------------
 		  flshw = 1;
-		  return write_flash_state;
+		  return write_flash_State;
 	}
 //--------------------------wait for write end -----------------------------
 	if(flshw == 1)
@@ -483,14 +516,14 @@ eSystemState write_flash_state_Handler(void)
 		 HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_RESET);
 		 W25qxx_Spi(0x05);
 		 flshw = 2;
-		 return write_flash_state;
+		 return write_flash_State;
 	}
 
 	if(flshw == 2)
 	{
 		w25qxx.StatusRegister1 = W25qxx_Spi(W25QXX_DUMMY_BYTE);
 		flshw = 3;
-		return write_flash_state;
+		return write_flash_State;
 	}
 
 	if(flshw == 3)
@@ -498,11 +531,11 @@ eSystemState write_flash_state_Handler(void)
 	    	if ((w25qxx.StatusRegister1 & 0x01) == 0x01)
 			 {
 	    		flshw = 2;
-				return write_flash_state;
+				return write_flash_State;
 			 }
 	      HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_SET);
 	      flshw = 4;
-	      return write_flash_state;
+	      return write_flash_State;
 		}
 //-------------------------  write enable  -------------------------
 	if(flshw == 4)
@@ -511,7 +544,7 @@ eSystemState write_flash_state_Handler(void)
 			W25qxx_Spi(0x06);
 			HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_SET);
 			flshw = 5;
-			return write_flash_state;
+			return write_flash_State;
 		}
 //-------------------------  set the address ----------------------
 	if(flshw == 5)
@@ -542,7 +575,7 @@ eSystemState write_flash_state_Handler(void)
 
 	    	HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_SET);
 			flshw = 6;
-			return write_flash_state;
+			return write_flash_State;
 		}
 
 
@@ -552,14 +585,14 @@ eSystemState write_flash_state_Handler(void)
 			 HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_RESET);
 			 W25qxx_Spi(0x05);
 			 flshw = 7;
-		    	 return write_flash_state;
+		    	 return write_flash_State;
 			}
 
 		if(flshw == 7)
 		{
 			w25qxx.StatusRegister1 = W25qxx_Spi(W25QXX_DUMMY_BYTE);
 			flshw = 8;
-			   return write_flash_state;
+			   return write_flash_State;
 		}
 
 		if(flshw == 8)
@@ -567,11 +600,11 @@ eSystemState write_flash_state_Handler(void)
 		    	if ((w25qxx.StatusRegister1 & 0x01) == 0x01)
 				 {
 		    		flshw = 7;   //back to re test the status register.
-					return write_flash_state;
+					return write_flash_State;
 				 }
 		      HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_SET);
 		      flshw = 9;
-		      return write_flash_state;
+		      return write_flash_State;
 			}
 
 		if(flshw == 9)
@@ -602,7 +635,7 @@ eSystemState write_flash_state_Handler(void)
 			flshw = 0;             // reset the sub state.
 			return idle_State;     //write complete go back to idle state.
 		  }
-    return write_flash_state;
+    return write_flash_State;
 }
 
 

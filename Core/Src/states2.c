@@ -82,7 +82,9 @@ extern int data_size; //w25qxx.PageSize;    //0;
     last_Event = 0;
  */
 
-extern pump_status_enum pump_status_;
+extern pump_status_enum pump_status_,
+						pump_status_2;
+
 extern pump_status_enum_4G pump2_status_4G;
 
 extern log_new log_a_new,log_b_new;
@@ -233,7 +235,7 @@ extern char bluesky_keypad[22];
 
 //extern int pump_type;
 extern pump pump_type;
-extern int auth_cmd_flag2;
+extern uint8_t auth_cmd_flag2;
 extern int8_t opmode2;
 extern int error_clr_flag2;
 extern int keypress__2 ;
@@ -299,7 +301,7 @@ extern int8_t dp_price2,
 
 extern uint8_t firstTime_nozz2 = 1;
 
-extern int stop_flag2;
+extern uint8_t stop_flag2;
 
 int irrecov_flag2 = 0;
 //extern int error_clr_flag;
@@ -366,14 +368,14 @@ extern uint8_t stop_fueling_bit;
 
 //uint8_t change_price = 0;
 //uint8_t change_volume = 0;
-extern float auth_v, auth_p;
-extern int8_t change_p, change_v;
+extern float auth_v2, auth_p2;
+extern uint8_t change_p2, change_v2;
 extern int8_t auth_from_ctrl;
 extern int authorise_flag;
 extern int8_t change_price_flag;
 float set_p;
 
-extern int8_t changeLitrePrice2;
+extern uint8_t changeLitrePrice2;
 
 int8_t pump_LitreOverflow2 = 0,
 	   display_overflow2 = 0,
@@ -693,11 +695,11 @@ sStateEventMachine2 asStateEventMachine2 [] =
 	{filling_State,filling_state_Handler2,{_filling_paused_Event,_keypress_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
 	{filling_paused_State,filling_paused_state_Handler2,{_filling_resumed_Event,_keypress_Event,_timeout_Event,_nozzledown_Event}},
 	{keypad_entry_State,keypad_entry_State_Handler2,{}},
-	{operator_State,operator_State_Handler2,{_keypress_Event}},
-	{savesettings_State,savesettings_State_Handler2,{_keypress_Event}},
-	{read_flash_state,read_flash_state_Handler,{}},
-	{write_flash_state,write_flash_state_Handler,{}},
-    {last_State,0,{}}
+	{operator_State, operator_State_Handler2,{_keypress_Event}},
+	{savesettings_State, savesettings_State_Handler2,{_keypress_Event}},
+	{read_flash_State, read_flash_State_Handler,{}},
+	{write_flash_State, write_flash_State_Handler,{}},
+    {last_State, 0, {}}
 };
 
  //  {idle_State,keyup_Event,inactivestate_Handler},
@@ -1314,7 +1316,7 @@ eSystemState operator_State_Handler2(void)
 
 	            		  flash_read_idB = flash_loc;
 
-	            		  return read_flash_state;  //goto read the flash location...
+	            		  return read_flash_State;  //goto read the flash location...
 						}
 	         //==================================
 	         //   display the log parameters....
@@ -1362,7 +1364,7 @@ eSystemState operator_State_Handler2(void)
 	          	  					  //  flash_read_idA = flash_loc;
 	          	  					    		//flash_beginA + ( log_indx_indx *  );
 	          	  					    //fetch the values...
-	          	  					    return read_flash_state;
+	          	  					    return read_flash_State;
 	          	  					}
 
 	          	  	        	 if (pkey == 'C')  // down key
@@ -1401,7 +1403,7 @@ eSystemState operator_State_Handler2(void)
 											//flash_read_idA = flash_loc;
 											//fetch the values...
 										  }
-	          	  	              	    return read_flash_state;
+	          	  	              	    return read_flash_State;
 	          	  					}
 
 //	    		  	        	 if (pkey == 'A')  // back key
@@ -2378,7 +2380,7 @@ eSystemState progstate_Handler2(void)
    		 {
    			//send_line22();
 //   			if(copy[pump_indx-1].mode == AUTO)
-   			if(copy_stream1[1].mode == AUTO)
+   			if(copy_stream1[1].mode == AUTO_MODE)
 			{
 				send_line22(" Auto ");
 			}
@@ -2416,18 +2418,18 @@ eSystemState progstate_Handler2(void)
    		 {
    			 if (pkey == 'B')  // up key
    				{
-   				  if (copy_stream1[1].mode == AUTO) //;
-   					copy_stream1[1].mode = MANUAL;
+   				  if (copy_stream1[1].mode == AUTO_MODE) //;
+   					copy_stream1[1].mode = MANUAL_MODE;
    				  else
-   					copy_stream1[1].mode = AUTO;
+   					copy_stream1[1].mode = AUTO_MODE;
    				}
 
    			 else if (pkey == 'C')  // down key
    				{
-   					if (copy_stream1[1].mode == AUTO) //;
-   						copy_stream1[1].mode = MANUAL;
+   					if (copy_stream1[1].mode == AUTO_MODE) //;
+   						copy_stream1[1].mode = MANUAL_MODE;
    					  else
-   						copy_stream1[1].mode = AUTO;
+   						copy_stream1[1].mode = AUTO_MODE;
    				}
 
    			 else if (pkey == 'F')  //change pump index.
@@ -2438,9 +2440,9 @@ eSystemState progstate_Handler2(void)
 
 			 else if (pkey == 'D')  // back key
 			 {
-				  if (copy_stream1[1].mode == AUTO) //;
+				  if (copy_stream1[1].mode == AUTO_MODE) //;
 					  copy_stream1[1].def_t = P;
-				  else if (copy_stream1[1].mode == MANUAL)
+				  else if (copy_stream1[1].mode == MANUAL_MODE)
 					  copy_stream1[1].def_t = P;
 //				  else if (copy[pump_indx-1].mode == VOUCHER_ONLY)
 //					  copy[pump_indx-1].def_t = V;
@@ -7947,7 +7949,7 @@ eSystemState auth_command_Handler2(void)
 	  reset_timer2( timeout_picknozzle);
 	  start_timer2( timeout_picknozzle);
     //-----------------------------------
-	  if(opmode2 == MANUAL)
+	  if(opmode2 == MANUAL_MODE)
 	  {
 		  //check if any keypad entry
 		 if(index_2 >= 1)
@@ -7976,11 +7978,11 @@ eSystemState auth_command_Handler2(void)
 
 		  // AUTO Mode
 		  //authorise price...
-		  if (change_p == 1)
+		  if (change_p2 == 1)
 			  sellmode2 = P;      //set sell type to price
 		 //-----------------------------------------
 		  //authorise volume...
-		  else if (change_v == 1)
+		  else if (change_v2 == 1)
 			  sellmode2 = L;      //set sell type to litre
 		 //-----------------------------------------
 	  }
@@ -7991,7 +7993,7 @@ eSystemState auth_command_Handler2(void)
 //-------------
 eSystemState  nozzleup_waitingforauthState_Handler2(void)
 {
-   	if (settings_stream1[operating_side - 1].mode == MANUAL)
+   	if (settings_stream1[operating_side - 1].mode == MANUAL_MODE)
 		{
 			//send nozzleup command only in MANUAL mode
 			return authorised_nozzleup_State;     //idle_State;
@@ -8354,7 +8356,7 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 
 	nozzle_bit = 1;  stop_fueling_bit = 0;
 
-    pump_status_ = STATUS_AUTH;
+    pump_status_2 = STATUS_AUTH;
     pump2_status_4G = STATUS_AUTHORIZED_NOZZLE_UP;
 
 	display_minimumCentilitrePrice2 = (display_minimumCentilitre2 * litre_price2);
@@ -8369,18 +8371,18 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 		_pump_max_litres2 = 1;
 		return idle_State;
 	 }
-	 else if ( (change_p == 1) && (auth_p == 0) )
+	 else if ( (change_p2 == 1) && (auth_p2 == 0) )
 	 {
 		_auth_p2 = 1;
 		return idle_State;
 	 }
-	 else if ( (change_v == 1) && (auth_v == 0) )
+	 else if ( (change_v2 == 1) && (auth_v2 == 0) )
 	 {
 		_auth_v2 = 1;
 		return idle_State;
 	 }
 
-	 else if(opmode2 == MANUAL)
+	 else if(opmode2 == MANUAL_MODE)
 	 {
 		 if(index_2 >= 1)
 		 {
@@ -8459,9 +8461,9 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 		  }
 
 	 }
-	 else if(opmode2 == AUTO)
+	 else if(opmode2 == AUTO_MODE)
 	 {
-		  if (change_p == 1)
+		  if (change_p2 == 1)
 		  {
 			  sellPrice_max_pump = (litre_price2 * pump_max_litres2);
 //			  if(auth_p > sellPrice_max_pump)
@@ -8480,24 +8482,24 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 
 //			  half_litre2 = (0.5 * litre_price2);
 
-		  	  if( (auth_p > sellPrice_max_pump) || (auth_p > sellPrice_max_dpp) )
+		  	  if( (auth_p2 > sellPrice_max_pump) || (auth_p2 > sellPrice_max_dpp) )
 			  {
 				  if(sellPrice_max_pump < sellPrice_max_dpp)
 				  {
-					  auth_p = sellPrice_max_pump;
+					  auth_p2 = sellPrice_max_pump;
 					  pump_LitreOverflow2 = 1;
 				  }
 
 				  else if(sellPrice_max_pump > sellPrice_max_dpp)
 				  {
-					  auth_p = sellPrice_max_dpp;
+					  auth_p2 = sellPrice_max_dpp;
 					  display_overflow2 = 1;
 				  }
 			  }
 
-		  	  sprintf(keyboard_entry2,"%2f", auth_p);
+		  	  sprintf(keyboard_entry2,"%2f", auth_p2);
 			  key_value2 = atof(keyboard_entry2);
-			  change_p = 0;      //reset tbe flag.
+			  change_p2 = 0;      //reset tbe flag.
 			  index_2 = strlen(keyboard_entry2);
 
 			  target_pulser2 = price2pulser2(key_value2);  //calculate pulse frm price.
@@ -8509,26 +8511,26 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 
 		  //-----------------------------------------
 		  //authorise volume...
-		  else if (change_v == 1)
+		  else if (change_v2 == 1)
 		  {
-			  if( (auth_v > pump_max_litres2) || (auth_v > sellPrice_max_dpp) )
+			  if( (auth_v2 > pump_max_litres2) || (auth_v2 > sellPrice_max_dpp) )
 			  {
 				  if(pump_max_litres2 < sellPrice_max_dpp)
 				  {
-					  auth_v = pump_max_litres2;
+					  auth_v2 = pump_max_litres2;
 					  pump_LitreOverflow2 = 1;
 				  }
 
 				  else if (pump_max_litres2 > sellPrice_max_dpp)
 				  {
-					  auth_v = sellPrice_max_dpp;
+					  auth_v2 = sellPrice_max_dpp;
 					  display_overflow2 = 1;
 				  }
 			  }
 
-			  sprintf(keyboard_entry2,"%2f", auth_v);
+			  sprintf(keyboard_entry2,"%2f", auth_v2);
 			  key_value2 = atof(keyboard_entry2);
-			  change_v = 0;      //reset tbe flag.
+			  change_v2 = 0;      //reset tbe flag.
 			  index_2 = strlen(keyboard_entry2);
 
 			  target_pulser2 = amt2pulser2(key_value2);   //calculate pulse frm amt.
@@ -8840,7 +8842,7 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 //		_auth_v = 1;
 //		return idle_State;
 //	 }
-//	 else if(opmode == MANUAL)
+//	 else if(opmode == MANUAL_MODE)
 //	 {
 //		 if(index_ >= 1)
 //		 {
@@ -9306,7 +9308,7 @@ eSystemState nozzledown_Handler2(void)
 		 //============================================================
 
 
-		  return  write_flash_state;
+		  return  write_flash_State;
 	  }
 
   //-------------------------------------------
@@ -9865,7 +9867,7 @@ eSystemState filling_state_Handler2(void)
 			  save_volumeTotaliser(operating_side);
 			  save_amountTotaliser(operating_side);
 			  save_lastSale(operating_side);
-			  return write_flash_state;
+			  return write_flash_State;
 		}
 
 //    power outage during filling1  end transaction...
@@ -9900,7 +9902,7 @@ eSystemState filling_state_Handler2(void)
 		  save_volumeTotaliser(operating_side);
 		  save_amountTotaliser(operating_side);
 		  save_lastSale(operating_side);
-		  return write_flash_state;
+		  return write_flash_State;
 	}
 
 	if (stop_flag2 == 1)   //if stop key pressed
@@ -9947,7 +9949,7 @@ eSystemState filling_state_Handler2(void)
 
 	//--------------------------------------------------------------------
 
-       return write_flash_state;
+       return write_flash_State;
 	}
 
 	if(litre_price2 == 0)
@@ -9961,7 +9963,7 @@ eSystemState filling_state_Handler2(void)
 			save_amountTotaliser(operating_side);
 			save_lastSale(operating_side);
 			_litre_price2 = 1;
-			return write_flash_state;
+			return write_flash_State;
 		}
 		else if(pump_max_litres2 == 0)
 		{
@@ -9974,7 +9976,7 @@ eSystemState filling_state_Handler2(void)
 			save_amountTotaliser(operating_side);
 			save_lastSale(operating_side);
 			_pump_max_litres2 = 1;
-			return write_flash_state;
+			return write_flash_State;
 		}
 
 //======================== @ filling1 =============================
@@ -10103,7 +10105,7 @@ eSystemState filling_state_Handler2(void)
 		        save_volumeTotaliser(operating_side);
 		        save_amountTotaliser(operating_side);
 		        save_lastSale(operating_side);
-		        return write_flash_state;
+		        return write_flash_State;
 		  	 }
 		  else
 		  {
@@ -10153,7 +10155,7 @@ eSystemState filling_state_Handler2(void)
 				save_volumeTotaliser(operating_side);
 				save_amountTotaliser(operating_side);
 				save_lastSale(operating_side);
-				return write_flash_state;
+				return write_flash_State;
 			}
 			flow_flag = 1;
 		}

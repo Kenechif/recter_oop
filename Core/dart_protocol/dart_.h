@@ -113,6 +113,8 @@ int millis2;
 
 extern uint8_t dummyValue;
 
+extern bool nozzle_out1,
+			nozzle_out2;
 
 
 // class dart: public BaseProtocol{
@@ -181,8 +183,8 @@ extern uint8_t dummyValue;
 				// DATA_MAX_AMO, //mamo: maximum amount, also get DPVOL, DPAMO, DPPRI and GRADE
 				// DATA_PUMP_ID,	//
 				// DATA_TOTALVOL,	//Total vol from id
-				// DATA_SUSPEND,
-				// DATA_RESUME,
+				 DATA_SUSPEND,
+				 DATA_RESUME,
 
 				DATA_COMMAND,
 				DATA_ALLOWED_NOZ,
@@ -191,6 +193,7 @@ extern uint8_t dummyValue;
 				DATA_PRICE_UPDATE,
 				DATA_SET_MAMO,
 				DATA_REQUEST_VOL_TOTAL_COUNT,
+				DATA_SET_PUMP_PARAM,
 
 
 				// PRESET_VOL,	//Set the respective volume of these before using them
@@ -273,6 +276,18 @@ extern uint8_t dummyValue;
 		unsigned char r_suspend;
 		unsigned char r_resume;
 
+		//**********************************************************//
+		unsigned char r_addr2; 			//response addr
+		unsigned char r_ctrl2;			//response ctrl character
+		unsigned char r_pumpno2;			//pump no i.e. which pump nozzle
+		unsigned char r_trans2;			//transaction no. CD1, CD2 e.t.c
+		unsigned char r_lng2;			//length of data received in message
+		unsigned char r_nozzle2;			//nozzle status
+		unsigned char r_TX2;				//TX character attached to the ctrl byte
+		unsigned char r_alarm_code2;
+		unsigned char r_suspend2;
+		unsigned char r_resume2;
+
 		/* Variables for usable raw data from the pump */
 		unsigned char r_vol[4];
 		unsigned char r_amo[4];
@@ -309,6 +324,41 @@ extern uint8_t dummyValue;
 		double vol_totalizer;
 		double amo_totalizer;
 
+		extern pump_status_enum pump_status_,
+								pump_status_2;
+
+		extern uint8_t changeLitrePrice1,
+					   changeLitrePrice2;
+
+		extern uint8_t auth_cmd_flag,
+					   auth_cmd_flag2,
+					   stop_flag,
+					   stop_flag2;
+
+		uint8_t fillingComplete_flag1,
+				nozzlezUp1,
+				authsuspend_flag1,
+				fillingsuspend_flag1,
+				authresume_flag1,
+				fillingresume_flag1;
+
+		extern uint8_t nozzleDown_source1,
+					   reset_flag1;
+
+		extern float price_upper1,
+					 amt_middle1;
+
+		extern float auth_v1,
+					 auth_p1;
+
+		extern uint8_t dp_amount1,
+					   dp_vol1,
+					   dp_unitprice1;
+
+		extern float totaliser_vol1c,
+					 totaliser_vol2c,
+					 totaliser_vol1,
+					 totaliser_vol2;
 //		vector<unsigned char> r_raw_data;	//raw data received
 
 
@@ -356,6 +406,11 @@ extern uint8_t dummyValue;
 	void send_acknowledgement(response_enum response);
 	void _process_response2(response_enum response);
 	void send_acknowledgement2(response_enum response);
+
+	void go_setUnitPrice1(float price_update);
+	float go_fillingPrice1(void);
+	float go_fillingInfo_vol1(void);
+	float go_fillingInfo_amt1(void);
 
 
 	int handle_resp(command_enum cmd); 	//ret  = -10 : ended with a nack, -1: ended with
@@ -452,6 +507,8 @@ double roundUp(float value, int decimalPlaces);
 
 void dart_init(void);
 
+void send_nozzleStatus(uint8_t buff_index);   //, float filling_price, uint8_t nozzle_status);
+void send_pumpStatus(uint8_t buff_index);
 
 #endif /* SOURCE_GOGO_P_WAYNE_485_H_ */
 

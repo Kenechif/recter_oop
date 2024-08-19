@@ -777,8 +777,8 @@ int keypad_lcd(int fxn,char* num)
 			if(settings_stream1[0].keypad__  == LAFNG18_K)
 			{
 				scan_code += 0x80;
-				buf[postn] = (scan_code ^ 0xFF);
-//				buf[postn] = scan_code;
+//				buf[postn] = (scan_code ^ 0xFF);
+				buf[postn] = scan_code;
 			}
 			else
 			{
@@ -795,8 +795,8 @@ int keypad_lcd(int fxn,char* num)
 
 				if(settings_stream1[0].keypad__  == LAFNG18_K)
 				{
-					buf[postn] = (scan_code ^ 0xFF);
-//					buf[postn] = scan_code;
+//					buf[postn] = (scan_code ^ 0xFF);
+					buf[postn] = scan_code;
 				}
 				else
 				{
@@ -806,13 +806,13 @@ int keypad_lcd(int fxn,char* num)
 		postn--;
 	}
 
-	if(settings_stream1[0].keypad__  == LAFNG18_K)
-	{
-		for (int8_t i = 8; i >= inv; i--)
-		{
-			buf[i] = (buf[i] ^ 0xFF);
-		}
-	}
+//	if(settings_stream1[0].keypad__  == LAFNG18_K)
+//	{
+//		for (int8_t i = 8; i >= inv; i--)
+//		{
+//			buf[i] = (buf[i] ^ 0xFF);
+//		}
+//	}
 
 //	count =   strlen(num);      //snprintf(buf2, sz, "%ld", num);
 //
@@ -1506,16 +1506,16 @@ int keypad_lcd2(int fxn, char* num)
 //				buf2[postn2] = 0x7E + 0X80;
 			scan_code = To_pattern( ToInt( num[(count - postn) + 1] ) );
 
-			if(settings_stream1[1].keypad__  == LAFNG18_K)
-			{
-				scan_code += 0x80;
-				buf2[postn] = (scan_code ^ 0xFF);
-			}
-			else
-			{
+//			if(settings_stream1[1].keypad__  == LAFNG18_K)
+//			{
+//				scan_code += 0x80;
+//				buf2[postn] = (scan_code ^ 0xFF);
+//			}
+//			else
+//			{
 				scan_code += 0x80;
 				buf2[postn] = scan_code;     //128+64+32+16+8+4+2+1; //buf2[cnv-i];
-			}
+//			}
 
 //			buf2[postn] = scan_code + 0X80;
 			count++;
@@ -1524,29 +1524,29 @@ int keypad_lcd2(int fxn, char* num)
 		{
 				scan_code = To_pattern( ToInt( num[count - postn] ) );
 
-				if(settings_stream1[1].keypad__  == LAFNG18_K)
-				{
-//					if(scan_code == 0)
-//						buf2[postn] = scan_code;
-//					else
-						buf2[postn] = (scan_code ^ 0xFF);
-				}
-				else
-				{
+//				if(settings_stream1[1].keypad__  == LAFNG18_K)
+//				{
+////					if(scan_code == 0)
+////						buf2[postn] = scan_code;
+////					else
+//						buf2[postn] = (scan_code ^ 0xFF);
+//				}
+//				else
+//				{
 					buf2[postn] = scan_code;     //128+64+32+16+8+4+2+1; //buf2[cnv-i];
-				}
+//				}
 		}
 		postn--;
 	}
 
 
-	if(settings_stream1[1].keypad__  == LAFNG18_K)
-	{
-		for (int8_t i = 8; i >= inv; i--)
-		{
-			buf2[i] = (buf2[i] ^ 0xFF);
-		}
-	}
+//	if(settings_stream1[1].keypad__  == LAFNG18_K)
+//	{
+//		for (int8_t i = 8; i >= inv; i--)
+//		{
+//			buf2[i] = (buf2[i] ^ 0xFF);
+//		}
+//	}
 
 //	while(count<7)
 //	{
@@ -1615,7 +1615,7 @@ int keypad_lcd2(int fxn, char* num)
     //	_Delay(1);
     //--------------------	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_SET);  //latch pin high
 
-    HAL_GPIO_TogglePin(refresh_GPIO_Port,refresh_Pin);
+    HAL_GPIO_TogglePin(refresh2_GPIO_Port, refresh2_Pin);
 
 //==========================================================================
         if(fxn == 2) return;     // return if fxn 2 selected (screen only..)

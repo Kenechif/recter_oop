@@ -45,8 +45,8 @@ extern "C" {
 //============================================
 
 #ifdef DEV_MODE
-//	#define _USE_SOFT_PULSER            1
-	#define _USE_SOFT_PULSER            0
+	#define _USE_SOFT_PULSER            1
+//	#define _USE_SOFT_PULSER            0
 	#define sense_battery 				0
 	#define sense_power  				0
 #else
@@ -105,8 +105,8 @@ extern "C" {
 
  typedef enum
   {
-      AUTO,
-      MANUAL
+      AUTO_MODE,
+      MANUAL_MODE
   }opmode_;
 
 
@@ -566,7 +566,14 @@ typedef enum
  }pump_settings_stream3;
 
 
+bool nozzle_out1,
+	 nozzle_out2;
 
+uint8_t status_change_pump1,
+		status_change_noz1,
+		mamo_reached_flag1,
+		mamo_reached_flag1_1,
+		stopFlag_source1;
 
 
 ////==================================
@@ -905,6 +912,13 @@ uint8_t calibration_flag1,
 		configMode2;
 
 float temppp_;
+
+
+float price_update1,
+	  price_update2;
+
+uint8_t changeLitrePrice1,
+		changeLitrePrice2;
 
 //void get_settings();
 

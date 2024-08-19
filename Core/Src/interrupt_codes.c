@@ -22,7 +22,8 @@
 
 //union strr ;
 
-extern pump_status_enum pump_status_;
+extern pump_status_enum pump_status_,
+						pump_status_2;
 
 extern UART_HandleTypeDef huart1;
 extern TIM_HandleTypeDef htim2;
@@ -64,6 +65,9 @@ uint16_t countar3 = 0;
 
 extern uint16_t countar,
 		 	 	countar2;
+
+extern uint8_t mamo_reached_flag1 = 0,
+			   mamo_reached_flag1_1 = 0;
 
 //===============================================
 
@@ -304,7 +308,7 @@ void check_flow(void)
 			}
 			else
 			{
-				pump_status_ = STATUS_MAMO_REACHED;
+//				pump_status_ = STATUS_MAMO_REACHED;
 				slow_flow1();
 
 				fastFlow1 = 0;
@@ -315,7 +319,10 @@ void check_flow(void)
 			  //pulser complete   ---==>> //sales complete...
 			  //---------------------------------------------
 			 pulser_complete1 = 1;
-			 pump_status_ = STATUS_FILLING_COMP;
+
+			 pump_status_ = STATUS_MAMO_REACHED;
+			 mamo_reached_flag1 = 1;
+
 			 stop_flow1(); 			  //stop solenoid.
 		  }
 	   }
@@ -442,7 +449,7 @@ void check_flow(void)
 						}
 						else
 						{
-							pump_status_ = STATUS_MAMO_REACHED;
+//							pump_status_ = STATUS_MAMO_REACHED;
 							slow_flow2();
 
 							fastFlow2 = 0;
@@ -453,7 +460,7 @@ void check_flow(void)
 						  //pulser complete   ---==>> //sales complete...
 						  //---------------------------------------------
 						 pulser_complete2 = 1;
-						 pump_status_ = STATUS_FILLING_COMP;
+//						 pump_status_2 = STATUS_MAMO_REACHED;
 						 stop_flow2(); 			  //stop solenoid.
 					  }
 				   }
