@@ -1366,6 +1366,33 @@ void process_response(response_enum response)
 
 									status_change_pump1 = 0;
 								}
+								///////////////////////////////////////  DC2  ///////////////////////////////////////
+								//=================================================================================//
+								//==========  This transaction is sent by the pump at change of a value  ==========//
+								//=================================================================================//
+								if(pump_status_ == STATUS_FILLING)
+								{
+									static float old_value = 0;
+
+									float vol_ = go_fillingInfo_vol1();
+
+//									float amo_ = go_fillingInfo_amt1();
+
+									if(vol_ != old_value)
+									{
+										send_fillingInfo(0);
+
+										crc = crc_16(DART_BUFF1, 12);
+										DART_BUFF1[12] = crc & 0x00FF;
+										DART_BUFF1[13] = crc >> 8;
+										DART_BUFF1[14] = ETX;
+										DART_BUFF1[15] = SF;
+
+										array_len = 16;
+									}
+									old_value = vol_;
+								}
+
 								//==========================================================//
 								//==========  If having nothing to send, send EOT ==========//
 								//==========================================================//
@@ -1868,8 +1895,8 @@ void _process_response(response_enum response)
 											}
 											break;
 										}
-				case PRESET_VOL							:
-				case PRESET_AMO							:	{command_response = false; break;}
+//				case PRESET_VOL							:
+//				case PRESET_AMO							:	{command_response = false; break;}
 				default									: 	break;
 			}
 
@@ -4420,3 +4447,79 @@ void send_pumpStatus(uint8_t buff_index)
 //				resp = NOREPLY;
 //
 //			}
+
+void send_fillingInfo(uint8_t buff_index)
+{
+
+
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+	//////////////////////////////////  GET FILLED_VOLUME_AND_AMOUNT //////////////////////////////////
+
+
+
+	//=============================================================================//
+	////////////////////////////////////  DC2  //////////////////////////////////////
+	//        This transaction is sent by the pump at change of a value            //
+	//        or if the pump receives the command RETURN FILLING INFORMATION       //
+	//=============================================================================//
+	//command_ ==> REQUEST_FILLING_INFO        //FILLED_VOLUME_AND_AMOUNT
+
+	float vol_ = go_fillingInfo_vol1();
+
+	float amo_ = go_fillingInfo_amt1();
+
+	uint8_t decimalPlaces;
+	double roundedNum;
+	int num_;
+	// unsigned int bcd;
+	unsigned char bcd_[10] = {0};  // Array to hold the BCD result
+
+	uint16_t crc;
+
+	ctrl = TX;
+	ctrl |= 0x30;
+	trans = 0x02;
+	lng = 0x08;
+
+	memset(DART_BUFF1, 0, sizeof(DART_BUFF1));
+
+	DART_BUFF1[0] = addr;
+	DART_BUFF1[1] = ctrl;
+	DART_BUFF1[2 + buff_index] = trans;
+	DART_BUFF1[3 + buff_index] = lng;
+
+	decimalPlaces = 2;
+
+	roundedNum = roundUp(vol_, decimalPlaces);
+	roundedNum = roundedNum * 100;
+	num_ = (int)(roundedNum);
+
+	int_to_bcd(num_, bcd_);
+
+	for (uint8_t i = 0, j = 3; i < 4; i++, j--)
+	{
+		DART_BUFF1[i + 4 + buff_index] = bcd_[j];
+	}
+
+	decimalPlaces = 1;
+
+	roundedNum = roundUp(amo_, decimalPlaces);
+	roundedNum = roundedNum * 10;
+	num_ = (int)(roundedNum);
+
+	memset(bcd_, 0, sizeof(bcd_));
+
+	int_to_bcd(num_, bcd_);
+
+	// for(uint8_t i = 0; i < 4; i++)
+	for (uint8_t i = 0, j = 3; i < 4; i++, j--)
+	{
+		DART_BUFF1[i + 8 + buff_index] = bcd_[j];
+	}
+
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+
+}
+
+

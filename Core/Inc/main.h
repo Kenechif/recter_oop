@@ -182,6 +182,7 @@ void Error_Handler(void);
 #define clkk2_GPIO_Port GPIOE
 #define datak2_Pin GPIO_PIN_1
 #define datak2_GPIO_Port GPIOE
+
 /* USER CODE BEGIN Private defines */
 
 

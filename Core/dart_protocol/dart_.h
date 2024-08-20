@@ -509,6 +509,7 @@ void dart_init(void);
 
 void send_nozzleStatus(uint8_t buff_index);   //, float filling_price, uint8_t nozzle_status);
 void send_pumpStatus(uint8_t buff_index);
+void send_fillingInfo(uint8_t buff_index);
 
 #endif /* SOURCE_GOGO_P_WAYNE_485_H_ */
 

@@ -109,6 +109,17 @@ uint8_t datar1[50];
 //uint8_t datar2[100];
 float datar3;
 
+#define FRAM_I2C &hi2c1
+
+// EEPROM ADDRESS (8bits)
+#define FRAM_ADDR 0xA0    //0x50     //0x54
+
+//uint8_t write_data = 201,
+//		read_data = 0;
+//
+//FRAM_Write(FRAM_I2C, FRAM_ADDR, 0, &write_data, 1);
+//FRAM_Read(FRAM_I2C, FRAM_ADDR, 0, &read_data, 1);
+
 //-----------------------------------
 #if use_internal_rtc == 1
 //RTC_TimeTypeDef sTime = {0};
@@ -1060,28 +1071,37 @@ void compose_printer()
 //		 }
 //	 }
 
-// while(1)
-// {
-//
-//     FRAM_Write_NUM (0, 0, 234);
-//
-//     HAL_Delay(1000);
-//
+ while(1)
+ {
+
+	 uint8_t write_data = 201,
+	 		 read_data = 0;
+
+	 FRAM_Write(FRAM_I2C, FRAM_ADDR, 0, &write_data, 1);
+
+	 HAL_Delay(1000);
+
+	 FRAM_Read(FRAM_I2C, FRAM_ADDR, 0, &read_data, 1);
+
+//	 FRAM_Write_NUM (0, 0, 234);
+
+     HAL_Delay(1000);
+
 //     float fram_read;
 //
 //     fram_read = FRAM_Read_NUM (0, 0);
-//
-////     EEPROM_Write_NUM (900, 0, 234);
-//
-////     HAL_Delay(1000);
-//
-////     get_time();
-//
-////     fram_read = EEPROM_Read_NUM (900, 0);
-//
+
+//     EEPROM_Write_NUM (900, 0, 234);
+
 //     HAL_Delay(1000);
-//
-//}
+
+//     get_time();
+
+//     fram_read = EEPROM_Read_NUM (900, 0);
+
+//     HAL_Delay(1000);
+
+}
 //
 //     // ===========================================================================
 //		 //==============================================

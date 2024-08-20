@@ -1,3 +1,65 @@
+
+
+
+#include "FRAM.h"
+#include "math.h"
+#include "string.h"
+
+// Define the I2C
+extern I2C_HandleTypeDef hi2c1;
+//#define FRAM_I2C &hi2c1
+//
+//// EEPROM ADDRESS (8bits)
+//#define FRAM_ADDR 0x54
+//
+//uint8_t write_data = 201,
+//		read_data = 0;
+//
+//FRAM_Write(FRAM_I2C, FRAM_ADDR, 0, &write_data, 1);
+//FRAM_Read(FRAM_I2C, FRAM_ADDR, 0, &read_data, 1);
+
+
+uint8_t FRAM_Write(I2C_HandleTypeDef* hi2c, uint16_t chipAddress, uint16_t writeAddress, uint8_t* data, uint16_t dataLen)
+{
+	HAL_StatusTypeDef status;
+	uint8_t addr[3] = { writeAddress >> 8, writeAddress &0xFF, data[0]};
+	status = HAL_I2C_Master_Transmit(hi2c, chipAddress, addr, 3, 1000);
+//	status = HAL_I2C_Master_Seq_Transmit_IT(hi2c, chipAddress, addr, 2, I2C_FIRST_AND_NEXT_FRAME);
+	if(status != HAL_OK){
+		return status;
+	}
+//	while (HAL_I2C_GetState(hi2c) != HAL_I2C_STATE_READY);
+//	{
+//	}
+//	status = HAL_I2C_Master_Seq_Transmit_IT(hi2c, chipAddress, data, dataLen, I2C_LAST_FRAME);
+//	if(status != HAL_OK){
+//		return status;
+//	}
+//	while (HAL_I2C_GetState(hi2c) != HAL_I2C_STATE_READY)
+//	{
+//	}
+	return status;
+}
+
+uint8_t FRAM_Read(I2C_HandleTypeDef* hi2c, uint16_t chipAddress, uint16_t readAddress, uint8_t* data, uint16_t dataLen)
+{
+	HAL_StatusTypeDef status;
+	uint8_t addr[2] = { readAddress >> 8, readAddress &0xFF};
+	status = HAL_I2C_Master_Seq_Transmit_IT(hi2c, chipAddress, addr, 2, I2C_LAST_FRAME_NO_STOP);
+	if(status != HAL_OK){
+		return status;
+	}
+//	while (HAL_I2C_GetState(hi2c) != HAL_I2C_STATE_READY) {
+//	}
+	status = HAL_I2C_Master_Seq_Receive_IT(hi2c, chipAddress, data, dataLen, I2C_LAST_FRAME);
+	if(status != HAL_OK){
+		return status;
+	}
+//	while (HAL_I2C_GetState(hi2c) != HAL_I2C_STATE_READY) {
+//	}
+	return status;
+}
+
 /////*
 //// * FRAM.c
 //// *

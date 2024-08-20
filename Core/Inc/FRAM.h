@@ -1,3 +1,19 @@
+#ifndef INC_FRAM_H_
+#define INC_FRAM_H_
+
+
+#include "stdint.h"
+#include "stm32f4xx_hal.h"
+
+
+
+uint8_t FRAM_Write(I2C_HandleTypeDef* hi2c, uint16_t chipAddress, uint16_t writeAddress, uint8_t* data, uint16_t dataLen);
+
+uint8_t FRAM_Read(I2C_HandleTypeDef* hi2c, uint16_t chipAddress, uint16_t readAddress, uint8_t* data, uint16_t dataLen);
+
+
+#endif /* INC_EEPROM_H_ */
+
 /////*
 //// * FRAM.h
 //// *
