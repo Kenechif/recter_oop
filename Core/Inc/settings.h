@@ -35,7 +35,7 @@ extern "C" {
 
 //	#define product (_DPK)
 
-      #define DEV_MODE
+//      #define DEV_MODE
 
 //	  #define OTP_ENABLE
 
@@ -892,6 +892,9 @@ float vol_calibrated1,
 
 uint32_t calib_pulser1,
          calib_pulser2;
+
+uint8_t overflow_count1,
+		overflow_count2;
 
 int8_t recalibration_request;
 

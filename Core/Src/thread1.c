@@ -1071,37 +1071,37 @@ void compose_printer()
 //		 }
 //	 }
 
- while(1)
- {
-
-	 uint8_t write_data = 201,
-	 		 read_data = 0;
-
-	 FRAM_Write(FRAM_I2C, FRAM_ADDR, 0, &write_data, 1);
-
-	 HAL_Delay(1000);
-
-	 FRAM_Read(FRAM_I2C, FRAM_ADDR, 0, &read_data, 1);
-
-//	 FRAM_Write_NUM (0, 0, 234);
-
-     HAL_Delay(1000);
-
-//     float fram_read;
+// while(1)
+// {
 //
-//     fram_read = FRAM_Read_NUM (0, 0);
-
-//     EEPROM_Write_NUM (900, 0, 234);
-
+//	 uint8_t write_data = 201,
+//	 		 read_data = 0;
+//
+//	 FRAM_Write(FRAM_I2C, FRAM_ADDR, 0, &write_data, 1);
+//
+//	 HAL_Delay(1000);
+//
+//	 FRAM_Read(FRAM_I2C, FRAM_ADDR, 0, &read_data, 1);
+//
+////	 FRAM_Write_NUM (0, 0, 234);
+//
 //     HAL_Delay(1000);
-
-//     get_time();
-
-//     fram_read = EEPROM_Read_NUM (900, 0);
-
-//     HAL_Delay(1000);
-
-}
+//
+////     float fram_read;
+////
+////     fram_read = FRAM_Read_NUM (0, 0);
+//
+////     EEPROM_Write_NUM (900, 0, 234);
+//
+////     HAL_Delay(1000);
+//
+////     get_time();
+//
+////     fram_read = EEPROM_Read_NUM (900, 0);
+//
+////     HAL_Delay(1000);
+//
+//}
 //
 //     // ===========================================================================
 //		 //==============================================
@@ -1147,10 +1147,10 @@ void compose_printer()
 //	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);  //TIM_CHANNEL_1 |TIM_CHANNEL_2); //TIM_CHANNEL_ALL);
 
 
+	retrieve_settings();
+
 	settings_stream2[0].pulser_type_ = quadrature; //non_quadrature;   //quadrature;
 	settings_stream2[1].pulser_type_ = quadrature;   //non_quadrature;   //quadrature;
-
-//	retrieve_settings();
 
 	if(settings_stream2[0].pulser_type_ == quadrature)
 	{
@@ -1167,9 +1167,9 @@ void compose_printer()
 	}
 	else if(settings_stream2[1].pulser_type_ == non_quadrature)
 	{
-//		HAL_TIM_Base_Start(&htim2);
+		HAL_TIM_Base_Start(&htim2);
 
-		HAL_TIM_Base_Start_IT(&htim2);
+//		HAL_TIM_Base_Start_IT(&htim2);
 	}
 
 	//keypad_ini();
@@ -1994,11 +1994,15 @@ skip_test:
 //	settings[0].noz_id;
 
 
-    settings_stream1[0].mode = AUTO_MODE;   //MANUAL_MODE;
-    settings_stream1[1].mode = MANUAL_MODE;  //AUTO;   //MANUAL;
+    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
+//    settings_stream1[0].mode = AUTO_MODE;    //AUTO_MODE;
 
-    settings_stream1[0].noz = nooveride;
-    settings_stream1[0].keypad__ = BLSKY22;    //LAFNG18_K;
+//    settings_stream1[0].noz = nooveride;  //nooveride
+    settings_stream1[0].noz = overide;  //nooveride
+    settings_stream1[0].keypad__ = BLSKY22;   //BLSKY22
+//    settings_stream1[0].keypad__ = LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
+
+    settings_stream1[1].mode = MANUAL_MODE;  //AUTO;   //MANUAL;
 
 
     // ===========================================================================
@@ -3340,7 +3344,11 @@ uint8_t read_event1_1(void)
 		  //{
 			auth_cmd_flag = 0;
 
-//				eNextState1 = authorised_nozzledown_State;
+
+			if(settings_stream1[0].mode == MANUAL_MODE)
+			{
+				eNextState1 = authorised_nozzledown_State;
+			}
 				//---------------------------------------------
 				//                nozzle-up overide
 				if (eNextState1 == authorised_nozzledown_State)
@@ -3365,53 +3373,62 @@ uint8_t read_event1_1(void)
 		  //}
 		}
 
-		// mamo reach  event capture...
-	   else if(mamo_reached_flag1 == 1)
-		{
-			mamo_reached_flag1 = 0;
-			return _mamo_Event;
-		}
+	   if(settings_stream1[0].mode == AUTO_MODE)
+	   {
 
-	   // idle state due-return event capture...
-	   else if (fillingComplete_flag1 == 1)
-	   {
-		   fillingComplete_flag1 = 0;
-		   return _fillingcomplete_Event;
-	   }
-	   else if (reset_flag1 == 1)
-	   {
-		   reset_flag1 = 0;
-		   return _resetcommand_Event;
-	   }
-	   else if (authsuspend_flag1 == 1)
-	   {
-		   authsuspend_flag1 = 0;
-		   return  _auth_suspendcommand_Event;
-	   }
-	   else if (fillingsuspend_flag1 == 1)
-	   {
-		   fillingsuspend_flag1 = 0;
-		   return _filling_suspendcommand_Event;
-	   }
-	   else if (authresume_flag1 == 1)
-	   {
-		   authresume_flag1 = 0;
-		   return _auth_resumecommand_Event;
-	   }
-	   else if (fillingresume_flag1 == 1)
-	   {
-		   fillingresume_flag1 = 0;
-		   return _filling_resumecommand_Event;
+			// mamo reach  event capture...
+			if(mamo_reached_flag1 == 1)
+			{
+				mamo_reached_flag1 = 0;
+				return _mamo_Event;
+			}
+
+		   // idle state due-return event capture...
+		   else if (fillingComplete_flag1 == 1)
+		   {
+			   fillingComplete_flag1 = 0;
+			   return _fillingcomplete_Event;
+		   }
+		   else if (reset_flag1 == 1)
+		   {
+			   reset_flag1 = 0;
+			   return _resetcommand_Event;
+		   }
+		   else if (authsuspend_flag1 == 1)
+		   {
+			   authsuspend_flag1 = 0;
+			   return  _auth_suspendcommand_Event;
+		   }
+		   else if (fillingsuspend_flag1 == 1)
+		   {
+			   fillingsuspend_flag1 = 0;
+			   return _filling_suspendcommand_Event;
+		   }
+		   else if (authresume_flag1 == 1)
+		   {
+			   authresume_flag1 = 0;
+			   return _auth_resumecommand_Event;
+		   }
+		   else if (fillingresume_flag1 == 1)
+		   {
+			   fillingresume_flag1 = 0;
+			   return _filling_resumecommand_Event;
+		   }
 	   }
 
 	   // nozzle up  event capture...
-	   else if( (nozzle_flag_old == 0)&&(nozzle_flag == 1) )
+	    if( (nozzle_flag_old == 0)&&(nozzle_flag == 1) )
 		{
 			nozzle_flag_old = 1;
 			if (overide_ != overide)
 			{
 				//send nozzleup command only in MANUAL mode
-				nozzlezUp1 = 1;
+
+				if(settings_stream1[0].mode == AUTO_MODE)
+				{
+					nozzlezUp1 = 1;
+				}
+
 				return _nozzleup_Event;
 			}
 			else 		// NozzlezUp, awaiting authorisation
@@ -3421,7 +3438,7 @@ uint8_t read_event1_1(void)
 		}
 	  //-----------------------
 	  // nozzle down  event capture...
-	   else if( (nozzle_flag_old == 1)&&(nozzle_flag == 0) )
+	   else if( (nozzle_flag_old == 1) && (nozzle_flag == 0) )
 		{
 			nozzle_flag_old = 0;
 			if (overide_ != overide) return _nozzledown_Event;
@@ -3430,19 +3447,19 @@ uint8_t read_event1_1(void)
 	  //--------------------------------------------------
 	  //--------------------------------------------------
 		// key up  event capture...
-	   else if( (key_flag_old == 0)&&(key_flag == 1) )
-			{
-					key_flag_old = 1;
-			      return _keyup_Event;
-			}
+	   else if( (key_flag_old == 0) && (key_flag == 1) )
+		{
+				key_flag_old = 1;
+			  return _keyup_Event;
+		}
 	  //-----------------------
 		// key down  event capture...
-	   else if( (key_flag_old == 1)&&(key_flag == 0) )
-			{
-					key_flag_old = 0;
-				  return _keydown_Event;
-			}
-			key_flag_old = key_flag;
+	   else if( (key_flag_old == 1) && (key_flag == 0) )
+		{
+				key_flag_old = 0;
+			  return _keydown_Event;
+		}
+		key_flag_old = key_flag;
 	  //--------------------------------------------------
 	  //--------------------------------------------------
 		// key press event capture...
@@ -3476,16 +3493,278 @@ uint8_t read_event1_1(void)
 
 	  //--------------------------------------------------
 			  // timeout   event capture...
-		if( (timer_flag_old == 0)&&(timer_flag == 1) )
+		if( (timer_flag_old == 0) && (timer_flag == 1) )
 		{
-				  timer_flag_old = 1;
+			  timer_flag_old = 1;
 
-				  filling1 = 0;
+			  filling1 = 0;
 
 			  return _timeout_Event;
 		}
-			timer_flag_old = timer_flag;
+
+		timer_flag_old = timer_flag;
 
 	  return _no_Event;
 }
+
+
+//uint8_t read_event1_1(void)
+//{
+//	extern bool lock_clr;
+//	   key19_flag = 0;
+//	 //  auth_cmd_flag = 0;
+//	 //  totaliser_flag = 0;
+//	 //  keypress_flag = 0;
+//
+//	//READ STATES OF INPUTS PIN AND KEYPAD...
+//	  totaliser_flag =  readtotaliser1_state();
+//
+//	  //key19_flag =  readkey19_state();
+//
+//	  key_flag =  readsettingskey_state();
+//
+//	  nozzle_flag = readNozzle1();
+//
+//	  keypress_ = keynew;  //key flag is also set...
+//
+//#ifndef DEV_MODE
+//   			 //--------------------------------------------------
+//			  //  totaliser error.
+//				if( (totaliser_flag == 0) && (drive1 != ACTIVATE) )
+//				{
+//					totaliser_flag = 1;
+//					return _tot_error_Event;
+//				}
+//   			  //--------------------------------------------------
+//#endif     //#ifndef DEV_MODE
+//
+//
+//	 //==========check for long press events.....========
+//	 //==================================================
+//	 //      then select the  operator  view mode...
+//	 //--------------------------------------------------
+//		tot_longpress_flag = long_press_tot();
+//		log_longpress_flag = long_press_log();
+//		key_longpress_flag = long_press_key();
+//		progExit_longpress_flag = long_press_progExit();
+//
+//		  if(tot_longpress_flag == 1)
+//		  {
+//			   operatorfxn = totaliser_view;
+//			   return _operator_Event;
+//		  }
+//
+//		  else if(log_longpress_flag == 1)
+//		  {
+//			   operatorfxn = log_view;
+//			   return _operator_Event;
+//		  }
+//		  else if(key_longpress_flag == 1)
+//		  {
+//			//if not previously activated,
+////				 if (key_longpress_status == 0)
+////				 {
+////					key_longpress_status = 1;
+//				prog_entry1 = 1;   //variable used to clear the var. states in settings menu.
+//				return _keyup_Event;
+////				 }
+////				 else
+////				 {
+////					key_longpress_status = 0;
+////					prog_entry1 = 0;
+////					return _keydown_Event;
+////				 }
+//		  }
+//		  else if(progExit_longpress_flag == 1)
+//		  {
+//			//if not previously activated,
+////				 if (key_longpress_status == 0)
+////				 {
+////					key_longpress_status = 1;
+////					prog_entry1 = 1;   //variable used to clear the var. states in settings menu.
+////					return _keyup_Event;
+////				 }
+////				 else
+////				 {
+////					key_longpress_status = 0;
+//					prog_entry1 = 0;
+//					return _keydown_Event;
+////				 }
+//			  }
+//
+//       //--------------------------------------------------
+//	   //          error clear flag...
+//	   if( error_clr_flag == 1)
+//		 {
+//			error_clr_flag = 0;
+//
+//			filling1 = 0;
+//
+//			return _error_clear_Event;
+//		 }
+//	  //--------------------------------------------------
+//			 // authorise  event capture.
+//	   else if ( auth_flag  == 1 )
+//		{
+//			auth_flag = 0;
+//			return _authorise_Event;
+//		}
+//
+//		//--------------------------------------------------
+//				// authorise  command event.
+//	   else if ( auth_cmd_flag  == 1 )
+//		{
+//		  //if(settings[operating_side-1].mode == offline_)
+//		  //{
+//			auth_cmd_flag = 0;
+//
+////				eNextState1 = authorised_nozzledown_State;
+//				//---------------------------------------------
+//				//                nozzle-up overide
+//				if (eNextState1 == authorised_nozzledown_State)
+//				{
+//					if (overide_ == overide)
+//					{
+//						return _nozzleup_Event;
+//					}
+//				}
+//				//---------------------------------------------
+//
+//				if(settings_stream1[0].mode == AUTO_MODE)
+//				{
+//					if(nozzlezUp1 == 1)   //A NozzleUp that triggers a transaction
+//					{
+////						nozzlezUp1 = 0;
+//						return _authorisecommand_Event;
+//					}
+//				}
+//
+//			  return _auth_command_Event;
+//		  //}
+//		}
+//
+//		// mamo reach  event capture...
+//	   else if(mamo_reached_flag1 == 1)
+//		{
+//			mamo_reached_flag1 = 0;
+//			return _mamo_Event;
+//		}
+//
+//	   // idle state due-return event capture...
+//	   else if (fillingComplete_flag1 == 1)
+//	   {
+//		   fillingComplete_flag1 = 0;
+//		   return _fillingcomplete_Event;
+//	   }
+//	   else if (reset_flag1 == 1)
+//	   {
+//		   reset_flag1 = 0;
+//		   return _resetcommand_Event;
+//	   }
+//	   else if (authsuspend_flag1 == 1)
+//	   {
+//		   authsuspend_flag1 = 0;
+//		   return  _auth_suspendcommand_Event;
+//	   }
+//	   else if (fillingsuspend_flag1 == 1)
+//	   {
+//		   fillingsuspend_flag1 = 0;
+//		   return _filling_suspendcommand_Event;
+//	   }
+//	   else if (authresume_flag1 == 1)
+//	   {
+//		   authresume_flag1 = 0;
+//		   return _auth_resumecommand_Event;
+//	   }
+//	   else if (fillingresume_flag1 == 1)
+//	   {
+//		   fillingresume_flag1 = 0;
+//		   return _filling_resumecommand_Event;
+//	   }
+//
+//	   // nozzle up  event capture...
+//	   else if( (nozzle_flag_old == 0)&&(nozzle_flag == 1) )
+//		{
+//			nozzle_flag_old = 1;
+//			if (overide_ != overide)
+//			{
+//				//send nozzleup command only in MANUAL mode
+//				nozzlezUp1 = 1;
+//				return _nozzleup_Event;
+//			}
+//			else 		// NozzlezUp, awaiting authorisation
+//			{
+//
+//			}
+//		}
+//	  //-----------------------
+//	  // nozzle down  event capture...
+//	   else if( (nozzle_flag_old == 1)&&(nozzle_flag == 0) )
+//		{
+//			nozzle_flag_old = 0;
+//			if (overide_ != overide) return _nozzledown_Event;
+//		}
+//		//	nozzle_flag_old = nozzle_flag;
+//	  //--------------------------------------------------
+//	  //--------------------------------------------------
+//		// key up  event capture...
+//	   else if( (key_flag_old == 0)&&(key_flag == 1) )
+//			{
+//					key_flag_old = 1;
+//			      return _keyup_Event;
+//			}
+//	  //-----------------------
+//		// key down  event capture...
+//	   else if( (key_flag_old == 1)&&(key_flag == 0) )
+//			{
+//					key_flag_old = 0;
+//				  return _keydown_Event;
+//			}
+//			key_flag_old = key_flag;
+//	  //--------------------------------------------------
+//	  //--------------------------------------------------
+//		// key press event capture...
+//	   if (keypress_flag == 1)
+//		{
+//			keypress__ = 1;
+//			keypress_flag = 0;
+//			return _keypress_Event;
+//		}
+//	  //--------------------------------------------------
+//	  /*	  if (key19_flag == 1)
+//			{
+//				return _key19_Event;
+//			}                              */
+//	  //--------------------------------------------------
+//	  //  totaliser error.
+////		if( (totaliser_flag == 0) && (drive1 != ACTIVATE) )
+////		{
+////			totaliser_flag = 1;
+////			return _tot_error_Event;
+////		}
+//	  //--------------------------------------------------
+//	   //filling1 pulse detection.
+//	   if ( (pulser_count_old < pulser_new) && ( eNextState1 == authorised_nozzleup_State ) )
+//			{
+//				pulser_count_old = pulser_new;
+//				lock_clr = 0;
+//				return _filling_pulse_Event;
+//			}
+//		 pulser_count_old = pulser_new;
+//
+//	  //--------------------------------------------------
+//			  // timeout   event capture...
+//		if( (timer_flag_old == 0)&&(timer_flag == 1) )
+//		{
+//				  timer_flag_old = 1;
+//
+//				  filling1 = 0;
+//
+//			  return _timeout_Event;
+//		}
+//			timer_flag_old = timer_flag;
+//
+//	  return _no_Event;
+//}
+//
 

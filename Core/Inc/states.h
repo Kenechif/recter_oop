@@ -295,6 +295,8 @@ extern float lastVolumeSale1,
 
 extern uint8_t ctTimed_day1;
 
+extern uint8_t overflow_count1;
+
 extern ep1_mt mt_pump[2];
 
 extern ctTimed_settings ctTimed_settingsA;

@@ -308,14 +308,14 @@ int main(void)
   MX_RTC_Init();
   MX_SPI1_Init();
   MX_SPI2_Init();
-  MX_TIM2_Init();
-  MX_TIM5_Init();
-  MX_USART1_UART_Init();
-  MX_USART2_UART_Init();
-  MX_ADC1_Init();
-  MX_USART3_UART_Init();
-  MX_UART5_Init();
-  MX_RNG_Init();
+//  MX_TIM2_Init();
+//  MX_TIM5_Init();
+//  MX_USART1_UART_Init();
+//  MX_USART2_UART_Init();
+//  MX_ADC1_Init();
+//  MX_USART3_UART_Init();
+//  MX_UART5_Init();
+//  MX_RNG_Init();
   /* USER CODE BEGIN 2 */
 
   retrieve_settings();    //Retrieves settings prior to Timers Initialisation
@@ -738,15 +738,14 @@ static void MX_TIM2_Init(void)
 {
 
   /* USER CODE BEGIN TIM2_Init 0 */
-////
-////	TIM_Encoder_InitTypeDef sConfig = {0};
-////	TIM_SlaveConfigTypeDef sSlaveConfig = {0};
-////	TIM_MasterConfigTypeDef sMasterConfig = {0};
-////
-  /* USER CODE END TIM2_Init 0 */
 
-  TIM_Encoder_InitTypeDef sConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
+	TIM_Encoder_InitTypeDef sConfig = {0};
+	TIM_MasterConfigTypeDef sMasterConfig = {0};
+	TIM_SlaveConfigTypeDef sSlaveConfig = {0};
+
+	settings_stream2[1].pulser_type_ = quadrature;   //non_quadrature;
+
+  /* USER CODE END TIM2_Init 0 */
 
   /* USER CODE BEGIN TIM2_Init 1 */
 ////
@@ -757,72 +756,58 @@ static void MX_TIM2_Init(void)
   htim2.Init.Period = 4294967295;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
-  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
-  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
-  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-  sConfig.IC1Filter = 7;
-  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
-  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
-  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
-  sConfig.IC2Filter = 7;
-  if (HAL_TIM_Encoder_Init(&htim2, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
+
+
+  /* USER CODE END TIM2_Init 1 */
+
+
   /* USER CODE BEGIN TIM2_Init 2 */
-////
-////
-////	if(settings_stream2[1].pulser_type_ == quadrature)
-////	{
-////		sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
-////		  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
-////		  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
-////		  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-////		  sConfig.IC1Filter = 7;
-////		  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
-////		  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
-////		  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
-////		  sConfig.IC2Filter = 7;
-////		  if (HAL_TIM_Encoder_Init(&htim2, &sConfig) != HAL_OK)
-////		  {
-////		    Error_Handler();
-////		  }
-////		  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-////		  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-////		  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
-////		  {
-////		    Error_Handler();
-////		  }
-////	}
-////	else if(settings_stream2[1].pulser_type_ == non_quadrature)
-////	{
-////		  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
-////		  {
-////			Error_Handler();
-////		  }
-////		  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_EXTERNAL1;
-////		  sSlaveConfig.InputTrigger = TIM_TS_TI1FP1;
-////		  sSlaveConfig.TriggerPolarity = TIM_TRIGGERPOLARITY_RISING;
-////		  sSlaveConfig.TriggerFilter = 0;
-////		  if (HAL_TIM_SlaveConfigSynchro(&htim2, &sSlaveConfig) != HAL_OK)
-////		  {
-////			Error_Handler();
-////		  }
-////		  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-////		  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-////		  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
-////		  {
-////			Error_Handler();
-////		  }
-////	}
-////
+
+
+	if(settings_stream2[1].pulser_type_ == quadrature)
+	{
+		  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
+		  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+		  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+		  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
+		  sConfig.IC1Filter = 7;
+		  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
+		  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+		  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
+		  sConfig.IC2Filter = 7;
+		  if (HAL_TIM_Encoder_Init(&htim2, &sConfig) != HAL_OK)
+		  {
+		    Error_Handler();
+		  }
+		  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+		  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+		  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+		  {
+		    Error_Handler();
+		  }
+	}
+	else if(settings_stream2[1].pulser_type_ == non_quadrature)
+	{
+		  if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
+		  {
+			Error_Handler();
+		  }
+		  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_EXTERNAL1;
+		  sSlaveConfig.InputTrigger = TIM_TS_TI1FP1;
+		  sSlaveConfig.TriggerPolarity = TIM_TRIGGERPOLARITY_RISING;
+		  sSlaveConfig.TriggerFilter = 0;
+		  if (HAL_TIM_SlaveConfigSynchro(&htim2, &sSlaveConfig) != HAL_OK)
+		  {
+			Error_Handler();
+		  }
+		  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+		  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+		  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+		  {
+			Error_Handler();
+		  }
+	}
+
   /* USER CODE END TIM2_Init 2 */
 
 }
@@ -836,17 +821,17 @@ static void MX_TIM5_Init(void)
 {
 
   /* USER CODE BEGIN TIM5_Init 0 */
-//
-////	TIM_Encoder_InitTypeDef sConfig = {0};
-////	TIM_SlaveConfigTypeDef sSlaveConfig = {0};
-////	TIM_MasterConfigTypeDef sMasterConfig = {0};
-//
-//	settings_stream2[0].pulser_type_ = non_quadrature;
+
+	TIM_Encoder_InitTypeDef sConfig = {0};
+	TIM_MasterConfigTypeDef sMasterConfig = {0};
+	TIM_SlaveConfigTypeDef sSlaveConfig = {0};
+
+	settings_stream2[0].pulser_type_ = quadrature;   //non_quadrature;
 //
   /* USER CODE END TIM5_Init 0 */
 
-  TIM_Encoder_InitTypeDef sConfig = {0};
-  TIM_MasterConfigTypeDef sMasterConfig = {0};
+//  TIM_Encoder_InitTypeDef sConfig = {0};
+//  TIM_MasterConfigTypeDef sMasterConfig = {0};
 
   /* USER CODE BEGIN TIM5_Init 1 */
 //
@@ -857,71 +842,72 @@ static void MX_TIM5_Init(void)
   htim5.Init.Period = 4294967295;
   htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
-  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
-  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
-  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-  sConfig.IC1Filter = 7;
-  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
-  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
-  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
-  sConfig.IC2Filter = 7;
-  if (HAL_TIM_Encoder_Init(&htim5, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
+
+//  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
+//  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+//  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+//  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
+//  sConfig.IC1Filter = 7;
+//  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
+//  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+//  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
+//  sConfig.IC2Filter = 7;
+//  if (HAL_TIM_Encoder_Init(&htim5, &sConfig) != HAL_OK)
+//  {
+//    Error_Handler();
+//  }
+//  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+//  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+//  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
+//  {
+//    Error_Handler();
+//  }
   /* USER CODE BEGIN TIM5_Init 2 */
-//
-////	if(settings_stream2[0].pulser_type_ == quadrature)
-////	{
-////		  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
-////		  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
-////		  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
-////		  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-////		  sConfig.IC1Filter = 7;
-////		  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
-////		  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
-////		  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
-////		  sConfig.IC2Filter = 7;
-////		  if (HAL_TIM_Encoder_Init(&htim5, &sConfig) != HAL_OK)
-////		  {
-////		    Error_Handler();
-////		  }
-////		  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-////		  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-////		  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
-////		  {
-////		    Error_Handler();
-////		  }
-////	}
-////	else if(settings_stream2[0].pulser_type_ == non_quadrature)
-////	{
-////		  if (HAL_TIM_Base_Init(&htim5) != HAL_OK)
-////		  {
-////		    Error_Handler();
-////		  }
-////		  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_EXTERNAL1;
-////		  sSlaveConfig.InputTrigger = TIM_TS_TI1FP1;
-////		  sSlaveConfig.TriggerPolarity = TIM_TRIGGERPOLARITY_RISING;
-////		  sSlaveConfig.TriggerFilter = 0;
-////		  if (HAL_TIM_SlaveConfigSynchro(&htim5, &sSlaveConfig) != HAL_OK)
-////		  {
-////		    Error_Handler();
-////		  }
-////		  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-////		  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-////		  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
-////		  {
-////		    Error_Handler();
-////		  }
-////	}
-//
+
+	if(settings_stream2[0].pulser_type_ == quadrature)
+	{
+		  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
+		  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+		  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+		  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
+		  sConfig.IC1Filter = 7;
+		  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
+		  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+		  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
+		  sConfig.IC2Filter = 7;
+		  if (HAL_TIM_Encoder_Init(&htim5, &sConfig) != HAL_OK)
+		  {
+		    Error_Handler();
+		  }
+		  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+		  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+		  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
+		  {
+		    Error_Handler();
+		  }
+	}
+	else if(settings_stream2[0].pulser_type_ == non_quadrature)
+	{
+		  if (HAL_TIM_Base_Init(&htim5) != HAL_OK)
+		  {
+		    Error_Handler();
+		  }
+		  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_EXTERNAL1;
+		  sSlaveConfig.InputTrigger = TIM_TS_TI1FP1;
+		  sSlaveConfig.TriggerPolarity = TIM_TRIGGERPOLARITY_RISING;
+		  sSlaveConfig.TriggerFilter = 0;
+		  if (HAL_TIM_SlaveConfigSynchro(&htim5, &sSlaveConfig) != HAL_OK)
+		  {
+		    Error_Handler();
+		  }
+		  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+		  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+		  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
+		  {
+		    Error_Handler();
+		  }
+	}
+
   /* USER CODE END TIM5_Init 2 */
 
 }

@@ -69,6 +69,9 @@ void DMA2_Stream0_IRQHandler(void);
 void HASH_RNG_IRQHandler(void);
 /* USER CODE BEGIN EFP */
 
+void TIM2_IRQHandler(void);
+void TIM5_IRQHandler(void);
+
 /* USER CODE END EFP */
 
 #ifdef __cplusplus

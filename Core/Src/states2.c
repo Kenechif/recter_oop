@@ -3563,7 +3563,7 @@ eSystemState progstate_Handler2(void)
       				  save_amountTotaliser(operating_side);
       				  save_lastSale(operating_side);
 
-      				  return write_flash_state;
+      				  return write_flash_State;
       			  }
       			#endif
       			  t2 = 0;
@@ -9885,7 +9885,7 @@ eSystemState filling_state_Handler2(void)
 			  save_volumeTotaliser(operating_side);
 			  save_amountTotaliser(operating_side);
 			  save_lastSale(operating_side);
-			  return write_flash_state;
+			  return write_flash_State;
 		  }
 		#endif
 

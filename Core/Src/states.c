@@ -3939,7 +3939,7 @@ eSystemState progState_Handler(void)
 					  save_calibrationData(side_a);
 				  }
 
-				  return write_flash_state;
+				  return write_flash_State;
 			  }
 			#endif
 			  t = 0;
@@ -5930,6 +5930,7 @@ eSystemState idleState_Handler(void)
 
 		}
 
+		calibration_flag1 = CALIBRATED;
 	//	if(calib_pulser1 < 15800)  //15987, 15967 .... 1106247681
 		if(calibration_flag1 != CALIBRATED) //15800)  //15987, 15967 .... 1106247681
 		{
@@ -6998,13 +6999,17 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 //		 pump_status_ = STATUS_FILLING_COMP;
 
-		 ///////////////////////////////////////////////////
-		 ///////// SIGNALS GO ABOUT NOZZLE STATUS //////////
+		 if (settings_stream1[0].mode == AUTO_MODE)
+		 {
 
-//		 status_change_noz1 = 1;
-		 nozzle_out1 = false;
+			 ///////////////////////////////////////////////////
+			 ///////// SIGNALS GO ABOUT NOZZLE STATUS //////////
 
-		 ///////////////////////////////////////////////////
+	//		 status_change_noz1 = 1;
+			 nozzle_out1 = false;
+
+			 ///////////////////////////////////////////////////
+		 }
 
 
 		 if (settings_stream1[0].mode == MANUAL_MODE)
@@ -7040,6 +7045,8 @@ eSystemState authorised_nozzleup_State_Handler(void)
 	}
 
 	send_line3("        ");
+	char str__[8]= {0};
+	snprintf(str__, sizeof(str__), "%.2f", litre_price); send_line3(str__);
 
 	nozzle_bit = 1;  stop_fueling_bit = 0;
 
@@ -7728,22 +7735,25 @@ eSystemState nozzledown_Handler(void)
 
 	 //============================================================
 
-//		pump_status_ = STATUS_FILLING_COMP;
+		if(settings_stream1[0].mode == AUTO_MODE)
+		{
 
-		 if( (pump_status_ == STATUS_FILLING) || (pump_status_ == STATUS_MAMO_REACHED) )
-		 {
+			 if( (pump_status_ == STATUS_FILLING) || (pump_status_ == STATUS_MAMO_REACHED) )
+			 {
 
-		 }
+			 }
 
-		 //////////////////////////////////////////////////////////////
-		 ///////// SIGNALS GO-CONTROLLER ABOUT NOZZLE STATUS //////////
+			 //////////////////////////////////////////////////////////////
+			 ///////// SIGNALS GO-CONTROLLER ABOUT NOZZLE STATUS //////////
 
-		 status_change_noz1 = 1;
-		 nozzle_out1 = false;
+			 status_change_noz1 = 1;
+			 nozzle_out1 = false;
 
-		 nozzleDown_source1 = 1;
+			 nozzleDown_source1 = 1;
 
-		 //////////////////////////////////////////////////////////////
+			 //////////////////////////////////////////////////////////////
+
+		}
 
 		return  write_flash_State;
 	 }
@@ -8451,7 +8461,7 @@ eSystemState filling_State_Handler(void)
 			  save_volumeTotaliser(operating_side);
 			  save_amountTotaliser(operating_side);
 			  save_lastSale(operating_side);
-			  return write_flash_state;
+			  return write_flash_State;
 		}
 
 //    power outage during filling1  end transaction...
@@ -8469,7 +8479,7 @@ eSystemState filling_State_Handler(void)
 			  save_volumeTotaliser(operating_side);
 			  save_amountTotaliser(operating_side);
 			  save_lastSale(operating_side);
-			  return write_flash_state;
+			  return write_flash_State;
 		  }
 		#endif
 
@@ -8486,7 +8496,7 @@ eSystemState filling_State_Handler(void)
 			  save_volumeTotaliser(operating_side);
 			  save_amountTotaliser(operating_side);
 			  save_lastSale(operating_side);
-			  return write_flash_state;
+			  return write_flash_State;
 		}
 	#endif   //#if !defined (DEV_MODE)
 
@@ -8534,15 +8544,18 @@ eSystemState filling_State_Handler(void)
 
 //        	 pump_status_ = STATUS_FILLING_COMP;
 
-    		 //////////////////////////////////////////////////////////////
-    		 ///////// SIGNALS GO-CONTROLLER ABOUT NOZZLE STATUS //////////
+        	 if(settings_stream1[0].mode == AUTO_MODE)
+        	 {
+				 //////////////////////////////////////////////////////////////
+				 ///////// SIGNALS GO-CONTROLLER ABOUT NOZZLE STATUS //////////
 
-    		 status_change_noz1 = 1;
-    		 nozzle_out1 = false;
+				 status_change_noz1 = 1;
+				 nozzle_out1 = false;
 
-    		 stopFlag_source1 = 1;
+				 stopFlag_source1 = 1;
 
-    		 //////////////////////////////////////////////////////////////
+				 //////////////////////////////////////////////////////////////
+    		 }
 
        return write_flash_State;
 	}

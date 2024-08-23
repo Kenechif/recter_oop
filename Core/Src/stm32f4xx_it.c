@@ -53,6 +53,9 @@
 /* USER CODE BEGIN PV */
 	extern int key;
 
+	extern uint8_t overflow_count1,
+				   overflow_count2;
+
 	uint32_t server_flag = 0;
 
 /* USER CODE END PV */
@@ -427,5 +430,35 @@ void my_error_handler(void)
 	int32_t recovered_count1 = __HAL_TIM_GET_COUNTER(&htim2);
 	int32_t recovered_count2 = __HAL_TIM_GET_COUNTER(&htim5);
 	NVIC_SystemReset();
+}
+
+
+/**
+  * @brief This function handles TIM2 global interrupt.
+  */
+void TIM2_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM2_IRQn 0 */
+
+  /* USER CODE END TIM2_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim2);
+  /* USER CODE BEGIN TIM2_IRQn 1 */
+   overflow_count2++;
+  /* USER CODE END TIM2_IRQn 1 */
+}
+
+
+/**
+  * @brief This function handles TIM5 global interrupt.
+  */
+void TIM5_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM5_IRQn 0 */
+
+  /* USER CODE END TIM5_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim5);
+  /* USER CODE BEGIN TIM5_IRQn 1 */
+  overflow_count1++;
+  /* USER CODE END TIM5_IRQn 1 */
 }
 /* USER CODE END 1 */

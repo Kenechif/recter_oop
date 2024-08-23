@@ -464,27 +464,30 @@ eSystemState write_flash_State_Handler(void)
 		w25qxx.Lock = 0;       // unlock the flash memory.
 		flshw = 0;             // reset the sub state.
 
-		if(stopFlag_source1 == 1)
+		if(settings_stream1[0].mode == AUTO_MODE)
 		{
-			stopFlag_source1 = 0;
+			if(stopFlag_source1 == 1)
+			{
+				stopFlag_source1 = 0;
 
-			pump_status_ = STATUS_FILLING_COMP;
+				pump_status_ = STATUS_FILLING_COMP;
 
-			status_change_noz1 = 1;
-		}
-		else if(nozzleDown_source1 == 1)
-		{
-			nozzleDown_source1 = 0;
+				status_change_noz1 = 1;
+			}
+			else if(nozzleDown_source1 == 1)
+			{
+				nozzleDown_source1 = 0;
 
-			pump_status_ = STATUS_FILLING_COMP;
+				pump_status_ = STATUS_FILLING_COMP;
 
-			status_change_noz1 = 1;
-			status_change_pump1 = 1;
-		}
-		else if (mamo_reached_flag1_1 == 1)
-		{
-			mamo_reached_flag1_1 = 0;
-			mamo_reached_flag1 = 1;
+				status_change_noz1 = 1;
+				status_change_pump1 = 1;
+			}
+			else if (mamo_reached_flag1_1 == 1)
+			{
+				mamo_reached_flag1_1 = 0;
+				mamo_reached_flag1 = 1;
+			}
 		}
 
 		return idle_State;     //write complete go back to idle state.
