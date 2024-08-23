@@ -19,25 +19,43 @@ extern I2C_HandleTypeDef hi2c1;
 //FRAM_Read(FRAM_I2C, FRAM_ADDR, 0, &read_data, 1);
 
 
-uint8_t FRAM_Write(I2C_HandleTypeDef* hi2c, uint16_t chipAddress, uint16_t writeAddress, uint8_t* data, uint16_t dataLen)
-{
-	HAL_StatusTypeDef status;
-	uint8_t addr[3] = { writeAddress >> 8, writeAddress &0xFF, data[0]};
-	status = HAL_I2C_Master_Transmit(hi2c, chipAddress, addr, 3, 1000);
-//	status = HAL_I2C_Master_Seq_Transmit_IT(hi2c, chipAddress, addr, 2, I2C_FIRST_AND_NEXT_FRAME);
-	if(status != HAL_OK){
-		return status;
-	}
-//	while (HAL_I2C_GetState(hi2c) != HAL_I2C_STATE_READY);
-//	{
-//	}
-//	status = HAL_I2C_Master_Seq_Transmit_IT(hi2c, chipAddress, data, dataLen, I2C_LAST_FRAME);
+//uint8_t FRAM_Write(I2C_HandleTypeDef* hi2c, uint16_t chipAddress, uint16_t writeAddress, uint8_t* data, uint16_t dataLen)
+//{
+//	HAL_StatusTypeDef status;
+//	uint8_t addr[3] = { writeAddress >> 8, writeAddress &0xFF, data[0]};
+//	status = HAL_I2C_Master_Transmit(hi2c, chipAddress, addr, 3, 1000);
+////	status = HAL_I2C_Master_Seq_Transmit_IT(hi2c, chipAddress, addr, 2, I2C_FIRST_AND_NEXT_FRAME);
 //	if(status != HAL_OK){
 //		return status;
 //	}
-//	while (HAL_I2C_GetState(hi2c) != HAL_I2C_STATE_READY)
-//	{
-//	}
+////	while (HAL_I2C_GetState(hi2c) != HAL_I2C_STATE_READY);
+////	{
+////	}
+////	status = HAL_I2C_Master_Seq_Transmit_IT(hi2c, chipAddress, data, dataLen, I2C_LAST_FRAME);
+////	if(status != HAL_OK){
+////		return status;
+////	}
+////	while (HAL_I2C_GetState(hi2c) != HAL_I2C_STATE_READY)
+////	{
+////	}
+//	return status;
+//}
+
+uint8_t FRAM_Write(I2C_HandleTypeDef* hi2c, uint16_t chipAddress, uint16_t writeAddress, uint8_t* data, uint16_t dataLen){
+	HAL_StatusTypeDef status;
+	uint8_t addr[2] = { writeAddress >> 8, writeAddress &0xFF};
+	status = HAL_I2C_Master_Seq_Transmit_IT(hi2c, chipAddress, addr, 2, I2C_FIRST_AND_NEXT_FRAME);
+	if(status != HAL_OK){
+		return status;
+	}
+	while (HAL_I2C_GetState(&hi2c) != HAL_I2C_STATE_READY) {
+	}
+	status = HAL_I2C_Master_Seq_Transmit_IT(hi2c, chipAddress, data, dataLen, I2C_LAST_FRAME);
+	if(status != HAL_OK){
+		return status;
+	}
+	while (HAL_I2C_GetState(hi2c) != HAL_I2C_STATE_READY) {
+	}
 	return status;
 }
 
