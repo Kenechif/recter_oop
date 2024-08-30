@@ -102,6 +102,8 @@ void Error_Handler(void);
 #define sense_p_pwr_GPIO_Port GPIOE
 #define pulser2_detect_Pin GPIO_PIN_8
 #define pulser2_detect_GPIO_Port GPIOE
+#define other_Pin GPIO_PIN_9
+#define other_GPIO_Port GPIOE
 #define slow_sole1_Pin GPIO_PIN_10
 #define slow_sole1_GPIO_Port GPIOE
 #define slow_sole2_Pin GPIO_PIN_11

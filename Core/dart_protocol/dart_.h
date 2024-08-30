@@ -73,6 +73,10 @@ extern float litre_price,
 			 price_real1,
 			 amt_real1;
 
+extern float litre_price2,
+			 price_real2,
+			 amt_real2;
+
 extern const uint16_t totalizerDay_loc;
 
 extern flash_store_info flash_infoA, flash_infoB;
@@ -242,7 +246,10 @@ extern bool nozzle_out1,
 					  addr2;
 		unsigned short trans;			//transaction no. .. CD1, CD2 e.t.c
 		unsigned char lng;				//length of data
-		unsigned char ctrl;				//ctrl character
+
+		unsigned char ctrl,				//ctrl character
+					  ctrl2;
+
 		unsigned char TX, 			//the LSB (second 4 bit) of the ctrl byte
 					  TX2;
 			//int TX_cnt;
@@ -261,6 +268,14 @@ extern bool nozzle_out1,
 		unsigned char dpvol;	//0-8	no. of decimals you can have there
 		unsigned char dpamo;	//0-8
 		unsigned char dpunp;	//0-4
+
+		int preset_vol2;
+		int preset_amo2;		//
+		int mamo_update2;
+		unsigned char dpvol2;	//0-8	no. of decimals you can have there
+		unsigned char dpamo2;	//0-8
+		unsigned char dpunp2;	//0-4
+
 
 	/*********************************************************************
 	 *	Control characters in the WAYNE protocol for PUMP RESPONSE MESSAGE
@@ -324,7 +339,7 @@ extern bool nozzle_out1,
 		double vol_totalizer;
 		double amo_totalizer;
 
-		extern pump_status_enum pump_status_,
+		extern pump_status_enum pump_status_1,
 								pump_status_2;
 
 		extern uint8_t changeLitrePrice1,
@@ -342,18 +357,38 @@ extern bool nozzle_out1,
 				authresume_flag1,
 				fillingresume_flag1;
 
+		uint8_t fillingComplete_flag2,
+						nozzlezUp2,
+						authsuspend_flag2,
+						fillingsuspend_flag2,
+						authresume_flag2,
+						fillingresume_flag2;
+
 		extern uint8_t nozzleDown_source1,
 					   reset_flag1;
+
+		extern uint8_t nozzleDown_source2,
+							   reset_flag2;
 
 		extern float price_upper1,
 					 amt_middle1;
 
+		extern float price_upper2,
+					 amt_middle2;
+
 		extern float auth_v1,
 					 auth_p1;
+
+		extern float auth_v2,
+					 auth_p2;
 
 		extern uint8_t dp_amount1,
 					   dp_vol1,
 					   dp_unitprice1;
+
+		extern uint8_t dp_amount2,
+					   dp_vol2,
+					   dp_unitprice2;
 
 		extern float totaliser_vol1c,
 					 totaliser_vol2c,
@@ -400,11 +435,12 @@ extern bool nozzle_out1,
 //		void parse_message(unsigned char*);
 	void parse_decode(void); 						//GETs each data from the raw data
 	void parse_decode2(void);
-	void process_response(response_enum response);
+	void process_response1(response_enum response);
 	void process_response2(response_enum response);
-	void _process_response(response_enum response);
-	void send_acknowledgement(response_enum response);
+	void _process_response1(response_enum response);
 	void _process_response2(response_enum response);
+
+	void send_acknowledgement1(response_enum response);
 	void send_acknowledgement2(response_enum response);
 
 	void go_setUnitPrice1(float price_update);
@@ -412,6 +448,10 @@ extern bool nozzle_out1,
 	float go_fillingInfo_vol1(void);
 	float go_fillingInfo_amt1(void);
 
+	void go_setUnitPrice2(float price_update);
+	float go_fillingPrice2(void);
+	float go_fillingInfo_vol2(void);
+	float go_fillingInfo_amt2(void);
 
 	int handle_resp(command_enum cmd); 	//ret  = -10 : ended with a nack, -1: ended with
 	/************************************************************************
@@ -507,9 +547,14 @@ double roundUp(float value, int decimalPlaces);
 
 void dart_init(void);
 
-void send_nozzleStatus(uint8_t buff_index);   //, float filling_price, uint8_t nozzle_status);
-void send_pumpStatus(uint8_t buff_index);
-void send_fillingInfo(uint8_t buff_index);
+void send_nozzleStatus1(uint8_t buff_index);
+void send_pumpStatus1(uint8_t buff_index);
+void send_fillingInfo1(uint8_t buff_index);
+
+void send_nozzleStatus2(uint8_t buff_index);
+void send_pumpStatus2(uint8_t buff_index);
+void send_fillingInfo2(uint8_t buff_index);
+
 
 #endif /* SOURCE_GOGO_P_WAYNE_485_H_ */
 

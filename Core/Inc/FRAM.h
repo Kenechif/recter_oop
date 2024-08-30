@@ -7,10 +7,15 @@
 
 
 
-uint8_t FRAM_Write(I2C_HandleTypeDef* hi2c, uint16_t chipAddress, uint16_t writeAddress, uint8_t* data, uint16_t dataLen);
+//uint8_t FRAM_Write(I2C_HandleTypeDef* hi2c, uint16_t chipAddress, uint16_t writeAddress, uint8_t* data, uint16_t dataLen);
+//
+//uint8_t FRAM_Read(I2C_HandleTypeDef* hi2c, uint16_t chipAddress, uint16_t readAddress, uint8_t* data, uint16_t dataLen);
 
-uint8_t FRAM_Read(I2C_HandleTypeDef* hi2c, uint16_t chipAddress, uint16_t readAddress, uint8_t* data, uint16_t dataLen);
+void FRAM_WriteByte(uint16_t memAddress, uint8_t data);
+uint8_t FRAM_ReadByte(uint16_t memAddress);
 
+void FRAM_Write(uint16_t memAddress, uint8_t *data, uint16_t size);
+void FRAM_Read(uint16_t memAddress, uint8_t *buffer, uint16_t size);
 
 #endif /* INC_EEPROM_H_ */
 

@@ -82,7 +82,7 @@ extern int data_size; //w25qxx.PageSize;    //0;
     last_Event = 0;
  */
 
-extern pump_status_enum pump_status_,
+extern pump_status_enum pump_status_1,
 						pump_status_2;
 
 extern pump_status_enum_4G pump2_status_4G;
@@ -295,8 +295,8 @@ extern float working_amtTotaliser2,
 			working_amtTotaliser2c,
 			running_amtTotaliser2c;
 
-extern int8_t dp_price2,
-			  dp_amount2,
+extern int8_t dp_amount2,
+			  dp_vol2,
 			  dp_unitprice2;
 
 extern uint8_t firstTime_nozz2 = 1;
@@ -363,13 +363,17 @@ extern uint16_t shutdown_timer2;
 
 extern uint16_t motor_tmr2;
 
-extern uint8_t nozzle_bit;
-extern uint8_t stop_fueling_bit;
+extern uint8_t nozzle_bit2;
+extern uint8_t stop_fueling_bit2;
 
 //uint8_t change_price = 0;
 //uint8_t change_volume = 0;
-extern float auth_v2, auth_p2;
-extern uint8_t change_p2, change_v2;
+float auth_v2,
+	  auth_p2;
+
+uint8_t change_p2,
+		change_v2;
+
 extern int8_t auth_from_ctrl;
 extern int authorise_flag;
 extern int8_t change_price_flag;
@@ -397,6 +401,9 @@ uint8_t _pump_max_litres2 = 0,
 float half_litre2 = 0.00,
 	  display_minimumCentilitre2 = 0.04,
 	  display_minimumCentilitrePrice2 = 0.00;
+
+uint8_t nozzleDown_source2,
+		reset_flag2;
 
 float pulser_totalizer2 = 0.00;
 extern uint32_t pulser_benchMark2 = 15987;
@@ -604,65 +611,94 @@ uint8_t long_press_log2();
 uint8_t long_press_tot2();
 //=======================================
 
-// state Handlers definition...
-eSystemState progstate_Handler2(void);
-eSystemState idlestate_Handler2(void);
-eSystemState inactivestate_Handler2(void);
-eSystemState nozzleup_waitingforauthState_Handler2(void);
-eSystemState authorised_nozzleup_State_Handler2(void);
-eSystemState authorised_nozzledown_State_Handler2(void);
-eSystemState authorisation_paused_State_Handler2(void);
-eSystemState filling_state_Handler2(void);
-eSystemState filling_paused_state_Handler2(void);
-eSystemState keypad_entry_State_Handler2(void);
-eSystemState operator_State_Handler2(void);
-eSystemState savesettings_State_Handler2(void);
-
-//eSystemState read_flash_state_Handler(void);  //moved to log.h
-//eSystemState write_flash_state_Handler(void);
-
-//event handlers...
-eSystemState timeout_Handler2(void);
-eSystemState authorise_Handler2(void);
-eSystemState auth_command_Handler2(void);
-eSystemState nozzleup_Handler2(void);
-eSystemState nozzledown_Handler2(void);
-eSystemState pause_Handler2(void);
-eSystemState resume_Handler2(void);
-eSystemState keyup_Handler2(void);
-eSystemState keydown_Handler2(void);
-eSystemState keypress_Handler2(void);
-eSystemState tot_error_Handler2(void);
-eSystemState key19_Handler2(void);
-eSystemState filling_paused_Handler2(void);
-eSystemState filling_resumed_Handler2(void);
-eSystemState filling_pulse_Handler2(void);
-eSystemState error_clear_Handler2(void);
-eSystemState operator_Handler2(void);
-
 
 //Initialize array of structure of event and event handler
 sEventMachine2 asEventMachine2 [] =
 {
-    {_timeout_Event,timeout_Handler2},
-    {_authorise_Event,authorise_Handler2},
-   	{_auth_command_Event,auth_command_Handler2},
-    {_nozzleup_Event,nozzleup_Handler2},
-   	{_nozzledown_Event,nozzledown_Handler2},
-    {_pause_Event,pause_Handler2},
-    {_resume_Event,resume_Handler2},
-   	{_keyup_Event,keyup_Handler2},
-   	{_keydown_Event,keydown_Handler2},
-   	{_keypress_Event,keypress_Handler2},
-   	{_tot_error_Event,tot_error_Handler2},
-   	{_key19_Event,key19_Handler2},
-   	{_filling_paused_Event,filling_paused_Handler2},
-   	{_filling_resumed_Event,filling_resumed_Handler2},
-   	{_filling_pulse_Event,filling_pulse_Handler2},
-	{_error_clear_Event,error_clear_Handler2},
-	{_operator_Event,operator_Handler2},
-	{_no_Event,0}
+    {_timeout_Event, timeout_Handler2},
+    {_authorise_Event, authorise_Handler2},
+   	{_auth_command_Event, auth_command_Handler2},
+    {_nozzleup_Event, nozzleup_Handler2},
+   	{_nozzledown_Event, nozzledown_Handler2},
+    {_pause_Event, pause_Handler2},
+    {_resume_Event, resume_Handler2},
+   	{_keyup_Event, keyup_Handler2},
+   	{_keydown_Event, keydown_Handler2},
+   	{_keypress_Event, keypress_Handler2},
+   	{_tot_error_Event, tot_error_Handler2},
+   	{_key19_Event, key19_Handler2},
+   	{_filling_paused_Event, filling_paused_Handler2},
+   	{_filling_resumed_Event, filling_resumed_Handler2},
+   	{_filling_pulse_Event, filling_pulse_Handler2},
+	{_error_clear_Event, error_clear_Handler2},
+	{_operator_Event, operator_Handler2},
+    {_function_key_Event, function_key_Handler2},
+	{_stopcommand_Event, stopcommand_Handler2},
+	{_resetcommand_Event, resetcommand_Handler2},
+	{_fillingcomplete_Event, _fillingcomplete_Handler2},
+	{_switchoffcommand_Event, switchoffcommand_Handler2},
+	{_authorisecommand_Event, authorisecommand_Handler2},
+	{_hardwarereset_Event, hardwarereset_Handler2},
+	{_hardwareerror_Event, hardwareerror_Handler2},
+	{_auth_suspendcommand_Event, auth_suspendcommand_Handler2},
+	{_filling_suspendcommand_Event, filling_suspendcommand_Handler2},
+	{_auth_resumecommand_Event, auth_resumecommand_Handler2},
+	{_filling_resumecommand_Event, filling_resumecommand_Handler2},
+	{_mamo_Event, mamo_Handler2},
+	{_no_Event, 0},
 };
+
+
+
+//initialise the array of structure of State and state handlers and their
+// allowed  events.
+// { <state>,<handler>,{<allowed event1>,<allowed event2>,..,<allowed eventn>}}
+sStateEventMachine2 asStateEventMachine2 [] =
+{
+	{prog_State, progState_Handler2, {_keydown_Event,_keypress_Event}},
+	{idle_State, idleState_Handler2, {_operator_Event,_keyup_Event,_tot_error_Event, _keypress_Event,_nozzleup_Event, _auth_command_Event, _nozzledown_Event, _resetcommand_Event, _switchoffcommand_Event}},
+	{inactive_State, inactiveState_Handler2, {_error_clear_Event, _keyup_Event, _keypress_Event}},
+	{nozzleup_waitingforauth_State, nozzleup_waitingforauthState_Handler2, {_authorise_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _authorisecommand_Event, _stopcommand_Event, _switchoffcommand_Event, _hardwarereset_Event, _hardwareerror_Event}},
+	{authorised_nozzledown_State, authorised_nozzledown_State_Handler2, {_nozzleup_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
+	{authorised_nozzleup_State, authorised_nozzleup_State_Handler2, {_filling_pulse_Event,_pause_Event,_timeout_Event,_nozzledown_Event,_keypress_Event,_function_key_Event, _stopcommand_Event, _auth_suspendcommand_Event, _hardwarereset_Event, _hardwareerror_Event}},
+	{authorisation_paused_State, authorisation_paused_State_Handler2, {_resume_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _auth_resumecommand_Event,  _stopcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _switchoffcommand_Event}},
+	{authorisation_resumed_State, authorisation_resumed_State_Handler2, {}},
+	{filling_State, filling_State_Handler2, {_filling_paused_Event,_keypress_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _stopcommand_Event, _filling_suspendcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _mamo_Event, _switchoffcommand_Event}},
+	{filling_paused_State, filling_paused_State_Handler2, {_filling_resumed_Event, _keypress_Event, _timeout_Event,_nozzledown_Event, _filling_resumecommand_Event, _stopcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _switchoffcommand_Event}},
+	{filling_resumed_State, filling_resumed_State_Handler2, {}},
+	{keypad_entry_State, keypad_entry_State_Handler2, {}},
+	{operator_State, operator_State_Handler2, {_keypress_Event}},
+	{savesettings_State, savesettings_State_Handler2, {_keypress_Event}},
+	{read_flash_State, read_flash_State_Handler, {}},
+	{write_flash_State, write_flash_State_Handler, {}},
+	{switchedoff_State, switchedoffState_Handler2, {_stopcommand_Event, _resetcommand_Event}},
+    {pnp_State, pnpState_Handler2, {_fillingcomplete_Event}},
+	{filledmamo_State, filledmamo_State_Handler2, {_nozzledown_Event, _resetcommand_Event, _stopcommand_Event, _switchoffcommand_Event}},
+    {last_State, 0, {}}
+};
+
+////Initialize array of structure of event and event handler
+//sEventMachine2 asEventMachine2 [] =
+//{
+//    {_timeout_Event,timeout_Handler2},
+//    {_authorise_Event,authorise_Handler2},
+//   	{_auth_command_Event,auth_command_Handler2},
+//    {_nozzleup_Event,nozzleup_Handler2},
+//   	{_nozzledown_Event,nozzledown_Handler2},
+//    {_pause_Event,pause_Handler2},
+//    {_resume_Event,resume_Handler2},
+//   	{_keyup_Event,keyup_Handler2},
+//   	{_keydown_Event,keydown_Handler2},
+//   	{_keypress_Event,keypress_Handler2},
+//   	{_tot_error_Event,tot_error_Handler2},
+//   	{_key19_Event,key19_Handler2},
+//   	{_filling_paused_Event,filling_paused_Handler2},
+//   	{_filling_resumed_Event,filling_resumed_Handler2},
+//   	{_filling_pulse_Event,filling_pulse_Handler2},
+//	{_error_clear_Event,error_clear_Handler2},
+//	{_operator_Event,operator_Handler2},
+//	{_no_Event,0}
+//};
 /*
 //initialise the array of structure of State and state handlers
 sStateMachine asStateMachine [] =
@@ -683,24 +719,24 @@ sStateMachine asStateMachine [] =
 //initialise the array of structure of State and state handlers and their
 // allowed  events.
 // { <state>,<handler>,{<allowed event1>,<allowed event2>,..,<allowed eventn>}}
-sStateEventMachine2 asStateEventMachine2 [] =
-{
-	{prog_State, progstate_Handler2,{_keydown_Event,_keypress_Event}},
-    {idle_State,idlestate_Handler2,{_operator_Event,_keyup_Event,_tot_error_Event,_keypress_Event,_nozzleup_Event,_auth_command_Event, _nozzledown_Event}},
-    {inactive_State,inactivestate_Handler2,{_error_clear_Event, _keyup_Event, _keypress_Event}},
-    {nozzleup_waitingforauth_State,nozzleup_waitingforauthState_Handler2,{_authorise_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
-	{authorised_nozzledown_State,authorised_nozzledown_State_Handler2,{_nozzleup_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
-    {authorised_nozzleup_State,authorised_nozzleup_State_Handler2,{_filling_pulse_Event,_pause_Event,_timeout_Event,_nozzledown_Event,_keypress_Event,_function_key_Event}},
-	{authorisation_paused_State,authorisation_paused_State_Handler2,{_resume_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
-	{filling_State,filling_state_Handler2,{_filling_paused_Event,_keypress_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
-	{filling_paused_State,filling_paused_state_Handler2,{_filling_resumed_Event,_keypress_Event,_timeout_Event,_nozzledown_Event}},
-	{keypad_entry_State,keypad_entry_State_Handler2,{}},
-	{operator_State, operator_State_Handler2,{_keypress_Event}},
-	{savesettings_State, savesettings_State_Handler2,{_keypress_Event}},
-	{read_flash_State, read_flash_State_Handler,{}},
-	{write_flash_State, write_flash_State_Handler,{}},
-    {last_State, 0, {}}
-};
+//sStateEventMachine2 asStateEventMachine2 [] =
+//{
+//	{prog_State, progstate_Handler2,{_keydown_Event,_keypress_Event}},
+//    {idle_State,idlestate_Handler2,{_operator_Event,_keyup_Event,_tot_error_Event,_keypress_Event,_nozzleup_Event,_auth_command_Event, _nozzledown_Event}},
+//    {inactive_State,inactivestate_Handler2,{_error_clear_Event, _keyup_Event, _keypress_Event}},
+//    {nozzleup_waitingforauth_State,nozzleup_waitingforauthState_Handler2,{_authorise_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
+//	{authorised_nozzledown_State,authorised_nozzledown_State_Handler2,{_nozzleup_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
+//    {authorised_nozzleup_State,authorised_nozzleup_State_Handler2,{_filling_pulse_Event,_pause_Event,_timeout_Event,_nozzledown_Event,_keypress_Event,_function_key_Event}},
+//	{authorisation_paused_State,authorisation_paused_State_Handler2,{_resume_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
+//	{filling_State,filling_state_Handler2,{_filling_paused_Event,_keypress_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
+//	{filling_paused_State,filling_paused_state_Handler2,{_filling_resumed_Event,_keypress_Event,_timeout_Event,_nozzledown_Event}},
+//	{keypad_entry_State,keypad_entry_State_Handler2,{}},
+//	{operator_State, operator_State_Handler2,{_keypress_Event}},
+//	{savesettings_State, savesettings_State_Handler2,{_keypress_Event}},
+//	{read_flash_State, read_flash_State_Handler,{}},
+//	{write_flash_State, write_flash_State_Handler,{}},
+//    {last_State, 0, {}}
+//};
 
  //  {idle_State,keyup_Event,inactivestate_Handler},
  //  {inactive_State,keydown_Event,idlestate_Handler},
@@ -734,6 +770,96 @@ eSystemState operator_Handler2(void)
 
 	return operator_State;
 }
+
+eSystemState function_key_Handler2(void)
+{
+	;
+}
+eSystemState stopcommand_Handler2(void)
+{
+	pump_status_2 = STATUS_FILLING_COMP;
+	status_change_pump2 = 1;
+
+	return idle_State;
+}
+
+eSystemState resetcommand_Handler2(void)
+{
+	pump_status_2 = STATUS_RESET;
+	status_change_pump2 = 1;
+
+	return nozzleup_waitingforauth_State;
+}
+
+//eSystemState priceupdate_Handler(void)
+eSystemState _fillingcomplete_Handler2(void)
+{
+	pump_status_2 = STATUS_FILLING_COMP;
+	status_change_pump2 = 1;
+
+	return idle_State;
+}
+
+eSystemState switchoffcommand_Handler2(void)
+{
+	pump_status_2 = STATUS_SWITCHED_OFF;
+	status_change_pump2 = 1;
+
+	return switchedoff_State;
+}
+
+eSystemState authorisecommand_Handler2(void)
+{
+	pump_status_2 = STATUS_AUTH;
+	status_change_pump2 = 1;
+
+	return authorised_nozzleup_State;
+}
+
+eSystemState hardwarereset_Handler2(void)
+{
+	pump_status_2 = STATUS_FILLING_COMP;
+	status_change_pump2 = 1;
+
+	return idle_State;
+}
+
+eSystemState hardwareerror_Handler2(void)
+{
+	pump_status_2 = STATUS_FILLING_COMP;
+	status_change_pump2 = 1;
+
+	return idle_State;
+}
+
+eSystemState auth_suspendcommand_Handler2(void)
+{
+	return authorisation_paused_State;
+}
+
+eSystemState filling_suspendcommand_Handler2(void)
+{
+	return filling_paused_State;
+}
+
+eSystemState auth_resumecommand_Handler2(void)
+{
+	return authorised_nozzleup_State;
+}
+
+eSystemState filling_resumecommand_Handler2(void)
+{
+	return filling_State;
+}
+
+eSystemState mamo_Handler2(void)
+{
+	pump_status_2 = STATUS_MAMO_REACHED;
+	status_change_pump2 = 1;
+
+	return filledmamo_State;
+}
+
 
 /////////////////////////////////////////////////////////////////
 uint8_t long_press_key2()
@@ -1681,7 +1807,7 @@ void clr_screen2(void)
       send_line32("        ");
 }
 //=============================================================================
-eSystemState progstate_Handler2(void)
+eSystemState progState_Handler2(void)
 {
 	static int indx = 0;
 	static int index_menu = 0;
@@ -2471,7 +2597,7 @@ eSystemState progstate_Handler2(void)
    	   {
    			//send_line22();
 //   		  if(copy[pump_indx-1].noz == overide)
-   		  if(copy_stream1[1].noz == overide)
+   		  if(copy_stream1[1].noz == override)
    		  {
    			send_line22("Active");
    		  }
@@ -2510,18 +2636,18 @@ eSystemState progstate_Handler2(void)
    			 if (pkey == 'B')  // up key
    				{
 //   				 if (copy[pump_indx-1].noz == overide)
-   				 if (copy_stream1[1].noz == overide)
-   					copy_stream1[1].noz = nooveride;
+   				 if (copy_stream1[1].noz == override)
+   					copy_stream1[1].noz = nooverride;
    				 else
-   					copy_stream1[1].noz = overide;
+   					copy_stream1[1].noz = override;
    				}
 
    			 else if (pkey == 'C')  // down key
    				{
-   				 if (copy_stream1[1].noz == overide)
-   					copy_stream1[1].noz = nooveride;
+   				 if (copy_stream1[1].noz == override)
+   					copy_stream1[1].noz = nooverride;
    				 else
-   					copy_stream1[1].noz = overide;
+   					copy_stream1[1].noz = override;
    				}
 
    			 else if (pkey == 'F')  //change pump index.
@@ -3816,8 +3942,8 @@ eSystemState progstate_Handler2(void)
 //      					 }
 //      					 else if (pump_indx == 2)   // if side b
 //      					 {
-      					   if(ln_ == 1) copy_stream1[1].dp_price  = dp_;
-      					   if(ln_ == 2) copy_stream1[1].dp_amount = dp_;
+      					   if(ln_ == 1) copy_stream1[1].dp_amount  = dp_;
+      					   if(ln_ == 2) copy_stream1[1].dp_vol = dp_;
       					   if(ln_ == 3) copy_stream1[1].dp_unitprice = dp_;
 //      					 }
 
@@ -7358,7 +7484,7 @@ eSystemState progstate_Handler2(void)
 //}
 
 
-eSystemState idlestate_Handler2(void)
+eSystemState idleState_Handler2(void)
 {
 	static int  printer_status;
 
@@ -7373,7 +7499,7 @@ eSystemState idlestate_Handler2(void)
 
 	pump2_status_4G = STATUS_IDLE;
 
-	stop_fueling_bit = 1;
+	stop_fueling_bit2 = 1;
 
 	lock_clr2 = 0;
 	progg2 = 0;
@@ -7525,14 +7651,15 @@ eSystemState idlestate_Handler2(void)
 		}
 		else //if( (eNextState2 == idle_State) && (eLastState2 == idle_State) )
 		{
-			if(priceChange_timer2 >= 30000)
+			if(priceChange_timer2 >= 3000)
 			{
 				priceChange_timerMin2++;
 				priceChange_timer2 = 0;
 
 				if(priceChange_timerMin2 == 3)
 				{
-					online_setUnitPrice2();
+//					online_setUnitPrice2();
+					go_setUnitPrice2(price_update2);
 					changeLitrePrice2 = 0;
 					changeLitrePrice2_2 = 1;
 					priceChange_timerMin2 = 0;
@@ -7798,199 +7925,6 @@ eSystemState idlestate_Handler2(void)
 	  	return idle_State;
 }
 
-//-------------------------------------
-eSystemState keyup_Handler2(void)
-{
-	progg2 = 1;
-	copy_settings(move_to_copy);	//make a copy of the settings								//to be used in the prog.
-	clear_buffer2();
-	return prog_State;
-}
-//-------------------------------------
-eSystemState inactivestate_Handler2(void)
-{
-    //error_state = 1;
-		  // All errors land here....
-		  // Only the CLEAR  key returns pump from this state....
-          // key reception is done in the key_entry handler..
-
-	return inactive_State;
-}
-//--------------------------------------
-eSystemState savesettings_State_Handler2(void)
-{
-   static int sav = 0;
-   int respons = 0;
-   //====================================================
-	if (sav == 0)
-		{
-		  if(t2 > 500)
-		   {
-			  send_line12("1-  Saue");
-			  send_line22("2-Cancel");
-			  t2 = 0;
-		   }
-		  respons = atoi(keyboard_entry2);
-        //------------------------------------------------
-		  if(respons == 1)   //save settings
-		  {
-			 sav = 1;
-			 return savesettings_State;
-		  }
-		  if(respons == 2)  //delete settings don't save.
-		  {
-		   sav = 2;
-		   return savesettings_State;
-		  }
-		 //------------------------------------------------
-		   return savesettings_State;
-		}
-   //=======================================
-	if (sav == 1)
-		{
-		 	send_line12(" Sauing ");
-		 	send_line22("Settings");
-
-		 	copy_settings(move_to_settings0);
-		 	save_settings0();
-
-			configMode2 = CONFIGMODIFIED;
-			save_configFlag(side_b);
-
-	    	copy_settings(move_to_settings); // copy the structure.
-	    	save_settings();   //save to eeprom
-	    	load_settings(side_b); //load the settings into the
-	        load_settings(side_a); // internal variables
-	    	HAL_Delay(1500);
-
-	    	send_line12("  Done  ");
-	    	send_line12("        ");
-	        sav = 0;
-			progg2 = 0;
-			auth2 = not_auth;
-			clear_buffer2();
-			return idle_State;
-		}
-	//=======================================
-	if (sav == 2)
-	{
-		 sav = 0;
-		 progg2 = 0;
-		 auth2 = not_auth;
-		 //clear keyboard buffers.
-		 clear_buffer2();
-
-		 if(settings_stream1[1].display_mode == PL)
-		 {
-			 send_line12(upper2);
-			 send_line22(middle2);
-		 }
-		 else if(settings_stream1[1].display_mode == LP)
-		 {
-			  send_line12(middle2);
-			  send_line22(upper2);
-		 }
-
-		 char str__[8]= {0};
-		 snprintf(str__, sizeof(str__), "%.2f", litre_price2);
-		 send_line32(str__);
-
-       return idle_State;
-	}
-	//========================================
-	return savesettings_State;    //idle_State;  //return to idle mode
-}
-//--------------------------------------
-eSystemState keydown_Handler2(void)
-{
-	clear_buffer2();
-	prog_entry2 = 0;
-	prog_revisit2 = 1;
-
-#ifndef DEV_MODE
-	prog_revisitt2 = 1;
-#endif //#ifndef DEV_MODE
-
-	 return savesettings_State;   //
-}
-
-//-----------------------------------
-eSystemState nozzleup_Handler2(void)
-{
-	pump2_status_4G = STATUS_NOZZLE_UP;
-
-	reset_timer2(timeout_picknozzle);
-	start_timer2(timeout_picknozzle);
-
-	send_line12("88888888");
-	send_line22("88888888");
-	send_line32("888888");
-//	send_line32("      ");
-
-	//set the motor on and solenoid off.
-	get_auth2();
-
-
-//	send_solenoid(0);
-//	send_pump(1);      //turn on pump.
-
-	if (eLastState2 == authorised_nozzledown_State)
-		{
-		     current_pulser2 = 0;
-			 clr_pulser2();    //clear hardware pulser
-		    return authorised_nozzleup_State;
-		}
-
-	return nozzleup_waitingforauth_State;
-}
-//-------------
-eSystemState auth_command_Handler2(void)
-{
-	  reset_timer2( timeout_picknozzle);
-	  start_timer2( timeout_picknozzle);
-    //-----------------------------------
-	  if(opmode2 == MANUAL_MODE)
-	  {
-		  //check if any keypad entry
-		 if(index_2 >= 1)
-		  {
-              key_value2 = atof(keyboard_entry2);
-		  }
-
-		  // auth_cmd_flag = 1;
-	  }
-	  else
-	  {
-//		  change_p = 1;
-//		  auth_p = 500.8;
-
-//		  change_v = 1;
-//		  auth_v = 2.3;
-
-//		  set_p = 167.00;
-//		  change_price_flag = 1;
-
-		  if(change_price_flag == 1)
-		  {
-				setUnitPrice();
-				return idle_State;
-		  }
-
-		  // AUTO Mode
-		  //authorise price...
-		  if (change_p2 == 1)
-			  sellmode2 = P;      //set sell type to price
-		 //-----------------------------------------
-		  //authorise volume...
-		  else if (change_v2 == 1)
-			  sellmode2 = L;      //set sell type to litre
-		 //-----------------------------------------
-	  }
-    // GO can also send this command.
-  return authorised_nozzledown_State;
-}
-
-//-------------
 eSystemState  nozzleup_waitingforauthState_Handler2(void)
 {
    	if (settings_stream1[operating_side - 1].mode == MANUAL_MODE)
@@ -8003,11 +7937,21 @@ eSystemState  nozzleup_waitingforauthState_Handler2(void)
    		// AUTO mode...
    		if (controller_authorise())    // authed by controller...
    		{
-   			return  authorised_nozzleup_State;
+//   			return  authorised_nozzleup_State;
    		}
    		else
    		{
    			nozzleup_awaitingauth_state_not_timedOut2 = 1;
+
+   			//[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+
+			//Amount, Vol., and Alarm cleared
+			//Light switched on
+			//Preset-Vol Cleared to default value
+			//Display cleared
+
+			//]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
+
    			if(t2 > 2400) t2 = 0;
 
    			 if ( ((t2 > 400) && (t2 <= 900)) && (nozzleup_awaitingauth_state_not_timedOut2 == 1) )
@@ -8032,252 +7976,14 @@ eSystemState  nozzleup_waitingforauthState_Handler2(void)
 	return nozzleup_waitingforauth_State;
 }
 
-
-//----------------
-eSystemState authorise_Handler2(void)
-{
-	reset_timer2(timeout_picknozzle);
-	start_timer2(timeout_picknozzle);
-
-//initialise the fuel and price variables
- price2  = 0.0;
- amt2 = 0.0;
-
- target_pulser2 = 0;  //state is coming from nozzleup ,no price/amt set
-
- clr_pulser2();    //clear hardware pulser
- current_pulser2 = 0;
-
-// int cnv = 0;
-// snprintf(str_, sizeof(str_), "%.2f", price); send_line22(str_);
-// snprintf(str_, sizeof(str_), "%.2f", amt);   send_line22(str_);
-
- send_line12("--auth2--");
- send_line22("        ");
- char str__[8]= {0};
- snprintf(str__, sizeof(str__), "%.2f", litre_price2); send_line22(str__);
-
- return authorised_nozzleup_State;
-}
-
-//---------------
-eSystemState authorised_nozzledown_State_Handler2(void)
-{
-	nozzle_bit = 0;
-	pump2_status_4G = STATUS_AUTHORIZED_NOZZLE_DOWN;
-
-	 //initialise the fuel and price variables
-
-	    if(index_2 >= 1)
-		  {
-			  key_value2 = atof(keyboard_entry2);
-		  }
-		 else
-		 {
-			  key_value2 = 0.0;
-		 }
-
-	    //initialise the fuel and price variables
-	      if (sellmode2 == P)
-	    	{
-			  target_pulser2 = price2pulser(key_value2);  //calculate pulse frm price.
-	    	}
-	      else  //amt was selected.
-	      {
-	    	  target_pulser2 = amt2pulser(key_value2);   //calculate pulse frm amt.
-	      }
-
-	  price2  = 0.0;
-	  amt2 = 0.0;
-
-	  current_pulser2 = 0;
-
-   if(t2 > 300)
-   {
-	  send_line12(" Pic    ");
-	  send_line22("No22le  ");
-	  char str__[8]= {0};
-	  snprintf(str__, sizeof(str__), "%.2f", litre_price2); send_line32(str__);
-      t2 = 0;
-   }
-
-	if (display_overflow2 == 1)
-	{
-		display_overflow2 = 0;
-		firstTime_display_overflow2 = 0;
-	}
-
-	return authorised_nozzledown_State;
-}
-
-
-//----------------------
-uint32_t price2pulser2(float price2)
-{
-//  float temp = (price2 / litre_price2) *  pulser_index_c2;
-//
-//  temp -= 0.004;
-//
-//  original_pulse2 = temp;
-
-  float temp = (price2 / litre_price2);
-//  temp -= 0.01;
-
-  temp -= 0.004;
-
-  temp *= pulser_index_c2;
-
-  original_pulse2 = temp;
-
-  //temp = floor(temp);
-  return  floor(temp );
-}
-
-uint32_t amt2pulser2(float amt)
-{
-	 float temp;
-
-	 amt -= 0.004;
-
-	 temp = amt * pulser_index_c2;
-	 original_pulse2 = temp;
-	 return  floor(temp );
-}
-
-float pulser2price2(uint32_t pulse_)
-{
-	 float temp = litre_price2 * (1.0/pulser_index_c2);
-	 temp  = temp * (float) pulse_;
-	 return (temp );
-}
-
-float amt2price2(float amt_)
-{
-	 float temp = litre_price2 * amt_;
-	 return (temp );
-}
-
-float pulser2amt2(uint32_t pulse_)
-{
-	 float temp = (float)pulse_ * (1.0/pulser_index_c2);
-	 return (temp );
-}
-
-float pulser2amt_R2(uint32_t pulse_)
-{
-	 float temp = pulse_ * (1.0/pulser_index2);
-	 //temp  = temp * (float) pulse_;
-	 return ( temp );
-}
-//---------------------------------------------------
-void make_string2(sellmode_ sll,float pr)
-{
-	int8_t tmp = 1,
-		   ind = 0;
-
-	char temp[10] = {0};
-	char ttmp[10] = {0};
-
-	 if (sll == L)
-	 {
-		 if (dp_amount2 == 1)
-		     snprintf(temp , sizeof(temp), "%.1f", pr);
-		 else if (dp_amount2 == 2)
-			 snprintf(temp , sizeof(temp), "%.2f", pr);
-		 else if (dp_amount2 == 3)
-		 	 snprintf(temp , sizeof(temp), "%.3f", pr);
-
-		 amt_middle2 = atof(temp);
-		 amt_middle2 += 0.00011;
-
-		 if(pr < display_minimumCentilitre2)   // 9 centilitres
-		 {
-			 pr = 0.00;
-			 if (dp_amount2 == 1)
-				 snprintf(temp , sizeof(temp), "%.1f", pr);
-			 else if (dp_amount2 == 2)
-				 snprintf(temp , sizeof(temp), "%.2f", pr);
-			 else if (dp_amount2 == 3)
-				 snprintf(temp , sizeof(temp), "%.3f", pr);
-		 }
-	 }
-
-	 if (sll == P)
-		 {
-			 if (dp_price2 == 1)
-			     snprintf(temp , sizeof(temp), "%.1f", pr);
-			 else if (dp_price2 == 2)
-				 snprintf(temp , sizeof(temp), "%.2f", pr);
-			 else if (dp_price2 == 3)
-			 	 snprintf(temp , sizeof(temp), "%.3f", pr);
-
-			price_upper2 = atof(temp);
-			price_upper2 += 0.00011;
-
-			if(pr < display_minimumCentilitrePrice2)   // 9 centilitres
-			{
-				pr = 0.00;
-				if (dp_price2 == 1)
-					 snprintf(temp , sizeof(temp), "%.1f", pr);
-				else if (dp_price2 == 2)
-					 snprintf(temp , sizeof(temp), "%.2f", pr);
-				else if (dp_price2 == 3)
-					 snprintf(temp , sizeof(temp), "%.3f", pr);
-			}
-
-		 }
-
-	int index__ = 0;
-		while (tmp != 0)
-		{
-			tmp = temp[index__++];
-		}
-
-	int space = 9 - index__;
-
-	if(eNextState2 == filling_State)
-	{
-		ind = 0;
-		space += 1;
-	}
-	else
-		ind = 1;
-
-	 //--------------------------
-		  if (sll == L)
-				ttmp[0] = 'l';
-		  else
-				ttmp[0] = 'p';
-	 //--------------------------
-		while (space > 0) //write spaces first..
-		{
-		   ttmp[ind++] = ' ';
-		   space--;
-		}
-	  space = index__;  //reload with len of actual number
-	   while(space > 0)
-		 {
-			 ttmp[ind++] = temp[index__ - space];
-			 space--;
-		 }
-    //-----------------------------------------------------
-		 for (int i = 0 ; i < 10 ; i++)
-		   {
-				if (sll == P)
-					upper2[i] = ttmp[i];
-				else
-					middle2[i] = ttmp[i];
-		   }
-     int t2 = 0;
-}
-
-//---------------------------------------------------
 eSystemState authorised_nozzleup_State_Handler2(void)
 {
 	float sellPrice_max_pump,
 		  sellPrice_max_dpp;
 
 	static int8_t firstTime = 1;
+
+	pump_status_2 = STATUS_AUTH;
 
 	slowFlow_startThreshold2 = (fast_flow_threshold2 * settings_stream2[1].valve_salesStart);
 	slowFlow_endThreshold2 = (fast_flow_threshold2 * settings_stream2[1].valve_salesEnd);
@@ -8321,7 +8027,22 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 
 		//--------------------------------------------------------------------
 
-	       return idle_State;
+	       if (settings_stream1[1].mode == AUTO_MODE)
+			 {
+
+				 ///////////////////////////////////////////////////
+				 ///////// SIGNALS GO ABOUT NOZZLE STATUS //////////
+
+				 nozzle_out2 = false;
+
+				 ///////////////////////////////////////////////////
+			 }
+
+
+			 if (settings_stream1[1].mode == MANUAL_MODE)
+			 {
+				 return idle_State;
+			 }
 		}
 
 
@@ -8352,9 +8073,9 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 //	send_line32("        ");
 
 
-	sellPrice_max_dpp = sellPrice_max_dp(dp_price2);
+	sellPrice_max_dpp = sellPrice_max_dp2(dp_amount2);
 
-	nozzle_bit = 1;  stop_fueling_bit = 0;
+	nozzle_bit2 = 1;  stop_fueling_bit2 = 0;
 
     pump_status_2 = STATUS_AUTH;
     pump2_status_4G = STATUS_AUTHORIZED_NOZZLE_UP;
@@ -8401,15 +8122,15 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 				{
 					  sellPrice_max_pump = (litre_price2 * pump_max_litres2);
 
-					  if( (key_value2 > sellPrice_max_pump) || (key_value2 > sellPrice_max_dpp) || (key_value2 < half_litre2) )
+					  if( (key_value2 > sellPrice_max_pump) || (key_value2 > sellPrice_max_dpp) ) // || (key_value2 < half_litre2) )
 					  {
-						  if(key_value2 < half_litre2)
-						  {
-//							 nonValid_sale2 = 1;
-							 nonValid_sale2 = 0;
-							 return idle_State;
-						  }
-						  else if(sellPrice_max_pump < sellPrice_max_dpp)
+//						  if(key_value2 < half_litre2)
+//						  {
+////							 nonValid_sale2 = 1;
+//							 nonValid_sale2 = 0;
+//							 return idle_State;
+//						  }
+						  if(sellPrice_max_pump < sellPrice_max_dpp)
 						  {
 							  key_value2 = sellPrice_max_pump;
 							  pump_LitreOverflow2 = 1;
@@ -8420,20 +8141,21 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 							  display_overflow2 = 1;
 						  }
 					  }
+
 					  target_pulser2 = price2pulser2(key_value2);  //calculate pulse frm price.
 
 				}
 				else  //amt was selected.
 				{
-					if( (key_value2 > pump_max_litres2) || (key_value2 > sellPrice_max_dpp) || (key_value2 < 0.5) )
+					if( (key_value2 > pump_max_litres2) || (key_value2 > sellPrice_max_dpp) )  //|| (key_value2 < 0.5) )
 					{
-						 if(key_value2 < 0.5)
-						 {
-//							 nonValid_sale2 = 1;
-							 nonValid_sale2 = 0;
-							 return idle_State;
-						 }
-						 else if(pump_max_litres2 < sellPrice_max_dpp)
+//						 if(key_value2 < 0.5)
+//						 {
+////							 nonValid_sale2 = 1;
+//							 nonValid_sale2 = 0;
+//							 return idle_State;
+//						 }
+						 if(pump_max_litres2 < sellPrice_max_dpp)
 						 {
 							  key_value2 = pump_max_litres2;
 							  pump_LitreOverflow2 = 1;
@@ -8570,15 +8292,15 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 				{
 					  sellPrice_max_pump = (litre_price2 * pump_max_litres2);
 
-					  if( (key_value2 > sellPrice_max_pump) || (key_value2 > sellPrice_max_dpp) || (key_value2 < half_litre2) )
+					  if( (key_value2 > sellPrice_max_pump) || (key_value2 > sellPrice_max_dpp) )  //|| (key_value2 < half_litre2) )
 					  {
-						  if(key_value2 < half_litre2)
-						  {
-//							 nonValid_sale2 = 1;
-							 nonValid_sale2 = 0;
-							 return idle_State;
-						  }
-						  else if (sellPrice_max_pump < sellPrice_max_dpp)
+//						  if(key_value2 < half_litre2)
+//						  {
+////							 nonValid_sale2 = 1;
+//							 nonValid_sale2 = 0;
+//							 return idle_State;
+//						  }
+						  if (sellPrice_max_pump < sellPrice_max_dpp)
 						  {
 							  key_value2 = sellPrice_max_pump;
 							  pump_LitreOverflow2 = 1;
@@ -8596,15 +8318,15 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 				}
 				else  //amt was selected.
 				{
-					if( (key_value2 > pump_max_litres1) || (key_value2 > sellPrice_max_dpp) || (key_value2 < 0.5) )
+					if( (key_value2 > pump_max_litres1) || (key_value2 > sellPrice_max_dpp) ) //|| (key_value2 < 0.5) )
 					  {
-						  if(key_value2 < 0.5)
-						  {
-//							 nonValid_sale2 = 1;
-							 nonValid_sale2 = 0;
-							 return idle_State;
-						  }
-						  else if(pump_max_litres2 < sellPrice_max_dpp)
+//						  if(key_value2 < 0.5)
+//						  {
+////							 nonValid_sale2 = 1;
+//							 nonValid_sale2 = 0;
+//							 return idle_State;
+//						  }
+						  if(pump_max_litres2 < sellPrice_max_dpp)
 						  {
 								key_value2 = pump_max_litres2;
 								pump_LitreOverflow2 = 1;
@@ -8809,6 +8531,877 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 
 	return authorised_nozzleup_State;
 }
+
+
+eSystemState filling_State_Handler2(void)
+{
+	//extern uint32_t pulser_new;
+	float temp = 0.0;
+
+	static int8_t flow_flag = 1;
+
+	static int32_t current_pulser_ = 0,
+						   old_pulser_ = 0;
+
+	pump2_status_4G = STATUS_FILLING_;
+
+	lock_clr2 = 0;
+	filling2  = 1;
+
+	firstTime_nozz2 = 1;
+
+	  if(target_pulser2 > 0)
+		{
+		 //	pulser_rem1 = target_pulser1 - current_pulser1; //now handled in
+														 //interrupt
+		}
+
+//================================================================
+#if !defined (DEV_MODE)
+		if(batteryStatus == NOBATTERY)
+		{
+			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+			  HAL_Delay(200);
+			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+			  filling2 = 0;
+			  stop_flow2();
+			  get_time();
+			  do_calcs2();
+			  update_info();
+			  save_volumeTotaliser(operating_side);
+			  save_amountTotaliser(operating_side);
+			  save_lastSale(operating_side);
+
+
+			  if(settings_stream1[1].mode == AUTO_MODE)
+			  {
+				 //////////////////////////////////////////////////////////////
+
+				 hardwareErrorFlag_source2 = 1;
+
+				 //////////////////////////////////////////////////////////////
+			  }
+
+			  return write_flash_State;
+		}
+
+//    power outage during filling1  end transaction...
+		#if sense_power == 1
+	  	  if(  (readpwr() == 0)||(read_p_pwr() == 0) )
+		  {
+			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+			  HAL_Delay(200);
+			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+			  filling2 = 0;
+			  stop_flow2();
+			  get_time();
+			  do_calcs2();
+			  update_info();
+			  save_volumeTotaliser(operating_side);
+			  save_amountTotaliser(operating_side);
+			  save_lastSale(operating_side);
+
+			  if(settings_stream1[1].mode == AUTO_MODE)
+			  {
+				 //////////////////////////////////////////////////////////////
+
+				 hardwareErrorFlag_source2 = 1;
+
+				 //////////////////////////////////////////////////////////////
+			  }
+
+			  return write_flash_State;
+		  }
+		#endif
+
+	if(HAL_GPIO_ReadPin(pulser2_detect_GPIO_Port, pulser2_detect_Pin) == 1 )
+	{
+		 HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+		  HAL_Delay(200);
+		  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+		  filling2 = 0;
+		  stop_flow2();
+		  get_time();
+		  do_calcs2();
+		  update_info();
+		  save_volumeTotaliser(operating_side);
+		  save_amountTotaliser(operating_side);
+		  save_lastSale(operating_side);
+
+		  if(settings_stream1[1].mode == AUTO_MODE)
+		  {
+			 //////////////////////////////////////////////////////////////
+
+			 hardwareErrorFlag_source2 = 1;
+
+			 //////////////////////////////////////////////////////////////
+		  }
+
+		  return write_flash_State;
+	}
+
+#endif   //#if !defined (DEV_MODE)
+
+	if (stop_flag2 == 1)   //if stop key pressed
+	{
+		filling2 = 0;
+		stop_flag2 = 0;
+		stop_flow2(); //send_solenoid(1);  //stop solenoid.
+		get_time();
+        do_calcs2();
+        update_info();
+        save_volumeTotaliser(operating_side);
+        save_amountTotaliser(operating_side);
+        save_lastSale(operating_side);
+
+      //--------------------------------------------------------
+		dpFlag2 = 0;
+		error_clr_flag2 = 1;
+		 index_2 = 0;
+		 _index2 = 0;
+		 for(int i = 0; i < 9; i++)
+		 {
+		   keypad_pw_xter2[i] = 0;
+		   keyboard_entry2[i] = 0;   //clear the buffer
+		 }
+
+		 for(int i = 0; i <= 8; i++)
+		 {
+			 keyboard2[i] = 0;
+		 }
+		 //--------------------------------------------------------------------
+		 if (sellmode2 == P)
+		 {
+			  write_v2(3, "P     0");  //send_keypad("p    ");  //5 xters  lafeng..
+		 }
+		 else if(sellmode2 == L)
+		 {
+			  write_v2(3, "L     0");  //send_keypad("l    ");  //5 xters lafeng
+		 }
+	//	 else if(sellmode2 == V)
+	//	 {
+	//		  write_v2(3, "v    0");  //send_keypad("p    ");  //5 xters  lafeng..
+	//	 }
+		 send_keypad2(keyboard2);
+
+	//--------------------------------------------------------------------
+
+		 if(settings_stream1[1].mode == AUTO_MODE)
+		 {
+			 //////////////////////////////////////////////////////////////
+			 ///////// SIGNALS GO-CONTROLLER ABOUT NOZZLE STATUS //////////
+
+			 status_change_noz2 = 1;
+			 nozzle_out2 = false;
+
+			 stopFlag_source2 = 1;
+
+			 //////////////////////////////////////////////////////////////
+		 }
+
+       return write_flash_State;
+	}
+
+	if(litre_price2 == 0)
+		{
+			stop_flow2(); //send_solenoid(1);  //stop solenoid.
+			filling2 = 0;
+			do_calcs2();
+			get_time();
+			update_info();
+			save_volumeTotaliser(operating_side);
+			save_amountTotaliser(operating_side);
+			save_lastSale(operating_side);
+			_litre_price2 = 1;
+
+			if(settings_stream1[1].mode == AUTO_MODE)
+			  {
+				 //////////////////////////////////////////////////////////////
+
+				 hardwareErrorFlag_source2 = 1;
+
+				 //////////////////////////////////////////////////////////////
+			  }
+
+			return write_flash_State;
+		}
+
+		else if(pump_max_litres2 == 0)
+		{
+			stop_flow2(); //send_solenoid(1);  //stop solenoid.
+			filling2 = 0;
+			do_calcs2();
+			get_time();
+			update_info();
+			save_volumeTotaliser(operating_side);
+			save_amountTotaliser(operating_side);
+			save_lastSale(operating_side);
+			_pump_max_litres2 = 1;
+
+			if(settings_stream1[1].mode == AUTO_MODE)
+			  {
+				 //////////////////////////////////////////////////////////////
+
+				 hardwareErrorFlag_source2 = 1;
+
+				 //////////////////////////////////////////////////////////////
+			  }
+
+			return write_flash_State;
+		}
+
+//======================== @ filling1 =============================
+	  // get_time2();
+	   temp = pulser2amt2(current_pulser2);
+	   amt2 = dp2(temp, dp_vol2);
+
+	   temp = amt2price2(amt2);
+	   price2 = dp2(temp, dp_amount2);
+
+	   //		temp = pulser2amt2_R(current_pulser2);
+//		amt_real2 = dp2(temp,dp_amount2);
+//
+//		temp = amt2price2(amt2);
+//		price_real2 = dp2(temp,dp_price2);
+
+	    make_string2(P, dp2(price2, dp_amount2));
+	    make_string2(L, dp2(amt2, dp_vol2));
+	    //send_line22(upper1);
+	    //send_line22(middle1);
+
+//	    amt_middle2 = atof(middle2);
+//	    amt_middle2 += 0.00011;
+//
+//		price_upper2 = atof(upper2);
+//		price_upper2 += 0.00011;
+
+		running_volTotaliser2 = working_volTotaliser2   + amt_real2;
+//	   	  running_volTotaliser2c = working_volTotaliser2c + amt2;
+
+		running_volTotaliser2c = working_volTotaliser2c + amt_middle2;
+
+		running_amtTotaliser2  = working_amtTotaliser2  + price_real2;
+//		  running_amtTotaliser2c = working_amtTotaliser2c + price2;
+
+		running_amtTotaliser2c = working_amtTotaliser2c + price_upper2;
+
+		   float pricecheck = running_amtTotaliser2c - priceOld2;
+
+		   if (pricecheck >= 1000.00)
+		   {
+			   priceOld2 = running_amtTotaliser2c;
+			   save_amountSend(side_b);
+
+			   char str[65];
+			   sprintf(str, "[Side-B]... #%0.2f intermittent worth of sales made now!", pricecheck);
+			   server_write(str);
+		   }
+
+
+//	    running_volTotaliser2  = working_volTotaliser2  + amt_real2;
+//	   	running_volTotaliser2c = working_volTotaliser2c + amt2;
+//
+//
+//	    running_amtTotaliser2  = working_amtTotaliser2  + price_real2;
+//	   	running_amtTotaliser2c = working_amtTotaliser2c + price2;
+
+//============================================================
+//         for totaliser toggle.
+	  r_volTotaliser2 	  = floor( running_volTotaliser2c );
+
+//	  r_amtTotaliser2 	  = floor(running_amtTotaliser2c);
+//
+//	if(r_volTotaliser2 != old_r_volTotaliser2)
+//		{
+//			totalizer2Timer = 0;
+//			//then toggle the totaliser harware I/O.
+//			drive_totaliser2(ACTIVATE);
+//		}
+//	else
+//	{
+//		if(totalizer2Timer > 300)
+//		{
+//			//deactivate totaliser output...
+//			drive_totaliser2(DEACTIVATE);
+//		}
+//
+//	}
+//	  old_r_volTotaliser2 = r_volTotaliser2;   //update...
+//
+//	  old_r_amtTotaliser2 = r_amtTotaliser2;   //update...
+
+//============================================================
+	  if (t2 > LCD_UPDATE_RATE)
+	  {
+		  if(settings_stream1[1].display_mode == PL)
+		  {
+			 send_line12(upper2);
+			 send_line22(middle2);
+		  }
+		  else if(settings_stream1[1].display_mode == LP)
+		  {
+			  send_line12(middle2);
+			  send_line22(upper2);
+		  }
+			char str__[8]= {0};
+			snprintf(str__, sizeof(str_2), "%.2f", litre_price2);
+			send_line32(str__);
+			t2 = 0;
+		  }
+	  reset_timer2(timeout_dispense); //don't time out.
+//==========================pulser capture ============================
+#if (_USE_SOFT_PULSER == 1)
+	 // if ( (t > 50)&&(t < 200) )
+	 //  			{
+	 //  	    	   current_pulser1++;   //transfer this to the interrupt routine..
+	 //  			}
+#else
+	       current_pulser2 = __HAL_TIM_GET_COUNTER(&htim2);
+#endif
+//======================================================================
+	   if(target_pulser2 > 0)
+		{
+			//pulser_rem1 = target_pulser1 - current_pulser1;
+		}
+
+	 if(target_pulser2 > 0)
+       {
+		  if (pulser_rem2 <= 0 || pulser_complete2 == 1 )  //sales complete...
+		  	 {
+				stop_flow2(); //send_solenoid(1);  //stop solenoid.
+				filling2 = 0;
+		        do_calcs2();
+		    	get_time();
+		        update_info();
+		        save_volumeTotaliser(operating_side);
+		        save_amountTotaliser(operating_side);
+		        save_lastSale(operating_side);
+
+		        pump_status_2 = STATUS_MAMO_REACHED;
+
+				if(settings_stream1[1].mode == AUTO_MODE)
+				{
+					mamo_reached_flag2_1 = 1;
+				}
+
+		        return write_flash_State;
+		  	 }
+		  else
+		  {
+			//  slow_flow1();
+			  if (pulser_rem2 >= slowFlow_endThreshold2)
+			  {
+				    if(current_pulser2 >= slowFlow_startThreshold2)
+					{
+						fast_flow2();
+						fastFlow2 = 1;
+					}
+					else
+					{
+						slow_flow2();
+						fastFlow2 = 0;
+					}
+			  }
+			  else
+			  {
+				  slow_flow2();
+				  fastFlow2 = 0;
+			  }
+		  }
+       }
+
+	   if(flow_flag == 1)
+	   {
+			_tt2 = 0;
+	   }
+	   else if( (_tt2 > 60000) && (flow_flag == 2) )
+	   {
+			old_pulser_ = current_pulser2;
+			flow_flag = 3;
+	   }
+	   else if( (_tt2 > 65000) && (flow_flag == 3) )
+	   {
+			if(old_pulser_ > current_pulser2)
+			{
+				current_pulser2 = old_pulser_ ;
+				flow_loss2 = 1;
+				filling2 = 0,  nozzle_bit2 = 0;
+				stop_flag2 = 0;
+				stop_flow2(); //send_solenoid(1);  //stop solenoid.
+				get_time();
+				do_calcs2();
+				update_info();
+				save_volumeTotaliser(operating_side);
+				save_amountTotaliser(operating_side);
+				save_lastSale(operating_side);
+
+				if(settings_stream1[1].mode == AUTO_MODE)
+				  {
+					 //////////////////////////////////////////////////////////////
+
+					 hardwareErrorFlag_source2 = 1;
+
+					 //////////////////////////////////////////////////////////////
+				  }
+
+				return write_flash_State;
+			}
+			flow_flag = 1;
+		}
+
+	   return filling_State;
+}
+
+
+
+//-------------------------------------
+eSystemState keyup_Handler2(void)
+{
+	progg2 = 1;
+	copy_settings(move_to_copy);	//make a copy of the settings								//to be used in the prog.
+	clear_buffer2();
+	return prog_State;
+}
+//-------------------------------------
+eSystemState inactiveState_Handler2(void)
+{
+    //error_state = 1;
+		  // All errors land here....
+		  // Only the CLEAR  key returns pump from this state....
+          // key reception is done in the key_entry handler..
+
+	return inactive_State;
+}
+//--------------------------------------
+eSystemState savesettings_State_Handler2(void)
+{
+   static int sav = 0;
+   int respons = 0;
+   //====================================================
+	if (sav == 0)
+		{
+		  if(t2 > 500)
+		   {
+			  send_line12("1-  Saue");
+			  send_line22("2-Cancel");
+			  t2 = 0;
+		   }
+		  respons = atoi(keyboard_entry2);
+        //------------------------------------------------
+		  if(respons == 1)   //save settings
+		  {
+			 sav = 1;
+			 return savesettings_State;
+		  }
+		  if(respons == 2)  //delete settings don't save.
+		  {
+		   sav = 2;
+		   return savesettings_State;
+		  }
+		 //------------------------------------------------
+		   return savesettings_State;
+		}
+   //=======================================
+	if (sav == 1)
+		{
+		 	send_line12(" Sauing ");
+		 	send_line22("Settings");
+
+		 	copy_settings(move_to_settings0);
+		 	save_settings0();
+
+			configMode2 = CONFIGMODIFIED;
+			save_configFlag(side_b);
+
+	    	copy_settings(move_to_settings); // copy the structure.
+	    	save_settings();   //save to eeprom
+	    	load_settings(side_b); //load the settings into the
+	        load_settings(side_a); // internal variables
+	    	HAL_Delay(1500);
+
+	    	send_line12("  Done  ");
+	    	send_line12("        ");
+	        sav = 0;
+			progg2 = 0;
+			auth2 = not_auth;
+			clear_buffer2();
+			return idle_State;
+		}
+	//=======================================
+	if (sav == 2)
+	{
+		 sav = 0;
+		 progg2 = 0;
+		 auth2 = not_auth;
+		 //clear keyboard buffers.
+		 clear_buffer2();
+
+		 if(settings_stream1[1].display_mode == PL)
+		 {
+			 send_line12(upper2);
+			 send_line22(middle2);
+		 }
+		 else if(settings_stream1[1].display_mode == LP)
+		 {
+			  send_line12(middle2);
+			  send_line22(upper2);
+		 }
+
+		 char str__[8]= {0};
+		 snprintf(str__, sizeof(str__), "%.2f", litre_price2);
+		 send_line32(str__);
+
+       return idle_State;
+	}
+	//========================================
+	return savesettings_State;    //idle_State;  //return to idle mode
+}
+//--------------------------------------
+eSystemState keydown_Handler2(void)
+{
+	clear_buffer2();
+	prog_entry2 = 0;
+	prog_revisit2 = 1;
+
+#ifndef DEV_MODE
+	prog_revisitt2 = 1;
+#endif //#ifndef DEV_MODE
+
+	 return savesettings_State;   //
+}
+
+//-----------------------------------
+eSystemState nozzleup_Handler2(void)
+{
+	pump2_status_4G = STATUS_NOZZLE_UP;
+
+	reset_timer2(timeout_picknozzle);
+	start_timer2(timeout_picknozzle);
+
+	//set the motor on and solenoid off.
+	get_auth2();
+
+	if(opmode2 == AUTO_MODE)
+	{
+		 nozzle_out2 = true;
+		 status_change_noz2 = 1;
+
+		 if(pump_status_2 == STATUS_FILLING_COMP)
+		 {
+			 return idle_State;
+		 }
+	}
+
+	send_line12("88888888");
+	send_line22("88888888");
+	send_line32("888888");
+//	send_line32("      ");
+
+
+//	send_solenoid(0);
+//	send_pump(1);      //turn on pump.
+
+	if (eLastState2 == authorised_nozzledown_State)
+		{
+		     current_pulser2 = 0;
+			 clr_pulser2();    //clear hardware pulser
+		    return authorised_nozzleup_State;
+		}
+
+	return nozzleup_waitingforauth_State;
+}
+//-------------
+eSystemState auth_command_Handler2(void)
+{
+	  reset_timer2( timeout_picknozzle);
+	  start_timer2( timeout_picknozzle);
+    //-----------------------------------
+	  if(opmode2 == MANUAL_MODE)
+	  {
+		  //check if any keypad entry
+		 if(index_2 >= 1)
+		  {
+              key_value2 = atof(keyboard_entry2);
+		  }
+
+		  // auth_cmd_flag = 1;
+	  }
+	  else
+	  {
+//		  change_p = 1;
+//		  auth_p = 500.8;
+
+//		  change_v = 1;
+//		  auth_v = 2.3;
+
+//		  set_p = 167.00;
+//		  change_price_flag = 1;
+
+		  if(change_price_flag == 1)
+		  {
+				setUnitPrice();
+				return idle_State;
+		  }
+
+		  // AUTO Mode
+		  //authorise price...
+		  if (change_p2 == 1)
+			  sellmode2 = P;      //set sell type to price
+		 //-----------------------------------------
+		  //authorise volume...
+		  else if (change_v2 == 1)
+			  sellmode2 = L;      //set sell type to litre
+		 //-----------------------------------------
+	  }
+    // GO can also send this command.
+  return authorised_nozzledown_State;
+}
+
+//-------------
+
+
+//----------------
+eSystemState authorise_Handler2(void)
+{
+	reset_timer2(timeout_picknozzle);
+	start_timer2(timeout_picknozzle);
+
+//initialise the fuel and price variables
+ price2  = 0.0;
+ amt2 = 0.0;
+
+ target_pulser2 = 0;  //state is coming from nozzleup ,no price/amt set
+
+ pump_status_2 = STATUS_AUTH;
+ status_change_pump2 = 1;
+
+ clr_pulser2();    //clear hardware pulser
+ current_pulser2 = 0;
+
+// int cnv = 0;
+// snprintf(str_, sizeof(str_), "%.2f", price); send_line22(str_);
+// snprintf(str_, sizeof(str_), "%.2f", amt);   send_line22(str_);
+
+ send_line12("--auth2--");
+ send_line22("        ");
+ char str__[8]= {0};
+ snprintf(str__, sizeof(str__), "%.2f", litre_price2); send_line22(str__);
+
+ return authorised_nozzleup_State;
+}
+
+//---------------
+eSystemState authorised_nozzledown_State_Handler2(void)
+{
+	nozzle_bit2 = 0;
+	pump2_status_4G = STATUS_AUTHORIZED_NOZZLE_DOWN;
+
+	 //initialise the fuel and price variables
+
+	    if(index_2 >= 1)
+		  {
+			  key_value2 = atof(keyboard_entry2);
+		  }
+		 else
+		 {
+			  key_value2 = 0.0;
+		 }
+
+	    //initialise the fuel and price variables
+	      if (sellmode2 == P)
+	    	{
+			  target_pulser2 = price2pulser(key_value2);  //calculate pulse frm price.
+	    	}
+	      else  //amt was selected.
+	      {
+	    	  target_pulser2 = amt2pulser(key_value2);   //calculate pulse frm amt.
+	      }
+
+	  price2  = 0.0;
+	  amt2 = 0.0;
+
+	  current_pulser2 = 0;
+
+   if(t2 > 300)
+   {
+	  send_line12(" Pic    ");
+	  send_line22("No22le  ");
+	  char str__[8]= {0};
+	  snprintf(str__, sizeof(str__), "%.2f", litre_price2); send_line32(str__);
+      t2 = 0;
+   }
+
+	if (display_overflow2 == 1)
+	{
+		display_overflow2 = 0;
+		firstTime_display_overflow2 = 0;
+	}
+
+	return authorised_nozzledown_State;
+}
+
+
+//----------------------
+uint32_t price2pulser2(float price2)
+{
+//  float temp = (price2 / litre_price2) *  pulser_index_c2;
+//
+//  temp -= 0.004;
+//
+//  original_pulse2 = temp;
+
+  float temp = (price2 / litre_price2);
+//  temp -= 0.01;
+
+  temp -= 0.004;
+
+  temp *= pulser_index_c2;
+
+  original_pulse2 = temp;
+
+  //temp = floor(temp);
+  return  floor(temp );
+}
+
+uint32_t amt2pulser2(float amt)
+{
+	 float temp;
+
+	 amt -= 0.004;
+
+	 temp = amt * pulser_index_c2;
+	 original_pulse2 = temp;
+	 return  floor(temp );
+}
+
+float pulser2price2(uint32_t pulse_)
+{
+	 float temp = litre_price2 * (1.0/pulser_index_c2);
+	 temp  = temp * (float) pulse_;
+	 return (temp );
+}
+
+float amt2price2(float amt_)
+{
+	 float temp = litre_price2 * amt_;
+	 return (temp );
+}
+
+float pulser2amt2(uint32_t pulse_)
+{
+	 float temp = (float)pulse_ * (1.0/pulser_index_c2);
+	 return (temp );
+}
+
+float pulser2amt_R2(uint32_t pulse_)
+{
+	 float temp = pulse_ * (1.0/pulser_index2);
+	 //temp  = temp * (float) pulse_;
+	 return ( temp );
+}
+//---------------------------------------------------
+void make_string2(sellmode_ sll,float pr)
+{
+	int8_t tmp = 1,
+		   ind = 0;
+
+	char temp[10] = {0};
+	char ttmp[10] = {0};
+
+	 if (sll == L)
+	 {
+		 if (dp_vol2 == 1)
+		     snprintf(temp , sizeof(temp), "%.1f", pr);
+		 else if (dp_vol2 == 2)
+			 snprintf(temp , sizeof(temp), "%.2f", pr);
+		 else if (dp_vol2 == 3)
+		 	 snprintf(temp , sizeof(temp), "%.3f", pr);
+
+		 amt_middle2 = atof(temp);
+		 amt_middle2 += 0.00011;
+
+		 if(pr < display_minimumCentilitre2)   // 9 centilitres
+		 {
+			 pr = 0.00;
+			 if (dp_vol2 == 1)
+				 snprintf(temp , sizeof(temp), "%.1f", pr);
+			 else if (dp_vol2 == 2)
+				 snprintf(temp , sizeof(temp), "%.2f", pr);
+			 else if (dp_vol2 == 3)
+				 snprintf(temp , sizeof(temp), "%.3f", pr);
+		 }
+	 }
+
+	 if (sll == P)
+		 {
+			 if (dp_amount2 == 1)
+			     snprintf(temp , sizeof(temp), "%.1f", pr);
+			 else if (dp_amount2 == 2)
+				 snprintf(temp , sizeof(temp), "%.2f", pr);
+			 else if (dp_amount2 == 3)
+			 	 snprintf(temp , sizeof(temp), "%.3f", pr);
+
+			price_upper2 = atof(temp);
+			price_upper2 += 0.00011;
+
+			if(pr < display_minimumCentilitrePrice2)   // 9 centilitres
+			{
+				pr = 0.00;
+				if (dp_amount2 == 1)
+					 snprintf(temp , sizeof(temp), "%.1f", pr);
+				else if (dp_amount2 == 2)
+					 snprintf(temp , sizeof(temp), "%.2f", pr);
+				else if (dp_amount2 == 3)
+					 snprintf(temp , sizeof(temp), "%.3f", pr);
+			}
+
+		 }
+
+	int index__ = 0;
+		while (tmp != 0)
+		{
+			tmp = temp[index__++];
+		}
+
+	int space = 9 - index__;
+
+	if(eNextState2 == filling_State)
+	{
+		ind = 0;
+		space += 1;
+	}
+	else
+		ind = 1;
+
+	 //--------------------------
+		  if (sll == L)
+				ttmp[0] = 'l';
+		  else
+				ttmp[0] = 'p';
+	 //--------------------------
+		while (space > 0) //write spaces first..
+		{
+		   ttmp[ind++] = ' ';
+		   space--;
+		}
+	  space = index__;  //reload with len of actual number
+	   while(space > 0)
+		 {
+			 ttmp[ind++] = temp[index__ - space];
+			 space--;
+		 }
+    //-----------------------------------------------------
+		 for (int i = 0 ; i < 10 ; i++)
+		   {
+				if (sll == P)
+					upper2[i] = ttmp[i];
+				else
+					middle2[i] = ttmp[i];
+		   }
+     int t2 = 0;
+}
+
+//---------------------------------------------------
 
 
 
@@ -9120,7 +9713,11 @@ eSystemState resume_Handler2(void)
 //--------------
 eSystemState filling_pulse_Handler2(void)
 {
-    //initialise the solenoid and motor...
+	pump_status_2 = STATUS_FILLING;
+
+	status_change_pump2 = 1;
+
+		//initialise the solenoid and motor...
 	if(settings_stream1[1].display_mode == PL)
 	  {
 		 send_line12(upper2);
@@ -9134,6 +9731,7 @@ eSystemState filling_pulse_Handler2(void)
 	char str__[10]= {0};
 		snprintf(str__, sizeof(str__), "%.2f", litre_price2);
 		send_line32(str__);
+
 	return filling_State;   //filling_paused_State;
 }
 
@@ -9152,7 +9750,7 @@ eSystemState filling_paused_Handler2(void)
 }
 
 //--------------
-eSystemState filling_paused_State_Handle2r(void)
+eSystemState filling_paused_State_Handler2(void)
 {
        return filling_paused_State;
 }
@@ -9168,7 +9766,7 @@ eSystemState filling_resumed_Handler2(void)
 eSystemState nozzledown_Handler2(void)
 {
 	filling2 = 0;
-	nozzle_bit = 0;
+	nozzle_bit2 = 0;
 	stop_flow2();
 
 	pump2_status_4G = STATUS_NOZZLE_DOWN;
@@ -9259,7 +9857,7 @@ eSystemState nozzledown_Handler2(void)
 	  //             saving to the log
 	  if(eNextState2 == filling_State)
 	  {
-		  stop_fueling_bit = 0;
+		  stop_fueling_bit2 = 0;
 
 		  //===========================================================
 		  //         for totaliser toggle.
@@ -9307,21 +9905,43 @@ eSystemState nozzledown_Handler2(void)
 
 		 //============================================================
 
+			if(settings_stream1[1].mode == AUTO_MODE)
+			{
 
-		  return  write_flash_State;
-	  }
+				 if( (pump_status_2 == STATUS_FILLING) || (pump_status_2 == STATUS_MAMO_REACHED) )
+				 {
 
-  //-------------------------------------------
-    return idle_State;
+				 }
+
+				 //////////////////////////////////////////////////////////////
+				 ///////// SIGNALS GO-CONTROLLER ABOUT NOZZLE STATUS //////////
+
+				 status_change_noz2 = 1;
+				 nozzle_out2 = false;
+
+				 nozzleDown_source2 = 1;
+
+				 //////////////////////////////////////////////////////////////
+
+			}
+
+			return  write_flash_State;
+		 }
+
+	  //-------------------------------------------
+
+		  pump_status_2 = STATUS_FILLING_COMP;
+
+	      return idle_State;
 }
 
 //----------------------------------------
 eSystemState timeout_Handler2(void)
 {
-	 if(eLastState1 != authorised_nozzleup_State)
+	 if(eLastState2 != authorised_nozzleup_State)
 	 {
 		 send_line12(" t out  ");
-		 //send_line22("--------");
+		 send_line22("--------");
 
 		 if( ((pump_LitreOverflow2 == 1) && (pulser_rem2 > 0 )) || ((display_overflow2 == 1) && (pulser_rem2 > 0 )) )
 		 {
@@ -9339,28 +9959,28 @@ eSystemState timeout_Handler2(void)
 	  // send_line32("-----");
 
 	  //compose the kind of timeout error
-	  else if(eLastState1 == nozzleup_waitingforauth_State)
+	  else if(eLastState2 == nozzleup_waitingforauth_State)
 	  {
 		 send_line32("Err1 ");
 		 nozzleup_awaitingauth_state_not_timedOut2 = 0;
 	  }
 
-	  else if(eLastState1 == authorised_nozzledown_State)
+	  else if(eLastState2 == authorised_nozzledown_State)
 	  {
 		 send_line32("Err2 ");
 	  }
 
-	  else if(eLastState1 == authorisation_paused_State)
+	  else if(eLastState2 == authorisation_paused_State)
 	  {
 		 send_line32("Err3 ");
 	  }
 
-	  else if(eLastState1 == filling_paused_State)
+	  else if(eLastState2 == filling_paused_State)
 	  {
 		 send_line32("Err4 ");
 	  }
 
-	  else if(eLastState1 == authorised_nozzleup_State)
+	  else if(eLastState2 == authorised_nozzleup_State)
 	  {
 		 if( ((pump_LitreOverflow2 == 1) && (pulser_rem2 > 0 )) || ((display_overflow2 == 1) && (pulser_rem2 > 0 )) )
 		 {
@@ -9374,6 +9994,9 @@ eSystemState timeout_Handler2(void)
 		 send_line22("  Flouu ");
 		 send_line32("Err15 ");
 	 }
+
+	 pump_status_2 = STATUS_FILLING_COMP;
+
 	 return inactive_State;
 }
 
@@ -9829,340 +10452,6 @@ eSystemState keypad_entry_State_Handler2(void)
 }
 
 //----------------------------------------
-eSystemState filling_state_Handler2(void)
-{
-	//extern uint32_t pulser_new;
-	float temp = 0.0;
-
-	static int8_t flow_flag = 1;
-
-	static int32_t current_pulser_ = 0,
-						   old_pulser_ = 0;
-
-	pump2_status_4G = STATUS_FILLING_;
-
-	lock_clr2 = 0;
-	filling2  = 1;
-
-	firstTime_nozz2 = 1;
-
-	  if(target_pulser2 > 0)
-		{
-		 //	pulser_rem1 = target_pulser1 - current_pulser1; //now handled in
-														 //interrupt
-		}
-
-//================================================================
-
-		if(batteryStatus == NOBATTERY)
-		{
-			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-			  HAL_Delay(200);
-			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
-			  filling2 = 0;
-			  stop_flow2();
-			  get_time();
-			  do_calcs2();
-			  update_info();
-			  save_volumeTotaliser(operating_side);
-			  save_amountTotaliser(operating_side);
-			  save_lastSale(operating_side);
-			  return write_flash_State;
-		}
-
-//    power outage during filling1  end transaction...
-		#if sense_power == 1
-	  	  if(  (readpwr() == 0)||(read_p_pwr() == 0) )
-		  {
-			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-			  HAL_Delay(200);
-			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
-			  filling2 = 0;
-			  stop_flow2();
-			  get_time();
-			  do_calcs2();
-			  update_info();
-			  save_volumeTotaliser(operating_side);
-			  save_amountTotaliser(operating_side);
-			  save_lastSale(operating_side);
-			  return write_flash_State;
-		  }
-		#endif
-
-	if(HAL_GPIO_ReadPin(pulser2_detect_GPIO_Port, pulser2_detect_Pin) == 1 )
-	{
-		 HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-		  HAL_Delay(200);
-		  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
-		  filling2 = 0;
-		  stop_flow2();
-		  get_time();
-		  do_calcs2();
-		  update_info();
-		  save_volumeTotaliser(operating_side);
-		  save_amountTotaliser(operating_side);
-		  save_lastSale(operating_side);
-		  return write_flash_State;
-	}
-
-	if (stop_flag2 == 1)   //if stop key pressed
-	{
-		filling2 = 0;
-		stop_flag2 = 0;
-		stop_flow2(); //send_solenoid(1);  //stop solenoid.
-		get_time();
-        do_calcs2();
-        update_info();
-        save_volumeTotaliser(operating_side);
-        save_amountTotaliser(operating_side);
-        save_lastSale(operating_side);
-
-      //--------------------------------------------------------
-		dpFlag2 = 0;
-		error_clr_flag2 = 1;
-		 index_2 = 0;
-		 _index2 = 0;
-		 for(int i = 0; i < 9; i++)
-		 {
-		   keypad_pw_xter2[i] = 0;
-		   keyboard_entry2[i] = 0;   //clear the buffer
-		 }
-
-		 for(int i = 0; i <= 8; i++)
-		 {
-			 keyboard2[i] = 0;
-		 }
-		 //--------------------------------------------------------------------
-		 if (sellmode2 == P)
-		 {
-			  write_v2(3, "P     0");  //send_keypad("p    ");  //5 xters  lafeng..
-		 }
-		 else if(sellmode2 == L)
-		 {
-			  write_v2(3, "L     0");  //send_keypad("l    ");  //5 xters lafeng
-		 }
-	//	 else if(sellmode2 == V)
-	//	 {
-	//		  write_v2(3, "v    0");  //send_keypad("p    ");  //5 xters  lafeng..
-	//	 }
-		 send_keypad2(keyboard2);
-
-	//--------------------------------------------------------------------
-
-       return write_flash_State;
-	}
-
-	if(litre_price2 == 0)
-		{
-			stop_flow2(); //send_solenoid(1);  //stop solenoid.
-			filling2 = 0;
-			do_calcs2();
-			get_time();
-			update_info();
-			save_volumeTotaliser(operating_side);
-			save_amountTotaliser(operating_side);
-			save_lastSale(operating_side);
-			_litre_price2 = 1;
-			return write_flash_State;
-		}
-		else if(pump_max_litres2 == 0)
-		{
-			stop_flow2(); //send_solenoid(1);  //stop solenoid.
-			filling2 = 0;
-			do_calcs2();
-			get_time();
-			update_info();
-			save_volumeTotaliser(operating_side);
-			save_amountTotaliser(operating_side);
-			save_lastSale(operating_side);
-			_pump_max_litres2 = 1;
-			return write_flash_State;
-		}
-
-//======================== @ filling1 =============================
-	  // get_time2();
-	   temp = pulser2amt2(current_pulser2);
-	   amt2 = dp2(temp,dp_amount2);
-
-	   temp = amt2price2(amt2);
-	   price2 = dp2(temp,dp_price2);
-
-	   //		temp = pulser2amt2_R(current_pulser2);
-//		amt_real2 = dp2(temp,dp_amount2);
-//
-//		temp = amt2price2(amt2);
-//		price_real2 = dp2(temp,dp_price2);
-
-	    make_string2(P, dp2(price2, dp_price2));
-	    make_string2(L, dp2(amt2, dp_amount2));
-	    //send_line22(upper1);
-	    //send_line22(middle1);
-
-//	    amt_middle2 = atof(middle2);
-//	    amt_middle2 += 0.00011;
-//
-//		price_upper2 = atof(upper2);
-//		price_upper2 += 0.00011;
-
-		running_volTotaliser2 = working_volTotaliser2   + amt_real2;
-//	   	  running_volTotaliser2c = working_volTotaliser2c + amt2;
-
-		running_volTotaliser2c = working_volTotaliser2c + amt_middle2;
-
-		running_amtTotaliser2  = working_amtTotaliser2  + price_real2;
-//		  running_amtTotaliser2c = working_amtTotaliser2c + price2;
-
-		running_amtTotaliser2c = working_amtTotaliser2c + price_upper2;
-
-		   float pricecheck = running_amtTotaliser2c - priceOld2;
-
-		   if (pricecheck >= 1000.00)
-		   {
-			   priceOld2 = running_amtTotaliser2c;
-			   save_amountSend(side_b);
-
-			   char str[65];
-			   sprintf(str, "[Side-B]... #%0.2f intermittent worth of sales made now!", pricecheck);
-			   server_write(str);
-		   }
-
-
-//	    running_volTotaliser2  = working_volTotaliser2  + amt_real2;
-//	   	running_volTotaliser2c = working_volTotaliser2c + amt2;
-//
-//
-//	    running_amtTotaliser2  = working_amtTotaliser2  + price_real2;
-//	   	running_amtTotaliser2c = working_amtTotaliser2c + price2;
-
-//============================================================
-//         for totaliser toggle.
-	  r_volTotaliser2 	  = floor( running_volTotaliser2c );
-
-//	  r_amtTotaliser2 	  = floor(running_amtTotaliser2c);
-//
-//	if(r_volTotaliser2 != old_r_volTotaliser2)
-//		{
-//			totalizer2Timer = 0;
-//			//then toggle the totaliser harware I/O.
-//			drive_totaliser2(ACTIVATE);
-//		}
-//	else
-//	{
-//		if(totalizer2Timer > 300)
-//		{
-//			//deactivate totaliser output...
-//			drive_totaliser2(DEACTIVATE);
-//		}
-//
-//	}
-//	  old_r_volTotaliser2 = r_volTotaliser2;   //update...
-//
-//	  old_r_amtTotaliser2 = r_amtTotaliser2;   //update...
-
-//============================================================
-	  if (t2 > LCD_UPDATE_RATE)
-	  {
-		  if(settings_stream1[1].display_mode == PL)
-		  {
-			 send_line12(upper2);
-			 send_line22(middle2);
-		  }
-		  else if(settings_stream1[1].display_mode == LP)
-		  {
-			  send_line12(middle2);
-			  send_line22(upper2);
-		  }
-			char str__[8]= {0};
-			snprintf(str__, sizeof(str_2), "%.2f", litre_price2);
-			send_line32(str__);
-			t2 = 0;
-		  }
-	  reset_timer2(timeout_dispense); //don't time out.
-//==========================pulser capture ============================
-#if (_USE_SOFT_PULSER == 1)
-	 // if ( (t > 50)&&(t < 200) )
-	 //  			{
-	 //  	    	   current_pulser1++;   //transfer this to the interrupt routine..
-	 //  			}
-#else
-	       current_pulser2 = __HAL_TIM_GET_COUNTER(&htim2);
-#endif
-//======================================================================
-	   if(target_pulser2 > 0)
-			{
-				//pulser_rem1 = target_pulser1 - current_pulser1;
-			}
-
-	 if(target_pulser2 > 0)
-       {
-		  if (pulser_rem2 <= 0 || pulser_complete2 == 1 )  //sales complete...
-		  	 {
-				stop_flow2(); //send_solenoid(1);  //stop solenoid.
-				filling2 = 0;
-		        do_calcs2();
-		    	get_time();
-		        update_info();
-		        save_volumeTotaliser(operating_side);
-		        save_amountTotaliser(operating_side);
-		        save_lastSale(operating_side);
-		        return write_flash_State;
-		  	 }
-		  else
-		  {
-			//  slow_flow1();
-			  if (pulser_rem2 >= slowFlow_endThreshold2)
-			  {
-				    if(current_pulser2 >= slowFlow_startThreshold2)
-					{
-						fast_flow2();
-						fastFlow2 = 1;
-					}
-					else
-					{
-						slow_flow2();
-						fastFlow2 = 0;
-					}
-			  }
-			  else
-			  {
-				  slow_flow2();
-				  fastFlow2 = 0;
-			  }
-		  }
-       }
-
-	   if(flow_flag == 1)
-	   {
-			_tt2 = 0;
-	   }
-	   else if( (_tt2 > 60000) && (flow_flag == 2) )
-	   {
-			old_pulser_ = current_pulser2;
-			flow_flag = 3;
-	   }
-	   else if( (_tt2 > 65000) && (flow_flag == 3) )
-	   {
-			if(old_pulser_ > current_pulser2)
-			{
-				current_pulser2 = old_pulser_ ;
-				flow_loss2 = 1;
-				filling2 = 0,  nozzle_bit = 0;
-				stop_flag2 = 0;
-				stop_flow2(); //send_solenoid(1);  //stop solenoid.
-				get_time();
-				do_calcs2();
-				update_info();
-				save_volumeTotaliser(operating_side);
-				save_amountTotaliser(operating_side);
-				save_lastSale(operating_side);
-				return write_flash_State;
-			}
-			flow_flag = 1;
-		}
-	   return filling_State;
-}
-
-
 
 //--------------------------------------------------------------
 void do_calcs2 ()
@@ -10183,29 +10472,29 @@ void do_calcs2 ()
 	    	//amt   = dp( price_/litre_price ,dp_amount);
 
 	    	 temp = pulser2amt2(current_pulser2);
-	    		    	 amt2 = dp2(temp,dp_amount2);
+	    		    	 amt2 = dp2(temp, dp_vol2);
 
 			 temp = amt2price2(amt2);
-						 price2 = dp2(temp,dp_price2);
+						 price2 = dp2(temp, dp_amount2);
 
 	   			///show what the user needs...
-	   		 price_2 = dp2(key_value2,dp_price2);
+	   		 price_2 = dp2(key_value2, dp_amount2);
 	   		 	 temp = price_2/litre_price2;
-	   		 amt_2   = dp2(temp,dp_amount2); //calculate vol frm price.
+	   		 amt_2   = dp2(temp, dp_vol2); //calculate vol frm price.
 
 	 		//=========================================================
 	 		//    Also calculate the values based on the real P.Indx
 	 		          temp  = pulser2amt_R2(current_pulser2);
-	 		      amt_real2 = dp2(temp,dp_amount2);
+	 		      amt_real2 = dp2(temp, dp_vol2);
 	 		          temp = amt2price2(amt_real2);
-	 		      price_real2 = dp2(temp, dp_price2);
+	 		      price_real2 = dp2(temp, dp_amount2);
 	 		//=========================================================
 	   	   }
 
 	   	  if (sellmode2 == L)
 	   	   {
 	   		    temp = pulser2amt2(target_pulser2);
-	   		    amt2  = dp2(temp,dp_amount2);
+	   		    amt2  = dp2(temp, dp_vol2);
 
 	   			price2  = amt2price2(amt2);
 	   			///show what the user needs to see...
@@ -10214,14 +10503,14 @@ void do_calcs2 ()
 		 		//=========================================================
 		 		//    Also calculate the values based on the real P.Indx
 		 		          temp  = pulser2amt_R2(current_pulser2);
-		 		      amt_real2 = dp2(temp,dp_amount2);
+		 		      amt_real2 = dp2(temp, dp_vol2);
 		 		          temp = amt2price2(amt_real2);
-		 		      price_real2 = dp2(temp, dp_price2);
+		 		      price_real2 = dp2(temp, dp_amount2);
 		 		//=========================================================
 	   	   }
 	   	 //------------------------------------------------------------------
-	   	  make_string2(P, dp2(price_2, dp_price2));
-	   	  make_string2(L, dp2(amt_2, dp_amount2));
+	   	  make_string2(P, dp2(price_2, dp_amount2));
+	   	  make_string2(L, dp2(amt_2, dp_vol2));
 
 	   	if(settings_stream1[1].display_mode == PL)
 		  {
@@ -10297,18 +10586,18 @@ void do_calcs2 ()
    else
    {
       //programmed but still dispensing @ stop pt.
-		 temp = pulser2amt2(current_pulser2);  amt2   = dp2(temp,dp_amount2);
-		 temp = amt2price2(amt2);   			price2 = dp2(temp,dp_price2);
+		 temp = pulser2amt2(current_pulser2);  amt2   = dp2(temp, dp_vol2);
+		 temp = amt2price2(amt2);   			price2 = dp2(temp, dp_amount2);
 
-		  make_string2(P, dp2(price2, dp_price2));
-		  make_string2(L, dp2(amt2, dp_amount2));
+		  make_string2(P, dp2(price2, dp_amount2));
+		  make_string2(L, dp2(amt2, dp_vol2));
 
 	    //=========================================================
 		//    Also calculate the values based on the real P.Indx
 			          temp  = pulser2amt_R2(current_pulser2);
-			      amt_real2 = dp2(temp,dp_amount2);
+			      amt_real2 = dp2(temp, dp_vol2);
 			          temp = amt2price2(amt_real2);
-			      price_real2 = dp2(temp, dp_price2);
+			      price_real2 = dp2(temp, dp_amount2);
 		//=========================================================
 
 		  if(settings_stream1[1].display_mode == PL)
@@ -10360,16 +10649,16 @@ void do_calcs2 ()
      //still dispensing @ stop pt.
 
 		 temp = pulser2amt2(current_pulser2);
-		      amt2 = dp2(temp,dp_amount2);
+		      amt2 = dp2(temp, dp_vol2);
 
 		 temp = amt2price2(amt2);
-		 	 price2 = dp2(temp,dp_price2);
+		 	 price2 = dp2(temp, dp_amount2);
 
 		//compare the final and initial prices...
 		 	 float ddp = 0;
-		 	 if (dp_price2 == 1) ddp =  0.1;
-			 else if (dp_price2 == 2) ddp =  0.01;
-			 else if (dp_price2 == 3) ddp =  0.001;
+		 	 if (dp_amount2 == 1) ddp =  0.1;
+			 else if (dp_amount2 == 2) ddp =  0.01;
+			 else if (dp_amount2 == 3) ddp =  0.001;
 
 		 	 if( (temp - price2) > ( (ddp/10)*2) )  //result was rounded down.
 		 	 {
@@ -10384,9 +10673,9 @@ void do_calcs2 ()
 		//=========================================================
 		//    Also calculate the values based on the real P.Indx
 		          temp  = pulser2amt_R2(current_pulser2);
-		      amt_real2 = dp2(temp,dp_amount2);
+		      amt_real2 = dp2(temp, dp_vol2);
 		          temp = amt2price2(amt_real2);
-		      price_real2 = dp2(temp, dp_price2);
+		      price_real2 = dp2(temp, dp_amount2);
 		//=========================================================
 
 //		  send_line12(upper2);
@@ -10456,18 +10745,30 @@ void state_ini2(void)
 
 	irrecov_flag2 = 0;
 	progg2 = 0;
-	eNextState2 =  idle_State; //   prog_State; //
-	eLastState2 =  idle_State;
+
+	pump_status_2 = STATUS_PNP;
+
+	if(settings_stream1[1].mode != AUTO_MODE)
+	{
+		eNextState2 =  idle_State;
+		eLastState2 =  idle_State;
+	}
+	else
+	{
+		eNextState2 =  pnp_State;
+		eLastState2 =  pnp_State;
+	}
+
 	index_2 = 0;
 
 //	filling2 = 0;
 //	stop_flow2();
-	if(settings_stream1[0].display_mode == PL)
+	if(settings_stream1[1].display_mode == PL)
 	{
 		send_line12("P        ");
 		write_v2(1, "p        ");
 	}
-	else if(settings_stream1[0].display_mode == LP)
+	else if(settings_stream1[1].display_mode == LP)
 	{
 		send_line12("L        ");
 		write_v2(1, "l        ");
@@ -10489,8 +10790,8 @@ void state_ini2(void)
 	}
 
 
-    make_string2(P, dp2(lastAmountSale2c, dp_price2) );
-    make_string2(L, dp2(lastVolumeSale2c, dp_amount2) );
+    make_string2(P, dp2(lastAmountSale2c, dp_amount2) );
+    make_string2(L, dp2(lastVolumeSale2c, dp_vol2) );
 
 	char str__[10]= {0};
 	snprintf(str__, sizeof(str__), "%.2f", litre_price2);
@@ -10635,3 +10936,199 @@ uint16_t get_ctTime2(void)
 	time_tme = atoi(time_tm);
 	return time_tme;
 }
+
+
+
+//----------------------------------------
+eSystemState filledmamo_State_Handler2(void)
+{
+	filling2 = 0,
+	nozzle_bit2 = 0;
+
+
+	  if (t2 > LCD_UPDATE_RATE)
+	  {
+
+		  if(settings_stream1[1].display_mode == PL)
+		  {
+			 send_line12(upper2);
+			 send_line22(middle2);
+		  }
+		  else if(settings_stream1[1].display_mode == LP)
+		  {
+			  send_line12(middle2);
+			  send_line22(upper2);
+		  }
+		  char str__[8]= {0};
+		  snprintf(str__, sizeof(str__), "%.2f", litre_price2);
+		  send_line32(str__);
+		  t2 = 0;
+	  }
+
+//	  reset_timer(timeout_dispense); //don't time out.
+
+	   return filledmamo_State;
+}
+
+//----------------------------------------
+eSystemState pnpState_Handler2(void)
+{
+	static int  printer_status;
+
+	static int8_t idleState_flag = 1;
+
+	static int32_t current_pulser_ = 0,
+				   old_pulser_ = 0;
+
+	uint16_t gerCtTime;
+
+	int pulser_diff = 0;
+
+//	display_overflow1 = 1;
+
+//	pump1_status_4G = STATUS_IDLE;
+
+	stop_fueling_bit2 = 1;
+
+	lock_clr2 = 0;
+
+	progg2 = 0;
+
+	firstTime_nozz2 = 1;
+
+
+	#if sense_power == 1
+	  if(readpwr() == 0)
+	  {
+		   modem_power(DEACTIVATE);
+
+		   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+		   HAL_Delay(200);
+		   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+
+		   //count time elapsed
+		   if (shutdown_timer2 > 120)
+		   {
+			   displayandkeypad_power(DEACTIVATE);   //shutdown... after  2 minutes
+		   }
+	  }
+	  else
+	  {
+		  //clear the timer//
+		  shutdown_timer2 = 0;
+
+		  modem_power(ACTIVATE);
+		  displayandkeypad_power(ACTIVATE);
+	  }
+	#endif
+
+	#if !defined (DEV_MODE)
+		if(batteryStatus == LOWBATTERY)
+		{
+			send_line12("  Louu   ");
+			send_line22("Battery  ");
+			send_line32(" Err70 ");
+
+			return inactive_State;
+		}
+		else if(batteryStatus == NOBATTERY)
+		{
+			send_line12("Battery ");
+			send_line22(" Error  ");
+			send_line32(" Err71 ");
+
+			return inactive_State;
+		}
+
+		if(HAL_GPIO_ReadPin(pulser2_detect_GPIO_Port, pulser2_detect_Pin) == 1 )
+		{
+			send_line12(" Pulser ");
+			send_line22("  Error ");
+			send_line32(" Err24 ");
+
+			return inactive_State;
+		}
+		else
+		{
+
+		}
+
+	//	if(calib_pulser1 < 15800)  //15987, 15967 .... 1106247681
+		if(calibration_flag2 != CALIBRATED) //15800)  //15987, 15967 .... 1106247681
+		{
+			retrieve_calibrationFlag(side_b);
+
+			if(calibration_flag2 != CALIBRATED) //takes care of accidental clearing of calibration_flag1 by F-keys
+			{
+				calibration2_error = 1;
+
+				send_line12("Calibrat");
+				send_line22("  Error ");
+				send_line32("Err 23 ");
+
+				return inactive_State;
+			}
+		}
+		else
+		{
+			calibration2_error = 0;
+		}
+	#endif    //#if !defined (DEV_MODE) ,,
+
+
+
+	 if  (t2 > 500)
+	 {
+//		 send_line1(upper1);
+//		 send_line2(middle1);
+		 if(settings_stream1[1].display_mode == PL)
+		  {
+//			 send_line1(upper1);
+//			 send_line2(middle1);
+		  }
+		  else if(settings_stream1[1].display_mode == LP)
+		  {
+//			  send_line1(middle1);
+//			  send_line2(upper1);
+		  }
+		 send_line32("      ");
+//		 char str__[8]= {0};
+//		 snprintf(str__, sizeof(str__), "%.2f", litre_price); send_line3(str__);
+		 t2 = 0;
+	 }
+
+
+	 if( (keypress_2 == 21) && (nozzleup_awaitingauth_state_not_timedOut2 == 0) )
+	 {
+		   compose_printer();
+		   HAL_Delay(1000);
+		   printer_status = 1;
+	 }
+
+	     print__1();   //print the transaction.
+
+	  	return pnp_State;
+}
+
+
+
+//----------------------------------------
+eSystemState switchedoffState_Handler2(void)
+{
+	return switchedoff_State;
+}
+
+//----------------------------------------
+eSystemState authorisation_resumed_State_Handler2(void)
+{
+	//Motor turned on
+	return _authorisation_resumed_State_Handler;
+}
+
+//----------------------------------------
+eSystemState filling_resumed_State_Handler2(void)
+{
+	//Motor turned on
+	return _filling_resumed_State_Handler;
+}
+

@@ -35,7 +35,7 @@ extern "C" {
 
 //	#define product (_DPK)
 
-//      #define DEV_MODE
+      #define DEV_MODE
 
 //	  #define OTP_ENABLE
 
@@ -367,9 +367,9 @@ typedef enum
 
 typedef enum
 {
-	overide,
-	nooveride
-}nozzle_overide;
+	override,
+	nooverride
+}nozzle_override;
 
 typedef enum
 {
@@ -502,7 +502,7 @@ typedef enum
  typedef struct
  {
  	 opmode_  mode;
- 	 nozzle_overide noz;
+ 	 nozzle_override noz;
  	 sellmode_ def_t;
  	 pump pump_type_;
  	 float price_;
@@ -510,8 +510,8 @@ typedef enum
  	 float pi_c;
  	 float pi_;
  	 uint8_t id_;
- 	 uint8_t dp_price;
  	 uint8_t dp_amount;
+ 	 uint8_t dp_vol;
  	 uint8_t dp_unitprice;
 
 	 nozzleid noz_id;
@@ -573,7 +573,17 @@ uint8_t status_change_pump1,
 		status_change_noz1,
 		mamo_reached_flag1,
 		mamo_reached_flag1_1,
-		stopFlag_source1;
+		stopFlag_source1,
+		hardwareError_flag1,
+		hardwareErrorFlag_source1;
+
+uint8_t status_change_pump2,
+		status_change_noz2,
+		mamo_reached_flag2,
+		mamo_reached_flag2_1,
+		stopFlag_source2,
+		hardwareError_flag2,
+		hardwareErrorFlag_source2;
 
 
 ////==================================
@@ -935,17 +945,32 @@ void save_settings0(void);
 void retrieve_settings(void);
 void retrieve_settings0(void);
 
+void save_settings_fram(void);
+void retrieve_settings_fram(void);
+
 void save_volumeTotaliser(pump_sid side);
 void retrieve_volumeTotaliser(pump_sid side);
 void clear_volumeTotaliser(pump_sid side);
+
+void save_volumeTotaliser_fram(pump_sid side);
+void retrieve_volumeTotaliser_fram(pump_sid side);
+void clear_volumeTotaliser_fram(pump_sid side);
 
 void save_amountTotaliser(pump_sid side);
 void retrieve_amountTotaliser(pump_sid side);
 void clear_amountTotaliser(pump_sid side);
 
+void save_amountTotaliser_fram(pump_sid side);
+void retrieve_amountTotaliser_fram(pump_sid side);
+void clear_amountTotaliser_fram(pump_sid side);
+
 void save_lastSale(pump_sid side);
 void retrieve_lastSale(pump_sid side);
 void clear_lastSale(pump_sid side);
+
+void save_lastSale_fram(pump_sid side);
+void retrieve_lastSale_fram(pump_sid side);
+void clear_lastSale_fram(pump_sid side);
 
 void save_ctSettings(pump_sid side);
 void retrieve_ctSettings(pump_sid side);
@@ -991,6 +1016,7 @@ int get_auth_cmd();
 void make_settings(pump_sid side);
 
 float sellPrice_max_dp(int8_t amount_dp);
+float sellPrice_max_dp2(int8_t amount_dp);
 
 int8_t dpFlag,
 	   dpCount,

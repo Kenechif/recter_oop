@@ -22,20 +22,27 @@ uint32_t otp_codeInt2;
 
 typedef enum
 {
-	_progstate_Handler2,
-	_idlestate_Handler2,
-	_inactivestate_Handler2,
+	_progState_Handler2,
+	_idleState_Handler2,
+	_inactiveState_Handler2,
 	_nozzleup_waitingforauthState_Handler2,
 	_authorised_nozzledown_State_Handler2,
 	_authorised_nozzleup_State_Handler2,
 	_authorisation_paused_State_Handler2,
-	_filling_state_Handler2,
-	_filling_paused_state_Handler2,
+	_authorisation_resumed_State_Handler2,
+	_filling_State_Handler2,
+	_filling_paused_State_Handler2,
+	_filling_resumed_State_Handler2,
 	_keypad_entry_State_Handler2,
 	_operator_State_Handler2,
 	_savesettings_State_Handler2,
-	_read_flash_state_Handler2,
-	_write_flash_state_Handler2
+	_read_flash_State_Handler2,
+	_write_flash_State_Handler2,
+	_switchedoffState_Handler2,
+	_pnpState_Handler2,
+	_fillingcompleteState_Handler2,
+	_resetState_Handler2,
+	_filledmamo_State_Handler2
 }eSystemStateHandler2;
 
 //Different type events
@@ -93,6 +100,83 @@ typedef struct
 //-----------------------------------------------
 eSystemEvent eNewEvent2;
 eSystemState eNextState2,eLastState2,ePrevState2;
+
+
+
+// state Handlers definition...
+eSystemState progState_Handler2(void);
+eSystemState idleState_Handler2(void);
+eSystemState inactiveState_Handler2(void);
+eSystemState nozzleup_waitingforauthState_Handler2(void);
+eSystemState authorised_nozzleup_State_Handler2(void);
+eSystemState authorised_nozzledown_State_Handler2(void);
+eSystemState authorisation_paused_State_Handler2(void);
+eSystemState authorisation_resumed_State_Handler2(void);
+eSystemState filling_State_Handler2(void);
+eSystemState filling_paused_State_Handler2(void);
+eSystemState filling_resumed_State_Handler2(void);
+eSystemState keypad_entry_State_Handler2(void);
+eSystemState operator_State_Handler2(void);
+eSystemState savesettings_State_Handler2(void);
+
+
+
+//////////////////////////////////////////////////////////
+//////////////////// EXTRAS FOR GO ///////////////////////
+
+eSystemState filledmamo_State_Handler2(void);
+eSystemState pnpState_Handler2(void);
+eSystemState switchedoffState_Handler2(void);
+
+///////////////////////////////////////////////////////////
+
+
+
+
+//eSystemState read_flash_state_Handler(void);  //moved to log.h
+//eSystemState write_flash_state_Handler(void);
+
+//event handlers...
+eSystemState timeout_Handler2(void);
+eSystemState authorise_Handler2(void);
+eSystemState auth_command_Handler2(void);
+eSystemState nozzleup_Handler2(void);
+eSystemState nozzledown_Handler2(void);
+eSystemState pause_Handler2(void);
+eSystemState resume_Handler2(void);
+eSystemState keyup_Handler2(void);
+eSystemState keydown_Handler2(void);
+eSystemState keypress_Handler2(void);
+eSystemState tot_error_Handler2(void);
+eSystemState key19_Handler2(void);
+eSystemState filling_paused_Handler2(void);
+eSystemState filling_resumed_Handler2(void);
+eSystemState filling_pulse_Handler2(void);
+eSystemState error_clear_Handler2(void);
+eSystemState operator_Handler2(void);
+eSystemState function_key_Handler2(void);
+
+
+
+//////////////////////////////////////////////////////////
+//////////////////// EXTRAS FOR GO ///////////////////////
+
+eSystemState stopcommand_Handler2(void);
+eSystemState resetcommand_Handler2(void);
+eSystemState _fillingcomplete_Handler2(void);
+eSystemState switchoffcommand_Handler2(void);
+eSystemState authorisecommand_Handler2(void);
+eSystemState hardwarereset_Handler2(void);
+eSystemState hardwareerror_Handler2(void);
+eSystemState auth_suspendcommand_Handler2(void);
+eSystemState filling_suspendcommand_Handler2(void);
+eSystemState auth_resumecommand_Handler2(void);
+eSystemState filling_resumecommand_Handler2(void);
+eSystemState mamo_Handler2(void);
+///////////////////////////////////////////////////////////
+
+
+
 
 //typedef enum
 //{

@@ -46,6 +46,8 @@
 #include "stdlib.h"
 
 
+#define PAGE_SIZE 32  // Define the page size (typically up to 256 bytes)
+
 //uint8_t MSG[200] = {0};
 extern uint8_t change_p1,
 			   change_v1,
@@ -85,7 +87,7 @@ extern pump_settings_stream3 settings_stream3[2],
 				       	     settings0_stream3[2],
 							 copy_stream3[2];
 
-extern pump_status_enum pump_status_,
+extern pump_status_enum pump_status_1,
 						pump_status_2;
 
 extern pump pump_type,
@@ -158,12 +160,25 @@ unsigned long cheq3 = 0;
 
 extern uint8_t mamo_reached_flag1,
 			   mamo_reached_flag1_1,
+			   hardwareError_flag1,
+			   hardwareErrorFlag_source1,
 			   fillingComplete_flag1 = 0,
 			   nozzlezUp1 = 0,
 			   authsuspend_flag1 = 0,
 			   fillingsuspend_flag1 = 0,
 			   authresume_flag1 = 0,
 			   fillingresume_flag1 = 0;
+
+extern uint8_t mamo_reached_flag2,
+			   mamo_reached_flag1_2,
+			   hardwareError_flag2,
+			   hardwareErrorFlag_source2,
+			   fillingComplete_flag2 = 0,
+			   nozzlezUp2 = 0,
+			   authsuspend_flag2 = 0,
+			   fillingsuspend_flag2 = 0,
+			   authresume_flag2 = 0,
+			   fillingresume_flag2 = 0;
 
 extern uint8_t hour,minute,second,day,month,year,dayofweek;
 
@@ -253,8 +268,13 @@ int retn;
  //=====================variables from master===========================
  int totaliser_flag, totaliser_flag2 = 0;
  int key19_flag ,key19_flag2 = 0;
- uint8_t auth_cmd_flag = 0, auth_cmd_flag2 = 0;
- nozzle_overide overide_ , overide_2;
+
+ uint8_t auth_cmd_flag = 0,
+		 auth_cmd_flag2 = 0;
+
+ nozzle_override override_,
+ 	 	 	 	 override_2;
+
  uint8_t stop_flag,stop_flag2 = 0;
  int error_clr_flag , error_clr_flag2 = 0;
 
@@ -1041,7 +1061,7 @@ void compose_printer()
 //-------------------------------------------------------------
  void setup()
 {
-	 pump_status_ = STATUS_UNKNOWN;
+	 pump_status_1 = STATUS_UNKNOWN;
 	 pump_status_2 = STATUS_UNKNOWN;
 
 	 pump1_status_4G = STATUS_PUMP_ON;
@@ -1069,6 +1089,42 @@ void compose_printer()
 //			 retn = write_keypad_lcd(1,"5678");
 //			 HAL_Delay(1000);
 //		 }
+//	 }
+
+	 //ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ//
+	 ///////////////////////////// FRAM TEST-GROUND ///////////////////////////////
+	 //ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ//
+//	 while(true)
+//	 {
+//		  // Example: Write a byte to address 0x00
+//		 FRAM_WriteByte(0x00, 24); // Write the value 42 to address 0x00
+//
+////		  while (1)
+////		  {
+//		    // Read the value from FRAM at address 0x00
+//		    uint8_t data = FRAM_ReadByte(0x00);
+//
+//		    // Add your code to use 'data', e.g., send via UART, toggle LEDs, etc.
+//		    HAL_Delay(1000);  // Delay to avoid rapid reading
+////		  }
+//
+//		  // Example data to write
+//		  uint8_t writeData[PAGE_SIZE] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+//		                                  16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31};
+//
+//		  // Write data to FRAM starting at address 0x00
+//		  FRAM_Write(0x00, writeData, PAGE_SIZE);
+//
+//		  // Buffer to hold the read data
+//		  uint8_t readBuffer[PAGE_SIZE];
+//
+//		  // Read a page of data from FRAM starting at address 0x00
+//		  FRAM_Read(0x00, readBuffer, PAGE_SIZE);
+//
+////		  while (1) {
+//		    // Use the read data (e.g., send via UART, toggle LEDs, etc.)
+//		    HAL_Delay(1000);  // Delay to avoid rapid loop
+////		  }
 //	 }
 
 // while(1)
@@ -1147,7 +1203,9 @@ void compose_printer()
 //	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);  //TIM_CHANNEL_1 |TIM_CHANNEL_2); //TIM_CHANNEL_ALL);
 
 
-	retrieve_settings();
+//	retrieve_settings();
+
+	retrieve_settings_fram();
 
 	settings_stream2[0].pulser_type_ = quadrature; //non_quadrature;   //quadrature;
 	settings_stream2[1].pulser_type_ = quadrature;   //non_quadrature;   //quadrature;
@@ -1237,6 +1295,41 @@ void compose_printer()
 //	HAL_Delay(2000);
 //
 //	HAL_Delay(20);
+//}
+
+
+//ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ//
+/////////////////////// CHECKING FOR TAMPER MECHANISM ////////////////////////
+//ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ//
+//while(1)
+//{
+//	 if( HAL_GPIO_ReadPin(other_GPIO_Port, other_Pin) == 0 )
+//	 {
+//		 HAL_Delay(200);
+//	 }
+//	 if( HAL_GPIO_ReadPin(case_open_GPIO_Port, case_open_Pin) == 0)
+//	 {
+//		 HAL_Delay(200);
+//	 }
+//
+//	 if(HAL_GPIO_ReadPin(pulser1_detect_GPIO_Port, pulser1_detect_Pin) == 1 )
+//	 {
+//		 HAL_Delay(200);
+//	 }
+//	 if(HAL_GPIO_ReadPin(pulser2_detect_GPIO_Port, pulser2_detect_Pin) == 1 )
+//	 {
+//		 HAL_Delay(200);
+//	 }
+//
+//	 if( HAL_GPIO_ReadPin(tamper_GPIO_Port, tamper_Pin) == 0 )
+//	 {
+//		 HAL_Delay(200);
+//	 }
+//	 if( HAL_GPIO_ReadPin(tamper_GPIO_Port, tamper_Pin) == 1 )
+//	 {
+//		 HAL_Delay(200);
+//	 }
+//
 //}
 
 //while(1)
@@ -1498,7 +1591,9 @@ tmmm:
 	  }
 
 	  config_rx_parse();
-	  pumpType_configure();
+//	  pumpType_configure();
+	  pumpType_configure_fram();
+
 
 	  // ===========================================================================
 
@@ -1536,14 +1631,23 @@ tmmm:
 	  clear_totalAutoTransaction_sides(side_a);
 	  clear_totalAutoTransaction_sides(side_b);
 
-	  clear_volumeTotaliser(side_a);
-	  clear_volumeTotaliser(side_b);
+//	  clear_volumeTotaliser(side_a);
+//	  clear_volumeTotaliser(side_b);
 
-	  clear_amountTotaliser(side_a);
-	  clear_amountTotaliser(side_b);
+	  clear_volumeTotaliser_fram(side_a);
+	  clear_volumeTotaliser_fram(side_b);
 
-	  clear_lastSale(side_a);
-	  clear_lastSale(side_b);
+//	  clear_amountTotaliser(side_a);
+//	  clear_amountTotaliser(side_b);
+
+	  clear_amountTotaliser_fram(side_a);
+	  clear_amountTotaliser_fram(side_b);
+
+//	  clear_lastSale(side_a);
+//	  clear_lastSale(side_b);
+
+	  clear_lastSale_fram(side_a);
+	  clear_lastSale_fram(side_b);
 
 	  clear_1stvolTotaliser_day(side_a);
 	  clear_1stvolTotaliser_day(side_b);
@@ -1608,7 +1712,8 @@ tmmm:
 		 calib_pulser1 =  (settings_stream1[0].pi_c * vol_calibrated1);
 		 calib_pulser2 =  (settings_stream1[1].pi_c * vol_calibrated2);
 
-		 save_settings();
+//		 save_settings();
+		 save_settings_fram();
 
 		 save_ctSettings(side_a);
 		 save_ctSettings(side_b);
@@ -1949,7 +2054,8 @@ skip_test:
 	// ===========================================================================
 
 
-	pumpType_write();
+//	pumpType_write();
+	pumpType_write_fram();
     pumpType_parse();
 
     firstTotalizerDay_write();
@@ -1994,15 +2100,21 @@ skip_test:
 //	settings[0].noz_id;
 
 
-    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
-//    settings_stream1[0].mode = AUTO_MODE;    //AUTO_MODE;
+//    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
+    settings_stream1[0].mode = AUTO_MODE;    //AUTO_MODE;
 
-//    settings_stream1[0].noz = nooveride;  //nooveride
-    settings_stream1[0].noz = overide;  //nooveride
+    settings_stream1[0].noz = nooverride;  //nooveride
+//    settings_stream1[0].noz = overide;  //nooveride
     settings_stream1[0].keypad__ = BLSKY22;   //BLSKY22
 //    settings_stream1[0].keypad__ = LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
 
     settings_stream1[1].mode = MANUAL_MODE;  //AUTO;   //MANUAL;
+//    settings_stream1[1].mode = AUTO_MODE;    //AUTO_MODE;
+
+    settings_stream1[1].noz = nooverride;  //nooveride
+//	settings_stream1[1].noz = overide;  //nooveride
+//	settings_stream1[1].keypad__ = BLSKY22;   //BLSKY22
+    settings_stream1[1].keypad__ = LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
 
 
     // ===========================================================================
@@ -2023,8 +2135,8 @@ skip_test:
 //    int intSize;
 //    intSize = sizeof(intSize);
 
-    pumpName_parse();
-
+//    pumpName_parse();
+    pumpName_parse_fram();
 //    strcpy(pumpName[0].pump_name, "P17");
 //    strcpy(pumpName[1].pump_name, "P18");
 
@@ -2036,6 +2148,15 @@ skip_test:
 
     retrieve_lastSale(side_a);
     retrieve_lastSale(side_b);
+
+    retrieve_volumeTotaliser_fram(side_a);
+    retrieve_volumeTotaliser_fram(side_b);
+
+    retrieve_amountTotaliser_fram(side_a);
+    retrieve_amountTotaliser_fram(side_b);
+
+    retrieve_lastSale_fram(side_a);
+    retrieve_lastSale_fram(side_b);
 
     retrieve_totalTransaction_sides(side_a);
     retrieve_totalTransaction_sides(side_b);
@@ -2349,27 +2470,29 @@ void run()
 	//		server_message_found = 0;
 			go_message = false;
 //		}
-		if( (resp != NOREPLY) && (resp != JUNK) )
-		{
+			if (r_pumpno == pumpno)
+			{
+				if( (resp != NOREPLY) && (resp != JUNK) )
+				{
 
-			t_exec2 = DWT->CYCCNT;
-			t_exec3 = t_exec2 - t_exec1;
+//					t_exec2 = DWT->CYCCNT;
+//					t_exec3 = t_exec2 - t_exec1;
 
-			process_response(resp);
-	//		resp = NOREPLY;
+					process_response1(resp);
 
-//			t_exec6 = DWT->CYCCNT;
-//			t_exec7 = t_exec6 - t_exec4;
+//					checkk++;
+				}
+			}
+			else if (r_pumpno == pumpno2)
+			{
 
-			checkk++;
-		}
+				if( (resp2 != NOREPLY) && (resp2 != JUNK) )
+				{
+					process_response2(resp2);
+				}
 
-		else if( (resp2 != NOREPLY) && (resp2 != JUNK) )
-		{
-//			process_response2(resp2);
-		}
-
-		cheq3++;
+//				cheq3++;
+			}
 	}
 
 //		t_exec6 = DWT->CYCCNT;
@@ -2490,7 +2613,7 @@ void run()
 	{
 		 operating_side = side_b;
 		 house_keeping2();
-//		 states2();
+		 states2();
 
 		 operating_sideA = true;
 		 operating_sideB = false;
@@ -2689,7 +2812,7 @@ uint8_t  read_event1()
 					//                nozzle-up overide
 					if (eNextState1 == authorised_nozzledown_State)
 					{
-						if (overide_ == overide)
+						if (override_ == override)
 						{
 							return _nozzleup_Event;
 						}
@@ -2703,7 +2826,7 @@ uint8_t  read_event1()
 			if( (nozzle_flag_old == 0)&&(nozzle_flag == 1) )
 			{
 					nozzle_flag_old = 1;
-					if (overide_ != overide)
+					if (override_ != override)
 					{
 								//send nozzleup command only in MANUAL mode
 								return _nozzleup_Event;
@@ -2718,7 +2841,7 @@ uint8_t  read_event1()
 			if( (nozzle_flag_old == 1)&&(nozzle_flag == 0) )
 			{
 					nozzle_flag_old = 0;
-					if (overide_ != overide) return _nozzledown_Event;
+					if (override_ != override) return _nozzledown_Event;
 			}
 		//	nozzle_flag_old = nozzle_flag;
 	  //--------------------------------------------------
@@ -2882,44 +3005,154 @@ int  read_event2()
 		 }
 	  //--------------------------------------------------
 			 // authorise  event capture.
-		if ( auth_flag2  == 1 )
+		if ( auth_flag2 == 1 )
 		{
 			auth_flag2 = 0;
 			return _authorise_Event;
 		}
 		//--------------------------------------------------
 				// authorise  command event.
-		if ( auth_cmd_flag2  == 1 )
+//		if ( auth_cmd_flag2  == 1 )
+//			{
+//				auth_cmd_flag2 = 0;
+//
+//				if(settings_stream1[1].mode == MANUAL_MODE)
+//				{
+//					eNextState2 = authorised_nozzledown_State;
+//				}
+//
+//				//---------------------------------------------
+//				//                nozzle-up overide
+//				if (eNextState2 == authorised_nozzledown_State)
+//				{
+//					if (overide_2 == overide)
+//					{
+//						return _nozzleup_Event;
+//					}
+//				}
+//
+//				if(settings_stream1[1].mode == MANUAL_MODE)
+//				{
+//					eNextState2 = authorised_nozzledown_State;
+//				}
+//				//---------------------------------------------
+//
+//				return _auth_command_Event;
+//			}
+//
+		//--------------------------------------------------
+		// authorise  command event.
+			else if ( auth_cmd_flag2 == 1 )
 			{
+			  //if(settings[operating_side-1].mode == offline_)
+			  //{
 				auth_cmd_flag2 = 0;
 
-				eNextState2 = authorised_nozzledown_State;
 
-				//---------------------------------------------
-				//                nozzle-up overide
-				if (eNextState2 == authorised_nozzledown_State)
+				if(settings_stream1[1].mode == MANUAL_MODE)
 				{
-					if (overide_2 == overide)
-					{
-						return _nozzleup_Event;
-					}
+					eNextState2 = authorised_nozzledown_State;
 				}
-				//---------------------------------------------
-				return _auth_command_Event;
+					//---------------------------------------------
+					//                nozzle-up overide
+					if (eNextState2 == authorised_nozzledown_State)
+					{
+						if (override_2 == override)
+						{
+							return _nozzleup_Event;
+						}
+					}
+			//				//---------------------------------------------
+			//
+							if(settings_stream1[1].mode == AUTO_MODE)
+							{
+								if(nozzlezUp2 == 1)   //A NozzleUp that triggers a transaction
+								{
+									nozzlezUp2 = 0;
+									return _authorisecommand_Event;
+								}
+							}
+			//
+			//			  return _auth_command_Event;
+			  //}
 			}
+
+
+			if(settings_stream1[1].mode == AUTO_MODE)
+		    {
+
+			   if (hardwareError_flag2 == 1)
+			   {
+				   hardwareError_flag2 = 0;
+				   return _hardwareerror_Event;
+			   }
+
+			   // mamo reach  event capture...
+			   else if(mamo_reached_flag2 == 1)
+				{
+					mamo_reached_flag2 = 0;
+					return _mamo_Event;
+				}
+
+			   // idle state due-return event capture...
+			   else if (fillingComplete_flag2 == 1)
+			   {
+				   fillingComplete_flag2 = 0;
+				   return _fillingcomplete_Event;
+			   }
+			   else if (reset_flag2 == 1)
+			   {
+				   reset_flag2 = 0;
+				   return _resetcommand_Event;
+			   }
+			   else if (authsuspend_flag2 == 1)
+			   {
+				   authsuspend_flag2 = 0;
+				   return  _auth_suspendcommand_Event;
+			   }
+			   else if (fillingsuspend_flag2 == 1)
+			   {
+				   fillingsuspend_flag2 = 0;
+				   return _filling_suspendcommand_Event;
+			   }
+			   else if (authresume_flag2 == 1)
+			   {
+				   authresume_flag2 = 0;
+				   return _auth_resumecommand_Event;
+			   }
+			   else if (fillingresume_flag2 == 1)
+			   {
+				   fillingresume_flag2 = 0;
+				   return _filling_resumecommand_Event;
+			   }
+		   }
 
 	   // nozzle up  event capture...
 			if( (nozzle_flag_old2 == 0)&&(nozzle_flag2 == 1) )
 			{
 					nozzle_flag_old2 = 1;
-					if (overide_2 != overide) return _nozzleup_Event;
+					if (override_2 != override)
+					{
+						//send nozzleup command only in MANUAL mode
+
+						if(settings_stream1[1].mode == AUTO_MODE)
+						{
+							nozzlezUp2 = 1;
+						}
+
+						return _nozzleup_Event;
+					}
+					else 		// NozzlezUp, awaiting authorisation
+					{
+
+					}
 			}
 	  //-----------------------
 	  // nozzle down  event capture...
 			if( (nozzle_flag_old2 == 1)&&(nozzle_flag2 == 0) )
 			{
 					nozzle_flag_old2 = 0;
-					if (overide_2 != overide) return _nozzledown_Event;
+					if (override_2 != override) return _nozzledown_Event;
 			}
 		//	nozzle_flag_old = nozzle_flag;
 	  //--------------------------------------------------
@@ -3035,7 +3268,57 @@ void pumpType_configure(void)
 }
 
 
+void pumpType_configure_fram(void)
+{
 
+//	  void FRAM_WriteByte(uint16_t memAddress, uint8_t data);
+
+	  if((settings_stream1[0].display__ == LAFNG885) && (settings_stream1[0].keypad__ == LAFNG17_K))  //LAFENG885-NormalScreen | LAFENG16-Keypad
+	  {
+		  FRAM_WriteByte (save_pumpType_loc_fram, 0b00000001);
+	  }
+	  else if((settings_stream1[0].display__ == BLSKY886_N) && (settings_stream1[0].keypad__ == BLSKY18_K))  //BLUESKY886-NormalScreen | BLUESKY18K-Keypad
+	  {
+		  FRAM_WriteByte (save_pumpType_loc_fram, 0b00000010);
+	  }
+	  else if((settings_stream1[0].display__ == BLSKY886_N) && (settings_stream1[0].keypad__ == BLSKY22))  //BLUESKY886-NormalScreen | BLUESKY22-Keypad
+	  {
+		  FRAM_WriteByte (save_pumpType_loc_fram, 0b00000011);
+	  }
+	  else if((settings_stream1[0].display__ == BLSKY886_IN) && (settings_stream1[0].keypad__ == BLSKY18_K))  //BLUESKY886-InvertedScreen | BLUESKY18K-Keypad
+	  {
+		  FRAM_WriteByte (save_pumpType_loc_fram, 0b00000100);
+	  }
+	  else if((settings_stream1[0].display__ == BLSKY886_IN) && (settings_stream1[0].keypad__ == BLSKY22))  //BLUESKY886-InvertedScreen | BLUESKY22-Keypad
+	  {
+		  FRAM_WriteByte (save_pumpType_loc_fram, 0b00000101);
+	  }
+	  else if((settings_stream1[0].display__ == LAFNG885) && (settings_stream1[0].keypad__ == LAFNG18_K))  //LAFENG885-NormalScreen | LAFENG18-Keypad
+	  {
+		  FRAM_WriteByte (save_pumpType_loc_fram, 0b00000110);
+	  }
+	  else if((settings_stream1[0].display__ == BLSKY886_N) && (settings_stream1[0].keypad__ == LAFNG18_K))  //BLSKY886_N-NormalScreen | LAFENG18-Keypad
+	  {
+		  FRAM_WriteByte (save_pumpType_loc_fram, 0b00000111);
+	  }
+
+
+
+		if(strcmp(settings_stream1[0].product_, "PMS") == 0)
+		{
+			FRAM_WriteByte (save_productType_loc_fram, PMS);
+		}
+		else if(strcmp(settings_stream1[0].product_, "AGO") == 0)
+		{
+			FRAM_WriteByte (save_productType_loc_fram, AGO);
+		}
+		else if(strcmp(settings_stream1[0].product_, "DPK") == 0)
+		{
+			FRAM_WriteByte (save_productType_loc_fram, DPK);
+		}
+
+		FRAM_WriteByte (save_nozzleId_loc_fram, settings_stream1[0].noz_id);
+}
 
 
 //		if(strcmp(settings[0].product_, "PMS") == 0)
@@ -3142,6 +3425,16 @@ void pumpType_write(void)
 	disp_type2 = settings_stream1[1].pump_type_;
 }
 
+void pumpType_write_fram(void)
+{
+//	uint8_t FRAM_ReadByte(uint16_t memAddress);
+
+	settings_stream1[0].pump_type_ = FRAM_ReadByte(save_pumpType_loc_fram);
+	settings_stream1[1].pump_type_ = FRAM_ReadByte(save_pumpType_loc_fram);
+	disp_type1 = settings_stream1[0].pump_type_;
+	disp_type2 = settings_stream1[1].pump_type_;
+}
+
 
 
 void firstTotalizer_day(void)
@@ -3197,6 +3490,47 @@ void pumpName_parse(void)
 		}
 }
 
+void pumpName_parse_fram(void)
+{
+	 	char str[5];
+
+		int8_t productType;
+
+//		uint8_t FRAM_ReadByte(uint16_t memAddress);
+
+		settings_stream1[0].noz_id = FRAM_ReadByte(save_nozzleId_loc_fram);
+
+		productType = FRAM_ReadByte(save_productType_loc_fram);
+
+	 	if( productType == PMS)
+	 	{
+	 		strcpy(settings_stream1[0].product_, "PMS");
+
+	 		snprintf(str, 5,"P%d", settings_stream1[0].noz_id);
+			strcpy(pumpName[0].pump_name, str);
+			snprintf(str, 5, "P%d", (settings_stream1[0].noz_id + 1));
+			strcpy(pumpName[1].pump_name, str);
+	 	}
+
+		else if( productType == AGO)
+		{
+	 		strcpy(settings_stream1[0].product_, "AGO");
+
+	 		snprintf(str, 5,"A%d", settings_stream1[0].noz_id);
+			strcpy(pumpName[0].pump_name, str);
+			snprintf(str, 5, "A%d", (settings_stream1[0].noz_id + 1));
+			strcpy(pumpName[1].pump_name, str);
+		}
+		else if( productType == DPK)
+		{
+	 		strcpy(settings_stream1[0].product_, "DPK");
+
+	 		snprintf(str, 5,"D%d", settings_stream1[0].noz_id);
+			strcpy(pumpName[0].pump_name, str);
+			snprintf(str, 5, "D%d", (settings_stream1[0].noz_id + 1));
+			strcpy(pumpName[1].pump_name, str);
+		}
+}
 
 //void eeprom_clearToken(void)
 //{
@@ -3353,13 +3687,13 @@ uint8_t read_event1_1(void)
 				//                nozzle-up overide
 				if (eNextState1 == authorised_nozzledown_State)
 				{
-					if (overide_ == overide)
+					if (override_ == override)
 					{
 						return _nozzleup_Event;
 					}
 				}
-				//---------------------------------------------
-
+//				//---------------------------------------------
+//
 				if(settings_stream1[0].mode == AUTO_MODE)
 				{
 					if(nozzlezUp1 == 1)   //A NozzleUp that triggers a transaction
@@ -3368,16 +3702,22 @@ uint8_t read_event1_1(void)
 						return _authorisecommand_Event;
 					}
 				}
-
-			  return _auth_command_Event;
+//
+//			  return _auth_command_Event;
 		  //}
 		}
 
 	   if(settings_stream1[0].mode == AUTO_MODE)
 	   {
 
-			// mamo reach  event capture...
-			if(mamo_reached_flag1 == 1)
+		   if (hardwareError_flag1 == 1)
+		   {
+			   hardwareError_flag1 = 0;
+			   return _hardwareerror_Event;
+		   }
+
+		   // mamo reach  event capture...
+		   else if(mamo_reached_flag1 == 1)
 			{
 				mamo_reached_flag1 = 0;
 				return _mamo_Event;
@@ -3420,7 +3760,7 @@ uint8_t read_event1_1(void)
 	    if( (nozzle_flag_old == 0)&&(nozzle_flag == 1) )
 		{
 			nozzle_flag_old = 1;
-			if (overide_ != overide)
+			if (override_ != override)
 			{
 				//send nozzleup command only in MANUAL mode
 
@@ -3441,7 +3781,7 @@ uint8_t read_event1_1(void)
 	   else if( (nozzle_flag_old == 1) && (nozzle_flag == 0) )
 		{
 			nozzle_flag_old = 0;
-			if (overide_ != overide) return _nozzledown_Event;
+			if (override_ != override) return _nozzledown_Event;
 		}
 		//	nozzle_flag_old = nozzle_flag;
 	  //--------------------------------------------------

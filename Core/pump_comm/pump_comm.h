@@ -250,7 +250,7 @@ extern uint8_t change_p1,
 			   change_p2,
 			   change_v2;
 
-pump_status_enum pump_status_,
+pump_status_enum pump_status_1,
 				 pump_status_2;
 
 extern pump_status_enum_4G pump1_status_4G,

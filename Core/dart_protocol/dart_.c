@@ -81,6 +81,9 @@ extern bool nozzle_out1 = false,
 extern uint8_t status_change_pump1 = 0,
 			   status_change_noz1 = 0;
 
+extern uint8_t status_change_pump2 = 0,
+			   status_change_noz2 = 0;
+
 int16_t header = 0,
 		footer = 0;
 
@@ -109,11 +112,13 @@ void dart_init(void)
     addr2 = 0x4F + pumpno2;
 
     command_ = NO_COMMAND;
+    command_2 = NO_COMMAND;
     command_response = false;
     command_response2 = false;
-	trans = 0;
-	lng = 0;
+//	trans = 0;
+//	lng = 0;
 	ctrl = 0;
+	ctrl2 = 0;
 	TX = 0;
 	TX2 = 0;
 	crc1 = 0;
@@ -134,10 +139,12 @@ void dart_init(void)
 
 	resp = NOREPLY;
 	resp2 = NOREPLY;
+
 	r_addr = 0; //response addr
 	r_ctrl = 0;	//response ctrl character
 	r_trans = 0;
 	r_pumpno = 0;		//pump id i.e. which pump
+
 	r_nozzle = 0x01;
 	r_lng = 0;
 	r_alarm_code = 0;
@@ -150,6 +157,7 @@ void dart_init(void)
 	r_ctrl2 = 0;	//response ctrl character
 	r_trans2 = 0;
 	r_pumpno2 = 0;		//pump id i.e. which pump
+
 	r_nozzle2 = 0x01;
 	r_lng2 = 0;
 	r_alarm_code2 = 0;
@@ -230,28 +238,28 @@ void parse_extract(void)
 
 		parse_decode();
 	}
-//	else if (r_pumpno == pumpno2)
-//	{
-//		r_addr2 = r_addr;
-//		r_pumpno2 = r_pumpno;
-//		r_ctrl2 = r_ctrl;
-//		r_TX2 = r_TX;
-//
-//		for (i = 2, j = 0; i < 125; i++, j++)
-//		{
-//			r_raw_data2[j] = MainBuf[header + i];	//shift the data in the array into the r_raw_data vector
-//			if(r_raw_data2[j] == SF)
-//			{
-//				break;
-//			}
-//		}
-//
-//		parse_decode2();
-//	}
+	else if (r_pumpno == pumpno2)
+	{
+		r_addr2 = r_addr;
+		r_pumpno2 = r_pumpno;
+		r_ctrl2 = r_ctrl;
+		r_TX2 = r_TX;
+
+		for (i = 2, j = 0; i < 125; i++, j++)
+		{
+			r_raw_data2[j] = MainBuf[header + i];	//shift the data in the array into the r_raw_data vector
+			if(r_raw_data2[j] == SF)
+			{
+				break;
+			}
+		}
+
+		parse_decode2();
+	}
 	else
 	{
-//		TRACE_DART("<%s> Not for me Pump[%d]<>", __FUNCTION__, pumpno);
 		resp = NOREPLY;
+		resp2 = NOREPLY;
 	}
 	//include a condition to ensure that the message parsed is more than a particular value
 }
@@ -922,12 +930,8 @@ void parse_decode(void)
 	}//switch ctrl
 }
 
-
 void parse_decode2(void)
 {
-
-//	int size = r_raw_data.size();
-	// TRACE_DART("<%s>  r_ctrl: [%x]\n", __FUNCTION__,  r_ctrl);
 	int a = 0;
 	u8* r_raw_data_arr;
 
@@ -940,18 +944,15 @@ void parse_decode2(void)
 
 	uint8_t MSN = (r_ctrl2 & 0xF0);
 
-//	switch (r_ctrl & 0xF0)
 	switch (MSN)
 	{
 
 			case 0x30:	//if control character == 0x30
 
-							for (int16_t i = 0; i < 150; i++)
+							for (int8_t i = 0; i < 150; i++)
 							{
 								//check the r_trans and r_lng byte ... NB: r_trans = r_raw_data[i] and r_lng = r_raw_data[i+1]
 								//returns status at the request of status or change of status
-
-								//Master's Commands to the Pump
 
 
 								//'50 36 01 01 00 9f d4 03 fa '
@@ -960,6 +961,8 @@ void parse_decode2(void)
 								//===========================================================================//
 								if( (r_raw_data2[i] == 0x01) && (r_raw_data2[i+1] == 0x01) )  //Trans-No  & Length
 								{
+									command_response2 = true;
+
 									//this is a Master's Command
 									switch(r_raw_data2[i+2])
 									{
@@ -968,7 +971,7 @@ void parse_decode2(void)
 										case 0x02  	:	{command_2 = RETURN_PUMP_PARAM; break;}
 										case 0x03  	:	{command_2 = RETURN_PUMP_IDENTITY; break;}
 										case 0x04  	:   {command_2 = REQUEST_FILLING_INFO; break;}
-										case 0x05 	:	{command_2 = RESET1; break;}
+										case 0x05 	:	{command_2 = RESET1; break;}   //50 36 01 01 05 9f d4 03 fa
 										case 0x06 	:	{command_2 = AUTHORISE; break;}
 										case 0x08 	:	{command_2 = STOP; break;}
 										case 0x0A 	:	{command_2 = SWITCH_OFF; break;}
@@ -978,9 +981,6 @@ void parse_decode2(void)
 									crc_original = r_raw_data2[i+4];
 									crc_original = (crc_original << 8);
 									crc_original = (crc_original + r_raw_data2[i+3]);
-
-									// Example GO Packet Frame
-									// 	-> UART1 [9]b '51 30 01 01 04 a3 5f 03 fa '
 
 									data_[0] = r_addr2;
 									data_[1] = r_ctrl2;
@@ -993,33 +993,36 @@ void parse_decode2(void)
 
 									crc_check = crc_16(data_, 5);
 
+									//////////////////////////
+//									crc_check = crc_original;
+									//////////////////////////
 
 									if(crc_check == crc_original)
 									{
 										resp2 = DATA_COMMAND;
 										ack_send2 = true;
+
 									}
 									else
 									{
 										resp2 = CRC_ERROR;
 									}
+									i += 3; //no. of data(1) plus 2 for the r_trans and r_lng
 
-									dummyValue = 0;
-
-									t_exec3 = t_exec2 - t_exec1;
 									break;
 								}
-
+								//###########################################################################//
 								//0x005138 02 08  00 00 00 33  00 00 04 78   03 04 00 14 50 11   1E 0C 03 FA
-
-								//Returns filled data and volume after requesting filling information
+								//-> UART1 [12]b '50 3a 03 04 09 99 99 00 d7 2f 03 fa ' <== preset vol: 9999900
+								//|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||//
+								//     Returns filled data and volume after requesting filling information
 								//===========================================================================//
 								//=============================== PRESET VOLUME =============================//
 								//===========================================================================//
 								else if( (r_raw_data2[i] == 0x03) && (r_raw_data2[i+1] == 0x04) ) //Trans-No  & Length
 								{
 									//
-									uint16_t preset_voll = 0;
+									uint32_t preset_voll = 0;
 									uint8_t preset_vol[4];
 									char preset_volll[20];
 
@@ -1055,6 +1058,14 @@ void parse_decode2(void)
 										long n = strtol(preset_volll, NULL, 16);
 										uint32_t preset_vol0 = packed_bcd_to_decimal(n);
 
+										switch(dp_vol2)
+										{
+											case 0	: { auth_v2 = (preset_voll * 1); break; }
+											case 1	: { auth_v2 = (preset_voll * 0.1); break; }
+											case 2	: { auth_v2 = (preset_voll * 0.01); break; }
+											case 3	: { auth_v2 = (preset_voll * 0.001); break; }
+											default	: { break; }
+										}
 
 										resp2 = DATA_PRESET_VOL;
 										ack_send2 = true;
@@ -1066,6 +1077,8 @@ void parse_decode2(void)
 
 									//==============================================================//
 
+									i += 6; //no. of data(8) plus 2 for the r_trans and r_lng
+
 									break;
 								}
 
@@ -1075,7 +1088,7 @@ void parse_decode2(void)
 								//===========================================================================//
 								else if(r_raw_data2[i] == 0x04 && r_raw_data2[i+1] == 0x04)
 								{
-									uint16_t preset_amtt = 0;
+									uint32_t preset_amtt = 0;
 									uint8_t preset_amt[4];
 									char preset_amttt[20];
 
@@ -1109,6 +1122,14 @@ void parse_decode2(void)
 
 										uint32_t preset_amt0 = packed_bcd_to_decimal(n);
 
+										switch(dp_amount2)
+										{
+											case 0	: { auth_p2 = (preset_amtt * 1); break; }
+											case 1	: { auth_p2 = (preset_amtt * 0.1); break; }
+											case 2	: { auth_p2 = (preset_amtt * 0.01); break; }
+											case 3	: { auth_p2 = (preset_amtt * 0.001); break; }
+											default	: { break; }
+										}
 
 										resp2 = DATA_PRESET_AMO;
 										ack_send2 = true;
@@ -1117,15 +1138,20 @@ void parse_decode2(void)
 									{
 										resp2 = CRC_ERROR;
 									}
+
+									i += 6; //no. of data(8) plus 2 for the r_trans and r_lng
+
 									break;
 								}
+
+								//###########################################################################//
 								//'50 37 05 03 00 58 10 a2 0a 03 fa
 								//===========================================================================//
 								//========================== PRICE-UPDATE (DP => 1)==========================//
 								//===========================================================================//
 								else if(r_raw_data2[i] == 0x05 && r_raw_data2[i+1] == 0x03)
 								{
-									uint16_t price_updatee = 0;
+									uint32_t price_updatee = 0;
 									uint8_t price_update[3];
 									char price_updateee[20];
 
@@ -1162,10 +1188,10 @@ void parse_decode2(void)
 										price_updatee = ( (price_update[0] * 10000) + (price_update[1] * 100) + (price_update[2] * 1) );
 										sprintf(price_updateee, "0x%ld", price_updatee);
 
-										// char num[]="0x3076";
 										long n = strtol(price_updateee, NULL, 16);
 										uint32_t price_update0 = packed_bcd_to_decimal(n);
 
+										price_update2 = (price_updatee * 0.1);
 
 										resp2 = DATA_PRICE_UPDATE;
 										ack_send2 = true;
@@ -1186,9 +1212,6 @@ void parse_decode2(void)
 								//===========================================================================//
 								else if(r_raw_data2[i] == 0x65 && r_raw_data2[i+1] == 0x01)
 								{
-									uint16_t price_updatee = 0;
-									uint8_t price_update[3];
-									char price_updateee[20];
 
 									crc_original = r_raw_data2[i+4];
 									crc_original = (crc_original << 8);
@@ -1215,6 +1238,9 @@ void parse_decode2(void)
 										command_2 = REQUEST_VOL_TOTAL_COUNT;
 
 										resp2 = DATA_REQUEST_VOL_TOTAL_COUNT;
+
+										command_response2 = true;
+
 										ack_send2 = true;
 									}
 									else
@@ -1227,6 +1253,106 @@ void parse_decode2(void)
 									break;
 								}
 
+								//'50 35 65 01 01 1f 8f 03 fa '
+								//===========================================================================//
+								//============================== SUSPEND REQUEST ==============================//
+								//===========================================================================//
+								else if( (r_raw_data2[i] == 0x0E) && (r_raw_data2[i+1] == 0x01) )
+								{
+
+									crc_original = r_raw_data2[i+4];
+									crc_original = (crc_original << 8);
+									crc_original = (crc_original + r_raw_data2[i+3]);
+
+
+									//==============================================================//
+									//==================== VALIDATING THE CRC ======================//
+									//'50 35 65 01 01 1f 8f 03 fa '
+									data_[0] = r_addr2;
+									data_[1] = r_ctrl2;
+
+									for(uint8_t ii = 0, j = 2; ii < 5; ii++, j++)
+									{
+										data_[j] = r_raw_data2[ii];
+									}
+
+
+									crc_check = crc_16(data_, 5);
+
+
+									if(crc_check == crc_original)
+									{
+										command_2 = SUSPEND_REQUEST;
+
+										resp2 = DATA_SUSPEND;
+
+										command_response2 = true;
+
+										ack_send2 = true;
+									}
+									else
+									{
+										resp2 = CRC_ERROR;
+									}
+									//=================== DONE, VALIDATING THE CRC =================//
+									//==============================================================//
+
+									break;
+								}
+								//'50 37 05 03 00 58 10 a2 0a 03 fa
+								//===========================================================================//
+								//==========================   SET PUMP PARAMETERS   ========================//
+								//===========================================================================//
+								else if(r_raw_data2[i] == 0x09)   // && r_raw_data1[i+1] == 0x33) //51 Data Bytes
+								{
+									uint32_t price_updatee = 0;
+									uint8_t set_param[3];
+									char price_updateee[20];
+
+									crc_original = r_raw_data2[i+56];
+									crc_original = (crc_original << 8);
+									crc_original = (crc_original + r_raw_data2[i+55]);
+
+
+									//==============================================================//
+									//==================== VALIDATING THE CRC ======================//
+
+									data_[0] = r_addr2;
+									data_[1] = r_ctrl2;
+
+									////////////////////////////////////////
+									//'50 37 05 03 00 58 10 a2 0a 03 fa
+									////////////////////////////////////////
+									//===the read buffer contains only from the transaction byte to the SF byte ===//
+									//================== Data contains a cumulative of 51 raw Bytes ===============//
+									for(uint8_t ii = 0, j = 2; ii < 53; ii++, j++)  //51 + Trans No. + Data Len
+									{
+										data_[j] = r_raw_data2[ii];
+									}
+
+
+									crc_check = crc_16(data_, 55);
+
+
+									if(crc_check == crc_original)
+									{
+										for (uint8_t j = 0; j < 51; j++)
+										{
+											set_param[j] = r_raw_data2[i+2+j];
+										}
+
+										resp2 = DATA_SET_PUMP_PARAM;
+										ack_send2 = true;
+									}
+									else
+									{
+										resp2 = CRC_ERROR;
+									}
+									//=================== DONE, VALIDATING THE CRC =================//
+									//==============================================================//
+
+									break;
+								}
 
 							}
 
@@ -1237,12 +1363,15 @@ void parse_decode2(void)
 							break;
 
 			case 0xC0	: 	resp2 = r_ACK;
-							// TRACE_DART("<>--- msg - ack\n");
-							MSN = (r_ctrl & 0x0F);
+
+							MSN = (r_ctrl2 & 0x0F);
 							if(MSN == TX2)
 							{
-								checked = 1;
 								TX2++;
+								if(TX2 > 0x0F)
+								{
+									TX2 = 0x00;
+								}
 							}
 
 							command_2 = NO_COMMAND;
@@ -1251,29 +1380,31 @@ void parse_decode2(void)
 
 							resp2 = NOREPLY;
 
-							break; //increase the tx on receiving an ACK
+							break;
+
+							//increase the tx on receiving an ACK
 
 			case 0x50	:	resp2 = r_NACK;
-							MSN = (r_ctrl & 0x0F);
+
+							MSN = (r_ctrl2 & 0x0F);
 							if(MSN == TX2)
 							{
 
 							}
 
-//							TX = 0;
 							break;
 
 			case 0x70	:	resp2 = r_EOT;
-							// TRACE_DART("<>--- msg - eot\n");
+
 							break;
 			default		:
 							resp2 = JUNK;
 							break;
-	}//switch ctrl
+	} //switch ctrl
 }
 
 
-void process_response(response_enum response)
+void process_response1(response_enum response)
 {
 
 //	unsigned char status_;
@@ -1333,11 +1464,11 @@ void process_response(response_enum response)
 									if(nozzle_out1 == true)
 									{
 										//Param : uint8_t buff_index, float filling_price, uint8_t nozzle_status
-										send_nozzleStatus(0);  //, 180.00, 1);   //nozStatus = 0, //0 -> in, 1 -> out
+										send_nozzleStatus1(0);  //, 180.00, 1);   //nozStatus = 0, //0 -> in, 1 -> out
 										nozzlezUp1 = 1;    //retains this nozzleup memory for some later use
 									}
 									else if(nozzle_out1 == false){
-										send_nozzleStatus(0);  //, 180.00, 0);   //nozStatus = 0, //0 -> in, 1 -> out
+										send_nozzleStatus1(0);  //, 180.00, 0);   //nozStatus = 0, //0 -> in, 1 -> out
 										nozzlezUp1 = 0;  //clears this nozzleup memory @ any slightest nozzledown
 									}
 
@@ -1353,7 +1484,7 @@ void process_response(response_enum response)
 								}
 								else if(status_change_pump1 == 1)   //Generic Pump-Status-Change
 								{
-									send_pumpStatus(0);
+									send_pumpStatus1(0);
 
 
 									crc = crc_16(DART_BUFF1, 5);
@@ -1370,7 +1501,7 @@ void process_response(response_enum response)
 								//=================================================================================//
 								//==========  This transaction is sent by the pump at change of a value  ==========//
 								//=================================================================================//
-								if(pump_status_ == STATUS_FILLING)
+								if(pump_status_1 == STATUS_FILLING)
 								{
 									static float old_value = 0;
 
@@ -1380,7 +1511,7 @@ void process_response(response_enum response)
 
 									if(vol_ != old_value)
 									{
-										send_fillingInfo(0);
+										send_fillingInfo1(0);
 
 										crc = crc_16(DART_BUFF1, 12);
 										DART_BUFF1[12] = crc & 0x00FF;
@@ -1406,7 +1537,7 @@ void process_response(response_enum response)
 									array_len = 3;
 								}
 
-								go_write(DART_BUFF1);
+								go_write1(DART_BUFF1);
 							}
 							else if( (command_ == GETSTATUS) || (command_ == REQUEST_FILLING_INFO)
 									|| (command_ == RETURN_PUMP_PARAM) || (command_ == RETURN_PUMP_IDENTITY)  )
@@ -1414,21 +1545,21 @@ void process_response(response_enum response)
 //								t_exec2 = DWT->CYCCNT;
 //								t_exec3 = t_exec2 - t_exec1;
 
-								_process_response(DATA_COMMAND);
+								_process_response1(DATA_COMMAND);
 
 								t_exec2 = DWT->CYCCNT;
 								t_exec3 = t_exec2 - t_exec1;
 
-								go_write(DART_BUFF1);
+								go_write1(DART_BUFF1);
 
 								t_exec4 = DWT->CYCCNT;
 								t_exec5 = t_exec4 - t_exec2;
 							}
 							else if(command_ == REQUEST_VOL_TOTAL_COUNT)
 							{
-								_process_response(DATA_REQUEST_VOL_TOTAL_COUNT);
+								_process_response1(DATA_REQUEST_VOL_TOTAL_COUNT);
 
-								go_write(DART_BUFF1);
+								go_write1(DART_BUFF1);
 							}
 							break;
 			case r_ACK:   //C0H -> CFH
@@ -1439,8 +1570,8 @@ void process_response(response_enum response)
 
 			case r_NACK:   //50H -> 5FH
 							ctrl = 0x50 | TX;
-							_process_response(DATA_COMMAND);
-							go_write(DART_BUFF1);
+							_process_response1(DATA_COMMAND);
+							go_write1(DART_BUFF1);
 							break;
 			case r_ACKPOLL:    //E0H -> EFH
 							ctrl = 0xE0 | r_TX;
@@ -1462,8 +1593,8 @@ void process_response(response_enum response)
 	}
 	else
 	{
-		_process_response(response);
-		go_write(DART_BUFF1);
+		_process_response1(response);
+		go_write1(DART_BUFF1);
 	}
 }
 
@@ -1685,18 +1816,21 @@ void process_response(response_enum response)
 
 void process_response2(response_enum response)
 {
+	uint16_t crc;
+
 	addr2 = 0x4F + pumpno2;    //00H -> FFH
 	TX2 = TX2 & 0x0F;
-	// ctrl = (TX & 0x0F);
-	ctrl = TX2;
+
+	ctrl2 = TX2;
+
 	if (response == CRC_ERROR)
 	{
-		ctrl = 0x50 | r_TX;
+		ctrl2 = 0x50 | r_TX2;
 
 		memset(DART_BUFF2, 0, sizeof(DART_BUFF2));
 
 		DART_BUFF2[0] = addr2;
-		DART_BUFF2[1] = ctrl;
+		DART_BUFF2[1] = ctrl2;
 		DART_BUFF2[2] = SF;
 
 		array_len2 = 3;
@@ -1711,52 +1845,128 @@ void process_response2(response_enum response)
 
 		switch (response)
 		{
-			//fOR THE BASIC ctrls
+			//foe the Basic ctrls
 
 			case r_POLL:   // 20H
 
-				            //==========================================================//
-							//==========  If having nothing to send, send EOT ==========//
-							//==========================================================//
-							if(command_2 == NO_COMMAND)
+						_process_response2(DATA_COMMAND);
+
+							if(command_response2 == false)
 							{
-								ctrl = 0x70;    //EOT
+								if(status_change_noz2 == 1)
+								{
+									if(nozzle_out2 == true)
+									{
+										send_nozzleStatus2(0);  //Param : uint8_t buff_index
+										nozzlezUp2 = 1;    //retains this nozzleup memory for some later use
+									}
+									else if(nozzle_out2 == false){
+										send_nozzleStatus2(0);  //, 180.00, 0);   //nozStatus = 0, //0 -> in, 1 -> out
+										nozzlezUp2 = 0;  //clears this nozzleup memory @ any slightest nozzledown
+									}
 
-								DART_BUFF2[1] = ctrl;
-								DART_BUFF2[2] = SF;
+									crc = crc_16(DART_BUFF2, 8);
+									DART_BUFF2[8] = crc & 0x00FF;
+									DART_BUFF2[9] = crc >> 8;
+									DART_BUFF2[10] = ETX;
+									DART_BUFF2[11] = SF;
 
-								array_len2 = 3;
+									array_len2 = 12;
+
+									status_change_noz2 = 0;
+								}
+								else if(status_change_pump2 == 1)   //Generic Pump-Status-Change
+								{
+									send_pumpStatus2(0);
+
+
+									crc = crc_16(DART_BUFF2, 5);
+									DART_BUFF2[5] = crc & 0x00FF;
+									DART_BUFF2[6] = crc >> 8;
+									DART_BUFF2[7] = ETX;
+									DART_BUFF2[8] = SF;
+
+									array_len2 = 9;
+
+									status_change_pump2 = 0;
+								}
+								///////////////////////////////////////  DC2  ///////////////////////////////////////
+								//=================================================================================//
+								//==========  This transaction is sent by the pump at change of a value  ==========//
+								//=================================================================================//
+								if(pump_status_2 == STATUS_FILLING)
+								{
+									static float old_value = 0;
+
+									float vol_ = go_fillingInfo_vol2();
+
+									if(vol_ != old_value)
+									{
+										send_fillingInfo2(0);
+
+										crc = crc_16(DART_BUFF2, 12);
+										DART_BUFF2[12] = crc & 0x00FF;
+										DART_BUFF2[13] = crc >> 8;
+										DART_BUFF2[14] = ETX;
+										DART_BUFF2[15] = SF;
+
+										array_len2 = 16;
+									}
+									old_value = vol_;
+								}
+
+								//==========================================================//
+								//==========  If having nothing to send, send EOT ==========//
+								//==========================================================//
+								else
+								{
+									ctrl2 = 0x70;    //EOT
+
+									DART_BUFF2[1] = ctrl2;
+									DART_BUFF2[2] = SF;
+
+									array_len2 = 3;
+								}
 
 								go_write2(DART_BUFF2);
 							}
-							else if(command_2 != NO_COMMAND)
+							else if( (command_2 == GETSTATUS) || (command_2 == REQUEST_FILLING_INFO)
+									|| (command_2 == RETURN_PUMP_PARAM) || (command_2 == RETURN_PUMP_IDENTITY)  )
 							{
 								_process_response2(DATA_COMMAND);
 
-								go_write(DART_BUFF2);
+								go_write2(DART_BUFF2);
+							}
+							else if(command_2 == REQUEST_VOL_TOTAL_COUNT)
+							{
+								_process_response2(DATA_REQUEST_VOL_TOTAL_COUNT);
+
+								go_write2(DART_BUFF2);
 							}
 							break;
+
 			case r_ACK:   //C0H -> CFH
 
-//							ctrl = 0xC0 | r_TX;	//reply with the previous msg tx
-							resp = NOREPLY;
+							resp2 = NOREPLY;
 							break;
 
 			case r_NACK:   //50H -> 5FH
-							ctrl = 0x50 | TX;
+							ctrl2 = 0x50 | TX2;
 							_process_response2(DATA_COMMAND);
 							go_write2(DART_BUFF2);
 							break;
+
 			case r_ACKPOLL:    //E0H -> EFH
-							ctrl = 0xE0 | r_TX;
+							ctrl2 = 0xE0 | r_TX2;
 							break;
+
 			case r_EOT:   // 70H -> 7FH
-							ctrl = 0x70 | r_TX;
+							ctrl2 = 0x70 | r_TX2;
 							break;
+
 			default:
 							break;
 		}
-
 	}
 	else
 	{
@@ -1766,7 +1976,7 @@ void process_response2(response_enum response)
 }
 
 
-void _process_response(response_enum response)
+void _process_response1(response_enum response)
 {
 
 	unsigned char status_;
@@ -1781,7 +1991,7 @@ void _process_response(response_enum response)
 		if(ack_send == true)
 		{
 			//==> send ack
-			send_acknowledgement(ACK);
+			send_acknowledgement1(ACK);
 //			outstanding_command = true;
 			ack_send = false;
 
@@ -1794,7 +2004,7 @@ void _process_response(response_enum response)
 											command_response = false;
 											if(settings_stream1[0].mode == AUTO_MODE)
 											{
-												if( (pump_status_ == STATUS_FILLING_COMP) || (pump_status_ == STATUS_MAMO_REACHED) || (pump_status_ == STATUS_SWITCHED_OFF) )
+												if( (pump_status_1 == STATUS_FILLING_COMP) || (pump_status_1 == STATUS_MAMO_REACHED) || (pump_status_1 == STATUS_SWITCHED_OFF) )
 												{
 //																		pump_status_ = STATUS_RESET;
 
@@ -1817,7 +2027,7 @@ void _process_response(response_enum response)
 											command_response = false;
 											if(settings_stream1[0].mode == AUTO_MODE)
 											{
-												if(pump_status_ == STATUS_RESET)
+												if(pump_status_1 == STATUS_RESET)
 												{
 //																		pump_status_ = STATUS_AUTH;
 													auth_cmd_flag = 1;  //activate auth cmd.
@@ -1830,9 +2040,9 @@ void _process_response(response_enum response)
 											command_response = false;
 											if(settings_stream1[0].mode == AUTO_MODE)
 											{
-												if((pump_status_ == STATUS_RESET) || (pump_status_ == STATUS_SUSPENDED) ||
-												   (pump_status_ == STATUS_MAMO_REACHED) || (pump_status_ == STATUS_AUTH) ||
-												   (pump_status_ == STATUS_FILLING) || (pump_status_ == STATUS_SWITCHED_OFF) )
+												if((pump_status_1 == STATUS_RESET) || (pump_status_1 == STATUS_SUSPENDED) ||
+												   (pump_status_1 == STATUS_MAMO_REACHED) || (pump_status_1 == STATUS_AUTH) ||
+												   (pump_status_1 == STATUS_FILLING) || (pump_status_1 == STATUS_SWITCHED_OFF) )
 												{
 //													pump_status_ = STATUS_AUTH;
 													stop_flag = 1;  //deactivate auth cmd.
@@ -1857,14 +2067,14 @@ void _process_response(response_enum response)
 											command_response = false;
 											if(settings_stream1[0].mode == AUTO_MODE)
 											{
-												if(pump_status_ == STATUS_AUTH)
+												if(pump_status_1 == STATUS_AUTH)
 												{
 //													pump_status_ = STATUS_SUSPENDED;
 
 													authsuspend_flag1 = 1;
 													//Motor turned off
 												}
-												else if(pump_status_ == STATUS_FILLING)
+												else if(pump_status_1 == STATUS_FILLING)
 												{
 													//Motor turned off
 													fillingsuspend_flag1 = 1;
@@ -1988,7 +2198,7 @@ void _process_response(response_enum response)
 				//=============================//
 
 
-				switch (pump_status_)
+				switch (pump_status_1)
 				{
 					//for the Pump-Status Commands
 					case STATUS_PNP		      				:	{status_ = 0x00; break;}
@@ -2207,7 +2417,7 @@ void _process_response(response_enum response)
 			}
 
 
-			else if (command_ = RETURN_PUMP_IDENTITY)       //PUMP_IDENTITY)
+			else if (command_ == RETURN_PUMP_IDENTITY)       //PUMP_IDENTITY)
 			{
 //				float fillingPrice = 1550.1234;
 //				int decimalPlaces = 2;
@@ -2254,12 +2464,12 @@ void _process_response(response_enum response)
 			//		  is received or if the pump receives the command                      //
 			//		   'RETURN PUMP PARAMETERS'.      			                           //
 			//=============================================================================//
-			else if (command_ = RETURN_PUMP_PARAM)       //PUMP_IDENTITY)
+			else if (command_ == RETURN_PUMP_PARAM)       //PUMP_IDENTITY)
 			{
 				if(ack_send == true)
 				{
 					//==> send ack
-					send_acknowledgement(ACK);
+					send_acknowledgement1(ACK);
 					ack_send = false;
 				}
 				else
@@ -2269,7 +2479,7 @@ void _process_response(response_enum response)
 					uint8_t dp_amo = dp_amount1;
 					uint8_t dp_unp = dp_unitprice1;
 
-					int pump_limit = 1000;  //1000 Litres
+//					int pump_limit = 1000;  //1000 Litres
 
 					int num_, pump_id;
 					unsigned char bcd_[10] = {0};  // Array to hold the BCD result
@@ -2302,7 +2512,7 @@ void _process_response(response_enum response)
 						DART_BUFF1[i + 29] = 0;
 					}
 
-					int_to_bcd(pump_limit, bcd_);
+					int_to_bcd(pump_max_litres2, bcd_);
 
 					for (uint8_t i = 0, j = 4;  i < 5; i++, j--)
 					{
@@ -2339,7 +2549,7 @@ void _process_response(response_enum response)
 	}
 	else if(response == DATA_PRICE_UPDATE)   //This transaction is sent by the pump if the status is changed or if the pump receives the command 'RETURN STATUS’.
 	{
-		send_acknowledgement(ACK);
+		send_acknowledgement1(ACK);
 		ack_send = false;
 
 		///////////////////////////////////////////////////////////////////
@@ -2355,7 +2565,7 @@ void _process_response(response_enum response)
 				   changeLitrePrice1 = 1;
 			}
 
-			if(pump_status_ == STATUS_PNP)
+			if(pump_status_1 == STATUS_PNP)
 			{
 //				pump_status_ = STATUS_FILLING_COMP;
 				fillingComplete_flag1 = 1;
@@ -2368,7 +2578,7 @@ void _process_response(response_enum response)
 		if(ack_send == true)
 		{
 			//==> send ack
-			send_acknowledgement(ACK);
+			send_acknowledgement1(ACK);
 			ack_send = false;
 		}
 		else
@@ -2467,7 +2677,7 @@ void _process_response(response_enum response)
 	}
 	else if( (response == DATA_PRESET_VOL) || (response == DATA_PRESET_AMO)  )
 	{
-		send_acknowledgement(ACK);
+		send_acknowledgement1(ACK);
 		ack_send = false;
 
 		//Effect the Change...
@@ -2482,14 +2692,14 @@ void _process_response(response_enum response)
 	}
 	else if(response == DATA_SUSPEND)
 	{
-		send_acknowledgement(ACK);
+		send_acknowledgement1(ACK);
 		ack_send = false;
 
 		command_response = false;
 
 		if(settings_stream1[0].mode == AUTO_MODE)
 		{
-			if((pump_status_ == STATUS_FILLING) || (pump_status_ == STATUS_AUTH) )
+			if((pump_status_1 == STATUS_FILLING) || (pump_status_1 == STATUS_AUTH) )
 			{
 //				pump_status_ = STATUS_SUSPENDED;
 				//Motor turned off
@@ -2500,13 +2710,13 @@ void _process_response(response_enum response)
 	}
 	else if(response == DATA_RESUME)
 	{
-		send_acknowledgement(ACK);
+		send_acknowledgement1(ACK);
 		ack_send = false;
 
 		command_response = false;
 		if(settings_stream1[0].mode == AUTO_MODE)
 		{
-			if(pump_status_ == STATUS_SUSPENDED)
+			if(pump_status_1 == STATUS_SUSPENDED)
 			{
 				//Motor turned on
 
@@ -2520,20 +2730,126 @@ void _process_response(response_enum response)
 void _process_response2(response_enum response)
 {
 
-	unsigned char status_;
+	unsigned char status_2;
 	uint16_t crc;
 
 	static uint8_t check = 0;
 
 	if(response == DATA_COMMAND)   //This transaction is sent by the pump if the status is changed or if the pump receives the command 'RETURN STATUS’.
-//		|| (outstanding_command == true) )
 	{
-
 		if(ack_send2 == true)
 		{
 			//==> send ack
 			send_acknowledgement2(ACK);
 			ack_send2 = false;
+
+
+			switch (command_2)
+			{
+				//for the Pump-Status Commands
+				case RESET1		      :
+										{
+											command_response2 = false;
+											if(settings_stream1[1].mode == AUTO_MODE)
+											{
+												if( (pump_status_2 == STATUS_FILLING_COMP) || (pump_status_2 == STATUS_MAMO_REACHED) || (pump_status_2 == STATUS_SWITCHED_OFF) )
+												{
+													reset_flag2 = 1;
+
+													//[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+
+													//Amount, Vol., and Alarm cleared
+													//Light switched on
+													//Preset-Vol Cleared to default value
+													//Display cleared
+
+													//]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
+												}
+											}
+											break;
+										}
+				case AUTHORISE	 	:
+										{
+											command_response2 = false;
+											if(settings_stream1[1].mode == AUTO_MODE)
+											{
+												if(pump_status_2 == STATUS_RESET)
+												{
+													auth_cmd_flag2 = 1;  //activate auth cmd.
+												}
+											}
+											break;
+										}
+				case STOP1		 	:
+										{
+											command_response2 = false;
+											if(settings_stream1[1].mode == AUTO_MODE)
+											{
+												if((pump_status_2 == STATUS_RESET) || (pump_status_2 == STATUS_SUSPENDED) ||
+												   (pump_status_2 == STATUS_MAMO_REACHED) || (pump_status_2 == STATUS_AUTH) ||
+												   (pump_status_2 == STATUS_FILLING) || (pump_status_2 == STATUS_SWITCHED_OFF) )
+												{
+													stop_flag2 = 1;  //deactivate auth cmd.
+												}
+											}
+											break;
+										}
+				case SWITCH_OFF		:
+										{
+											command_response2 = false;
+											if(settings_stream1[1].mode == AUTO_MODE)
+											{
+//												pump_status_ = STATUS_SWITCHED_OFF;
+												//Lights off
+												//Motor off
+												//Idle State
+											}
+											break;
+										}
+				case SUSPEND_REQUEST  :
+										{
+											command_response2 = false;
+											if(settings_stream1[1].mode == AUTO_MODE)
+											{
+												if(pump_status_2 == STATUS_AUTH)
+												{
+													authsuspend_flag2 = 1;
+													//Motor turned off
+												}
+												else if(pump_status_2 == STATUS_FILLING)
+												{
+													//Motor turned off
+													fillingsuspend_flag2 = 1;
+												}
+											}
+											break;
+										}
+				case RESUME_REQUEST	  :
+										{
+											command_response2 = false;
+											if(settings_stream1[1].mode == AUTO_MODE)
+											{
+												if(authsuspend_flag2 == 1)
+												{
+													authresume_flag2 = 1;
+													//Motor turned on
+
+													authsuspend_flag2 = 0;
+												}
+												else if(fillingsuspend_flag2 == 1)
+												{
+													fillingresume_flag2 = 1;
+													//Motor turned on
+
+													fillingsuspend_flag2 = 0;
+												}
+											}
+											break;
+										}
+
+				default									: 	break;
+			}
+
 		}
 		else
 		{
@@ -2545,15 +2861,150 @@ void _process_response2(response_enum response)
 
 			if (command_2 == GETSTATUS)
 			{
+
+				//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+				//////////////////////////////////////////  GET PUMP-STATUS ///////////////////////////////////////
+				//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+
+				uint8_t decimalPlaces;
+				double roundedNum;
+				int num_;
+
+				unsigned char bcd_[10] = {0};  // Array to hold the BCD result
+
+				uint16_t crc;
+
+				ctrl2 = TX2;
+				ctrl2 |= 0x30;
+
+				memset(DART_BUFF2, 0, sizeof(DART_BUFF2));
+
+				DART_BUFF2[0] = addr2;
+				DART_BUFF2[1] = ctrl2;
+
+
+				//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+				////////////////////////////////////////  DC1 ////////////////////////////////////////
+				/////////////////////////////////// GET PUMP-STATUS //////////////////////////////////
+
+
+				trans = 0x01;
+				lng = 0x01;
+
+				DART_BUFF2[2] = trans;
+				DART_BUFF2[3] = lng;
+
+				//==============================//
+//				pump_status_ = STATUS_RESET;
+				//=============================//
+
+
+				switch (pump_status_2)
+				{
+					//for the Pump-Status Commands
+					case STATUS_PNP		      				:	{status_2 = 0x00; break;}
+					case STATUS_RESET 						:	{status_2 = 0x01; break;}
+					case STATUS_AUTH 						:	{status_2 = 0x02; break;}
+					case STATUS_FILLING						:	{status_2 = 0x04; break;}
+					case STATUS_FILLING_COMP				:	{status_2 = 0x05; break;}
+					case STATUS_MAMO_REACHED				:	{status_2 = 0x06; break;}   //MAX_AMOUNTVOLUME_REACHED
+					case STATUS_SWITCHED_OFF				:	{status_2 = 0x07; break;}
+					default									: 	break;
+				}
+
+				DART_BUFF2[4] = status_2;
+
+
+				//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+				//////////////////////////////////  GET NOZSTATUS-AND-FILLINGPRICE //////////////////////////////////
+
 				//=============================================================================//
+				//////////////////////////////////  DC3  ////////////////////////////////////////
+				//   	  This transaction is sent by the pump if the status is changed        //
+				//		  or if the pump receives the command                                  //
+				//		  'RETURN STATUS' or ‘RETURN FILLING INFORMATION’.      			   //
+				//=============================================================================//
+
+				//command_ ==> REQUEST_FILLING_INFO        // NOZSTATUS_AND_FILLINGPRICE
+
+//				float fillingPrice = 100.00;
+				float fillingPrice = go_fillingPrice2();
+
+				trans = 0x03;
+				lng = 0x04;
+
+				DART_BUFF2[5] = trans;
+				DART_BUFF2[6] = lng;
+
+				decimalPlaces = 1;
+
+				roundedNum = roundUp(fillingPrice, decimalPlaces);
+				roundedNum = roundedNum * 10;
+				num_ = (int)(roundedNum);
+
+				memset(bcd_, 0, sizeof(bcd_));
+
+				int_to_bcd(num_, bcd_);
+
+				for (uint8_t i = 0, j = 2;  i < 3; i++, j--)
+				{
+					DART_BUFF2[i + 7] = bcd_[j];
+				}
+
+				uint8_t nozNum = 1,
+						nozStatus = 0, //0 -> in, 1 -> out
+						nozIO;
+
+				if(nozzle_out2 == true) nozStatus = 1;
+				else nozStatus = 0;
+
+				// nozIO = nozNum;
+				nozStatus = (nozStatus << 4);
+				nozIO = nozNum | nozStatus;
+
+				DART_BUFF2[10] = nozIO;    //Nozzle 1
+
+
+				//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+				//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+
+				crc = crc_16(DART_BUFF2, 11);
+				DART_BUFF2[11] = crc & 0x00FF;
+				DART_BUFF2[12] = crc >> 8;
+				DART_BUFF2[13] = ETX;
+				DART_BUFF2[14] = SF;
+
+				array_len2 = 15;
+
+				resp2 = NOREPLY;
+
+			}
+
+			//=============================================================================//
+			//        This transaction is sent by the pump at change of a value            //
+			//        or if the pump receives the command RETURN FILLING INFORMATION       //
+			//=============================================================================//
+			else if (command_2 == REQUEST_FILLING_INFO)        //FILLED_VOLUME_AND_AMOUNT
+			{
+
+				//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+				//////////////////////////////////  GET FILLED_VOLUME_AND_AMOUNT //////////////////////////////////
+
+
+
+				//=============================================================================//
+				////////////////////////////////////  DC2  //////////////////////////////////////
 				//        This transaction is sent by the pump at change of a value            //
 				//        or if the pump receives the command RETURN FILLING INFORMATION       //
 				//=============================================================================//
 				//command_ ==> REQUEST_FILLING_INFO        //FILLED_VOLUME_AND_AMOUNT
 
-				float vol_ = 15.1234;
-				float amo_ = 1500.1234;
-				int decimalPlaces;
+//				float vol_ = 15.1234;
+				float vol_ = go_fillingInfo_vol2();
+//				float amo_ = 1500.1234;
+				float amo_ = go_fillingInfo_amt2();
+
+				uint8_t decimalPlaces;
 				double roundedNum;
 				int num_;
 				// unsigned int bcd;
@@ -2561,15 +3012,15 @@ void _process_response2(response_enum response)
 
 				uint16_t crc;
 
-				ctrl = 0x02;
-				ctrl |= 0x30;
+				ctrl2 = TX2;
+				ctrl2 |= 0x30;
 				trans = 0x02;
 				lng = 0x08;
 
 				memset(DART_BUFF2, 0, sizeof(DART_BUFF2));
 
 				DART_BUFF2[0] = addr2;
-				DART_BUFF2[1] = ctrl;
+				DART_BUFF2[1] = ctrl2;
 				DART_BUFF2[2] = trans;
 				DART_BUFF2[3] = lng;
 
@@ -2581,7 +3032,6 @@ void _process_response2(response_enum response)
 
 				int_to_bcd(num_, bcd_);
 
-				// for(uint8_t i = 0; i < 4; i++)
 				for (uint8_t i = 0, j = 3; i < 4; i++, j--)
 				{
 					DART_BUFF2[i + 4] = bcd_[j];
@@ -2604,7 +3054,11 @@ void _process_response2(response_enum response)
 				}
 
 
+				//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+				//////////////////////////////////  GET NOZSTATUS_AND_FILLINGPRICE //////////////////////////////////
+
 				//=============================================================================//
+				//////////////////////////////////  DC3  ////////////////////////////////////////
 				//   	  This transaction is sent by the pump if the status is changed        //
 				//		  or if the pump receives the command                                  //
 				//		  'RETURN STATUS' or ‘RETURN FILLING INFORMATION’.      			   //
@@ -2612,11 +3066,8 @@ void _process_response2(response_enum response)
 
 				//command_ ==> REQUEST_FILLING_INFO        // NOZSTATUS_AND_FILLINGPRICE
 
-				float fillingPrice = 100.00;
-	//			int decimalPlaces = 2;
-	//			double roundedNum;
-	//			int num_;
-	//			unsigned char bcd_[10] = {0};  // Array to hold the BCD result
+//				float fillingPrice = 100.00;
+				float fillingPrice = go_fillingPrice2();
 
 				trans = 0x03;
 				lng = 0x04;
@@ -2643,189 +3094,50 @@ void _process_response2(response_enum response)
 						nozStatus = 0, //0 -> in, 1 -> out
 						nozIO;
 
+				if(nozzle_out2 == true) nozStatus = 1;
+				else nozStatus = 0;
+
 				// nozIO = nozNum;
 				nozStatus = (nozStatus << 4);
 				nozIO = nozNum | nozStatus;
 
 				DART_BUFF2[17] = nozIO;    //Nozzle 1
 
-				trans = 0x01;
-				lng = 0x01;
 
-				DART_BUFF2[18] = trans;
-				DART_BUFF2[19] = lng;
+				//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+				//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-				//==============================//
-//				pump_status_2 = STATUS_RESET;
-				//=============================//
 
-				switch (pump_status_2)
-				{
-					//for the Pump-Status Commands
-					case STATUS_PNP		      				:	{status_ = 0x00; break;}
-					case STATUS_RESET 						:	{status_ = 0x01; break;}
-					case STATUS_AUTH 						:	{status_ = 0x02; break;}
-					case STATUS_FILLING						:	{status_ = 0x04; break;}
-					case STATUS_FILLING_COMP				:	{status_ = 0x05; break;}
-					case STATUS_MAMO_REACHED				:	{status_ = 0x06; break;}   //MAX_AMOUNTVOLUME_REACHED
-					case STATUS_SWITCHED_OFF				:	{status_ = 0x07; break;}
-					default									: 	break;
-				}
+				crc = crc_16(DART_BUFF2, 18);
+				DART_BUFF2[18] = crc & 0x00FF;
+				DART_BUFF2[19] = crc >> 8;
+				DART_BUFF2[20] = ETX;
+				DART_BUFF2[21] = SF;
 
-				DART_BUFF2[20] = status_;
-
-				crc = crc_16(DART_BUFF2, 21);
-				DART_BUFF2[21] = crc & 0x00FF;
-				DART_BUFF2[22] = crc >> 8;
-				DART_BUFF2[23] = ETX;
-				DART_BUFF2[24] = SF;
-
-				array_len2 = 25;
-
-				resp = NOREPLY;
-
+				array_len2 = 22;
 			}
 
-			//=============================================================================//
-			//        This transaction is sent by the pump at change of a value            //
-			//        or if the pump receives the command RETURN FILLING INFORMATION       //
-			//=============================================================================//
-			else if (command_ == REQUEST_FILLING_INFO)        //FILLED_VOLUME_AND_AMOUNT
+
+			else if (command_2 == RETURN_PUMP_IDENTITY)       //PUMP_IDENTITY)
 			{
-
-				float vol_ = 1500.1234;
-				float amo_ = 15.1234;
-				int decimalPlaces = 2;
-				double roundedNum;
-				int num_;
-				// unsigned int bcd;
-				unsigned char bcd_[10] = {0};  // Array to hold the BCD result
-
-				uint16_t crc;
-
-				ctrl |= 0x30 ;
-				trans = 0x02;
-				lng = 0x08;
-
-				memset(DART_BUFF2, 0, sizeof(DART_BUFF2));
-
-				DART_BUFF2[0] = addr2;
-				DART_BUFF2[1] = ctrl;
-				DART_BUFF2[2] = trans;
-				DART_BUFF2[3] = lng;
-
-				roundedNum = roundUp(vol_, decimalPlaces);
-				roundedNum = roundedNum * 100;
-				num_ = (int)(roundedNum);
-
-				int_to_bcd(num_, bcd_);
-
-				// for(uint8_t i = 0; i < 4; i++)
-				for (uint8_t i = 0, j = 3; i < 4; i++, j--)
-				{
-					DART_BUFF2[i + 4] = bcd_[j];
-				}
-
-				roundedNum = roundUp(amo_, decimalPlaces);
-				roundedNum = roundedNum * 100;
-				num_ = (int)(roundedNum);
-
-				memset(bcd_, 0, sizeof(bcd_));
-
-				int_to_bcd(num_, bcd_);
-
-				// for(uint8_t i = 0; i < 4; i++)
-				for (uint8_t i = 0, j = 3; i < 4; i++, j--)
-				{
-					DART_BUFF2[i + 8] = bcd_[j];
-				}
-
-			//		crc = calculate_crc(DART_BUFF1, 12);
-				crc = crc_16(DART_BUFF2, 12);
-				DART_BUFF2[12] = crc & 0x00FF;
-				DART_BUFF2[13] = crc >> 8;
-				DART_BUFF2[14] = ETX;
-				DART_BUFF2[15] = SF;
-
-				array_len2 = 16;
-			}
-
-			//=============================================================================//
-			//   	  This transaction is sent by the pump if the status is changed        //
-			//		  or if the pump receives the command                                  //
-			//		  'RETURN STATUS' or ‘RETURN FILLING INFORMATION’.      			   //
-			//=============================================================================//
-
-			else if ( (command_2 == GETSTATUS) || (command_2 == REQUEST_FILLING_INFO) )        // NOZSTATUS_AND_FILLINGPRICE
-			{
-
-				float fillingPrice = 100.00;
-				int decimalPlaces = 2;
-				double roundedNum;
-				int num_;
-				unsigned char bcd_[10] = {0};  // Array to hold the BCD result
-
-				uint16_t crc;
-
-				ctrl |= 0x30 ;
-				trans = 0x01;
-				lng = 0x01;
-
-				memset(DART_BUFF2, 0, sizeof(DART_BUFF2));
-
-				DART_BUFF2[0] = addr2;
-				DART_BUFF2[1] = ctrl;
-				DART_BUFF2[2] = trans;
-				DART_BUFF2[3] = lng;
-
-				roundedNum = roundUp(fillingPrice, decimalPlaces);
-				roundedNum = roundedNum * 100;
-				num_ = (int)(roundedNum);
-
-				int_to_bcd(num_, bcd_);
-
-				for (uint8_t i = 0, j = 2;  i < 3; i++, j--)
-				{
-					DART_BUFF2[i + 4] = bcd_[j];
-				}
-
-				uint8_t nozNum, nozStatus, nozIO;
-
-				// nozIO = nozNum;
-				nozStatus = (nozStatus << 4);
-				nozIO = nozNum | nozStatus;
-
-			//		crc = calculate_crc(DART_BUFF1, 7);
-				crc = crc_16(DART_BUFF2, 7);
-				DART_BUFF2[7] = crc & 0x00FF;
-				DART_BUFF2[8] = crc >> 8;
-				DART_BUFF2[9] = ETX;
-				DART_BUFF2[10] = SF;
-
-				array_len2 = 11;
-			}
-
-			else if (command_2 = RETURN_PUMP_IDENTITY)       //PUMP_IDENTITY)
-			{
-//				float fillingPrice = 1550.1234;
-//				int decimalPlaces = 2;
-//				double roundedNum;
 				int num_, pump_id;
-				unsigned char bcd_[6] = {0};  // Array to hold the BCD result
+				unsigned char bcd_[10] = {0};  // Array to hold the BCD result
 
 				uint16_t crc;
 
-				ctrl |= 0x30 ;
-				trans = 0x01;
+				ctrl2 |= 0x30 ;
+				trans = 0x09;
 				lng = 0x05;
 
 				memset(DART_BUFF2, 0, sizeof(DART_BUFF2));
 
 				DART_BUFF2[0] = addr2;
-				DART_BUFF2[1] = ctrl;
+				DART_BUFF2[1] = ctrl2;
 				DART_BUFF2[2] = trans;
 				DART_BUFF2[3] = lng;
 
+//				roundedNum = roundUp(fillingPrice, decimalPlaces);
+//				roundedNum = roundedNum * 100;
 				num_ = pump_id;
 
 				int_to_bcd(num_, bcd_);
@@ -2843,7 +3155,94 @@ void _process_response2(response_enum response)
 				DART_BUFF2[12] = SF;
 
 				array_len2 = 13;
+			}
+
+			//=============================================================================//
+			//   	  This transaction is sent by the pump if SET PUMP PARAMETERS          //
+			//		  is received or if the pump receives the command                      //
+			//		   'RETURN PUMP PARAMETERS'.      			                           //
+			//=============================================================================//
+			else if (command_2 == RETURN_PUMP_PARAM)       //PUMP_IDENTITY)
+			{
+				if(ack_send2 == true)
+				{
+					//==> send ack
+					send_acknowledgement2(ACK);
+					ack_send2 = false;
 				}
+				else
+				{
+
+					uint8_t dp_vol = dp_vol2;
+					uint8_t dp_amo = dp_amount2;
+					uint8_t dp_unp = dp_unitprice2;
+
+//					int pump_limit = 1000;  //1000 Litres
+
+					int num_, pump_id;
+					unsigned char bcd_[10] = {0};  // Array to hold the BCD result
+
+					uint16_t crc;
+
+					ctrl2 |= 0x30 ;
+					trans = 0x07;
+					lng = 0x33;
+
+					memset(DART_BUFF2, 0, sizeof(DART_BUFF2));
+
+					DART_BUFF2[0] = addr2;
+					DART_BUFF2[1] = ctrl2;
+					DART_BUFF2[2] = trans;
+					DART_BUFF2[3] = lng;
+
+
+					for (uint8_t i = 0;  i < 22; i++)
+					{
+						DART_BUFF2[i + 4] = 0;
+					}
+
+					DART_BUFF2[26] = dp_vol;
+					DART_BUFF2[27] = dp_amo;
+					DART_BUFF2[28] = dp_unp;
+
+					for (uint8_t i = 0;  i < 5; i++)
+					{
+						DART_BUFF2[i + 29] = 0;
+					}
+
+					int_to_bcd(pump_max_litres2, bcd_);
+
+					for (uint8_t i = 0, j = 4;  i < 5; i++, j--)
+					{
+						DART_BUFF2[i + 34] = bcd_[j];
+					}
+
+					for (uint8_t i = 0;  i < 2; i++)
+					{
+						DART_BUFF2[i + 38] = 0;
+					}
+
+					for (uint8_t i = 0;  i < 2; i++)
+					{
+						DART_BUFF2[i + 38] = 0;
+					}
+
+					for (uint8_t i = 0;  i < 15; i++)
+					{
+						DART_BUFF2[i + 40] = 0;
+					}
+
+					crc = crc_16(DART_BUFF2, 55);
+					DART_BUFF2[55] = crc & 0x00FF;
+					DART_BUFF2[56] = crc >> 8;
+					DART_BUFF2[57] = ETX;
+					DART_BUFF2[58] = SF;
+
+					array_len2 = 59;
+
+					resp2 = NOREPLY;
+				}
+			}
 		}
 	}
 	else if(response == DATA_PRICE_UPDATE)   //This transaction is sent by the pump if the status is changed or if the pump receives the command 'RETURN STATUS’.
@@ -2851,9 +3250,25 @@ void _process_response2(response_enum response)
 		send_acknowledgement2(ACK);
 		ack_send2 = false;
 
-		//Effect the Change...
+		///////////////////////////////////////////////////////////////////
+		///////////////////  ACTUATE THE CHANGE... ////////////////////////
 
-		pump_status_2 = STATUS_RESET;   //if after Power-on
+		float priceChange_check = price_update2 - settings_stream1[1].price_;
+
+		if (settings0_stream1[1].mode == AUTO_MODE)
+		{
+
+			if( (priceChange_check > 0.1) || (priceChange_check < -0.1) )
+			{
+				   changeLitrePrice2 = 1;
+			}
+
+			if(pump_status_2 == STATUS_PNP)
+			{
+				fillingComplete_flag2 = 1;
+			}
+		}
+		///////////////////////////////////////////////////////////////////
 	}
 	else if(response == DATA_REQUEST_VOL_TOTAL_COUNT)   //This transaction is sent by the pump if the status is changed or if the pump receives the command 'RETURN STATUS’.
 	{
@@ -2870,13 +3285,13 @@ void _process_response2(response_enum response)
 			//'50 38 65 10 01 00 00 18 03 67 00 00 18 03 67 00 00 00 00 00 59 ab 03 fa '
 
 			//=============================================================================//
-			//        This transaction is sent by the pump at change of a value            //
-			//        or if the pump receives the command RETURN FILLING INFORMATION       //
+			//       	 This transaction is sent by the pump at a Request of              //
+			//        				 "REQUEST VOLUME TOTAL COUNTERS"                       //
 			//=============================================================================//
-			//command_ ==> REQUEST_VOL_TOTAL_COUNT;      //REQUEST TOTALIZER
+			//command_ ==> REQUEST_VOL_TOTAL_COUNT;      //REQUEST TOTALIZER   DP ==> 3
 
-			float tot_vol = 1500.1234;
-			float tot_vol1 = 1500.1234;
+			float tot_vol = totaliser_vol1c;
+			float tot_vol1 = tot_vol;
 			float tot_vol2 = 0.0000;
 			uint8_t decimalPlaces;
 			uint8_t noz_id = 1;
@@ -2885,17 +3300,15 @@ void _process_response2(response_enum response)
 
 			unsigned char bcd_[6] = {0};  // Array to hold the BCD result
 
-			uint16_t crc;
-
-			ctrl = 0x03;
-			ctrl |= 0x30;
+			ctrl2 = 0x03;
+			ctrl2 |= 0x30;
 			trans = 0x65;
 			lng = 0x10;
 
 			memset(DART_BUFF2, 0, sizeof(DART_BUFF2));
 
 			DART_BUFF2[0] = addr2;
-			DART_BUFF2[1] = ctrl;
+			DART_BUFF2[1] = ctrl2;
 			DART_BUFF2[2] = trans;
 			DART_BUFF2[3] = lng;
 			DART_BUFF2[4] = noz_id;
@@ -2910,7 +3323,7 @@ void _process_response2(response_enum response)
 
 			int_to_bcd(num_, bcd_);
 
-			for (uint8_t ii = 0, j = 3; ii < 5; ii++, j--)
+			for (uint8_t ii = 0, j = 4; ii < 5; ii++, j--)   //j=>4 : MSB in it, LSB is in j=0
 			{
 				DART_BUFF2[ii + 5] = bcd_[j];
 			}
@@ -2923,7 +3336,7 @@ void _process_response2(response_enum response)
 
 			int_to_bcd(num_, bcd_);
 
-			for (uint8_t ii = 0, j = 3; ii < 5; ii++, j--)
+			for (uint8_t ii = 0, j = 4; ii < 5; ii++, j--)
 			{
 				DART_BUFF2[ii + 10] = bcd_[j];
 			}
@@ -2936,7 +3349,7 @@ void _process_response2(response_enum response)
 
 			int_to_bcd(num_, bcd_);
 
-			for (uint8_t ii = 0, j = 3; ii < 5; ii++, j--)
+			for (uint8_t ii = 0, j = 0; ii < 5; ii++, j--)
 			{
 				DART_BUFF2[ii + 15] = bcd_[j];
 			}
@@ -2951,17 +3364,63 @@ void _process_response2(response_enum response)
 
 			array_len2 = 24;
 
-			resp = NOREPLY;
+			resp2 = NOREPLY;
 
+		}
+	}
+	else if( (response == DATA_PRESET_VOL) || (response == DATA_PRESET_AMO)  )
+	{
+		send_acknowledgement2(ACK);
+		ack_send2 = false;
+
+		//Effect the Change...
+		 if(response == DATA_PRESET_VOL)
+		 {
+			 change_v2 = 1;
+		 }
+		 else if(response == DATA_PRESET_AMO)
+		 {
+			 change_p2 = 1;
+		 }
+	}
+	else if(response == DATA_SUSPEND)
+	{
+		send_acknowledgement2(ACK);
+		ack_send2 = false;
+
+		command_response2 = false;
+
+		if(settings_stream1[1].mode == AUTO_MODE)
+		{
+			if((pump_status_2 == STATUS_FILLING) || (pump_status_2 == STATUS_AUTH) )
+			{
+//				pump_status_ = STATUS_SUSPENDED;
+				//Motor turned off
+
+				//Effect the Change...
+			}
+		}
+	}
+	else if(response == DATA_RESUME)
+	{
+		send_acknowledgement2(ACK);
+		ack_send2 = false;
+
+		command_response2 = false;
+		if(settings_stream1[1].mode == AUTO_MODE)
+		{
+			if(pump_status_2 == STATUS_SUSPENDED)
+			{
+				//Motor turned on
+
+				//Effect the Change...
+			}
 		}
 	}
 }
 
 
-
-
-
-void send_acknowledgement(response_enum response)
+void send_acknowledgement1(response_enum response)
 {
 
 	memset(DART_BUFF1, 0, sizeof(DART_BUFF1));
@@ -3009,33 +3468,32 @@ void send_acknowledgement2(response_enum response)
 		//fOR THE BASIC ctrls
 
 		case ACK:   //C0H -> CFH
-						ctrl = 0xC0 | r_TX;	//reply with the previous msg tx
+						ctrl2 = 0xC0 | r_TX2;	//reply with the previous msg tx
 						break;
 
 		case NACK:   //50H -> 5FH
-						ctrl = 0x50 | r_TX;
+						ctrl2 = 0x50 | r_TX2;
 						break;
 
 		case ACKPOLL:    //E0H -> EFH
-						ctrl = 0xE0 | r_TX;
+						ctrl2 = 0xE0 | r_TX2;
 						break;
 
 		case EOT:   // 70H -> 7FH
-						ctrl = 0x70 | r_TX;
-//						ctrl = 0x70;
+						ctrl2 = 0x70 | r_TX2;
 						break;
 		default:
 						break;
 	}
 
-	DART_BUFF2[1] = ctrl;
+	DART_BUFF2[1] = ctrl2;
 	DART_BUFF2[2] = SF;
 
 	array_len2 = 3;
 }
 
 
-void go_write(uint8_t* write_array)
+void go_write1(uint8_t* write_array)
 {
 	uint8_t id = 0;
 
@@ -3072,7 +3530,6 @@ void go_write(uint8_t* write_array)
 
 void go_write2(uint8_t* write_array)
 {
-	uint8_t id = 0;
 
 	//=======================================================================
 
@@ -3385,9 +3842,22 @@ void go_setUnitPrice1(float price_update)
 	load_settings(side_a); //load the settings into the internal variables
 }
 
+void go_setUnitPrice2(float price_update)
+{
+	settings_stream1[1].price_ = price_update2;
+
+	save_settings();   //save to eeprom
+	load_settings(side_b); //load the settings into the internal variables
+}
+
 float go_fillingInfo_vol1(void)
 {
 	return amt_middle1;
+}
+
+float go_fillingInfo_vol2(void)
+{
+	return amt_middle2;
 }
 
 float go_fillingInfo_amt1(void)
@@ -3395,10 +3865,21 @@ float go_fillingInfo_amt1(void)
 	return price_upper1;
 }
 
+float go_fillingInfo_amt2(void)
+{
+	return price_upper2;
+}
+
 float go_fillingPrice1(void)
 {
 	return litre_price;
 }
+
+float go_fillingPrice2(void)
+{
+	return litre_price2;
+}
+
 void get_totalizer(){
 //	cmd_get_totalizer();
 //	handle_resp(REQUEST_VOL_TOTAL_COUNT);
@@ -3871,7 +4352,7 @@ void go_read(void)
 //		}
 //
 
-void send_nozzleStatus(uint8_t buff_index)  //, float filling_price, uint8_t nozzle_status)
+void send_nozzleStatus1(uint8_t buff_index)  //, float filling_price, uint8_t nozzle_status)
 {
 				//=============================================================================//
 				//   	  This transaction is sent by the pump if the status is changed        //
@@ -3927,8 +4408,64 @@ void send_nozzleStatus(uint8_t buff_index)  //, float filling_price, uint8_t noz
 				DART_BUFF1[7 + buff_index] = nozIO;    //Nozzle 1
 }
 
+void send_nozzleStatus2(uint8_t buff_index)
+{
+				//=============================================================================//
+				//   	  This transaction is sent by the pump if the status is changed        //
+				//		  or if the pump receives the command                                  //
+				//		  'RETURN STATUS' or ‘RETURN FILLING INFORMATION’.      			   //
+				//=============================================================================//
 
-void send_pumpStatus(uint8_t buff_index)
+				uint8_t nozNum = 1,
+						nozStatus = 0, //0 -> in, 1 -> out
+						nozIO;
+
+				uint8_t decimalPlaces = 0;
+				double roundedNum;
+				int num_;
+				unsigned char bcd_[10] = {0};  // Array to hold the BCD result
+
+				float fillingPrice = go_fillingPrice2();
+
+				ctrl2 = TX2;
+				ctrl2 |= 0x30;
+				trans = 0x03;
+				lng = 0x04;
+
+//				memset(DART_BUFF1, 0, sizeof(DART_BUFF1));
+
+				DART_BUFF2[0] = addr2;
+				DART_BUFF2[1] = ctrl2;
+
+				DART_BUFF2[2 + buff_index] = trans;
+				DART_BUFF2[3 + buff_index] = lng;
+
+				decimalPlaces = 1;
+
+				roundedNum = roundUp(fillingPrice, decimalPlaces);
+				roundedNum = roundedNum * 10;
+				num_ = (int)(roundedNum);
+
+				memset(bcd_, 0, sizeof(bcd_));
+
+				int_to_bcd(num_, bcd_);
+
+				for (uint8_t i = 0, j = 2;  i < 3; i++, j--)
+				{
+					DART_BUFF2[i + 4 + buff_index] = bcd_[j];
+				}
+
+				if(nozzle_out2 == true) nozStatus = 1;
+				else nozStatus = 0;
+
+				nozStatus = (nozStatus << 4);
+				nozIO = nozNum | nozStatus;
+
+				DART_BUFF2[7 + buff_index] = nozIO;    //Nozzle 1
+}
+
+
+void send_pumpStatus1(uint8_t buff_index)
 {
 	uint8_t status_;
 
@@ -3944,7 +4481,7 @@ void send_pumpStatus(uint8_t buff_index)
 	DART_BUFF1[3 + buff_index] = lng;
 
 
-	switch (pump_status_)
+	switch (pump_status_1)
 	{
 		//for the Pump-Status Commands
 		case STATUS_PNP		      				:	{status_ = 0x00; break;}
@@ -3960,71 +4497,37 @@ void send_pumpStatus(uint8_t buff_index)
 	DART_BUFF1[4 + buff_index] = status_;
 }
 
+void send_pumpStatus2(uint8_t buff_index)
+{
+	uint8_t status_;
 
-////initialise the array of structure of State and state handlers and their
-//// allowed  events.
-//// { <state>,<handler>,{<allowed event1>,<allowed event2>,..,<allowed eventn>}}
-//sStateEventMachine asStateEventMachine_1 [] =
-//{
-//	{prog_State, progstate_Handler,{_keydown_Event,_keypress_Event}},
-////    {idle_State,idlestate_Handler,{_operator_Event,_keyup_Event,_tot_error_Event,_keypress_Event,_nozzleup_Event,_auth_command_Event, _nozzledown_Event}},
-//	//{fillingcomplete_State, fillingcompletestate_Handler, {_nozzleup_Event, _resetcommand_Event, _switchoffcommand_Event}},
-//	{idle_State, idlestate_Handler, {_operator_Event,_keyup_Event,_tot_error_Event,_keypress_Event,_nozzleup_Event,_auth_command_Event, _nozzledown_Event, _resetcommand_Event, _switchoffcommand_Event}},
-//	{inactive_State,inactivestate_Handler,{_error_clear_Event, _keyup_Event, _keypress_Event}},
-////    {nozzleup_waitingforauth_State,nozzleup_waitingforauthState_Handler,{_authorise_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
-////	{reset_State, resetState_Handler, {_authorisecommand_Event, _stopcommand_Event, _switchoffcommand_Event, hardwarereset_Event, hardwareerror_Event}},
-//	{nozzleup_waitingforauth_State, nozzleup_waitingforauthState_Handler, {_authorise_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _authorisecommand_Event, _stopcommand_Event, _switchoffcommand_Event, hardwarereset_Event, hardwareerror_Event}},
-//
-//	{authorised_nozzledown_State,authorised_nozzledown_State_Handler,{_nozzleup_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
-//    {authorised_nozzleup_State,authorised_nozzleup_State_Handler,{_filling_pulse_Event,_pause_Event,_timeout_Event,_nozzledown_Event,_keypress_Event,_function_key_Event}},
-////	{authorised_nozzleup_State,authorised_nozzleup_State_Handler,{_filling_pulse_Event,_pause_Event,_timeout_Event,_nozzledown_Event,_keypress_Event,_function_key_Event, _stopcommand_Event, _suspendcommand_Event, hardwarereset_Event, hardwareerror_Event}},
-//	{authorisation_paused_State,authorisation_paused_State_Handler,{_resume_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
-//	{filling_State,filling_state_Handler,{_filling_paused_Event,_keypress_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
-//	{filling_paused_State,filling_paused_state_Handler,{_filling_resumed_Event,_keypress_Event,_timeout_Event,_nozzledown_Event}},
-//	{keypad_entry_State,keypad_entry_State_Handler,{}},
-//	{operator_State,operator_State_Handler,{_keypress_Event}},
-//	{savesettings_State,savesettings_State_Handler,{_keypress_Event}},
-//	{read_flash_state,read_flash_state_Handler,{}},
-//	{write_flash_state,write_flash_state_Handler,{}},
-//
-//	{switchedoff_State, switchedoffstate_Handler, {_stopcommand_Event, _resetcommand_Event}},
-//    {pnp_State, pnpstate_Handler, {_priceupdate_Event}},
-////    {fillingcomplete_State, fillingcompletestate_Handler, {_nozzleup_Event, _resetcommand_Event, _switchoffcommand_Event}},
-////	{idle_State,idlestate_Handler,{_operator_Event,_keyup_Event,_tot_error_Event,_keypress_Event,_nozzleup_Event,_auth_command_Event, _nozzledown_Event}},
-//	//{_nozzleup_Event, _resetcommand_Event, _switchoffcommand_Event}},
-////	{fillingcomplete_State, fillingcompletestate_Handler, {_operator_Event,_keyup_Event,_tot_error_Event,_keypress_Event,_nozzleup_Event,_auth_command_Event, _nozzledown_Event, _resetcommand_Event, _switchoffcommand_Event}},
-//
-////	{reset_State, resetState_Handler, {_authorisecommand_Event, _stopcommand_Event, _switchoffcommand_Event, hardwarereset_Event, hardwareerror_Event}},
-////	{authorised_State, authorisedState_Handler,{_nozzleup_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _stopcommand_Event, hardwarereset_Event, hardwareerror_Event, _suspendcommand_Event}},
-////    {authorised_nozzleup_State,authorised_nozzleup_State_Handler,{_filling_pulse_Event,_pause_Event,_timeout_Event,_nozzledown_Event,_keypress_Event,_function_key_Event, _stopcommand_Event, _suspendcommand_Event, hardwarereset_Event, hardwareerror_Event}},
-//	{authorisation_paused_State,authorisation_paused_State_Handler,{_resume_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _auth_resumecommand_Event,  _stopcommand_Event, hardwarereset_Event, hardwareerror_Event, _switchoffcommand_Event}},
-//	{filling_State, filling_state_Handler,{_filling_paused_Event,_keypress_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _stopcommand_Event, _suspendcommand_Event, hardwarereset_Event, hardwareerror_Event, mamo_Event, _switchoffcommand_Event}},
-//	{filling_paused_State, filling_paused_state_Handler,{_filling_resumed_Event,_keypress_Event,_timeout_Event,_nozzledown_Event, _filling_resumecommand_Event, _stopcommand_Event, hardwarereset_Event, hardwareerror_Event, _switchoffcommand_Event}},
-//	{filledmamo_State, filledmamo_State_Handler, {_nozzledown_Event, _resetcommand_Event, _stopcommand_Event, _switchoffcommand_Event}},
-//
-//    {last_State, 0, {}}
-//};
-//
+	ctrl2 = TX2;
+	ctrl2 |= 0x30;
+	trans = 0x01;
+	lng = 0x01;
 
-////----------------------------------------
-//eSystemState filledmamo_State_Handler(void)
-//{
-//	return filledmamo_State;
-//}
-//
-////----------------------------------------
-//eSystemState pnpstate_Handler(void)
-//{
-//	return pnp_State;
-//}
-//
-////----------------------------------------
-//eSystemState switchedoffstate_Handler(void)
-//{
-//	return switchedoff_State;
-//}
+	DART_BUFF2[0] = addr2;
+	DART_BUFF2[1] = ctrl2;
 
-//----------------------------------------
+	DART_BUFF2[2 + buff_index] = trans;
+	DART_BUFF2[3 + buff_index] = lng;
+
+
+	switch (pump_status_2)
+	{
+		//for the Pump-Status Commands
+		case STATUS_PNP		      				:	{status_ = 0x00; break;}
+		case STATUS_RESET 						:	{status_ = 0x01; break;}
+		case STATUS_AUTH 						:	{status_ = 0x02; break;}
+		case STATUS_FILLING						:	{status_ = 0x04; break;}
+		case STATUS_FILLING_COMP				:	{status_ = 0x05; break;}
+		case STATUS_MAMO_REACHED				:	{status_ = 0x06; break;}   //MAX_AMOUNTVOLUME_REACHED
+		case STATUS_SWITCHED_OFF				:	{status_ = 0x07; break;}
+		default									: 	break;
+	}
+
+	DART_BUFF2[4 + buff_index] = status_;
+}
 
 
 //if (command_ == GETSTATUS)
@@ -4448,7 +4951,7 @@ void send_pumpStatus(uint8_t buff_index)
 //
 //			}
 
-void send_fillingInfo(uint8_t buff_index)
+void send_fillingInfo1(uint8_t buff_index)
 {
 
 
@@ -4523,3 +5026,429 @@ void send_fillingInfo(uint8_t buff_index)
 }
 
 
+
+void send_fillingInfo2(uint8_t buff_index)
+{
+
+
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+	//////////////////////////////////  GET FILLED_VOLUME_AND_AMOUNT //////////////////////////////////
+
+
+
+	//=============================================================================//
+	////////////////////////////////////  DC2  //////////////////////////////////////
+	//        This transaction is sent by the pump at change of a value            //
+	//        or if the pump receives the command RETURN FILLING INFORMATION       //
+	//=============================================================================//
+	//command_ ==> REQUEST_FILLING_INFO        //FILLED_VOLUME_AND_AMOUNT
+
+	float vol_ = go_fillingInfo_vol2();
+
+	float amo_ = go_fillingInfo_amt2();
+
+	uint8_t decimalPlaces;
+	double roundedNum;
+	int num_;
+	// unsigned int bcd;
+	unsigned char bcd_[10] = {0};  // Array to hold the BCD result
+
+	uint16_t crc;
+
+	ctrl2 = TX2;
+	ctrl2 |= 0x30;
+	trans = 0x02;
+	lng = 0x08;
+
+	memset(DART_BUFF2, 0, sizeof(DART_BUFF2));
+
+	DART_BUFF2[0] = addr2;
+	DART_BUFF2[1] = ctrl2;
+	DART_BUFF2[2 + buff_index] = trans;
+	DART_BUFF2[3 + buff_index] = lng;
+
+	decimalPlaces = 2;
+
+	roundedNum = roundUp(vol_, decimalPlaces);
+	roundedNum = roundedNum * 100;
+	num_ = (int)(roundedNum);
+
+	int_to_bcd(num_, bcd_);
+
+	for (uint8_t i = 0, j = 3; i < 4; i++, j--)
+	{
+		DART_BUFF2[i + 4 + buff_index] = bcd_[j];
+	}
+
+	decimalPlaces = 1;
+
+	roundedNum = roundUp(amo_, decimalPlaces);
+	roundedNum = roundedNum * 10;
+	num_ = (int)(roundedNum);
+
+	memset(bcd_, 0, sizeof(bcd_));
+
+	int_to_bcd(num_, bcd_);
+
+	// for(uint8_t i = 0; i < 4; i++)
+	for (uint8_t i = 0, j = 3; i < 4; i++, j--)
+	{
+		DART_BUFF2[i + 8 + buff_index] = bcd_[j];
+	}
+
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
+
+}
+
+
+//void parse_decode2(void)
+//{
+//
+////	int size = r_raw_data.size();
+//	// TRACE_DART("<%s>  r_ctrl: [%x]\n", __FUNCTION__,  r_ctrl);
+//	int a = 0;
+//	u8* r_raw_data_arr;
+//
+//	uint8_t data_[50] = {0},
+//			data1[50] = {0},
+//			data2[50] = {0};
+//
+//	uint16_t crc_original,
+//			 crc_check;
+//
+//	uint8_t MSN = (r_ctrl2 & 0xF0);
+//
+////	switch (r_ctrl & 0xF0)
+//	switch (MSN)
+//	{
+//
+//			case 0x30:	//if control character == 0x30
+//
+//							for (int16_t i = 0; i < 150; i++)
+//							{
+//								//check the r_trans and r_lng byte ... NB: r_trans = r_raw_data[i] and r_lng = r_raw_data[i+1]
+//								//returns status at the request of status or change of status
+//
+//								//Master's Commands to the Pump
+//
+//
+//								//'50 36 01 01 00 9f d4 03 fa '
+//								//===========================================================================//
+//								//============================= COMMAND TO PUMP =============================//
+//								//===========================================================================//
+//								if( (r_raw_data2[i] == 0x01) && (r_raw_data2[i+1] == 0x01) )  //Trans-No  & Length
+//								{
+//									//this is a Master's Command
+//									switch(r_raw_data2[i+2])
+//									{
+//											//for the commands, ctrl = 0x30; RETURN_PUMP_PARAM RETURN_PUMP_IDENTITY  SWITCH_OFF
+//										case 0x00	:	{command_2 = GETSTATUS; break;}
+//										case 0x02  	:	{command_2 = RETURN_PUMP_PARAM; break;}
+//										case 0x03  	:	{command_2 = RETURN_PUMP_IDENTITY; break;}
+//										case 0x04  	:   {command_2 = REQUEST_FILLING_INFO; break;}
+//										case 0x05 	:	{command_2 = RESET1; break;}
+//										case 0x06 	:	{command_2 = AUTHORISE; break;}
+//										case 0x08 	:	{command_2 = STOP; break;}
+//										case 0x0A 	:	{command_2 = SWITCH_OFF; break;}
+//										default: break;
+//									}
+//
+//									crc_original = r_raw_data2[i+4];
+//									crc_original = (crc_original << 8);
+//									crc_original = (crc_original + r_raw_data2[i+3]);
+//
+//									// Example GO Packet Frame
+//									// 	-> UART1 [9]b '51 30 01 01 04 a3 5f 03 fa '
+//
+//									data_[0] = r_addr2;
+//									data_[1] = r_ctrl2;
+//
+//									for(uint8_t i = 0, j = 2; i < 5; i++, j++)
+//									{
+//										data_[j] = r_raw_data2[i];
+//									}
+//
+//
+//									crc_check = crc_16(data_, 5);
+//
+//
+//									if(crc_check == crc_original)
+//									{
+//										resp2 = DATA_COMMAND;
+//										ack_send2 = true;
+//									}
+//									else
+//									{
+//										resp2 = CRC_ERROR;
+//									}
+//
+//									dummyValue = 0;
+//
+//									t_exec3 = t_exec2 - t_exec1;
+//									break;
+//								}
+//
+//								//0x005138 02 08  00 00 00 33  00 00 04 78   03 04 00 14 50 11   1E 0C 03 FA
+//
+//								//Returns filled data and volume after requesting filling information
+//								//===========================================================================//
+//								//=============================== PRESET VOLUME =============================//
+//								//===========================================================================//
+//								else if( (r_raw_data2[i] == 0x03) && (r_raw_data2[i+1] == 0x04) ) //Trans-No  & Length
+//								{
+//									//
+//									uint16_t preset_voll = 0;
+//									uint8_t preset_vol[4];
+//									char preset_volll[20];
+//
+//									crc_original = r_raw_data2[i+7];
+//									crc_original = (crc_original << 8);
+//									crc_original = (crc_original + r_raw_data2[i+6]);
+//
+//									//==============================================================//
+//									//==================== VALIDATING THE CRC ======================//
+//									data_[0] = r_addr2;
+//									data_[1] = r_ctrl2;
+//
+//									for(uint8_t ii = 0, j = 2; ii < 8; ii++, j++)
+//									{
+//										data_[j] = r_raw_data2[ii];
+//									}
+//
+//
+//									crc_check = crc_16(data_, 8);
+//
+//
+//									if(crc_check == crc_original)
+//									{
+//
+//										for (uint8_t j = 0; j < 4; j++)
+//										{
+//											preset_vol[j] = r_raw_data2[i+2+j];
+//										}
+//
+//										preset_voll = (preset_vol[0] * 1000000) + (preset_vol[1] * 10000) + (preset_vol[2] * 100) + (preset_vol[3] * 1);
+//										sprintf(preset_volll, "0x%ld", preset_voll);
+//
+//										long n = strtol(preset_volll, NULL, 16);
+//										uint32_t preset_vol0 = packed_bcd_to_decimal(n);
+//
+//
+//										resp2 = DATA_PRESET_VOL;
+//										ack_send2 = true;
+//									}
+//									else
+//									{
+//										resp2 = CRC_ERROR;
+//									}
+//
+//									//==============================================================//
+//
+//									break;
+//								}
+//
+//								//filling price and nozzle status is returned when you request status info or filling info
+//								//===========================================================================//
+//								//=============================== PRESET AMOUNT =============================//
+//								//===========================================================================//
+//								else if(r_raw_data2[i] == 0x04 && r_raw_data2[i+1] == 0x04)
+//								{
+//									uint16_t preset_amtt = 0;
+//									uint8_t preset_amt[4];
+//									char preset_amttt[20];
+//
+//									crc_original = r_raw_data2[i+7];
+//									crc_original = (crc_original << 8);
+//									crc_original = (crc_original + r_raw_data2[i+6]);
+//
+//									data_[0] = r_addr2;
+//									data_[1] = r_ctrl2;
+//
+//									for(uint8_t ii = 0, j = 2; ii < 8; ii++, j++)
+//									{
+//										data_[j] = r_raw_data2[ii];
+//									}
+//
+//
+//									crc_check = crc_16(data_, 8);
+//
+//
+//									if(crc_check == crc_original)
+//									{
+//										for (uint8_t j = 0; j < 4; j++)
+//										{
+//											preset_amt[j] = r_raw_data2[i+2+j];
+//										}
+//
+//										preset_amtt = (preset_amt[0] * 1000000) + (preset_amt[1] * 10000) + (preset_amt[2] * 100) + (preset_amt[3] * 1);
+//										sprintf(preset_amttt, "0x%ld", preset_amtt);
+//
+//										long n = strtol(preset_amttt, NULL, 16);
+//
+//										uint32_t preset_amt0 = packed_bcd_to_decimal(n);
+//
+//
+//										resp2 = DATA_PRESET_AMO;
+//										ack_send2 = true;
+//									}
+//									else
+//									{
+//										resp2 = CRC_ERROR;
+//									}
+//									break;
+//								}
+//								//'50 37 05 03 00 58 10 a2 0a 03 fa
+//								//===========================================================================//
+//								//========================== PRICE-UPDATE (DP => 1)==========================//
+//								//===========================================================================//
+//								else if(r_raw_data2[i] == 0x05 && r_raw_data2[i+1] == 0x03)
+//								{
+//									uint16_t price_updatee = 0;
+//									uint8_t price_update[3];
+//									char price_updateee[20];
+//
+//									crc_original = r_raw_data2[i+6];
+//									crc_original = (crc_original << 8);
+//									crc_original = (crc_original + r_raw_data2[i+5]);
+//
+//
+//									//==============================================================//
+//									//==================== VALIDATING THE CRC ======================//
+//
+//									data_[0] = r_addr2;
+//									data_[1] = r_ctrl2;
+//
+//									//'50 37 05 03 00 58 10 a2 0a 03 fa
+//
+//									for(uint8_t ii = 0, j = 2; ii < 7; ii++, j++)
+//									{
+//										data_[j] = r_raw_data2[ii];
+//									}
+//
+//
+//									crc_check = crc_16(data_, 7);
+//
+//
+//									if(crc_check == crc_original)
+//									{
+//										//'50 37 05 03 00 58 10 a2 0a 03 fa
+//										for (uint8_t j = 0; j < 3; j++)
+//										{
+//											price_update[j] = r_raw_data2[i+2+j];
+//										}
+//
+//										price_updatee = ( (price_update[0] * 10000) + (price_update[1] * 100) + (price_update[2] * 1) );
+//										sprintf(price_updateee, "0x%ld", price_updatee);
+//
+//										// char num[]="0x3076";
+//										long n = strtol(price_updateee, NULL, 16);
+//										uint32_t price_update0 = packed_bcd_to_decimal(n);
+//
+//
+//										resp2 = DATA_PRICE_UPDATE;
+//										ack_send2 = true;
+//									}
+//									else
+//									{
+//										resp2 = CRC_ERROR;
+//									}
+//									//=================== DONE, VALIDATING THE CRC =================//
+//									//==============================================================//
+//
+//									break;
+//								}
+//
+//								//'50 35 65 01 01 1f 8f 03 fa '
+//								//===========================================================================//
+//								//============================== GET-TOTALIZER ==============================//
+//								//===========================================================================//
+//								else if(r_raw_data2[i] == 0x65 && r_raw_data2[i+1] == 0x01)
+//								{
+//									uint16_t price_updatee = 0;
+//									uint8_t price_update[3];
+//									char price_updateee[20];
+//
+//									crc_original = r_raw_data2[i+4];
+//									crc_original = (crc_original << 8);
+//									crc_original = (crc_original + r_raw_data2[i+3]);
+//
+//
+//									//==============================================================//
+//									//==================== VALIDATING THE CRC ======================//
+//									//'50 35 65 01 01 1f 8f 03 fa '
+//									data_[0] = r_addr2;
+//									data_[1] = r_ctrl2;
+//
+//									for(uint8_t ii = 0, j = 2; ii < 5; ii++, j++)
+//									{
+//										data_[j] = r_raw_data2[ii];
+//									}
+//
+//
+//									crc_check = crc_16(data_, 5);
+//
+//
+//									if(crc_check == crc_original)
+//									{
+//										command_2 = REQUEST_VOL_TOTAL_COUNT;
+//
+//										resp2 = DATA_REQUEST_VOL_TOTAL_COUNT;
+//										ack_send2 = true;
+//									}
+//									else
+//									{
+//										resp2 = CRC_ERROR;
+//									}
+//									//=================== DONE, VALIDATING THE CRC =================//
+//									//==============================================================//
+//
+//									break;
+//								}
+//
+//
+//							}
+//
+//							break;
+//
+//			case 0x20	:	resp2 = r_POLL;
+//
+//							break;
+//
+//			case 0xC0	: 	resp2 = r_ACK;
+//							// TRACE_DART("<>--- msg - ack\n");
+//							MSN = (r_ctrl & 0x0F);
+//							if(MSN == TX2)
+//							{
+//								checked = 1;
+//								TX2++;
+//							}
+//
+//							command_2 = NO_COMMAND;
+//
+//							command_response2 = false;
+//
+//							resp2 = NOREPLY;
+//
+//							break; //increase the tx on receiving an ACK
+//
+//			case 0x50	:	resp2 = r_NACK;
+//							MSN = (r_ctrl & 0x0F);
+//							if(MSN == TX2)
+//							{
+//
+//							}
+//
+////							TX = 0;
+//							break;
+//
+//			case 0x70	:	resp2 = r_EOT;
+//							// TRACE_DART("<>--- msg - eot\n");
+//							break;
+//			default		:
+//							resp2 = JUNK;
+//							break;
+//	}//switch ctrl
+//}
+//
+//

@@ -42,7 +42,17 @@ extern uint8_t mamo_reached_flag1,
 			   mamo_reached_flag1_1,
 			   stopFlag_source1 = 0,
 			   nozzleDown_source1 = 0,
-			   reset_flag1 = 0;
+			   reset_flag1 = 0,
+			   hardwareError_flag1 = 0,
+			   hardwareErrorFlag_source1 = 0;
+
+extern uint8_t mamo_reached_flag2,
+			   mamo_reached_flag2_1,
+			   stopFlag_source2 = 0,
+			   nozzleDown_source2 = 0,
+			   reset_flag2 = 0,
+			   hardwareError_flag2 = 0,
+			   hardwareErrorFlag_source2 = 0;
 
 uint32_t flash_write_id;    //read and write.
 uint32_t flash_read_id;     //address of the flash.
@@ -62,7 +72,7 @@ const int max = 50-1;
 //extern log_new log_a_new;
 //extern log_new log_b_new;
 
-extern pump_status_enum pump_status_,
+extern pump_status_enum pump_status_1,
 						pump_status_2;
 
 extern log_new log_a_new,
@@ -470,23 +480,87 @@ eSystemState write_flash_State_Handler(void)
 			{
 				stopFlag_source1 = 0;
 
-				pump_status_ = STATUS_FILLING_COMP;
+				pump_status_1 = STATUS_FILLING_COMP;
 
 				status_change_noz1 = 1;
+
+				return idle_State;
 			}
 			else if(nozzleDown_source1 == 1)
 			{
 				nozzleDown_source1 = 0;
 
-				pump_status_ = STATUS_FILLING_COMP;
+				pump_status_1 = STATUS_FILLING_COMP;
 
 				status_change_noz1 = 1;
 				status_change_pump1 = 1;
+
+				return idle_State;
 			}
 			else if (mamo_reached_flag1_1 == 1)
 			{
 				mamo_reached_flag1_1 = 0;
 				mamo_reached_flag1 = 1;
+
+				return filling_State;
+			}
+			else if (hardwareErrorFlag_source1 == 1)
+			{
+				hardwareErrorFlag_source1 = 0;
+				hardwareError_flag1 = 1;
+
+				return filling_State;
+			}
+		}
+
+		if(settings_stream1[1].mode == AUTO_MODE)
+		{
+			if(stopFlag_source2 == 1)
+			{
+				stopFlag_source2 = 0;
+
+				pump_status_2 = STATUS_FILLING_COMP;
+
+				status_change_noz2 = 1;
+
+				return idle_State;
+			}
+			else if(nozzleDown_source2 == 1)
+			{
+				nozzleDown_source2 = 0;
+
+				pump_status_2 = STATUS_FILLING_COMP;
+
+				status_change_noz2 = 1;
+				status_change_pump2 = 1;
+
+				return idle_State;
+			}
+			else if (mamo_reached_flag2_1 == 1)
+			{
+				mamo_reached_flag2_1 = 0;
+				mamo_reached_flag2 = 1;
+
+				return filling_State;
+			}
+			else if (hardwareErrorFlag_source2 == 1)
+			{
+				hardwareErrorFlag_source2 = 0;
+				hardwareError_flag2 = 1;
+
+				return filling_State;
+			}
+		}
+
+		if( (settings_stream1[0].mode == MANUAL_MODE) || (settings_stream1[1].mode == MANUAL_MODE) )
+		{
+			if (operating_side == side_a)
+			{
+				pump_status_1 = STATUS_FILLING_COMP;
+			}
+			else if (operating_side == side_b)
+			{
+				pump_status_2 = STATUS_FILLING_COMP;
 			}
 		}
 

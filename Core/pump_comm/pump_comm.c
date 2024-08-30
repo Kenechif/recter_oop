@@ -22,8 +22,11 @@
 //pump_   pump[2];
 
 extern uint8_t filling1;
-uint8_t nozzle_bit = 0;
-uint8_t stop_fueling_bit = 0;
+
+uint8_t nozzle_bit = 0,
+		stop_fueling_bit = 0,
+		nozzle_bit2 = 0,
+		stop_fueling_bit2 = 0;
 
 uint8_t cmd_frame[150];
 Name_address name_address;
@@ -233,7 +236,7 @@ char* getProduct(int ind){}
  //==========================================================================
  void pump_ini()
  {
-	 pump_status_ = STATUS_PNP;
+	 pump_status_1 = STATUS_PNP;
 	 //clear the buffers
      memset(name_address.name1[0],0,sizeof(name_address) );
  	 HAL_UART_Receive_IT(&huart2, (uint8_t*)pump_rx_buf, pump_rx_bufsize );

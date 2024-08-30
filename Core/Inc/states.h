@@ -307,7 +307,9 @@ extern uint8_t batteryStatus;
 
 extern uint8_t mamo_reached_flag1,
 			   mamo_reached_flag1_1,
-			   stopFlag_source1;
+			   stopFlag_source1,
+			   hardwareError_flag1,
+			   hardwareErrorFlag_source1;
 
 // state Handlers definition...
 eSystemState progState_Handler(void);
