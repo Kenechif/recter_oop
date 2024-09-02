@@ -208,7 +208,7 @@ void parse_extract(void)
 	header = head;
 	footer = tail;
 
-	memset(r_raw_data1, 0, sizeof(r_raw_data1));
+//	memset(r_raw_data1, 0, sizeof(r_raw_data1));
 
 	r_addr = MainBuf[header];
 	r_pumpno = r_addr - 0x4F;			//pumpno i.e either pump 1 or 2 on
@@ -222,6 +222,8 @@ void parse_extract(void)
 
 	if (r_pumpno == pumpno)
 	{
+		memset(r_raw_data1, 0, sizeof(r_raw_data1));
+
 		for (i = 2, j = 0; i < 125; i++, j++)
 		{
 //			r_raw_data1[j] = arr[i];	//shift the data in the array into the r_raw_data vector
@@ -244,6 +246,8 @@ void parse_extract(void)
 		r_pumpno2 = r_pumpno;
 		r_ctrl2 = r_ctrl;
 		r_TX2 = r_TX;
+
+		memset(r_raw_data2, 0, sizeof(r_raw_data2));
 
 		for (i = 2, j = 0; i < 125; i++, j++)
 		{
@@ -1537,7 +1541,7 @@ void process_response1(response_enum response)
 									array_len = 3;
 								}
 
-								go_write1(DART_BUFF1);
+								go_write1();
 							}
 							else if( (command_ == GETSTATUS) || (command_ == REQUEST_FILLING_INFO)
 									|| (command_ == RETURN_PUMP_PARAM) || (command_ == RETURN_PUMP_IDENTITY)  )
@@ -1550,7 +1554,7 @@ void process_response1(response_enum response)
 								t_exec2 = DWT->CYCCNT;
 								t_exec3 = t_exec2 - t_exec1;
 
-								go_write1(DART_BUFF1);
+								go_write1();
 
 								t_exec4 = DWT->CYCCNT;
 								t_exec5 = t_exec4 - t_exec2;
@@ -1559,7 +1563,7 @@ void process_response1(response_enum response)
 							{
 								_process_response1(DATA_REQUEST_VOL_TOTAL_COUNT);
 
-								go_write1(DART_BUFF1);
+								go_write1();
 							}
 							break;
 			case r_ACK:   //C0H -> CFH
@@ -1571,7 +1575,7 @@ void process_response1(response_enum response)
 			case r_NACK:   //50H -> 5FH
 							ctrl = 0x50 | TX;
 							_process_response1(DATA_COMMAND);
-							go_write1(DART_BUFF1);
+							go_write1();
 							break;
 			case r_ACKPOLL:    //E0H -> EFH
 							ctrl = 0xE0 | r_TX;
@@ -1594,7 +1598,7 @@ void process_response1(response_enum response)
 	else
 	{
 		_process_response1(response);
-		go_write1(DART_BUFF1);
+		go_write1();
 	}
 }
 
@@ -1928,20 +1932,20 @@ void process_response2(response_enum response)
 									array_len2 = 3;
 								}
 
-								go_write2(DART_BUFF2);
+								go_write2();
 							}
 							else if( (command_2 == GETSTATUS) || (command_2 == REQUEST_FILLING_INFO)
 									|| (command_2 == RETURN_PUMP_PARAM) || (command_2 == RETURN_PUMP_IDENTITY)  )
 							{
 								_process_response2(DATA_COMMAND);
 
-								go_write2(DART_BUFF2);
+								go_write2();
 							}
 							else if(command_2 == REQUEST_VOL_TOTAL_COUNT)
 							{
 								_process_response2(DATA_REQUEST_VOL_TOTAL_COUNT);
 
-								go_write2(DART_BUFF2);
+								go_write2();
 							}
 							break;
 
@@ -1953,7 +1957,7 @@ void process_response2(response_enum response)
 			case r_NACK:   //50H -> 5FH
 							ctrl2 = 0x50 | TX2;
 							_process_response2(DATA_COMMAND);
-							go_write2(DART_BUFF2);
+							go_write2();
 							break;
 
 			case r_ACKPOLL:    //E0H -> EFH
@@ -1971,7 +1975,7 @@ void process_response2(response_enum response)
 	else
 	{
 		_process_response2(response);
-		go_write2(DART_BUFF2);
+		go_write2();
 	}
 }
 
@@ -3493,7 +3497,7 @@ void send_acknowledgement2(response_enum response)
 }
 
 
-void go_write1(uint8_t* write_array)
+void go_write1(void)
 {
 	uint8_t id = 0;
 
@@ -3528,7 +3532,7 @@ void go_write1(uint8_t* write_array)
 }
 
 
-void go_write2(uint8_t* write_array)
+void go_write2(void)
 {
 
 	//=======================================================================

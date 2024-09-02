@@ -532,8 +532,8 @@ uint16_t calculate_crc(uint8_t *data, size_t length);
 uint32_t packed_bcd_to_decimal(uint32_t bcd);
 
 void go_read(void);
-void go_write(uint8_t* write_array);
-void go_write2(uint8_t* write_array);
+void go_write(void);
+void go_write2(void);
 
 //function overload of the parsed message to parse ack, nack, eot messages
 void parse_message1(unsigned char* arr);
