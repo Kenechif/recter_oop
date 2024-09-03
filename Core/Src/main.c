@@ -216,7 +216,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 			cheq1++;
 		}
 
-		go_message = true;
+//		go_message = true;
 
 		/* start the DMA again */
 		HAL_UARTEx_ReceiveToIdle_DMA(&huart2, (uint8_t *) RxBuf, RxBuf_SIZE);
@@ -225,7 +225,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 	}
 
 
-	HAL_UART_Transmit_DMA(&huart2, "Hi, WifiBoard!", 14);
+//	HAL_UART_Transmit_DMA(&huart2, "Hi, WifiBoard!", 14);
 
 	/****************** PROCESS (Little) THE DATA HERE *********************/
 

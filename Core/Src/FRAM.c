@@ -6,6 +6,7 @@
 #include "string.h"
 
 #define FRAM_I2C_ADDRESS 0x54
+//#define FRAM_I2C_ADDRESS 0x50
 
 // Define the I2C
 extern I2C_HandleTypeDef hi2c1;

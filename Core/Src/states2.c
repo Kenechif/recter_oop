@@ -3720,7 +3720,8 @@ eSystemState progState_Handler2(void)
       				  price_upper2 = (pulser_totalizer2 * litre_price2);
       				  save_volumeTotaliser(operating_side);
       				  save_amountTotaliser(operating_side);
-      				  save_lastSale(operating_side);
+//      				  save_lastSale(operating_side);
+      				save_lastSale_fram(operating_side);
 
 
         //				  calib_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);  //use hardware counter
@@ -8652,7 +8653,8 @@ eSystemState filling_State_Handler2(void)
         update_info();
         save_volumeTotaliser(operating_side);
         save_amountTotaliser(operating_side);
-        save_lastSale(operating_side);
+//        save_lastSale(operating_side);
+        save_lastSale_fram(operating_side);
 
       //--------------------------------------------------------
 		dpFlag2 = 0;
@@ -8711,7 +8713,8 @@ eSystemState filling_State_Handler2(void)
 			update_info();
 			save_volumeTotaliser(operating_side);
 			save_amountTotaliser(operating_side);
-			save_lastSale(operating_side);
+//			save_lastSale(operating_side);
+			save_lastSale_fram(operating_side);
 			_litre_price2 = 1;
 
 			if(settings_stream1[1].mode == AUTO_MODE)
@@ -8735,7 +8738,8 @@ eSystemState filling_State_Handler2(void)
 			update_info();
 			save_volumeTotaliser(operating_side);
 			save_amountTotaliser(operating_side);
-			save_lastSale(operating_side);
+//			save_lastSale(operating_side);
+			save_lastSale_fram(operating_side);
 			_pump_max_litres2 = 1;
 
 			if(settings_stream1[1].mode == AUTO_MODE)
@@ -8875,7 +8879,8 @@ eSystemState filling_State_Handler2(void)
 		        update_info();
 		        save_volumeTotaliser(operating_side);
 		        save_amountTotaliser(operating_side);
-		        save_lastSale(operating_side);
+//		        save_lastSale(operating_side);
+		        save_lastSale_fram(operating_side);
 
 		        pump_status_2 = STATUS_MAMO_REACHED;
 
@@ -8933,7 +8938,8 @@ eSystemState filling_State_Handler2(void)
 				update_info();
 				save_volumeTotaliser(operating_side);
 				save_amountTotaliser(operating_side);
-				save_lastSale(operating_side);
+//				save_lastSale(operating_side);
+				save_lastSale_fram(operating_side);
 
 				if(settings_stream1[1].mode == AUTO_MODE)
 				  {
@@ -9797,7 +9803,8 @@ eSystemState nozzledown_Handler2(void)
 		  update_info();
 		  save_volumeTotaliser(operating_side);
 		  save_amountTotaliser(operating_side);
-		  save_lastSale(operating_side);
+//		  save_lastSale(operating_side);
+		  save_lastSale_fram(operating_side);
 	 }
 /*
 		 char str__[8]= {0};

@@ -1091,9 +1091,14 @@ void compose_printer()
 //		 }
 //	 }
 
+	 //WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW//
+
 	 //ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ//
 	 ///////////////////////////// FRAM TEST-GROUND ///////////////////////////////
 	 //ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ//
+
+	 //MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM//
+
 //	 while(true)
 //	 {
 //		  // Example: Write a byte to address 0x00
@@ -1298,9 +1303,14 @@ void compose_printer()
 //}
 
 
+//MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM//
+
 //ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ//
 /////////////////////// CHECKING FOR TAMPER MECHANISM ////////////////////////
 //ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ//
+
+//MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM//
+
 //while(1)
 //{
 //	 if( HAL_GPIO_ReadPin(other_GPIO_Port, other_Pin) == 0 )
@@ -2100,11 +2110,11 @@ skip_test:
 //	settings[0].noz_id;
 
 
-//    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
-    settings_stream1[0].mode = AUTO_MODE;    //AUTO_MODE;
+    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
+//    settings_stream1[0].mode = AUTO_MODE;    //AUTO_MODE;
 
-    settings_stream1[0].noz = nooverride;  //nooveride
-//    settings_stream1[0].noz = overide;  //nooveride
+//    settings_stream1[0].noz = nooverride;  //nooveride
+    settings_stream1[0].noz = override;  //nooveride
     settings_stream1[0].keypad__ = BLSKY22;   //BLSKY22
 //    settings_stream1[0].keypad__ = LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
 
@@ -2112,7 +2122,7 @@ skip_test:
 //    settings_stream1[1].mode = AUTO_MODE;    //AUTO_MODE;
 
     settings_stream1[1].noz = nooverride;  //nooveride
-//	settings_stream1[1].noz = overide;  //nooveride
+//	settings_stream1[1].noz = override;  //nooveride
 //	settings_stream1[1].keypad__ = BLSKY22;   //BLSKY22
     settings_stream1[1].keypad__ = LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
 
@@ -2140,14 +2150,14 @@ skip_test:
 //    strcpy(pumpName[0].pump_name, "P17");
 //    strcpy(pumpName[1].pump_name, "P18");
 
-    retrieve_volumeTotaliser(side_a);
-    retrieve_volumeTotaliser(side_b);
+//    retrieve_volumeTotaliser(side_a);
+//    retrieve_volumeTotaliser(side_b);
+//
+//    retrieve_amountTotaliser(side_a);
+//    retrieve_amountTotaliser(side_b);
 
-    retrieve_amountTotaliser(side_a);
-    retrieve_amountTotaliser(side_b);
-
-    retrieve_lastSale(side_a);
-    retrieve_lastSale(side_b);
+//    retrieve_lastSale(side_a);
+//    retrieve_lastSale(side_b);
 
     retrieve_volumeTotaliser_fram(side_a);
     retrieve_volumeTotaliser_fram(side_b);

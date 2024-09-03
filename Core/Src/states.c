@@ -3975,8 +3975,8 @@ eSystemState progState_Handler(void)
 				  price_upper1 = (pulser_totalizer1 * litre_price);
 				  save_volumeTotaliser(operating_side);
 				  save_amountTotaliser(operating_side);
-				  save_lastSale(operating_side);
-
+//				  save_lastSale(operating_side);
+				  save_lastSale_fram(operating_side);
 				  save_calibrationData(side_a);
 
 
@@ -7614,7 +7614,8 @@ eSystemState nozzledown_Handler(void)
 		  update_info();
 		  save_volumeTotaliser(operating_side);
 		  save_amountTotaliser(operating_side);
-		  save_lastSale(operating_side);
+//		  save_lastSale(operating_side);
+		  save_lastSale_fram(operating_side);
 		  nozzle_bit = 0;
 	 }
 /*
@@ -8450,7 +8451,8 @@ eSystemState filling_State_Handler(void)
 
 //================================================================
 
-	#if !defined (DEV_MODE)
+//	#if !defined (DEV_MODE)
+	#if sense_battery == 1
 	  	if(batteryStatus == NOBATTERY)
 		{
 			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
@@ -8463,7 +8465,8 @@ eSystemState filling_State_Handler(void)
 			  update_info();
 			  save_volumeTotaliser(operating_side);
 			  save_amountTotaliser(operating_side);
-			  save_lastSale(operating_side);
+//			  save_lastSale(operating_side);
+			  save_lastSale_fram(operating_side);
 
 			  if(settings_stream1[0].mode == AUTO_MODE)
 			  {
@@ -8476,36 +8479,39 @@ eSystemState filling_State_Handler(void)
 
 			  return write_flash_State;
 		}
+	#endif     //#if sense_battery == 1
 
 //    power outage during filling1  end transaction...
-		#if sense_power == 1
-	  	  if( (readpwr() == 0)||(read_p_pwr() == 0) )
+	#if sense_power == 1
+	  if( (readpwr() == 0)||(read_p_pwr() == 0) )
+	  {
+		  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+		  HAL_Delay(200);
+		  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+		  filling1 = 0;
+		  stop_flow1();
+		  get_time();
+		  do_calcs();
+		  update_info();
+		  save_volumeTotaliser(operating_side);
+		  save_amountTotaliser(operating_side);
+//		  save_lastSale(operating_side);
+		  save_lastSale_fram(operating_side);
+
+		  if(settings_stream1[0].mode == AUTO_MODE)
 		  {
-			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-			  HAL_Delay(200);
-			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
-			  filling1 = 0;
-			  stop_flow1();
-			  get_time();
-			  do_calcs();
-			  update_info();
-			  save_volumeTotaliser(operating_side);
-			  save_amountTotaliser(operating_side);
-			  save_lastSale(operating_side);
+			 //////////////////////////////////////////////////////////////
 
-			  if(settings_stream1[0].mode == AUTO_MODE)
-			  {
-				 //////////////////////////////////////////////////////////////
+			 hardwareErrorFlag_source1 = 1;
 
-				 hardwareErrorFlag_source1 = 1;
-
-				 //////////////////////////////////////////////////////////////
-			  }
-
-			  return write_flash_State;
+			 //////////////////////////////////////////////////////////////
 		  }
-		#endif
 
+		  return write_flash_State;
+	  }
+	#endif   //#if sense_power == 1
+
+	#if !defined (DEV_MODE)
 		if(HAL_GPIO_ReadPin(pulser1_detect_GPIO_Port, pulser1_detect_Pin) == 1 )
 		{
 			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
@@ -8518,7 +8524,8 @@ eSystemState filling_State_Handler(void)
 			  update_info();
 			  save_volumeTotaliser(operating_side);
 			  save_amountTotaliser(operating_side);
-			  save_lastSale(operating_side);
+//			  save_lastSale(operating_side);
+			  save_lastSale_fram(operating_side);
 
 			  if(settings_stream1[0].mode == AUTO_MODE)
 			  {
@@ -8543,7 +8550,8 @@ eSystemState filling_State_Handler(void)
         update_info();
         save_volumeTotaliser(operating_side);
         save_amountTotaliser(operating_side);
-        save_lastSale(operating_side);
+//        save_lastSale(operating_side);
+        save_lastSale_fram(operating_side);
 
         //--------------------------------------------------------
         	dpFlag = 0;
@@ -8602,7 +8610,8 @@ eSystemState filling_State_Handler(void)
 		update_info();
 		save_volumeTotaliser(operating_side);
 		save_amountTotaliser(operating_side);
-		save_lastSale(operating_side);
+//		save_lastSale(operating_side);
+		save_lastSale_fram(operating_side);
 		_litre_price1 = 1;
 
 		  if(settings_stream1[0].mode == AUTO_MODE)
@@ -8625,7 +8634,8 @@ eSystemState filling_State_Handler(void)
 		update_info();
 		save_volumeTotaliser(operating_side);
 		save_amountTotaliser(operating_side);
-		save_lastSale(operating_side);
+//		save_lastSale(operating_side);
+		save_lastSale_fram(operating_side);
 		_pump_max_litres1 = 1;
 
 		  if(settings_stream1[0].mode == AUTO_MODE)
@@ -8757,7 +8767,8 @@ eSystemState filling_State_Handler(void)
 		        update_info();
 		        save_volumeTotaliser(operating_side);
 		        save_amountTotaliser(operating_side);
-		        save_lastSale(operating_side);
+//		        save_lastSale(operating_side);
+		        save_lastSale_fram(operating_side);
 
 		        pump_status_1 = STATUS_MAMO_REACHED;
 
@@ -8823,7 +8834,8 @@ eSystemState filling_State_Handler(void)
 				update_info();
 				save_volumeTotaliser(operating_side);
 				save_amountTotaliser(operating_side);
-				save_lastSale(operating_side);
+//				save_lastSale(operating_side);
+				save_lastSale_fram(operating_side);
 
 				  if(settings_stream1[0].mode == AUTO_MODE)
 				  {
