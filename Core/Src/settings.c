@@ -251,6 +251,14 @@ float price_upper1,
 				save_settings05_loc = 1160,   //size => 28 Bytes
  	 	   	    save_settings06_loc = 1188;   //1188 --> 1216
 
+
+ //TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT//
+
+ //WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW//
+ ////////////////////////////////  FRAM MEMORY LOCATIONS ///////////////////////////////////
+ //MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM//
+
+
  const uint16_t save_settings1_loc_fram = 0,    //size => 32 Bytes
   	 	   	    save_settings2_loc_fram = 32,    //32 --> 63
   	 	   	    save_settings3_loc_fram = 64,    //size => 28 Bytes
@@ -274,17 +282,57 @@ float price_upper1,
 				totalizerDay_loc_fram = 251;
 
 
+ const uint16_t firstTotVol1_loc_fram  =  252,
+ 	 	 	 	firstTotVol2_loc_fram =  firstTotVol1_loc_fram + (1+(3*4));   // 265 -> 277
+
+ const uint16_t ct_settings1_loc_fram  =  278,
+ 	 	 	 	ct_settings2_loc_fram =  ct_settings1_loc_fram + (1+(3*4));   // 291 -> 303
+
+ const uint16_t calib_pulser1_loc_fram  =  304,
+ 	 	 	 	calib_pulser2_loc_fram =  calib_pulser1_loc_fram + (1 + 4);   // 309 -> 313
+
+ const uint16_t ctTimed_settings1_loc_fram  =  314,
+		 	 	ctTimed_settings2_loc_fram =  ctTimed_settings1_loc_fram + (1+(4*4));   // 331 -> 347
+
+ const uint16_t ctTimed_flag1_loc_fram = 348,
+		 	 	ctTimed_flag2_loc_fram = ctTimed_flag1_loc_fram + 2;   // 350 -> 351
+
+ const uint16_t calibrationDetails1_loc_fram  =  352,   //Size => 6 Bytes
+		 	 	calibrationDetails2_loc_fram =  calibrationDetails1_loc_fram + (1+(3*2));   // 359 -> 365
+
+ const uint16_t configFlag1_loc_fram = 366,
+		   	    configFlag2_loc_fram = 367;
+
+ const uint16_t calibrationFlag1_loc_fram = 368,
+		   	    calibrationFlag2_loc_fram = 369;
+
+ const uint16_t flash_stoA_fram  =  370,    //capacity for 2 * 32bit integer
+		 	 	flash_stoB_fram =  flash_stoA_fram + (1+(32*2));    	 //435 --> 499
+
+
+ //YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY//
+
 
   //--------------------------------------------------------------
- //  eeprom locations of the storage of  flash memory parameters
- const int flash_info_sto  =  1217;    //page
- const int flash_stoA =  0;    		 //capacity for 2 * 32bit integer
- const int flash_stoB =  10;    	 //+ 2 * 4bytes  +2     //1237
+//  eeprom locations of the storage of  flash memory parameters
+// const int flash_info_sto  =  1217;    //page
+// const int flash_stoA =  0;    		 //capacity for 2 * 32bit integer
+// const int flash_stoB =  10;    	 //+ 2 * 4bytes  +2     //1237
+//--------------------------------------------------------------
+
+//GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG//
+//======  FRAM locations of the storage of  flash memory parameters  =====//
+
+const int flash_info_sto  =  1217;    //page
+const int flash_stoA =  0;    		 //capacity for 2 * 32bit integer
+const int flash_stoB =  flash_stoA + ( 1 + (32 * 2));    	 //1282 --> 1346
+
+//GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG//
 
  //==============================================================
- const int attendant_sto = 1238;     //page 12
+ const int attendant_sto = 1347;     //page 12
  const int att1_loc      = 0;      //offset  0.
- const int att2_loc      = 20;     //offset  20.     //1278
+ const int att2_loc      = 20;     //offset  20.     //1367 --> 1386
 
  //==============================================================
 
@@ -302,13 +350,14 @@ float price_upper1,
 //
 // //==============================================================
 
- const int configFlag1_loc = 1279,
-		   configFlag2_loc = 1280;
+ const int configFlag1_loc = 1387,
+		   configFlag2_loc = 1388;
 
 
- const int otp_loc = 1281,
+ const int otp_loc = 1389,
 		   otp1_loc = 0,
-		   otp2_loc = otp1_loc + 7;  ////1288 --> 1295
+		   otp2_loc = otp1_loc + 7;  //1396 --> 1402
+
 
  const int sessionId_loc = 661,
 		   sessionId1_loc = 0,
@@ -427,7 +476,8 @@ _amountSend amountSend[2];
 
 _calibrationData calibrationData[2];
 
-flash_store_info flash_infoA,flash_infoB;
+flash_store_info flash_infoA,
+				 flash_infoB;
 
 totaliser_store totaliser_vol_storeA,
 				totaliser_vol_storeB,
@@ -1143,6 +1193,25 @@ void save_1stVolTotaliser_day(pump_sid side)
 	  }
 }
 
+void save_1stVolTotaliser_day_fram(pump_sid side)
+{
+	int sz = sizeof(firstTotaliser_vol_storeA);
+
+	if (side == side_a)
+	  {
+		  firstTotaliser_vol_storeA.totaliserVol_cal = totaliser_vol1c;
+	  	  firstTotaliser_vol_storeA.totaliserVol_real = totaliser_vol1;
+	  	  firstTotaliser_vol_storeA.timestamp = RtcToInt(2019);
+	  	  FRAM_Write(firstTotVol1_loc_fram, &firstTotaliser_vol_storeA, sz);
+	  }
+	else if (side == side_b)
+	  {
+		  firstTotaliser_vol_storeB.totaliserVol_cal = totaliser_vol2c;
+	  	  firstTotaliser_vol_storeB.totaliserVol_real = totaliser_vol2;
+	  	  firstTotaliser_vol_storeB.timestamp = firstTotaliser_vol_storeA.timestamp;
+	  	  FRAM_Write(firstTotVol2_loc_fram, &firstTotaliser_vol_storeB, sz);
+	  }
+}
 //===================================================
 /*
  *  read volumetotaliser, firstfor the day
@@ -1176,6 +1245,31 @@ void retrieve_1stVolTotaliser_day(pump_sid side)
 	}
 }
 
+void retrieve_1stVolTotaliser_day_fram(pump_sid side)
+{
+  int sz = sizeof(firstTotaliser_vol_storeA);
+	if (side == side_a)
+	{
+		FRAM_Read(firstTotVol1_loc_fram, &firstTotaliser_vol_storeA, sz);
+		ep5_save.firstTotalizer[0].totalizer =  firstTotaliser_vol_storeA.totaliserVol_cal;
+		ep5_save.firstTotalizer[0].totalizer_real = firstTotaliser_vol_storeA.totaliserVol_real;
+		ep5_save.firstTotalizer[0].timestamp = firstTotaliser_vol_storeA.timestamp;
+
+		if(isnan(ep5_save.firstTotalizer[0].totalizer)) ep5_save.firstTotalizer[0].totalizer = 0.0;
+		if(isnan(ep5_save.firstTotalizer[0].totalizer_real)) ep5_save.firstTotalizer[0].totalizer_real = 0.0;
+	}
+	else if (side == side_b)
+	{
+		FRAM_Read(firstTotVol2_loc_fram, &firstTotaliser_vol_storeB, sz);
+		ep5_save.firstTotalizer[1].totalizer = firstTotaliser_vol_storeB.totaliserVol_cal;
+		ep5_save.firstTotalizer[1].totalizer_real  = firstTotaliser_vol_storeB.totaliserVol_real;
+	  	ep5_save.firstTotalizer[1].timestamp = firstTotaliser_vol_storeB.timestamp;
+
+	  	if(isnan(ep5_save.firstTotalizer[1].totalizer)) ep5_save.firstTotalizer[1].totalizer = 0.0;
+	  	if(isnan(ep5_save.firstTotalizer[1].totalizer_real)) ep5_save.firstTotalizer[1].totalizer_real = 0.0;
+	}
+}
+
 //==============================================
 /*
  * clear volumeTotaliser, first of the day
@@ -1200,6 +1294,25 @@ void clear_1stvolTotaliser_day(pump_sid side)
 	  }
 }
 
+void clear_1stvolTotaliser_day_fram(pump_sid side)
+{
+	int sz = sizeof(firstTotaliser_vol_storeA);
+
+	if (side == side_a)
+	  {
+		firstTotaliser_vol_storeA.totaliserVol_cal = 0.00;
+		firstTotaliser_vol_storeA.totaliserVol_real = 0.00;
+		firstTotaliser_vol_storeA.timestamp = 4325376;
+		FRAM_Write(firstTotVol1_loc_fram, &firstTotaliser_vol_storeA, sz);
+	  }
+	else if (side == side_b)
+	  {
+		firstTotaliser_vol_storeB.totaliserVol_cal = 0.00;
+		firstTotaliser_vol_storeB.totaliserVol_real = 0.00;
+		firstTotaliser_vol_storeB.timestamp = 4325376;
+		FRAM_Write(firstTotVol2_loc_fram, &firstTotaliser_vol_storeB, sz);
+	  }
+}
 //===================================================
 /*
  * save lastSale
@@ -1558,6 +1671,32 @@ void save_ctSettings(pump_sid side)
 	  }
 }
 
+
+void save_ctSettings_fram(pump_sid side)
+{
+	int8_t sz = sizeof(ct_settingsA);
+
+	if (side == side_a)
+	  {
+//		  vol_effective1 = ( (atof(ep31_save.pump[0].calibrate_ct.ct_effectiveMinusBase) + vol_calibrated1) + 0.00011);
+		  vol_effective1 = ( (atof(ep31_save.pump[0].calibrate_ct.ct_effectiveMinusBase) + vol_real1) + 0.00011);
+
+		  ct_settingsA.original = vol_real1;
+		  ct_settingsA.base = vol_calibrated1;
+	  	  ct_settingsA.effective = vol_effective1;
+	  	  FRAM_Write(ct_settings1_loc_fram, &ct_settingsA, sz);
+	  }
+	else if (side == side_b)
+	  {
+//		  vol_effective2 = ( (atof(ep31_save.pump[1].calibrate_ct.ct_effectiveMinusBase) + vol_calibrated2) + 0.00011);
+		  vol_effective2 = ( (atof(ep31_save.pump[1].calibrate_ct.ct_effectiveMinusBase) + vol_real2) + 0.00011);
+
+		  ct_settingsB.original = vol_real2;
+		  ct_settingsB.base = vol_calibrated2;
+		  ct_settingsB.effective = vol_effective2;
+	  	  FRAM_Write(ct_settings2_loc_fram, &ct_settingsB, sz);
+	  }
+}
 //===================================================
 /*
  *  read ct_settings
@@ -1592,6 +1731,35 @@ void retrieve_ctSettings(pump_sid side)
 	}
 }
 
+void retrieve_ctSettings_fram(pump_sid side)
+{
+  int8_t sz = sizeof(ct_settingsA);
+
+	if (side == side_a)
+	{
+		FRAM_Read(ct_settings1_loc_fram, &ct_settingsA, sz);
+
+		vol_real1 =  ct_settingsA.original;
+		vol_calibrated1 = ct_settingsA.base;
+		vol_effective1 = ct_settingsA.effective;
+
+	  	if(isnan(vol_calibrated1)) vol_calibrated1 = 0.0;
+	  	if(isnan(vol_effective1)) vol_effective1 = 0.0;
+
+	}
+	else if (side == side_b)
+	{
+		 FRAM_Read(ct_settings2_loc_fram, &ct_settingsB, sz);
+
+		 vol_real2 = ct_settingsB.original;
+		 vol_calibrated2  = ct_settingsB.base;
+	  	 vol_effective2 = ct_settingsB.effective;
+
+	  	if(isnan(vol_calibrated2)) vol_calibrated2 = 0.0;
+	  	if(isnan(vol_effective2)) vol_effective2 = 0.0;
+
+	}
+}
 //==============================================
 /*
  * clear ct_settings
@@ -1613,6 +1781,26 @@ void clear_ctSettings(pump_sid side)
 		  ct_settingsB.base = 0.00;
 		  ct_settingsB.effective = 0.00;
 		  EEPROM_Write(ct_settings_loc, ct_settings2_loc, &ct_settingsB, sz);
+	  }
+}
+
+void clear_ctSettings_fram(pump_sid side)
+{
+	int8_t sz = sizeof(ct_settingsA);
+
+	if (side == side_a)
+	  {
+		  ct_settingsA.original = 0;
+		  ct_settingsA.base = 0.00;
+		  ct_settingsA.effective = 0.00;
+	  	  FRAM_Write(ct_settings1_loc_fram, &ct_settingsA, sz);
+	  }
+	else if (side == side_b)
+	  {
+		  ct_settingsB.original = 0;
+		  ct_settingsB.base = 0.00;
+		  ct_settingsB.effective = 0.00;
+		  FRAM_Write(ct_settings2_loc_fram, &ct_settingsB, sz);
 	  }
 }
 
@@ -1645,6 +1833,34 @@ void save_ctTimedSettings(pump_sid side)
 	  	  ctTimed_settingsB.endTime = atoi(ep31_save.pump[1].calibrate_ct.ct_endTime);
 	  	  ctTimed_settingsB.day = settings_stream2[0].totalizer_day;
 	  	  EEPROM_Write(ctTimed_settings_loc, ctTimed_settings2_loc, &ctTimed_settingsB, sz);
+	  }
+}
+
+void save_ctTimedSettings_fram(pump_sid side)
+{
+	int8_t sz = sizeof(ctTimed_settingsA);
+
+	if (side == side_a)
+	  {
+//		  vol_effective1_1 = ( (atof(ep31_save.pump[0].calibrate_ct.ct_effectiveMinusBase) + vol_calibrated1) + 0.00011);
+		  vol_effective1_1 = ( (atof(ep31_save.pump[0].calibrate_ct.ct_effectiveMinusBase) + vol_real1) + 0.00011);
+
+		  ctTimed_settingsA.effective = vol_effective1_1;
+		  ctTimed_settingsA.startTime = atoi(ep31_save.pump[0].calibrate_ct.ct_startTime);
+	  	  ctTimed_settingsA.endTime = atoi(ep31_save.pump[0].calibrate_ct.ct_endTime);
+	  	  ctTimed_settingsA.day = settings_stream2[0].totalizer_day;
+	  	  FRAM_Write(ctTimed_settings1_loc_fram, &ctTimed_settingsA, sz);
+	  }
+	else if (side == side_b)
+	  {
+//		  vol_effective2_2 = ( (atof(ep31_save.pump[1].calibrate_ct.ct_effectiveMinusBase) + vol_calibrated2) + 0.00011);
+		  vol_effective2_2 = ( (atof(ep31_save.pump[1].calibrate_ct.ct_effectiveMinusBase) + vol_real2) + 0.00011);
+
+		  ctTimed_settingsB.effective = vol_effective2_2;
+		  ctTimed_settingsB.startTime = atoi(ep31_save.pump[1].calibrate_ct.ct_startTime);
+	  	  ctTimed_settingsB.endTime = atoi(ep31_save.pump[1].calibrate_ct.ct_endTime);
+	  	  ctTimed_settingsB.day = settings_stream2[0].totalizer_day;
+	  	  FRAM_Write(ctTimed_settings2_loc_fram, &ctTimed_settingsB, sz);
 	  }
 }
 
@@ -1682,6 +1898,38 @@ void retrieve_ctTimedSettings(pump_sid side)
 	}
 }
 
+
+void retrieve_ctTimedSettings_fram(pump_sid side)
+{
+  int8_t sz = sizeof(ctTimed_settingsA);
+
+	if (side == side_a)
+	{
+		FRAM_Read(ctTimed_settings1_loc_fram, &ctTimed_settingsA, sz);
+
+		vol_effective1_1 =  ctTimed_settingsA.effective;
+		startTime1 = ctTimed_settingsA.startTime;
+		endTime1 = ctTimed_settingsA.endTime;
+		ctTimed_day1 = ctTimed_settingsA.day;
+
+	  	if(isnan(vol_effective1_1)) vol_effective1_1 = 0.0;
+
+	}
+	else if (side == side_b)
+	{
+		 FRAM_Read(ctTimed_settings2_loc_fram, &ctTimed_settingsB, sz);
+
+		 vol_effective2_2 =  ctTimed_settingsB.effective;
+		 startTime2 = ctTimed_settingsB.startTime;
+		 endTime2 = ctTimed_settingsB.endTime;
+		 ctTimed_day2 = ctTimed_settingsB.day;
+
+		 if(isnan(vol_effective2_2)) vol_effective2_2 = 0.0;
+
+	}
+}
+
+
 //==============================================
 /*
  * clear ctTimed_settings
@@ -1706,6 +1954,26 @@ void clear_ctTimedSettings(pump_sid side)
 	  }
 }
 
+void clear_ctTimedSettings_fram(pump_sid side)
+{
+	int8_t sz = sizeof(ctTimed_settingsA);
+
+	if (side == side_a)
+	  {
+		  ctTimed_settingsA.effective = 0.0;
+		  ctTimed_settingsA.startTime = 0;
+		  ctTimed_settingsA.endTime = 0;
+	  	  FRAM_Write(ctTimed_settings1_loc_fram, &ctTimed_settingsA, sz);
+	  }
+	else if (side == side_b)
+	  {
+		  ctTimed_settingsB.effective = 0.0;
+		  ctTimed_settingsB.startTime = 0;
+		  ctTimed_settingsB.endTime = 0;
+		  FRAM_Write(ctTimed_settings2_loc_fram, &ctTimed_settingsB, sz);
+	  }
+}
+
 //==============================================
 /*
  * save ctTimedFlag
@@ -1723,6 +1991,22 @@ void save_ctTimedFlag(pump_sid side)
 	  {
 		  ctTimed_flag.ctTimed_flag2 = ctTimed_flag2;
 	  	  EEPROM_Write(ctTimed_flag_loc, ctTimed_flag2_loc, &ctTimed_flag, sz);
+	  }
+}
+
+void save_ctTimedFlag_fram(pump_sid side)
+{
+	int8_t sz = sizeof(ctTimed_flag);
+
+	if (side == side_a)
+	  {
+		  ctTimed_flag.ctTimed_flag1 = ctTimed_flag1;
+	  	  FRAM_Write(ctTimed_flag1_loc_fram, &ctTimed_flag, sz);
+	  }
+	else if (side == side_b)
+	  {
+		  ctTimed_flag.ctTimed_flag2 = ctTimed_flag2;
+	  	  FRAM_Write(ctTimed_flag2_loc_fram, &ctTimed_flag, sz);
 	  }
 }
 
@@ -1748,6 +2032,24 @@ void retrieve_ctTimedFlag(pump_sid side)
 	}
 }
 
+void retrieve_ctTimedFlag_fram(pump_sid side)
+{
+  int8_t sz = sizeof(ctTimed_flag);
+
+	if (side == side_a)
+	{
+		FRAM_Read(ctTimed_flag1_loc_fram, &ctTimed_flag, sz);
+
+		ctTimed_flag1 = ctTimed_flag.ctTimed_flag1;
+	}
+	else if (side == side_b)
+	{
+		 FRAM_Write(ctTimed_flag2_loc_fram, &ctTimed_flag, sz);
+
+		 ctTimed_flag2 = ctTimed_flag.ctTimed_flag2;
+	}
+}
+
 //==============================================
 /*
  * clear ctTimedFlag
@@ -1765,6 +2067,22 @@ void clear_ctTimedFlag(pump_sid side)
 	  {
 		  ctTimed_flag.ctTimed_flag2 = 0;
 		  EEPROM_Write(ctTimed_flag_loc, ctTimed_flag2_loc, &ctTimed_flag, sz);
+	  }
+}
+
+void clear_ctTimedFlag_fram(pump_sid side)
+{
+	int8_t sz = sizeof(ctTimed_flag);
+
+	if (side == side_a)
+	  {
+		  ctTimed_flag.ctTimed_flag1 = 0;
+		  FRAM_Write(ctTimed_flag1_loc_fram, &ctTimed_flag, sz);
+	  }
+	else if (side == side_b)
+	  {
+		  ctTimed_flag.ctTimed_flag2 = 0;
+		  FRAM_Write(ctTimed_flag2_loc_fram, &ctTimed_flag, sz);
 	  }
 }
 
@@ -1848,6 +2166,20 @@ void save_calibrationPulser(pump_sid side)
 	  }
 }
 
+void save_calibrationPulser_fram(pump_sid side)
+{
+	int8_t sz = sizeof(calib_pulser1);
+
+	  if (side == side_a)
+	  {
+		  FRAM_Write(calib_pulser1_loc_fram, &calib_pulser1, sz);
+	  }
+	  else if (side == side_b)
+	  {
+	  	  FRAM_Write(calib_pulser2_loc_fram, &calib_pulser2, sz);
+	  }
+}
+
 //===================================================
 /*
  *  read calibrationPulser
@@ -1879,8 +2211,35 @@ void retrieve_calibrationPulser(pump_sid side)
 //			load_settings(side_b); //load the settings into the internal variables
 		}
 	}
+}
 
+void retrieve_calibrationPulser_fram(pump_sid side)
+{
+  int8_t sz = sizeof(calib_pulser1);
+  uint32_t calib_pulser;
 
+	if (side == side_a)
+	{
+		FRAM_Read(calib_pulser1_loc_fram, &calib_pulser1, sz);
+		calib_pulser =  (settings_stream1[0].pi_c * vol_calibrated1);
+		if (calib_pulser != calib_pulser1)
+		{
+//			settings[0].pi_c = (calib_pulser1 / vol_calibrated1);
+//			save_settings();   //save to eeprom
+//			load_settings(side_a); //load the settings into the internal variables
+		}
+	}
+	else if (side == side_b)
+	{
+		FRAM_Read(calib_pulser2_loc_fram, &calib_pulser2, sz);
+		calib_pulser =  (settings_stream1[1].pi_c * vol_calibrated2);
+		if (calib_pulser != calib_pulser2)
+		{
+//			settings[1].pi_c = (calib_pulser2 / vol_calibrated2);
+//			save_settings();   //save to eeprom
+//			load_settings(side_b); //load the settings into the internal variables
+		}
+	}
 }
 
 //==============================================
@@ -1900,6 +2259,22 @@ void clear_calibrationPulser(pump_sid side)
 	  else if (side == side_b)
 	  {
 		  EEPROM_Write(calib_pulser_loc, calib_pulser2_loc, &calib_pulser2, sz);
+	  }
+}
+
+void clear_calibrationPulser_fram(pump_sid side)
+{
+	int8_t sz = sizeof(calib_pulser1);
+	calib_pulser1 = 0;
+	calib_pulser2 = 0;
+
+	  if (side == side_a)
+	  {
+		  FRAM_Write(calib_pulser1_loc_fram, &calib_pulser1, sz);
+	  }
+	  else if (side == side_b)
+	  {
+		  FRAM_Write(calib_pulser2_loc_fram, &calib_pulser2, sz);
 	  }
 }
 //===================================================
@@ -2137,6 +2512,19 @@ void save_calibrationFlag(pump_sid side)
 
 }
 
+void save_calibrationFlag_fram(pump_sid side)
+{
+	if (side == side_a)
+	{
+		FRAM_WriteByte (calibrationFlag1_loc_fram, calibration_flag1);
+	}
+	else if (side == side_b)
+	{
+		FRAM_WriteByte (calibrationFlag2_loc_fram, calibration_flag2);
+	}
+
+}
+
 //===================================================
 /*
  *  read Calibration Flag
@@ -2153,6 +2541,18 @@ void retrieve_calibrationFlag(pump_sid side)
 	}
 }
 
+void retrieve_calibrationFlag_fram(pump_sid side)
+{
+	if (side == side_a)
+	{
+		calibration_flag1 = FRAM_ReadByte (calibrationFlag1_loc_fram);
+	}
+	else if (side == side_b)
+	{
+		calibration_flag2 = FRAM_ReadByte (calibrationFlag2_loc_fram);
+	}
+}
+
 //==============================================
 /*
  * clear Calibration Flag
@@ -2166,6 +2566,18 @@ void clear_calibrationFlag(pump_sid side)
 	else if (side == side_b)
 	{
 		EEPROM_Write_NUM (calibrationFlag2_loc, 0, 0);
+	}
+}
+
+void clear_calibrationFlag_fram(pump_sid side)
+{
+	if (side == side_a)
+	{
+		FRAM_WriteByte (calibrationFlag1_loc_fram, 0);
+	}
+	else if (side == side_b)
+	{
+		FRAM_WriteByte (calibrationFlag2_loc_fram, 0);
 	}
 }
 
@@ -2198,6 +2610,27 @@ void save_calibrationData(pump_sid side)
 
 }
 
+void save_calibrationData_fram(pump_sid side)
+{
+	uint8_t sz = sizeof(calibrationData[0]);
+
+	if (side == side_a)
+	{
+		calibrationData[0].pulser_benchMark = pulser_benchMark1;
+		calibrationData[0].pulser_value = calib_pulser1;
+		calibrationData[0].power_interruption = pwr1;
+		FRAM_Write(calibrationDetails1_loc_fram, &calibrationData[0], sz);
+	}
+	else if (side == side_b)
+	{
+		calibrationData[1].pulser_benchMark = pulser_benchMark2;
+		calibrationData[1].pulser_value = calib_pulser2;
+		calibrationData[1].power_interruption = pwr2;
+		FRAM_Write(calibrationDetails2_loc_fram, &calibrationData[1], sz);
+	}
+
+}
+
 //===================================================
 /*
  *  read Calibration Data
@@ -2221,6 +2654,25 @@ void retrieve_calibrationData(pump_sid side)
 	}
 }
 
+
+void retrieve_calibrationData_fram(pump_sid side)
+{
+	uint8_t sz = sizeof(calibrationData[0]);
+	if (side == side_a)
+	{
+		FRAM_Read(calibrationDetails1_loc_fram, &calibrationData[0], sz);
+		pulser_benchMark1 = calibrationData[0].pulser_benchMark;
+		calib_pulser1 = calibrationData[0].pulser_value;
+		pwr1 = calibrationData[0].power_interruption;
+	}
+	else if (side == side_b)
+	{
+		FRAM_Read(calibrationDetails2_loc_fram, &calibrationData[1], sz);
+		pulser_benchMark2 = calibrationData[1].pulser_benchMark;
+		calib_pulser2 = calibrationData[1].pulser_value;
+		pwr2 = calibrationData[1].power_interruption;
+	}
+}
 //==============================================
 /*
  * clear Calibration Data
@@ -2245,6 +2697,25 @@ void clear_calibrationData(pump_sid side)
 	}
 }
 
+void clear_calibrationData_fram(pump_sid side)
+{
+	uint8_t sz = sizeof(calibrationData[0]);
+
+	if (side == side_a)
+	{
+		calibrationData[0].pulser_benchMark = 0;
+		calibrationData[0].pulser_value = 0;
+		calibrationData[0].power_interruption = 0;
+		FRAM_Write(calibrationDetails1_loc_fram, &calibrationData[0], sz);
+	}
+	else if (side == side_b)
+	{
+		calibrationData[1].pulser_benchMark = 0;
+		calibrationData[1].pulser_value = 0;
+		calibrationData[1].power_interruption = 0;
+		FRAM_Write(calibrationDetails2_loc_fram, &calibrationData[1], sz);
+	}
+}
 
 //===================================================
 
@@ -2266,6 +2737,19 @@ void save_configFlag(pump_sid side)
 
 }
 
+void save_configFlag_fram(pump_sid side)
+{
+	if (side == side_a)
+	{
+		FRAM_WriteByte (configFlag1_loc_fram, configMode1);
+	}
+	else if (side == side_b)
+	{
+		FRAM_WriteByte (configFlag2_loc_fram, configMode2);
+	}
+
+}
+
 //===================================================
 /*
  *  read Configuration Flag
@@ -2282,6 +2766,18 @@ void retrieve_configFlag(pump_sid side)
 	}
 }
 
+void retrieve_configFlag_fram(pump_sid side)
+{
+	if (side == side_a)
+	{
+		configMode1 = FRAM_ReadByte (configFlag1_loc_fram);
+	}
+	else if (side == side_b)
+	{
+		configMode2 = FRAM_ReadByte (configFlag2_loc_fram);
+	}
+}
+
 //==============================================
 /*
  * clear Configuration Flag
@@ -2295,6 +2791,18 @@ void clear_configFlag(pump_sid side)
 	else if (side == side_b)
 	{
 		EEPROM_Write_NUM (configFlag2_loc, 0, 0);
+	}
+}
+
+void clear_configFlag_fram(pump_sid side)
+{
+	if (side == side_a)
+	{
+		FRAM_WriteByte (configFlag1_loc_fram, 0);
+	}
+	else if (side == side_b)
+	{
+		FRAM_WriteByte (configFlag2_loc_fram, 0);
 	}
 }
 //==============================================

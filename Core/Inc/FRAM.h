@@ -17,6 +17,8 @@ uint8_t FRAM_ReadByte(uint16_t memAddress);
 void FRAM_Write(uint16_t memAddress, uint8_t *data, uint16_t size);
 void FRAM_Read(uint16_t memAddress, uint8_t *buffer, uint16_t size);
 
+void FRAM_ChipErase(void);
+
 #endif /* INC_EEPROM_H_ */
 
 /////*

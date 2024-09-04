@@ -16,6 +16,7 @@ extern "C" {
 
 
 void flash_info_read(void);
+void flash_info_read_fram();
 void update_info(void);          //save_log();
 
 //void read_log();

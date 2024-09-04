@@ -1627,61 +1627,66 @@ tmmm:
 //	  EEPROM_Write(lastSynchedFlashA_loc, 0, &flash_beginA_page, sizeof(flash_beginA_page));
 //	  EEPROM_Write(lastSynchedFlashB_loc, 0, &flash_beginB_page, sizeof(flash_beginB_page));
 
-//	  for (int i = 0; i < eeprom_pageNum; i++)
-//	  {
-//		  EEPROM_PageErase(i);
-//	  }
+	  for (int i = 0; i < eeprom_pageNum; i++)
+	  {
+		  EEPROM_PageErase(i);
+	  }
 
-	  clear_totalTransaction_sides(side_a);
-	  clear_totalTransaction_sides(side_b);
+	  FRAM_ChipErase();
 
-	  clear_synchedTransaction_sides(side_a);
-	  clear_synchedTransaction_sides(side_b);
+//	  clear_totalTransaction_sides(side_a);
+//	  clear_totalTransaction_sides(side_b);
 
-	  clear_totalAutoTransaction_sides(side_a);
-	  clear_totalAutoTransaction_sides(side_b);
+//	  clear_synchedTransaction_sides(side_a);
+//	  clear_synchedTransaction_sides(side_b);
+
+//	  clear_totalAutoTransaction_sides(side_a);
+//	  clear_totalAutoTransaction_sides(side_b);
 
 //	  clear_volumeTotaliser(side_a);
 //	  clear_volumeTotaliser(side_b);
 
-	  clear_volumeTotaliser_fram(side_a);
-	  clear_volumeTotaliser_fram(side_b);
+//	  clear_volumeTotaliser_fram(side_a);
+//	  clear_volumeTotaliser_fram(side_b);
 
 //	  clear_amountTotaliser(side_a);
 //	  clear_amountTotaliser(side_b);
 
-	  clear_amountTotaliser_fram(side_a);
-	  clear_amountTotaliser_fram(side_b);
+//	  clear_amountTotaliser_fram(side_a);
+//	  clear_amountTotaliser_fram(side_b);
 
 //	  clear_lastSale(side_a);
 //	  clear_lastSale(side_b);
 
-	  clear_lastSale_fram(side_a);
-	  clear_lastSale_fram(side_b);
+//	  clear_lastSale_fram(side_a);
+//	  clear_lastSale_fram(side_b);
 
-	  clear_1stvolTotaliser_day(side_a);
-	  clear_1stvolTotaliser_day(side_b);
+//	  clear_1stvolTotaliser_day(side_a);
+//	  clear_1stvolTotaliser_day(side_b);
 
-	  clear_ctSettings(side_a);
-	  clear_ctSettings(side_b);
+//	  clear_1stvolTotaliser_day_fram(side_a);
+//	  clear_1stvolTotaliser_day_fram(side_b);
 
-	  clear_calibrationPulser(side_a);
-	  clear_calibrationPulser(side_b);
+//	  clear_ctSettings(side_a);
+//	  clear_ctSettings(side_b);
 
-	  clear_sessionId(side_a);
-	  clear_sessionId(side_b);
+//	  clear_calibrationPulser(side_a);
+//	  clear_calibrationPulser(side_b);
 
-	  clear_amountSend(side_a);
-	  clear_amountSend(side_b);
+//	  clear_sessionId(side_a);
+//	  clear_sessionId(side_b);
 
-	  clear_calibrationData(side_a);
-	  clear_calibrationData(side_b);
+//	  clear_amountSend(side_a);
+//	  clear_amountSend(side_b);
 
-	  clear_configFlag(side_a);
-	  clear_configFlag(side_b);
+//	  clear_calibrationData(side_a);
+//	  clear_calibrationData(side_b);
 
-	  clear_otp(side_a);
-	  clear_otp(side_b);
+//	  clear_configFlag(side_a);
+//	  clear_configFlag(side_b);
+
+//	  clear_otp(side_a);
+//	  clear_otp(side_b);
 
 	  clear_logA();
 	  clear_logB();
@@ -1725,16 +1730,23 @@ tmmm:
 //		 save_settings();
 		 save_settings_fram();
 
-		 save_ctSettings(side_a);
-		 save_ctSettings(side_b);
-		 save_calibrationPulser(side_a);
-		 save_calibrationPulser(side_b);
+//		 save_ctSettings(side_a);
+//		 save_ctSettings(side_b);
+//		 save_calibrationPulser(side_a);
+//		 save_calibrationPulser(side_b);
+
+		 save_ctSettings_fram(side_a);
+		 save_ctSettings_fram(side_b);
+		 save_calibrationPulser_fram(side_a);
+		 save_calibrationPulser_fram(side_b);
 
 		 calibration_flag1 = UNCALIBRATED;
-		 save_calibrationFlag(side_a);
+//		 save_calibrationFlag(side_a);
+		 save_calibrationFlag_fram(side_a);
 
 		 calibration_flag2 = UNCALIBRATED;
-		 save_calibrationFlag(side_b);
+//		 save_calibrationFlag(side_b);
+		 save_calibrationFlag_fram(side_b);
 
 	//	 save_volumeTotaliser(side_a); //side_a
 	//	 save_volumeTotaliser(side_b);
@@ -2168,60 +2180,84 @@ skip_test:
     retrieve_lastSale_fram(side_a);
     retrieve_lastSale_fram(side_b);
 
-    retrieve_totalTransaction_sides(side_a);
-    retrieve_totalTransaction_sides(side_b);
-
-    retrieve_synchedTransaction_sides(side_a);
-    retrieve_synchedTransaction_sides(side_b);
-
-    retrieve_totalAutoTransaction_sides(side_a);
-    retrieve_totalAutoTransaction_sides(side_b);
-
-    retrieve_synchedAutoTransaction_sides(side_a);
-    retrieve_synchedAutoTransaction_sides(side_b);
+//    retrieve_totalTransaction_sides(side_a);
+//    retrieve_totalTransaction_sides(side_b);
+//
+//    retrieve_synchedTransaction_sides(side_a);
+//    retrieve_synchedTransaction_sides(side_b);
+//
+//    retrieve_totalAutoTransaction_sides(side_a);
+//    retrieve_totalAutoTransaction_sides(side_b);
+//
+//    retrieve_synchedAutoTransaction_sides(side_a);
+//    retrieve_synchedAutoTransaction_sides(side_b);
 
 //    clear_1stvolTotaliser_day(side_a);
 //    clear_1stvolTotaliser_day(side_b);
-    retrieve_1stVolTotaliser_day(side_a);
-    retrieve_1stVolTotaliser_day(side_b);
+//    retrieve_1stVolTotaliser_day(side_a);
+//    retrieve_1stVolTotaliser_day(side_b);
 
-    retrieve_ctSettings(side_a);
-    retrieve_ctSettings(side_b);
+    retrieve_1stVolTotaliser_day_fram(side_a);
+    retrieve_1stVolTotaliser_day_fram(side_b);
+
+//    retrieve_ctSettings(side_a);
+//    retrieve_ctSettings(side_b);
+
+    retrieve_ctSettings_fram(side_a);
+    retrieve_ctSettings_fram(side_b);
 
 
     //============================================//
     //xxxxxxxxxx FETCHES PULSER-COUNT xxxxxxxxxxxx//
     //============================================//
 
-    retrieve_calibrationPulser(side_a);
-    retrieve_calibrationPulser(side_b);
+//    retrieve_calibrationPulser(side_a);
+//    retrieve_calibrationPulser(side_b);
+
+    retrieve_calibrationPulser_fram(side_a);
+	retrieve_calibrationPulser_fram(side_b);
 
     //============================================//
 
 
-    retrieve_ctTimedSettings(side_b);
+//    retrieve_ctTimedSettings(side_a);
+//    retrieve_ctTimedSettings(side_b);
 
-    retrieve_ctTimedFlag(side_a);
-    retrieve_ctTimedFlag(side_b);
+    retrieve_ctTimedSettings_fram(side_a);
+    retrieve_ctTimedSettings_fram(side_b);
+
+//    retrieve_ctTimedFlag(side_a);
+//    retrieve_ctTimedFlag(side_b);
+
+    retrieve_ctTimedFlag_fram(side_a);
+    retrieve_ctTimedFlag_fram(side_b);
 
 //    clear_sessionId(side_a);
 //    clear_sessionId(side_b);
 
-    retrieve_sessionId(side_a);
-    retrieve_sessionId(side_b);
+//    retrieve_sessionId(side_a);
+//    retrieve_sessionId(side_b);
 
 //    clear_volumeTotaliser_startShift(side_a);
 //    clear_volumeTotaliser_startShift(side_b);
-    retrieve_volumeTotaliser_startShift(side_a);
-    retrieve_volumeTotaliser_startShift(side_b);
+//    retrieve_volumeTotaliser_startShift(side_a);
+//    retrieve_volumeTotaliser_startShift(side_b);
 
-    retrieve_amountSend(side_a);
-    retrieve_amountSend(side_b);
+//    retrieve_amountSend(side_a);
+//    retrieve_amountSend(side_b);
 
-    retrieve_calibrationData(side_a);
-    retrieve_calibrationData(side_b);
-    retrieve_configFlag(side_a);
-    retrieve_configFlag(side_b);
+//    retrieve_calibrationData(side_a);
+//    retrieve_calibrationData(side_b);
+
+    retrieve_calibrationData_fram(side_a);
+    retrieve_calibrationData_fram(side_b);
+
+//    retrieve_configFlag(side_a);
+//    retrieve_configFlag(side_b);
+
+    retrieve_configFlag_fram(side_a);
+    retrieve_configFlag_fram(side_b);
+
 //    startShiftTotaliser_vol1c = 500;
 //    startShiftTotaliser_amt1c = 500;
 
@@ -2295,8 +2331,11 @@ skip_test:
 
 	if(settings_stream2[0].totalizer_day != day)
 	{
-		save_1stVolTotaliser_day(side_a);
-		save_1stVolTotaliser_day(side_b);
+//		save_1stVolTotaliser_day(side_a);
+//		save_1stVolTotaliser_day(side_b);
+
+		save_1stVolTotaliser_day_fram(side_a);
+		save_1stVolTotaliser_day_fram(side_b);
 	}
 
 //    calib_pulser1 = 15800;

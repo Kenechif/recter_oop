@@ -12,6 +12,8 @@
 #include "config.h"
 #include "pump_comm.h"
 
+#include "log.h"
+
 #define W25QXX_DUMMY_BYTE 0xA5
 
 extern SPI_HandleTypeDef _W25QXX_SPI;
@@ -101,6 +103,9 @@ extern const int flash_info_sto;
 extern const int flash_stoA;
 extern const int flash_stoB;
 
+extern const uint16_t flash_stoA_fram,
+					  flash_stoB_fram;
+
 uint32_t flash_read_idA = 0;
 uint32_t flash_read_idB = 0;
 
@@ -141,11 +146,18 @@ extern uint8_t _litre_price1,
 //==================================================
 void flash_info_read()
 {
-EEPROM_Read(flash_info_sto, flash_stoA, &flash_infoA, sizeof(flash_infoA));
-  // log_wrt_ptrA = flash_infoA.current_loc;
-EEPROM_Read(flash_info_sto, flash_stoB, &flash_infoB, sizeof(flash_infoB));
+	EEPROM_Read(flash_info_sto, flash_stoA, &flash_infoA, sizeof(flash_infoA));
+	  // log_wrt_ptrA = flash_infoA.current_loc;
+	EEPROM_Read(flash_info_sto, flash_stoB, &flash_infoB, sizeof(flash_infoB));
   // log_wrt_ptrB = flash_infoB.current_loc;
 }
+
+void flash_info_read_fram()
+{
+	FRAM_Read(flash_stoA_fram, &flash_infoA, sizeof(flash_infoA));
+	FRAM_Read(flash_stoB_fram, &flash_infoB, sizeof(flash_infoB));
+}
+
 //==================================================
 void update_info()       //save_log( )
 {
@@ -413,7 +425,8 @@ eSystemState write_flash_State_Handler(void)
 			 if (next_loc > flash_endA) next_loc = flash_beginA;   //flash_endA => 0x3FFFFF --> 4,194,303 pg16,383.996
 			 flash_infoA.current_loc  =  next_loc;
 			 flash_infoA.number_logs  =  flash_infoA.number_logs + 1;
-			 EEPROM_Write(flash_info_sto, flash_stoA, &flash_infoA, sizeof(flash_infoA));
+//			 EEPROM_Write(flash_info_sto, flash_stoA, &flash_infoA, sizeof(flash_infoA));
+			 FRAM_Write(flash_stoA_fram, &flash_infoA, sizeof(flash_infoA));
 
 //			 ep1b_save.total_tranxA++;
 			 save_totalTransaction_sides(side_a);
@@ -445,7 +458,8 @@ eSystemState write_flash_State_Handler(void)
 			 if (next_loc > flash_endB) next_loc = flash_beginB;  //flash_endB => 0x7FFFFF --> 8,388,607 pg32767.996
 			 flash_infoB.current_loc  =  next_loc;
 			 flash_infoB.number_logs  =  flash_infoB.number_logs + 1;
-			 EEPROM_Write(flash_info_sto, flash_stoB, &flash_infoB, sizeof(flash_infoB));
+//			 EEPROM_Write(flash_info_sto, flash_stoB, &flash_infoB, sizeof(flash_infoB));
+			 FRAM_Write(flash_stoB_fram, &flash_infoB, sizeof(flash_infoB));
 
 //			 ep1b_save.total_tranxB++;
 			 save_totalTransaction_sides(side_b);
@@ -696,7 +710,8 @@ eSystemState write_flash_State_Handler(void)
 				     if (next_loc > flash_endA) next_loc = flash_beginA;
 				     flash_infoA.current_loc  =  next_loc;
 				     flash_infoA.number_logs  =  flash_infoA.number_logs + 1;
-				     EEPROM_Write(flash_info_sto, flash_stoA, &flash_infoA, sizeof(flash_infoA));
+//				     EEPROM_Write(flash_info_sto, flash_stoA, &flash_infoA, sizeof(flash_infoA));
+				     FRAM_Write(flash_stoA_fram, &flash_infoA, sizeof(flash_infoA));
 
 				   }
 			  if (operating_side == side_b)
@@ -705,7 +720,8 @@ eSystemState write_flash_State_Handler(void)
 				     if (next_loc > flash_endB) next_loc = flash_beginB;
 				     flash_infoA.current_loc  =  next_loc;
 					 flash_infoB.number_logs  =  flash_infoB.number_logs + 1;
-					 EEPROM_Write(flash_info_sto, flash_stoB, &flash_infoB, sizeof(flash_infoB));
+//					 EEPROM_Write(flash_info_sto, flash_stoB, &flash_infoB, sizeof(flash_infoB));
+					 FRAM_Write(flash_stoB_fram, &flash_infoB, sizeof(flash_infoB));
 				   }
 			//------------------------------------------------------------------------------------
 			w25qxx.Lock = 0;       // unlock the flash memory.
@@ -739,7 +755,8 @@ void clear_logA(void)
 {
 	flash_infoA.current_loc  =  flash_beginA;
 	flash_infoA.number_logs  =  0;
-	EEPROM_Write(flash_info_sto, flash_stoA, &flash_infoA, sizeof(flash_infoA));
+//	EEPROM_Write(flash_info_sto, flash_stoA, &flash_infoA, sizeof(flash_infoA));
+	FRAM_Write(flash_stoA_fram, &flash_infoA, sizeof(flash_infoA));
 	W25qxx_EraseBlock( 0 );
 	W25qxx_EraseBlock( 1 );
 	W25qxx_EraseBlock( 2 );
@@ -752,7 +769,8 @@ void clear_logB(void)
 {
 	flash_infoB.current_loc  =  flash_beginB;
 	flash_infoB.number_logs  =  0;
-	EEPROM_Write(flash_info_sto, flash_stoB, &flash_infoB, sizeof(flash_infoB));
+//	EEPROM_Write(flash_info_sto, flash_stoB, &flash_infoB, sizeof(flash_infoB));
+	FRAM_Write(flash_stoB_fram, &flash_infoB, sizeof(flash_infoB));
 	W25qxx_EraseBlock( 64 );
 	W25qxx_EraseBlock( 65 );
 	W25qxx_EraseBlock( 66 );

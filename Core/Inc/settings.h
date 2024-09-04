@@ -978,11 +978,41 @@ void save_ctSettings(pump_sid side);
 void retrieve_ctSettings(pump_sid side);
 void clear_ctSettings(pump_sid side);
 
+void save_ctSettings_fram(pump_sid side);
+void retrieve_ctSettings_fram(pump_sid side);
+void clear_ctSettings_fram(pump_sid side);
+
+void save_ctTimedSettings(pump_sid side);
+void retrieve_ctTimedSettings(pump_sid side);
+void clear_ctTimedSettings(pump_sid side);
+
+void save_ctTimedSettings_fram(pump_sid side);
+void retrieve_ctTimedSettings_fram(pump_sid side);
+void clear_ctTimedSettings_fram(pump_sid side);
+
+void save_ctTimedFlag(pump_sid side);
+void retrieve_ctTimedFlag(pump_sid side);
+void clear_ctTimedFlag(pump_sid side);
+
+void save_ctTimedFlag_fram(pump_sid side);
+void retrieve_ctTimedFlag_fram(pump_sid side);
+void clear_ctTimedFlag_fram(pump_sid side);
+
 void save_1stVolTotaliser_day(pump_sid side);
+void retrieve_1stVolTotaliser_day(pump_sid side);
+void clear_1stVolTotaliser_day(pump_sid side);
+
+void save_1stVolTotaliser_day_fram(pump_sid side);
+void retrieve_1stVolTotaliser_day_fram(pump_sid side);
+void clear_1stVolTotaliser_day_fram(pump_sid side);
 
 void save_calibrationPulser(pump_sid side);
 void retrieve_calibrationPulser(pump_sid side);
 void clear_calibrationPulser(pump_sid side);
+
+void save_calibrationPulser_fram(pump_sid side);
+void retrieve_calibrationPulser_fram(pump_sid side);
+void clear_calibrationPulser_fram(pump_sid side);
 
 void save_sessionId(pump_sid side);
 void retrieve_sessionId(pump_sid side);
@@ -992,9 +1022,17 @@ void save_calibrationFlag(pump_sid side);
 void retrieve_calibrationFlag(pump_sid side);
 void clear_calibrationFlag(pump_sid side);
 
+void save_calibrationFlag_fram(pump_sid side);
+void retrieve_calibrationFlag_fram(pump_sid side);
+void clear_calibrationFlag_fram(pump_sid side);
+
 void save_calibrationData(pump_sid side);
 void retrieve_calibrationData(pump_sid side);
 void clear_calibrationData(pump_sid side);
+
+void save_calibrationData_fram(pump_sid side);
+void retrieve_calibrationData_fram(pump_sid side);
+void clear_calibrationData_fram(pump_sid side);
 
 void save_amountSend(pump_sid side);
 void retrieve_amountSend(pump_sid side);
@@ -1003,6 +1041,11 @@ void clear_amountSend(pump_sid side);
 void save_configFlag(pump_sid side);
 void retrieve_configFlag(pump_sid side);
 void clear_configFlag(pump_sid side);
+
+void save_configFlag_fram(pump_sid side);
+void retrieve_configFlag_fram(pump_sid side);
+void clear_configFlag_fram(pump_sid side);
+
 
 void save_otp(pump_sid side);
 void retrieve_otp(pump_sid side);

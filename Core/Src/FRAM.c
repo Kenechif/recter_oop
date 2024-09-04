@@ -8,6 +8,8 @@
 #define FRAM_I2C_ADDRESS 0x54
 //#define FRAM_I2C_ADDRESS 0x50
 
+#define FRAMBYTESIZE 8192
+
 // Define the I2C
 extern I2C_HandleTypeDef hi2c1;
 //#define FRAM_I2C &hi2c1
@@ -106,6 +108,15 @@ void FRAM_Read(uint16_t memAddress, uint8_t *buffer, uint16_t size)
 
   // Request multiple bytes from the FRAM
   HAL_I2C_Master_Receive(&hi2c1, FRAM_I2C_ADDRESS << 1, buffer, size, HAL_MAX_DELAY);
+}
+
+void FRAM_ChipErase(void)
+{
+	for (uint16_t i = 0; i < FRAMBYTESIZE; i++)
+	{
+		FRAM_WriteByte(i, 0xFF);
+		HAL_Delay(5);  // write cycle delay
+	}
 }
 
 
