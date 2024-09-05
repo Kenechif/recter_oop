@@ -72,8 +72,6 @@ void Error_Handler(void);
 #define RE_GPIO_Port GPIOE
 #define sense_pwr_Pin GPIO_PIN_6
 #define sense_pwr_GPIO_Port GPIOE
-#define tamper_Pin GPIO_PIN_13
-#define tamper_GPIO_Port GPIOC
 #define T1output_Pin GPIO_PIN_0
 #define T1output_GPIO_Port GPIOC
 #define T1sense_Pin GPIO_PIN_1

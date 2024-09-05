@@ -1627,12 +1627,12 @@ tmmm:
 //	  EEPROM_Write(lastSynchedFlashA_loc, 0, &flash_beginA_page, sizeof(flash_beginA_page));
 //	  EEPROM_Write(lastSynchedFlashB_loc, 0, &flash_beginB_page, sizeof(flash_beginB_page));
 
-	  for (int i = 0; i < eeprom_pageNum; i++)
-	  {
-		  EEPROM_PageErase(i);
-	  }
+//	  for (int i = 0; i < eeprom_pageNum; i++)
+//	  {
+//		  EEPROM_PageErase(i);
+//	  }
 
-	  FRAM_ChipErase();
+//	  FRAM_ChipErase();
 
 //	  clear_totalTransaction_sides(side_a);
 //	  clear_totalTransaction_sides(side_b);
@@ -1646,26 +1646,26 @@ tmmm:
 //	  clear_volumeTotaliser(side_a);
 //	  clear_volumeTotaliser(side_b);
 
-//	  clear_volumeTotaliser_fram(side_a);
-//	  clear_volumeTotaliser_fram(side_b);
+	  clear_volumeTotaliser_fram(side_a);
+	  clear_volumeTotaliser_fram(side_b);
 
 //	  clear_amountTotaliser(side_a);
 //	  clear_amountTotaliser(side_b);
 
-//	  clear_amountTotaliser_fram(side_a);
-//	  clear_amountTotaliser_fram(side_b);
+	  clear_amountTotaliser_fram(side_a);
+	  clear_amountTotaliser_fram(side_b);
 
 //	  clear_lastSale(side_a);
 //	  clear_lastSale(side_b);
 
-//	  clear_lastSale_fram(side_a);
-//	  clear_lastSale_fram(side_b);
+	  clear_lastSale_fram(side_a);
+	  clear_lastSale_fram(side_b);
 
 //	  clear_1stvolTotaliser_day(side_a);
 //	  clear_1stvolTotaliser_day(side_b);
 
-//	  clear_1stvolTotaliser_day_fram(side_a);
-//	  clear_1stvolTotaliser_day_fram(side_b);
+	  clear_1stvolTotaliser_day_fram(side_a);
+	  clear_1stvolTotaliser_day_fram(side_b);
 
 //	  clear_ctSettings(side_a);
 //	  clear_ctSettings(side_b);
@@ -2124,19 +2124,19 @@ skip_test:
 
     settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
 //    settings_stream1[0].mode = AUTO_MODE;    //AUTO_MODE;
-
-//    settings_stream1[0].noz = nooverride;  //nooveride
-    settings_stream1[0].noz = override;  //nooveride
-    settings_stream1[0].keypad__ = BLSKY22;   //BLSKY22
-//    settings_stream1[0].keypad__ = LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
-
-    settings_stream1[1].mode = MANUAL_MODE;  //AUTO;   //MANUAL;
-//    settings_stream1[1].mode = AUTO_MODE;    //AUTO_MODE;
-
-    settings_stream1[1].noz = nooverride;  //nooveride
-//	settings_stream1[1].noz = override;  //nooveride
-//	settings_stream1[1].keypad__ = BLSKY22;   //BLSKY22
-    settings_stream1[1].keypad__ = LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
+//
+    settings_stream1[0].noz = nooverride;  //nooveride
+//    settings_stream1[0].noz = override;  //nooveride
+//    settings_stream1[0].keypad__ = BLSKY22;   //BLSKY22
+////    settings_stream1[0].keypad__ = LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
+//
+//    settings_stream1[1].mode = MANUAL_MODE;  //AUTO;   //MANUAL;
+////    settings_stream1[1].mode = AUTO_MODE;    //AUTO_MODE;
+//
+//    settings_stream1[1].noz = nooverride;  //nooveride
+////	settings_stream1[1].noz = override;  //nooveride
+////	settings_stream1[1].keypad__ = BLSKY22;   //BLSKY22
+//    settings_stream1[1].keypad__ = LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
 
 
     // ===========================================================================

@@ -9671,6 +9671,7 @@ eSystemState pnpState_Handler(void)
 		}
 
 	//	if(calib_pulser1 < 15800)  //15987, 15967 .... 1106247681
+		calibration_flag1 = CALIBRATED;
 		if(calibration_flag1 != CALIBRATED) //15800)  //15987, 15967 .... 1106247681
 		{
 			retrieve_calibrationFlag(side_a);
