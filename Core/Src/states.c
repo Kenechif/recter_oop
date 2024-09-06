@@ -606,7 +606,7 @@ void stop_timer(void)
 	st = 0;
 }
 //=======================================
-int8_t read_keypad();
+int8_t read_keypad(void);
 //int long_press_log();
 //int long_press_tot();
 //=======================================

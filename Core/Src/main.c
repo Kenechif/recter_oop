@@ -312,14 +312,14 @@ int main(void)
   MX_RTC_Init();
   MX_SPI1_Init();
   MX_SPI2_Init();
-  MX_TIM2_Init();
-  MX_TIM5_Init();
-  MX_USART1_UART_Init();
-  MX_USART2_UART_Init();
-  MX_ADC1_Init();
-  MX_USART3_UART_Init();
-  MX_UART5_Init();
-  MX_RNG_Init();
+//  MX_TIM2_Init();
+//  MX_TIM5_Init();
+//  MX_USART1_UART_Init();
+//  MX_USART2_UART_Init();
+//  MX_ADC1_Init();
+//  MX_USART3_UART_Init();
+//  MX_UART5_Init();
+//  MX_RNG_Init();
   /* USER CODE BEGIN 2 */
 
 //  retrieve_settings();    //Retrieves settings prior to Timers Initialisation

@@ -2561,7 +2561,7 @@ void _process_response1(response_enum response)
 
 		float priceChange_check = price_update1 - settings_stream1[0].price_;
 
-		if (settings0_stream1[0].mode == AUTO_MODE)
+		if (settings_stream1[0].mode == AUTO_MODE)
 		{
 
 			if( (priceChange_check > 0.1) || (priceChange_check < -0.1) )
@@ -3259,7 +3259,7 @@ void _process_response2(response_enum response)
 
 		float priceChange_check = price_update2 - settings_stream1[1].price_;
 
-		if (settings0_stream1[1].mode == AUTO_MODE)
+		if (settings_stream1[1].mode == AUTO_MODE)
 		{
 
 			if( (priceChange_check > 0.1) || (priceChange_check < -0.1) )

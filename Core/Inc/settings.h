@@ -558,7 +558,6 @@ typedef enum
  }pump_settings_stream2;
 
 
-
  typedef struct
  {
  	 char passwd1[9];
@@ -566,6 +565,20 @@ typedef enum
  	 char passwd3[9];			  //<==  (27 + 1) Bytes   ==> 28 Bytes
 
  }pump_settings_stream3;
+
+
+
+// pump_settings_stream1 settings_stream1[2],
+//   					   settings0_stream1[2],
+//  					   copy_stream1[2];
+//
+//  pump_settings_stream2 settings_stream2[2],
+// 					   settings0_stream2[2],
+// 					   copy_stream2[2];
+//
+//  pump_settings_stream3 settings_stream3[2],
+//   				       settings0_stream3[2],
+//  					   copy_stream3[2];
 
 
 bool nozzle_out1,
