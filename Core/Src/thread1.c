@@ -2861,10 +2861,10 @@ uint8_t  read_event1()
 					//                nozzle-up overide
 					if (eNextState1 == authorised_nozzledown_State)
 					{
-						if (override_ == override)
-						{
+//						if (override_ == override)
+//						{
 							return _nozzleup_Event;
-						}
+//						}
 					}
 					//---------------------------------------------
 				  return _auth_command_Event;
@@ -2875,22 +2875,23 @@ uint8_t  read_event1()
 			if( (nozzle_flag_old == 0)&&(nozzle_flag == 1) )
 			{
 					nozzle_flag_old = 1;
-					if (override_ != override)
-					{
+//					if (override_ != override)
+//					{
 								//send nozzleup command only in MANUAL mode
 								return _nozzleup_Event;
-					}
-					else 		// NozzlezUp, awaiting authorisation
-					{
-
-					}
+//					}
+//					else 		// NozzlezUp, awaiting authorisation
+//					{
+//
+//					}
 			}
 	  //-----------------------
 	  // nozzle down  event capture...
 			if( (nozzle_flag_old == 1)&&(nozzle_flag == 0) )
 			{
 					nozzle_flag_old = 0;
-					if (override_ != override) return _nozzledown_Event;
+//					if (override_ != override)
+						return _nozzledown_Event;
 			}
 		//	nozzle_flag_old = nozzle_flag;
 	  //--------------------------------------------------
@@ -3106,10 +3107,10 @@ int  read_event2()
 					//                nozzle-up overide
 					if (eNextState2 == authorised_nozzledown_State)
 					{
-						if (override_2 == override)
-						{
+//						if (override_2 == override)
+//						{
 							return _nozzleup_Event;
-						}
+//						}
 					}
 			//				//---------------------------------------------
 			//
@@ -3180,8 +3181,8 @@ int  read_event2()
 			if( (nozzle_flag_old2 == 0)&&(nozzle_flag2 == 1) )
 			{
 					nozzle_flag_old2 = 1;
-					if (override_2 != override)
-					{
+//					if (override_2 != override)
+//					{
 						//send nozzleup command only in MANUAL mode
 
 						if(settings_stream1[1].mode == AUTO_MODE)
@@ -3190,18 +3191,19 @@ int  read_event2()
 						}
 
 						return _nozzleup_Event;
-					}
-					else 		// NozzlezUp, awaiting authorisation
-					{
-
-					}
+//					}
+//					else 		// NozzlezUp, awaiting authorisation
+//					{
+//
+//					}
 			}
 	  //-----------------------
 	  // nozzle down  event capture...
 			if( (nozzle_flag_old2 == 1)&&(nozzle_flag2 == 0) )
 			{
 					nozzle_flag_old2 = 0;
-					if (override_2 != override) return _nozzledown_Event;
+//					if (override_2 != override)
+						return _nozzledown_Event;
 			}
 		//	nozzle_flag_old = nozzle_flag;
 	  //--------------------------------------------------
@@ -3736,10 +3738,10 @@ uint8_t read_event1_1(void)
 				//                nozzle-up overide
 				if (eNextState1 == authorised_nozzledown_State)
 				{
-					if (override_ == override)
-					{
+//					if (override_ == override)
+//					{
 						return _nozzleup_Event;
-					}
+//					}
 				}
 //				//---------------------------------------------
 //
@@ -3809,8 +3811,8 @@ uint8_t read_event1_1(void)
 	    if( (nozzle_flag_old == 0)&&(nozzle_flag == 1) )
 		{
 			nozzle_flag_old = 1;
-			if (override_ != override)
-			{
+//			if (override_ != override)
+//			{
 				//send nozzleup command only in MANUAL mode
 
 				if(settings_stream1[0].mode == AUTO_MODE)
@@ -3819,18 +3821,19 @@ uint8_t read_event1_1(void)
 				}
 
 				return _nozzleup_Event;
-			}
-			else 		// NozzlezUp, awaiting authorisation
-			{
-
-			}
+//			}
+//			else 		// NozzlezUp, awaiting authorisation
+//			{
+//
+//			}
 		}
 	  //-----------------------
 	  // nozzle down  event capture...
 	   else if( (nozzle_flag_old == 1) && (nozzle_flag == 0) )
 		{
 			nozzle_flag_old = 0;
-			if (override_ != override) return _nozzledown_Event;
+//			if (override_ != override)
+				return _nozzledown_Event;
 		}
 		//	nozzle_flag_old = nozzle_flag;
 	  //--------------------------------------------------

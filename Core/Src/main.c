@@ -245,6 +245,26 @@ uint8_t END_MSG[35] = "Overflow Reached! Counter Reset!\n\r";
 
 char buffer[5];
 
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if (GPIO_Pin == GPIO_PIN_13)
+	{
+		SystemClock_Config();
+		HAL_ResumeTick();
+		char *str = "WAKEUP FROM EXTII\n\n";
+		HAL_UART_Transmit(&huart2, (uint8_t *) str, strlen (str), HAL_MAX_DELAY);
+//		HAL_PWR_DisableSleepOnExit();
+	}
+}
+
+void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
+{
+	SystemClock_Config();
+	HAL_ResumeTick();
+	char *str = "WAKEUP FROM RTC\n\n";
+	HAL_UART_Transmit(&huart2, (uint8_t *) str, strlen (str), HAL_MAX_DELAY);
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -379,6 +399,128 @@ int main(void)
   HAL_UARTEx_ReceiveToIdle_DMA(&huart2, RxBuf, RxBuf_SIZE);
    __HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
 
+   for (int i=0; i<20; i++)
+   {
+	   HAL_GPIO_TogglePin(nLed_GPIO_Port, nLed_Pin);
+   	   HAL_Delay (200);
+   }
+
+//     char *str = "ABOUT TO GO INTO THE STOP MODE\n\n";
+//     HAL_UART_Transmit(&huart2, (uint8_t *)str, strlen (str), HAL_MAX_DELAY);
+//
+//     /*** RTC WAKEUP TIMER RELATED ****/
+//
+//     /*## Configure the Wake up timer ###########################################*/
+//     /*  RTC Wake-up Interrupt Generation:
+//         Wake-up Time Base = (RTC_WAKEUPCLOCK_RTCCLK_DIV /(LSI))
+//         ==> WakeUpCounter = Wake-up Time / Wake-up Time Base
+//
+//         To configure the wake up timer to 5s the WakeUpCounter is set to 0x2710:
+//           RTC_WAKEUPCLOCK_RTCCLK_DIV = RTCCLK_Div16 = 16
+//           Wake-up Time Base = 16 /(32KHz) = 0.0005 seconds
+//           ==> WakeUpCounter = ~5s/0.0005s = 20000 = 0x2710 */
+//
+//     if (HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 0x2710, RTC_WAKEUPCLOCK_RTCCLK_DIV16) != HAL_OK)
+//     {
+//       Error_Handler();
+//     }
+//
+//
+//     /*** Suspend the systick before going into stop mode ****/
+//     HAL_SuspendTick();
+//
+//     /*** enable sleep on exit for interrupt only operations ****/
+//     HAL_PWR_EnableSleepOnExit();
+//
+//     /*** ENTER THE STOP MODE ****/
+//     HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
+//
+//
+//     /*** wake up from stop mode ****/
+//
+//
+//     // disable the RTC wakeup
+//     HAL_RTCEx_DeactivateWakeUpTimer(&hrtc);
+//
+//     for (int i = 0; i < 5; i++)
+//     {
+////   	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+//		  HAL_GPIO_TogglePin(nLed_GPIO_Port, nLed_Pin);
+//		  HAL_Delay (1000);
+//     }
+//
+//     char *str2 = "WAKEUP FROM STOP MODE in the MAIN LOOP\n\n";
+//     HAL_UART_Transmit(&huart2, (uint8_t *)str2, strlen (str2), HAL_MAX_DELAY);
+
+   /*** Check if the SB flag is set ***/
+
+//     if (__HAL_PWR_GET_FLAG(PWR_FLAG_SB) != RESET)
+//     {
+//   	  __HAL_PWR_CLEAR_FLAG(PWR_FLAG_SB);  // clear the flag
+//
+//   	  /** display  the string **/
+//   	  char *str = "Wakeup from the STANDBY MODE\n\n";
+//   	  HAL_UART_Transmit(&huart2, (uint8_t *)str, strlen (str), HAL_MAX_DELAY);
+//
+//   	  /** Blink the LED **/
+//   	  for (int i=0; i<20; i++)
+//   	  {
+//   		  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+//   		  HAL_Delay(200);
+//   	  }
+//
+//   	  /** Disable the WWAKEUP PIN **/
+//   	  HAL_PWR_DisableWakeUpPin(PWR_WAKEUP_PIN1);  // disable PA0
+//
+//   	  /** Deactivate the RTC wakeup  **/
+//   	  HAL_RTCEx_DeactivateWakeUpTimer(&hrtc);
+//     }
+//
+//
+//     /** Now enter the standby mode **/
+//      /* Clear the WU FLAG */
+//     __HAL_PWR_CLEAR_FLAG(PWR_FLAG_WU);
+//
+//      /* clear the RTC Wake UP (WU) flag */
+//     __HAL_RTC_WAKEUPTIMER_CLEAR_FLAG(&hrtc, RTC_FLAG_WUTF);
+//
+//      /* Display the string */
+//     char *str = "About to enter the STANDBY MODE\n\n";
+//     HAL_UART_Transmit(&huart2, (uint8_t *)str, strlen (str), HAL_MAX_DELAY);
+//
+//      /* Blink the LED */
+//     for (int i=0; i<5; i++)
+//     {
+//   	  HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+//   	  HAL_Delay(750);
+//     }
+//
+//      /* Enable the WAKEUP PIN */
+//     HAL_PWR_EnableWakeUpPin(PWR_WAKEUP_PIN1);
+//
+//     /* enable the RTC Wakeup */
+//       /*  RTC Wake-up Interrupt Generation:
+//         Wake-up Time Base = (RTC_WAKEUPCLOCK_RTCCLK_DIV /(LSI))
+//         ==> WakeUpCounter = Wake-up Time / Wake-up Time Base
+//
+//         To configure the wake up timer to 5s the WakeUpCounter is set to 0x2710:
+//         RTC_WAKEUPCLOCK_RTCCLK_DIV = RTCCLK_Div16 = 16
+//         Wake-up Time Base = 16 /(32KHz) = 0.0005 seconds
+//         ==> WakeUpCounter = ~5s/0.0005s = 20000 = 0x2710
+//       */
+//     if (HAL_RTCEx_SetWakeUpTimer_IT(&hrtc, 0x2710, RTC_WAKEUPCLOCK_RTCCLK_DIV16) != HAL_OK)
+//     {
+//       Error_Handler();
+//     }
+//
+//      /* one last string to be sure */
+//     char *str2 = "STANDBY MODE is ON\n\n";
+//     HAL_UART_Transmit(&huart2, (uint8_t *)str2, strlen (str2), HAL_MAX_DELAY);
+//
+//      /* Finally enter the standby mode */
+//     HAL_PWR_EnterSTANDBYMode();
+//
+//
 	setup();
   /* USER CODE END 2 */
 
