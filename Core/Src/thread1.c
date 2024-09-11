@@ -114,7 +114,7 @@ float datar3;
 #define FRAM_I2C &hi2c1
 
 // EEPROM ADDRESS (8bits)
-#define FRAM_ADDR 0xA0    //0x50     //0x54
+//#define FRAM_ADDR 0xA0    //0x50     //0x54
 
 //uint8_t write_data = 201,
 //		read_data = 0;
@@ -380,6 +380,9 @@ extern operatorfxn_  operatorfxn , operatorfxn2;
  extern const int flash_info_sto;
  extern const int flash_stoA;
  extern const int flash_stoB;
+
+ extern const uint16_t flash_stoA_fram,
+ 		 	 		   flash_stoB_fram;
 
  extern uint32_t flash_read_idA;
  extern uint32_t flash_read_idB;
@@ -1562,13 +1565,13 @@ tmmm:
 	 make_settings(side_a);
 	 make_settings(side_b);
 
-	 save_settings();
-//	 save_volumeTotaliser(side_a); //side_a
-//	 save_volumeTotaliser(side_b);
-//	 flash_infoA.current_loc = 0;
-//	 flash_infoA.number_logs = 0;
-//	 EEPROM_Write(flash_info_sto, flash_stoA, &flash_infoA, sizeof(flash_infoA));
-//	 EEPROM_Write(flash_info_sto, flash_stoA, &flash_infoB, sizeof(flash_infoA));
+	 save_settings_fram();
+//	 save_volumeTotaliser_fram(side_a); //side_a
+//	 save_volumeTotaliser_fram(side_b);
+	 flash_infoA.current_loc = 0;
+	 flash_infoA.number_logs = 0;
+	 FRAM_Write(flash_stoA_fram, &flash_infoA, sizeof(flash_infoA));
+	 FRAM_Write(flash_stoB_fram, &flash_infoB, sizeof(flash_infoA));
 	 // ===========================================================================
 
 

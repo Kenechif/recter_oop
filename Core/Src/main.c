@@ -399,11 +399,11 @@ int main(void)
   HAL_UARTEx_ReceiveToIdle_DMA(&huart2, RxBuf, RxBuf_SIZE);
    __HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
 
-   for (int i=0; i<20; i++)
-   {
-	   HAL_GPIO_TogglePin(nLed_GPIO_Port, nLed_Pin);
-   	   HAL_Delay (200);
-   }
+//   for (int i=0; i<20; i++)
+//   {
+//	   HAL_GPIO_TogglePin(nLed_GPIO_Port, nLed_Pin);
+//   	   HAL_Delay (200);
+//   }
 
 //     char *str = "ABOUT TO GO INTO THE STOP MODE\n\n";
 //     HAL_UART_Transmit(&huart2, (uint8_t *)str, strlen (str), HAL_MAX_DELAY);
