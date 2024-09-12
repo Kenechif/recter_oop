@@ -332,14 +332,14 @@ int main(void)
   MX_RTC_Init();
   MX_SPI1_Init();
   MX_SPI2_Init();
-//  MX_TIM2_Init();
-//  MX_TIM5_Init();
-//  MX_USART1_UART_Init();
-//  MX_USART2_UART_Init();
-//  MX_ADC1_Init();
-//  MX_USART3_UART_Init();
-//  MX_UART5_Init();
-//  MX_RNG_Init();
+  MX_TIM2_Init();
+  MX_TIM5_Init();
+  MX_USART1_UART_Init();
+  MX_USART2_UART_Init();
+  MX_ADC1_Init();
+  MX_USART3_UART_Init();
+  MX_UART5_Init();
+  MX_RNG_Init();
   /* USER CODE BEGIN 2 */
 
 //  retrieve_settings();    //Retrieves settings prior to Timers Initialisation
@@ -918,11 +918,11 @@ static void MX_TIM2_Init(void)
 //  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
 //  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
 //  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-//  sConfig.IC1Filter = 7;
+//  sConfig.IC1Filter = 10;
 //  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
 //  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
 //  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
-//  sConfig.IC2Filter = 7;
+//  sConfig.IC2Filter = 10;
 //  if (HAL_TIM_Encoder_Init(&htim2, &sConfig) != HAL_OK)
 //  {
 //    Error_Handler();
@@ -942,11 +942,11 @@ static void MX_TIM2_Init(void)
 		  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
 		  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
 		  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-		  sConfig.IC1Filter = 7;
+		  sConfig.IC1Filter = 10;
 		  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
 		  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
 		  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
-		  sConfig.IC2Filter = 7;
+		  sConfig.IC2Filter = 10;
 		  if (HAL_TIM_Encoder_Init(&htim2, &sConfig) != HAL_OK)
 		  {
 		    Error_Handler();
@@ -1018,11 +1018,11 @@ static void MX_TIM5_Init(void)
 //  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
 //  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
 //  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-//  sConfig.IC1Filter = 7;
+//  sConfig.IC1Filter = 10;
 //  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
 //  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
 //  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
-//  sConfig.IC2Filter = 7;
+//  sConfig.IC2Filter = 10;
 //  if (HAL_TIM_Encoder_Init(&htim5, &sConfig) != HAL_OK)
 //  {
 //    Error_Handler();
@@ -1041,11 +1041,11 @@ static void MX_TIM5_Init(void)
 		  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
 		  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
 		  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-		  sConfig.IC1Filter = 7;
+		  sConfig.IC1Filter = 10;
 		  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
 		  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
 		  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
-		  sConfig.IC2Filter = 7;
+		  sConfig.IC2Filter = 10;
 		  if (HAL_TIM_Encoder_Init(&htim5, &sConfig) != HAL_OK)
 		  {
 		    Error_Handler();
