@@ -3685,9 +3685,9 @@ eSystemState progState_Handler2(void)
       				  amt_middle2 = pulser_totalizer2;
       				  price_real2 = (pulser_totalizer2 * litre_price2);
       				  price_upper2 = (pulser_totalizer2 * litre_price2);
-      				  save_volumeTotaliser(operating_side);
-      				  save_amountTotaliser(operating_side);
-      				  save_lastSale(operating_side);
+      				  save_volumeTotaliser_fram(operating_side);
+      				  save_amountTotaliser_fram(operating_side);
+      				  save_lastSale_fram(operating_side);
 
       				  return write_flash_State;
       			  }
@@ -3718,8 +3718,8 @@ eSystemState progState_Handler2(void)
       				  amt_middle2 = pulser_totalizer2;
       				  price_real2 = (pulser_totalizer2 * litre_price2);
       				  price_upper2 = (pulser_totalizer2 * litre_price2);
-      				  save_volumeTotaliser(operating_side);
-      				  save_amountTotaliser(operating_side);
+      				  save_volumeTotaliser_fram(operating_side);
+      				  save_amountTotaliser_fram(operating_side);
 //      				  save_lastSale(operating_side);
       				save_lastSale_fram(operating_side);
 
@@ -3789,10 +3789,12 @@ eSystemState progState_Handler2(void)
       					vol_real2 = sold_v;
       					vol_calibrated2 = cal_vol;
       					save_ctSettings(side_b);
-      					save_calibrationPulser(side_b);
+//      					save_calibrationPulser(side_b);
+      					save_calibrationPulser_fram(side_b);
 
     					calibration_flag2 = CALIBRATED;
-    					save_calibrationFlag(side_b);
+//    					save_calibrationFlag(side_b);
+    					save_calibrationFlag_fram(side_b);
 
                         HAL_Delay(1700);
 
@@ -9017,7 +9019,8 @@ eSystemState savesettings_State_Handler2(void)
 		 	save_settings0();
 
 			configMode2 = CONFIGMODIFIED;
-			save_configFlag(side_b);
+//			save_configFlag(side_b);
+			save_configFlag_fram(side_b);
 
 	    	copy_settings(move_to_settings); // copy the structure.
 	    	save_settings();   //save to eeprom

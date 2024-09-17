@@ -3925,9 +3925,10 @@ eSystemState progState_Handler(void)
 					  amt_middle1 = pulser_totalizer1;
 					  price_real1 = (pulser_totalizer1 * litre_price);
 					  price_upper1 = (pulser_totalizer1 * litre_price);
-					  save_volumeTotaliser(operating_side);
-					  save_amountTotaliser(operating_side);
-					  save_lastSale(operating_side);
+					  save_volumeTotaliser_fram(operating_side);
+					  save_amountTotaliser_fram(operating_side);
+//					  save_lastSale(operating_side);
+					  save_lastSale_fram(operating_side);
 
 //					  pwr1 = POWERINTERRUPTION;
 //					  save_calibrationData(side_a);
@@ -3938,7 +3939,8 @@ eSystemState progState_Handler(void)
 
 					  pulser_benchMark1 = 0;
 					  pwr1 = POWERINTERRUPTION;
-					  save_calibrationData(side_a);
+//					  save_calibrationData(side_a);
+					  save_calibrationData_fram(side_a);
 				  }
 
 				  return write_flash_State;
@@ -3973,11 +3975,12 @@ eSystemState progState_Handler(void)
 				  amt_middle1 = pulser_totalizer1;
 				  price_real1 = (pulser_totalizer1 * litre_price);
 				  price_upper1 = (pulser_totalizer1 * litre_price);
-				  save_volumeTotaliser(operating_side);
-				  save_amountTotaliser(operating_side);
+				  save_volumeTotaliser_fram(operating_side);
+				  save_amountTotaliser_fram(operating_side);
 //				  save_lastSale(operating_side);
 				  save_lastSale_fram(operating_side);
-				  save_calibrationData(side_a);
+//				  save_calibrationData(side_a);
+				  save_calibrationData_fram(side_a);
 
 
   //				  calib_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);  //use hardware counter
@@ -4046,15 +4049,17 @@ eSystemState progState_Handler(void)
 					vol_real1 = sold_v;
 					vol_calibrated1 = cal_vol;
 					save_ctSettings(side_a);
-					save_calibrationPulser(side_a);
+//					save_calibrationPulser(side_a);
+					save_calibrationPulser_fram(side_a);
 
 					calibration_flag1 = CALIBRATED;
-					save_calibrationFlag(side_a);
+//					save_calibrationFlag(side_a);
+					save_calibrationFlag_fram(side_a);
 
                     HAL_Delay(1700);
 
                     send_line1("  Done  ");
-                    printDisp_f(pi_c, 2,0, 8, RT, CLEAR);
+                    printDisp_f(pi_c, 2, 0, 8, RT, CLEAR);
                     HAL_Delay(2500);
                     //store in the settings structure.
                     if(pump_indx == 1)
@@ -7137,7 +7142,8 @@ eSystemState savesettings_State_Handler(void)
 		save_settings();   //save to eeprom
 
 		configMode1 = CONFIGMODIFIED;
-		save_configFlag(side_a);
+//		save_configFlag(side_a);
+		save_configFlag_fram(side_a);
 
 		load_settings(side_a); //load the settings into the
 		load_settings(side_b); // internal variables
