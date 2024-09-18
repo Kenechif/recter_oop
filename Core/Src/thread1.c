@@ -2130,6 +2130,9 @@ skip_test:
 //
 //    settings_stream1[0].noz = nooverride;  //nooveride
     settings_stream1[0].noz = override;  //nooveride
+
+    settings_stream2[0].calibration_measureCan = 2;
+
 //    settings_stream1[0].keypad__ = BLSKY22;   //BLSKY22
 ////    settings_stream1[0].keypad__ = LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
 //
