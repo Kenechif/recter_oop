@@ -232,7 +232,7 @@ int readsettingskey_state(void)
     return(  (HAL_GPIO_ReadPin(keyk1_GPIO_Port, keyk1_Pin ) == 0)? 1:0  );
 }
 
-int readkey19_state(void)
+uint8_t readkey19_state(void)
 {
     return(  (HAL_GPIO_ReadPin(pin19K1_GPIO_Port, pin19K1_Pin ) == 0)? 1:0  );
 }
@@ -242,7 +242,7 @@ int readsettingskey2_state(void)
     return(  (HAL_GPIO_ReadPin(keyk2_GPIO_Port, keyk2_Pin ) == 0)? 1:0  );
 }
 
-int readkey192_state(void)
+uint8_t readkey192_state(void)
 {
     return(  (HAL_GPIO_ReadPin(pin19K2_GPIO_Port, pin19K2_Pin ) == 0)? 1:0  );
 }

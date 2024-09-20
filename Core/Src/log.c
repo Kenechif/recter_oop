@@ -437,19 +437,22 @@ eSystemState write_flash_State_Handler(void)
 			 }
 
 //
-//			//============================================//
-//			// 				EP2 ROUTINE SENDING			  //
-//			//============================================//
-			if (HAL_GPIO_ReadPin(network_connected_GPIO_Port, network_connected_Pin) == 1 )
-			{
-				connected = 1;
-				ep2_send(side_a);
-			}
-			else
-			{
-				connected = 0;
-			}
-//			//============================================//
+////			//============================================//
+////			// 				EP2 ROUTINE SENDING			  //
+////			//============================================//
+//			if (HAL_GPIO_ReadPin(network_connected_GPIO_Port, network_connected_Pin) == 1 )
+//			{
+//				connected = 1;
+//				ep2_send(side_a);
+//			}
+//			else
+//			{
+//				connected = 0;
+//			}
+
+			 keypad_zerorize();
+
+			//============================================//
 
 		  }
 		  else if (operating_side == side_b)
@@ -469,19 +472,23 @@ eSystemState write_flash_State_Handler(void)
 				save_totalAutoTransaction_sides(side_b);
 			 }
 
-//			//============================================//
-//			// 				EP2 ROUTINE SENDING			  //
-//			//============================================//
-			if (HAL_GPIO_ReadPin(network_connected_GPIO_Port, network_connected_Pin) == 1 )
-			{
-				connected = 1;
-				ep2_send(side_b);
-			}
-			else
-			{
-				connected = 0;
-			}
-//			//============================================//
+////			//============================================//
+////			// 				EP2 ROUTINE SENDING			  //
+////			//============================================//
+//			if (HAL_GPIO_ReadPin(network_connected_GPIO_Port, network_connected_Pin) == 1 )
+//			{
+//				connected = 1;
+//				ep2_send(side_b);
+//			}
+//			else
+//			{
+//				connected = 0;
+//			}
+
+
+			 keypad_zerorize2();
+
+			//============================================//
 
 		  }
 		//------------------------------------------------------------------------------------
@@ -738,7 +745,9 @@ void  clear_totA(void)
 	totaliser_vol1c = 0;
 	log_a_new.totaliserVol_real = 0;
 	log_a_new.totaliserVol_cal = 0;
-	save_volumeTotaliser(side_a);
+//	save_volumeTotaliser(side_a);
+	save_volumeTotaliser_fram(side_a);
+
 }
 
 void  clear_totB(void)
@@ -747,7 +756,8 @@ void  clear_totB(void)
 	totaliser_vol2c = 0;
 	log_b_new.totaliserVol_real = 0;
 	log_b_new.totaliserVol_cal = 0;
-	save_volumeTotaliser(side_b);
+//	save_volumeTotaliser(side_b);
+	save_volumeTotaliser_fram(side_b);
 }
 
 

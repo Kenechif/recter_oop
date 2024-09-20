@@ -100,6 +100,8 @@ extern uint32_t timer_ep1,
 extern unsigned char pumpno,
 					 pumpno2;
 
+extern pump_settings_stream1 settings_stream1[2];
+
 uint8_t  DART_BUFF1[128],
 		 DART_BUFF2[128],
 		 array_len,

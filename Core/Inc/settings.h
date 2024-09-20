@@ -120,6 +120,33 @@ extern "C" {
   }sellmode_;
 
 
+typedef enum
+{
+	MO1,    // Mode => Manual/Auto                      					// index ==> 0x00
+	NA1,    // Nozzle Address												// index ==> 0x01
+	NO1,    // Nozzle Override												// index ==> 0x02
+	NS1,	// Nozzle Sides													// index ==> 0x03
+	UN1,	// Unit Price													// index ==> 0x04
+	TM1,	// Clock Setting => Date/Time									// index ==> 0x05
+	TO1,	// Timeout => No-Flow											// index ==> 0x06
+	ML1,	// Maximum Litre												// index ==> 0x07
+	PW1,	// Password-1 Change											// index ==> 0x08
+	PW2,	// Password-2 Change											// index ==> 0x09
+	PW3,	// Password-3 Change											// index ==> 0x0A
+	CV1,	// Calibration Value-1 => Real Pulser-index						// index ==> 0x0B
+	CV2,	// Calibration Value-2 => Apparent Pulser-index					// index ==> 0x0C
+	CS1,	// Calibration Can-size											// index ==> 0x0D
+	DP1,	// Display Decimal Point										// index ==> 0x0E
+	DS1,	// Display Sytle => L/P or P/L									// index ==> 0x0F
+	DT1,	// Volume Display Threshold										// index ==> 0x10
+	SL1,	// Shift Login Type												// index ==> 0x11
+	SC1,	// Shift-Count per day											// index ==> 0x12
+	TN1,	// Tone															// index ==> 0x13
+	PT1,	// Pulser Type => Quadrature/Non-Quadrature						// index ==> 0x14
+	SF1,	// Start Slow-Flow Width										// index ==> 0x15
+	SF2		// Closing Slow-Flow Width                       				// index ==> 0x16
+}config_change;
+
   enum
   {
 	January = 1,
@@ -511,7 +538,7 @@ typedef enum
  	 unsigned int max_amt_;
  	 float pi_c;
  	 float pi_;
- 	 uint8_t id_;
+ 	 uint8_t noz_addr;
  	 uint8_t dp_amount;
  	 uint8_t dp_vol;
  	 uint8_t dp_unitprice;
@@ -892,7 +919,7 @@ extern char upper1[10],
 
  char keyboard_entry[10];
 
- int8_t keyEntry_len,
+ uint8_t keyEntry_len,
  	 	keyEntry2_len;
 
 uint8_t vol_real1,

@@ -77,6 +77,7 @@ extern uint32_t pulser1;
 extern uint32_t pulser2;
 extern char prn[40];
 
+extern pump_settings_stream1 settings_stream1[2];
 extern pump_settings_stream2 settings_stream2[2];
 
 //uint8_t dummyValue = 0;
@@ -172,8 +173,8 @@ extern unsigned char pumpno,
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 {
-	SOP = pumpno + 0x4F;
-	SOP2 = pumpno2 + 0x4F;
+	SOP = settings_stream1[0].noz_addr + 0x4F;
+	SOP2 = settings_stream1[1].noz_addr + 0x4F;
 
 	if (huart->Instance == USART2)
 	{
@@ -394,7 +395,7 @@ int main(void)
 
 //  	Ringbuf_init ();
 
-  	SOP = pumpno + 0x4F;
+  	SOP = settings_stream1[0].noz_addr + 0x4F;
 
   HAL_UARTEx_ReceiveToIdle_DMA(&huart2, RxBuf, RxBuf_SIZE);
    __HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);

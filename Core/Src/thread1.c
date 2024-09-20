@@ -275,8 +275,11 @@ int retn;
  nozzle_override override_,
  	 	 	 	 override_2;
 
- uint8_t stop_flag,stop_flag2 = 0;
- int error_clr_flag , error_clr_flag2 = 0;
+ uint8_t stop_flag,
+ 	 	 stop_flag2 = 0;
+
+ uint8_t error_clr_flag,
+ 	 	 error_clr_flag2 = 0;
 
  int key_flag, key_flag_old , key_flag2, key_flag_old2 = 0;
  int nozzle_flag, nozzle_flag_old , nozzle_flag2, nozzle_flag_old2 = 0;
@@ -290,8 +293,12 @@ int retn;
  extern int auth_flag , auth_flag2;
  extern int lat_cnt , lat_cnt2;
 
- int keypress_flag ,keypress_flag2 = 0;
- int keypress__ , keypress__2 = 1;
+ uint8_t keypress_flag,
+ 	 	 keypress_flag2 = 0;
+
+ uint8_t keypress__,
+ 	 	 keypress__2 = 1;
+
  char wrt_[10],wrt_2[10]  = {0};
 
  uint8_t prog_entry1, prog_entry2 = 0;
@@ -1711,6 +1718,9 @@ tmmm:
 		 make_settings(side_a);
 		 make_settings(side_b);
 
+		 settings_stream1[0].noz_addr = 0x01;
+		 settings_stream1[1].noz_addr = 0x02;
+
 		 settings_stream1[0].pi_ = 797.15;   //798.1;  //407.3;   //399.25;   //798.35;
 		 settings_stream1[0].pi_c = 797.15;  //767.40;  //391.64;   //383.89;  //760.33;
 		 settings_stream1[1].pi_ = 799.8;    //799.25;  //399.25;   //798.35;
@@ -2525,7 +2535,7 @@ void run()
 	//		server_message_found = 0;
 			go_message = false;
 //		}
-			if (r_pumpno == pumpno)
+			if (r_pumpno == settings_stream1[0].noz_addr)
 			{
 				if( (resp != NOREPLY) && (resp != JUNK) )
 				{
@@ -2538,7 +2548,7 @@ void run()
 //					checkk++;
 				}
 			}
-			else if (r_pumpno == pumpno2)
+			else if (r_pumpno == settings_stream1[1].noz_addr)
 			{
 
 				if( (resp2 != NOREPLY) && (resp2 != JUNK) )

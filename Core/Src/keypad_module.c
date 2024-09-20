@@ -283,7 +283,7 @@ uint8_t To_pattern(int Input)
  */
 int write_keypad_lcd(int fxn,char* num)
 {
-	extern int8_t keyEntry_len;
+	extern uint8_t keyEntry_len;
 
 	int8_t count = 0,
 		   decimalPoint_flag = 0,
@@ -953,7 +953,7 @@ int keypad_lcd(int fxn,char* num)
  */
 int write_keypad_lcd2(int fxn,char* num)
 {
-	extern int8_t keyEntry2_len;
+	extern uint8_t keyEntry2_len;
 	int8_t count2 = 0,
 		   scan_code2 = 0,
 		   postn2;

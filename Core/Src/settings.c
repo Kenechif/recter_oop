@@ -32,8 +32,8 @@ const uint16_t firmware_version = 25100;
 uint16_t  pump_SN = 77;
 char session_id[9] = {0};
 
-unsigned char pumpno = 0x01,
-		      pumpno2 = 0x02;
+//unsigned char pumpno = 0x01,
+//		      pumpno2 = 0x02;
 
 //##################################################
 
@@ -690,7 +690,7 @@ void make_settings(pump_sid side)
 	    strncpy(settings_stream3[sdd].passwd2, "0000", 9);
 	    strncpy(settings_stream3[sdd].passwd3, "0000", 9);
 
-	    settings_stream1[sdd].dp_amount     = 2;
+	    settings_stream1[sdd].dp_amount = 2;
 	    settings_stream1[sdd].dp_vol    = 2;
 	    settings_stream1[sdd].dp_unitprice = 2;
 

@@ -57,7 +57,7 @@ uint8_t ToBits(int Input);
 uint8_t ToInt(char c);
 
 int readsettingskey_state(void);
-int readkey19_state(void);
+uint8_t readkey19_state(void);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 void shiftOut2(uint8_t data_byte, uint8_t lat);
@@ -76,7 +76,7 @@ void clear_screen2();
 //uint8_t ToInt(char c);
 
 int readsettingskey2_state(void);
-int readkey192_state(void);
+uint8_t readkey192_state(void);
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 //hardware  routines.

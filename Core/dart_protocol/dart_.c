@@ -108,8 +108,8 @@ extern float price_update1 = 0,
 void dart_init(void)
 {
 //    pumpno = 0;
-    addr = 0x4F + pumpno;
-    addr2 = 0x4F + pumpno2;
+    addr = 0x4F + settings_stream1[0].noz_addr;
+    addr2 = 0x4F + settings_stream1[1].noz_addr;
 
     command_ = NO_COMMAND;
     command_2 = NO_COMMAND;
@@ -220,7 +220,7 @@ void parse_extract(void)
 	// r_trans = arr[2];				//received transaction ID
 	// r_lng = arr[3];					//length of data byte
 
-	if (r_pumpno == pumpno)
+	if (r_pumpno == settings_stream1[0].noz_addr)
 	{
 		memset(r_raw_data1, 0, sizeof(r_raw_data1));
 
@@ -240,7 +240,7 @@ void parse_extract(void)
 
 		parse_decode();
 	}
-	else if (r_pumpno == pumpno2)
+	else if (r_pumpno == settings_stream1[1].noz_addr)
 	{
 		r_addr2 = r_addr;
 		r_pumpno2 = r_pumpno;
@@ -1414,7 +1414,7 @@ void process_response1(response_enum response)
 //	unsigned char status_;
 	uint16_t crc;
 
-	addr = 0x4F + pumpno;    //00H -> FFH
+	addr = 0x4F + settings_stream1[0].noz_addr;    //00H -> FFH
 	// TX &= 0x0F;
 	TX = TX & 0x0F;
 	// ctrl = (TX & 0x0F);
@@ -1822,7 +1822,7 @@ void process_response2(response_enum response)
 {
 	uint16_t crc;
 
-	addr2 = 0x4F + pumpno2;    //00H -> FFH
+	addr2 = 0x4F + settings_stream1[1].noz_addr;    //00H -> FFH
 	TX2 = TX2 & 0x0F;
 
 	ctrl2 = TX2;

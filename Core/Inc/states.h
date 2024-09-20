@@ -409,6 +409,8 @@ void save_date(int8_t _entri);
 
 uint16_t get_ctTime1(void);
 
+void keypad_zerorize(void);
+
 #ifdef __cplusplus
 }
 #endif

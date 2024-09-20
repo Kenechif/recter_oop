@@ -274,6 +274,8 @@ uint16_t get_ctTime2(void);
 float dp2(float flt,int n);
 float amt2price2(float amt_);
 
+void keypad_zerorize2(void);
+
 
 #ifdef __cplusplus
 }
