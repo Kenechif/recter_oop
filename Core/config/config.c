@@ -655,153 +655,153 @@ void epSend_interval(void)
 
 	}
 
-//#ifdef OTP_ENABLE
-//	else if ( (timer_ep >= 10000) && (configMode1 == CONFIGMODIFIED) )
-//	{
-//			char ep200[1000];
-//			char str[80];
-//
-//			retrieve_settings0();
-//			retrieve_otp(side_a);
-//
-//			memset(ep200, '\0', sizeof(ep200));
-//
-//			sprintf(str, "{\"ep\":200,\"pn\":\"%s\"", pumpName[0].pump_name);
-//			strcpy(ep200, str);
-//
-//			sprintf(str, ",\"otp1\":\"%s\"", otp_code1);
-//			strcat(ep200, str);
-//
-//			if(settings0_stream1[0].id_ != settings_stream1[0].id_)
-//			{
-//				sprintf(str, ",\"na\":\"%d|%d\"", settings0_stream1[0].id_, settings_stream1[0].id_);
-//				strcat(ep200, str);
-//			}
-//			if(settings0_stream1[0].mode != settings_stream1[0].mode)
-//			{
-//				sprintf(str, ",\"md\":\"%d|%d\"", settings0_stream1[0].mode, settings_stream1[0].mode);
-//				strcat(ep200, str);
-//			}
-//			if(settings0_stream1[0].noz != settings_stream1[0].noz)
-//			{
-//				sprintf(str, ",\"no\":\"%d|%d\"", settings0_stream1[0].noz, settings_stream1[0].noz);
-//				strcat(ep200, str);
-//			}
-//			if(settings0_stream1[0].price_ != settings_stream1[0].price_)
-//			{
-//				sprintf(str, ",\"pr\":\"%0.2f|%0.2f\"", settings0_stream1[0].price_, settings_stream1[0].price_);
-//				strcat(ep200, str);
-//			}
-//			if(settings0_stream2[0].noFlow_timeOut != settings_stream2[0].noFlow_timeOut)
-//			{
-//				sprintf(str, ",\"nfl\":\"%d|%d\"", settings0_stream2[0].noFlow_timeOut, settings_stream2[0].noFlow_timeOut);
-//				strcat(ep200, str);
-//			}
-//			if(settings0_stream1[0].max_amt_ != settings_stream1[0].max_amt_)
-//			{
-//				sprintf(str, ",\"lmt\":\"%d|%d\"", settings0_stream1[0].max_amt_, settings_stream1[0].max_amt_);
-//				strcat(ep200, str);
-//			}
-//			if(settings0_stream1[0].dp_price != settings_stream1[0].dp_price)
-//			{
-//				sprintf(str, ",\"dpp\":\"%d|%d\"", settings0_stream1[0].dp_price, settings_stream1[0].dp_price);
-//				strcat(ep200, str);
-//			}
-//			if(settings0_stream1[0].dp_amount != settings_stream1[0].dp_amount)
-//			{
-//				sprintf(str, ",\"dpa\":\"%d|%d\"", settings0_stream1[0].dp_amount, settings_stream1[0].dp_amount);
-//				strcat(ep200, str);
-//			}
-//			if(settings0_stream1[0].dp_unitprice != settings_stream1[0].dp_unitprice)
-//			{
-//				sprintf(str, ",\"dpu\":\"%d|%d\"", settings0_stream1[0].dp_unitprice, settings_stream1[0].dp_unitprice);
-//				strcat(ep200, str);
-//			}
-//			if(settings0_stream2[0].side_size != settings_stream2[0].side_size)
-//			{
-//				sprintf(str, ",\"ss\":\"%d|%d\"", settings0_stream2[0].side_size, settings_stream2[0].side_size);
-//				strcat(ep200, str);
-//			}
-//			if(settings0_stream1[0].display_mode != settings_stream1[0].display_mode)
-//			{
-//				sprintf(str, ",\"dm\":\"%d|%d\"", settings0_stream1[0].display_mode, settings_stream1[0].display_mode);
-//				strcat(ep200, str);
-//			}
-//			if(settings0_stream2[0].keypress_tone != settings_stream2[0].keypress_tone)
-//			{
-//				sprintf(str, ",\"kt\":\"%d|%d\"", settings0_stream2[0].keypress_tone, settings_stream2[0].keypress_tone);
-//				strcat(ep200, str);
-//			}
-//			if(settings0_stream2[0].startUp_suppressVol != settings_stream2[0].startUp_suppressVol)
-//			{
-//				sprintf(str, ",\"sv\":\"%0.2f|%0.2f\"", settings0_stream2[0].startUp_suppressVol, settings_stream2[0].startUp_suppressVol);
-//				strcat(ep200, str);
-//			}
-//			if(settings0_stream2[0].calibration_measureCan != settings_stream2[0].calibration_measureCan)
-//			{
-//				sprintf(str, ",\"mc\":\"%d|%d\"", settings0_stream2[0].calibration_measureCan, settings_stream2[0].calibration_measureCan);
-//				strcat(ep200, str);
-//			}
-//			if(settings0_stream2[0].number_of_shifts != settings_stream2[0].number_of_shifts)
-//			{
-//				sprintf(str, ",\"sn\":\"%d|%d\"", settings0_stream2[0].number_of_shifts, settings_stream2[0].number_of_shifts);
-//				strcat(ep200, str);
-//			}
-//			if(settings0_stream2[0].calibration_type != settings_stream2[0].calibration_type)
-//			{
-//				sprintf(str, ",\"ct\":\"%d|%d\"", settings0_stream2[0].calibration_type, settings_stream2[0].calibration_type);
-//				strcat(ep200, str);
-//			}
-//			if(settings0_stream2[0].commCard_enforced != settings_stream2[0].commCard_enforced)
-//			{
-//				sprintf(str, ",\"cc\":\"%d|%d\"", settings0_stream2[0].commCard_enforced, settings_stream2[0].commCard_enforced);
-//				strcat(ep200, str);
-//			}
-//			if(strcmp(settings0_stream3[0].passwd1, settings_stream3[0].passwd1) != 0)
-//			{
-//				sprintf(str, ",\"pwd1\":\"%s|%s\"", settings0_stream3[0].passwd1, settings_stream3[0].passwd1);
-//				strcat(ep200, str);
-//			}
-//			if(strcmp(settings0_stream3[0].passwd2, settings_stream3[0].passwd2) != 0)
-//			{
-//				sprintf(str, ",\"pwd2\":\"%s|%s\"", settings0_stream3[0].passwd2, settings_stream3[0].passwd2);
-//				strcat(ep200, str);
-//			}
-//			if(strcmp(settings0_stream3[0].passwd3, settings_stream3[0].passwd3) != 0)
-//			{
-//				sprintf(str, ",\"pwd3\":\"%s|%s\"", settings0_stream3[0].passwd3, settings_stream3[0].passwd3);
-//				strcat(ep200, str);
-//			}
-//			if(settings0_stream2[0].shift_login_type != settings_stream2[0].shift_login_type)
-//			{
-//				sprintf(str, ",\"lt\":\"%d|%d\"", settings0_stream2[0].shift_login_type, settings_stream2[0].shift_login_type);
-//				strcat(ep200, str);
-//			}
-//			if(settings0_stream2[0].pulser_type_ != settings_stream2[0].pulser_type_)
-//			{
-//				sprintf(str, ",\"pt\":\"%d|%d\"", settings0_stream2[0].pulser_type_, settings_stream2[0].pulser_type_);
-//				strcat(ep200, str);
-//			}
-//			if(settings0_stream2[0].pulser_offset != settings_stream2[0].pulser_offset)
-//			{
-//				sprintf(str, ",\"pof\":\"%d|%d\"", settings0_stream2[0].pulser_offset, settings_stream2[0].pulser_offset);
-//				strcat(ep200, str);
-//			}
-//			if(settings0_stream2[0].valve_salesStart != settings_stream2[0].valve_salesStart)
-//			{
-//				sprintf(str, ",\"vs\":\"%0.2f|%0.2f\"", settings0_stream2[0].valve_salesStart, settings_stream2[0].valve_salesStart);
-//				strcat(ep200, str);
-//			}
-//			if(settings0_stream2[0].valve_salesEnd != settings_stream2[0].valve_salesEnd)
-//			{
-//				sprintf(str, ",\"ve\":\"%0.2f|%0.2f\"", settings0_stream2[0].valve_salesEnd, settings_stream2[0].valve_salesEnd);
-//				strcat(ep200, str);
-//			}
-//
-//			strcat(ep200, "}");
-//
-//	}
-//	#endif      //#ifdef OTP_ENABLE
+#ifdef OTP_ENABLE
+	else if ( (timer_ep >= 10000) && (configMode1 == CONFIGMODIFIED) )
+	{
+			char ep200[1000];
+			char str[80];
+
+			retrieve_settings0();
+			retrieve_otp(side_a);
+
+			memset(ep200, '\0', sizeof(ep200));
+
+			sprintf(str, "{\"ep\":200,\"pn\":\"%s\"", pumpName[0].pump_name);
+			strcpy(ep200, str);
+
+			sprintf(str, ",\"otp1\":\"%s\"", otp_code1);
+			strcat(ep200, str);
+
+			if(settings_config_stream1[0].noz_addr != settings_stream1[0].noz_addr)
+			{
+				sprintf(str, ",\"na\":\"%d|%d\"", settings_config_stream1[0].noz_addr, settings_stream1[0].noz_addr);
+				strcat(ep200, str);
+			}
+			if(settings_config_stream1[0].mode != settings_stream1[0].mode)
+			{
+				sprintf(str, ",\"md\":\"%d|%d\"", settings_config_stream1[0].mode, settings_stream1[0].mode);
+				strcat(ep200, str);
+			}
+			if(settings_config_stream1[0].noz != settings_stream1[0].noz)
+			{
+				sprintf(str, ",\"no\":\"%d|%d\"", settings_config_stream1[0].noz, settings_stream1[0].noz);
+				strcat(ep200, str);
+			}
+			if(settings_config_stream1[0].price_ != settings_stream1[0].price_)
+			{
+				sprintf(str, ",\"pr\":\"%0.2f|%0.2f\"", settings_config_stream1[0].price_, settings_stream1[0].price_);
+				strcat(ep200, str);
+			}
+			if(settings_config_stream2[0].noFlow_timeOut != settings_stream2[0].noFlow_timeOut)
+			{
+				sprintf(str, ",\"nfl\":\"%d|%d\"", settings_config_stream2[0].noFlow_timeOut, settings_stream2[0].noFlow_timeOut);
+				strcat(ep200, str);
+			}
+			if(settings_config_stream1[0].max_amt_ != settings_stream1[0].max_amt_)
+			{
+				sprintf(str, ",\"lmt\":\"%d|%d\"", settings_config_stream1[0].max_amt_, settings_stream1[0].max_amt_);
+				strcat(ep200, str);
+			}
+			if(settings_config_stream1[0].dp_amount != settings_stream1[0].dp_amount)
+			{
+				sprintf(str, ",\"dpp\":\"%d|%d\"", settings_config_stream1[0].dp_amount, settings_stream1[0].dp_amount);
+				strcat(ep200, str);
+			}
+			if(settings_config_stream1[0].dp_vol != settings_stream1[0].dp_vol)
+			{
+				sprintf(str, ",\"dpa\":\"%d|%d\"", settings_config_stream1[0].dp_vol, settings_stream1[0].dp_vol);
+				strcat(ep200, str);
+			}
+			if(settings_config_stream1[0].dp_unitprice != settings_stream1[0].dp_unitprice)
+			{
+				sprintf(str, ",\"dpu\":\"%d|%d\"", settings_config_stream1[0].dp_unitprice, settings_stream1[0].dp_unitprice);
+				strcat(ep200, str);
+			}
+			if(settings_config_stream2[0].side_size != settings_stream2[0].side_size)
+			{
+				sprintf(str, ",\"ss\":\"%d|%d\"", settings_config_stream2[0].side_size, settings_stream2[0].side_size);
+				strcat(ep200, str);
+			}
+			if(settings_config_stream1[0].display_mode != settings_stream1[0].display_mode)
+			{
+				sprintf(str, ",\"dm\":\"%d|%d\"", settings_config_stream1[0].display_mode, settings_stream1[0].display_mode);
+				strcat(ep200, str);
+			}
+			if(settings_config_stream2[0].keypress_tone != settings_stream2[0].keypress_tone)
+			{
+				sprintf(str, ",\"kt\":\"%d|%d\"", settings_config_stream2[0].keypress_tone, settings_stream2[0].keypress_tone);
+				strcat(ep200, str);
+			}
+			if(settings_config_stream2[0].startUp_suppressVol != settings_stream2[0].startUp_suppressVol)
+			{
+				sprintf(str, ",\"sv\":\"%0.2f|%0.2f\"", settings_config_stream2[0].startUp_suppressVol, settings_stream2[0].startUp_suppressVol);
+				strcat(ep200, str);
+			}
+			if(settings_config_stream2[0].calibration_measureCan != settings_stream2[0].calibration_measureCan)
+			{
+				sprintf(str, ",\"mc\":\"%d|%d\"", settings_config_stream2[0].calibration_measureCan, settings_stream2[0].calibration_measureCan);
+				strcat(ep200, str);
+			}
+			if(settings_config_stream2[0].number_of_shifts != settings_stream2[0].number_of_shifts)
+			{
+				sprintf(str, ",\"sn\":\"%d|%d\"", settings_config_stream2[0].number_of_shifts, settings_stream2[0].number_of_shifts);
+				strcat(ep200, str);
+			}
+			if(settings_config_stream2[0].calibration_type != settings_stream2[0].calibration_type)
+			{
+				sprintf(str, ",\"ct\":\"%d|%d\"", settings_config_stream2[0].calibration_type, settings_stream2[0].calibration_type);
+				strcat(ep200, str);
+			}
+			if(settings_config_stream2[0].commCard_enforced != settings_stream2[0].commCard_enforced)
+			{
+				sprintf(str, ",\"cc\":\"%d|%d\"", settings_config_stream2[0].commCard_enforced, settings_stream2[0].commCard_enforced);
+				strcat(ep200, str);
+			}
+			if(strcmp(settings_config_stream3[0].passwd1, settings_stream3[0].passwd1) != 0)
+			{
+				sprintf(str, ",\"pwd1\":\"%s|%s\"", settings_config_stream3[0].passwd1, settings_stream3[0].passwd1);
+				strcat(ep200, str);
+			}
+			if(strcmp(settings_config_stream3[0].passwd2, settings_stream3[0].passwd2) != 0)
+			{
+				sprintf(str, ",\"pwd2\":\"%s|%s\"", settings_config_stream3[0].passwd2, settings_stream3[0].passwd2);
+				strcat(ep200, str);
+			}
+			if(strcmp(settings_config_stream3[0].passwd3, settings_stream3[0].passwd3) != 0)
+			{
+				sprintf(str, ",\"pwd3\":\"%s|%s\"", settings_config_stream3[0].passwd3, settings_stream3[0].passwd3);
+				strcat(ep200, str);
+			}
+			if(settings_config_stream2[0].shift_login_type != settings_stream2[0].shift_login_type)
+			{
+				sprintf(str, ",\"lt\":\"%d|%d\"", settings_config_stream2[0].shift_login_type, settings_stream2[0].shift_login_type);
+				strcat(ep200, str);
+			}
+			if(settings_config_stream2[0].pulser_type_ != settings_stream2[0].pulser_type_)
+			{
+				sprintf(str, ",\"pt\":\"%d|%d\"", settings_config_stream2[0].pulser_type_, settings_stream2[0].pulser_type_);
+				strcat(ep200, str);
+			}
+			if(settings_config_stream2[0].pulser_offset != settings_stream2[0].pulser_offset)
+			{
+				sprintf(str, ",\"pof\":\"%d|%d\"", settings_config_stream2[0].pulser_offset, settings_stream2[0].pulser_offset);
+				strcat(ep200, str);
+			}
+			if(settings_config_stream2[0].valve_salesStart != settings_stream2[0].valve_salesStart)
+			{
+				sprintf(str, ",\"vs\":\"%0.2f|%0.2f\"", settings_config_stream2[0].valve_salesStart, settings_stream2[0].valve_salesStart);
+				strcat(ep200, str);
+			}
+			if(settings_config_stream2[0].valve_salesEnd != settings_stream2[0].valve_salesEnd)
+			{
+				sprintf(str, ",\"ve\":\"%0.2f|%0.2f\"", settings_config_stream2[0].valve_salesEnd, settings_stream2[0].valve_salesEnd);
+				strcat(ep200, str);
+			}
+
+			strcat(ep200, "}");
+
+	}
+	#endif      //#ifdef OTP_ENABLE
 
 	else if( (timer_ep >= 12000) && ( (ep1a_priceChangeFlag1 == 1) || (ep1a_priceChangeFlag2 == 1) ||
 			(ep1a_priceChangeFlag_bothSides == 1) ) )

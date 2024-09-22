@@ -50,13 +50,13 @@ extern char uart5_rx_buf[pump_rx_bufsize];
 //					 settings0[2];
 
 extern pump_settings_stream1 settings_stream1[2],
-					 	 	 settings0_stream1[2];
+					 	 	 settings_config_stream1[2];
 
 extern pump_settings_stream2 settings_stream2[2],
-							 settings0_stream2[2];
+							 settings_config_stream2[2];
 
 extern pump_settings_stream3 settings_stream3[2],
-				       	     settings0_stream3[2],
+				       	     settings_config_stream3[2],
 							 copy_stream3[2];
 
 extern bool go_message;
@@ -166,6 +166,8 @@ extern bool nozzle_out1,
 				PRICE_UPDATE,
 				SET_MAMO,
 				REQUEST_VOL_TOTAL_COUNT,
+				REQUEST_CONFIG_CHANGE_INFO,
+				CLEAR_OTP_SESSION,
 				NO_COMMAND
 			}command_enum1;
 
@@ -200,6 +202,8 @@ extern bool nozzle_out1,
 				DATA_SET_MAMO,
 				DATA_REQUEST_VOL_TOTAL_COUNT,
 				DATA_SET_PUMP_PARAM,
+				DATA_CLEAR_OTP_SESSION,
+				DATA_REQUEST_CONFIG_CHANGE_INFO,
 
 
 				// PRESET_VOL,	//Set the respective volume of these before using them

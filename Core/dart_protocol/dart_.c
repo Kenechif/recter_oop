@@ -415,7 +415,7 @@ void parse_decode(void)
 //					unsigned long t2 = DWT->CYCCNT;
 //					unsigned long diff = t2 - t1;
 
-							for (int16_t i = 0; i < 150; i++)
+							for (uint8_t i = 0; i < 150; i++)
 							{
 								//check the r_trans and r_lng byte ... NB: r_trans = r_raw_data[i] and r_lng = r_raw_data[i+1]
 								//returns status at the request of status or change of status
@@ -727,10 +727,6 @@ void parse_decode(void)
 								//===========================================================================//
 								else if(r_raw_data1[i] == 0x65 && r_raw_data1[i+1] == 0x01)
 								{
-//									uint16_t price_updatee = 0;
-//									uint8_t price_update[3];
-//									char price_updateee[20];
-
 									crc_original = r_raw_data1[i+4];
 									crc_original = (crc_original << 8);
 									crc_original = (crc_original + r_raw_data1[i+3]);
@@ -777,10 +773,6 @@ void parse_decode(void)
 								//===========================================================================//
 								else if( (r_raw_data1[i] == 0x0E) && (r_raw_data1[i+1] == 0x01) )
 								{
-//									uint16_t price_updatee = 0;
-//									uint8_t price_update[3];
-//									char price_updateee[20];
-
 									crc_original = r_raw_data1[i+4];
 									crc_original = (crc_original << 8);
 									crc_original = (crc_original + r_raw_data1[i+3]);
@@ -875,8 +867,95 @@ void parse_decode(void)
 									break;
 								}
 
+								//###########################################################################//
+								//'50 37 66 01 01 a2 0a 03 fa
+								//===========================================================================//
+								//============================ OTP SESSION CLEAR ============================//
+								//===========================================================================//
+								else if(r_raw_data1[i] == 0x66 && r_raw_data1[i+1] == 0x01)
+								{
+									crc_original = r_raw_data1[i+4];
+									crc_original = (crc_original << 8);
+									crc_original = (crc_original + r_raw_data1[i+3]);
 
 
+									//==============================================================//
+									//==================== VALIDATING THE CRC ======================//
+									//'50 35 66 01 01 1f 8f 03 fa '
+									data_[0] = r_addr;
+									data_[1] = r_ctrl;
+
+									for(uint8_t ii = 0, j = 2; ii < 5; ii++, j++)
+									{
+										data_[j] = r_raw_data1[ii];
+									}
+
+									crc_check = crc_16(data_, 5);
+
+									if(crc_check == crc_original)
+									{
+										command_ = CLEAR_OTP_SESSION;
+
+										resp = DATA_CLEAR_OTP_SESSION;
+
+										command_response = true;
+
+										ack_send = true;
+									}
+									else
+									{
+										resp = CRC_ERROR;
+									}
+									//=================== DONE, VALIDATING THE CRC =================//
+									//==============================================================//
+
+									break;
+								}
+
+								//###########################################################################//
+								//'50 37 67 01 01 a2 0a 03 fa
+								//===========================================================================//
+								//============================ CONFIG CHANGE QUERY ==========================//
+								//===========================================================================//
+								else if(r_raw_data1[i] == 0x67 && r_raw_data1[i+1] == 0x01)
+								{
+									crc_original = r_raw_data1[i+4];
+									crc_original = (crc_original << 8);
+									crc_original = (crc_original + r_raw_data1[i+3]);
+
+
+									//==============================================================//
+									//==================== VALIDATING THE CRC ======================//
+									//'50 35 67 01 01 1f 8f 03 fa '
+									data_[0] = r_addr;
+									data_[1] = r_ctrl;
+
+									for(uint8_t ii = 0, j = 2; ii < 5; ii++, j++)
+									{
+										data_[j] = r_raw_data1[ii];
+									}
+
+									crc_check = crc_16(data_, 5);
+
+									if(crc_check == crc_original)
+									{
+										command_ = REQUEST_CONFIG_CHANGE_INFO;
+
+										resp = DATA_REQUEST_CONFIG_CHANGE_INFO;
+
+										command_response = true;
+
+										ack_send = true;
+									}
+									else
+									{
+										resp = CRC_ERROR;
+									}
+									//=================== DONE, VALIDATING THE CRC =================//
+									//==============================================================//
+
+									break;
+								}
 							}
 
 							break;
@@ -1346,6 +1425,96 @@ void parse_decode2(void)
 										}
 
 										resp2 = DATA_SET_PUMP_PARAM;
+										ack_send2 = true;
+									}
+									else
+									{
+										resp2 = CRC_ERROR;
+									}
+									//=================== DONE, VALIDATING THE CRC =================//
+									//==============================================================//
+
+									break;
+								}
+
+								//###########################################################################//
+								//'50 37 66 01 01 a2 0a 03 fa
+								//===========================================================================//
+								//============================ OTP SESSION CLEAR ============================//
+								//===========================================================================//
+								else if(r_raw_data2[i] == 0x66 && r_raw_data2[i+1] == 0x01)
+								{
+									crc_original = r_raw_data2[i+4];
+									crc_original = (crc_original << 8);
+									crc_original = (crc_original + r_raw_data2[i+3]);
+
+
+									//==============================================================//
+									//==================== VALIDATING THE CRC ======================//
+									//'50 35 66 01 01 1f 8f 03 fa '
+									data_[0] = r_addr2;
+									data_[1] = r_ctrl2;
+
+									for(uint8_t ii = 0, j = 2; ii < 5; ii++, j++)
+									{
+										data_[j] = r_raw_data2[ii];
+									}
+
+									crc_check = crc_16(data_, 5);
+
+									if(crc_check == crc_original)
+									{
+										command_2 = CLEAR_OTP_SESSION;
+
+										resp2 = DATA_CLEAR_OTP_SESSION;
+
+										command_response2 = true;
+
+										ack_send2 = true;
+									}
+									else
+									{
+										resp2 = CRC_ERROR;
+									}
+									//=================== DONE, VALIDATING THE CRC =================//
+									//==============================================================//
+
+									break;
+								}
+
+								//###########################################################################//
+								//'50 37 67 01 01 a2 0a 03 fa
+								//===========================================================================//
+								//============================ CONFIG CHANGE QUERY ==========================//
+								//===========================================================================//
+								else if(r_raw_data2[i] == 0x67 && r_raw_data2[i+1] == 0x01)
+								{
+									crc_original = r_raw_data2[i+4];
+									crc_original = (crc_original << 8);
+									crc_original = (crc_original + r_raw_data2[i+3]);
+
+
+									//==============================================================//
+									//==================== VALIDATING THE CRC ======================//
+									//'50 35 67 01 01 1f 8f 03 fa '
+									data_[0] = r_addr2;
+									data_[1] = r_ctrl2;
+
+									for(uint8_t ii = 0, j = 2; ii < 5; ii++, j++)
+									{
+										data_[j] = r_raw_data2[ii];
+									}
+
+									crc_check = crc_16(data_, 5);
+
+									if(crc_check == crc_original)
+									{
+										command_2 = REQUEST_CONFIG_CHANGE_INFO;
+
+										resp2 = DATA_REQUEST_CONFIG_CHANGE_INFO;
+
+										command_response2 = true;
+
 										ack_send2 = true;
 									}
 									else

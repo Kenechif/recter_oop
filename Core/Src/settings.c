@@ -454,15 +454,15 @@ const int flash_stoB =  flash_stoA + ( 1 + (32 * 2));    	 //1282 --> 1346
 // pump_settings settings[2], copy[2], settings0[2];
 
  pump_settings_stream1 settings_stream1[2],
- 					   settings0_stream1[2],
+ 					   settings_config_stream1[2],
 					   copy_stream1[2];
 
  pump_settings_stream2 settings_stream2[2],
- 				       settings0_stream2[2],
+ 				       settings_config_stream2[2],
 					   copy_stream2[2];
 
  pump_settings_stream3 settings_stream3[2],
- 				       settings0_stream3[2],
+ 				       settings_config_stream3[2],
 					   copy_stream3[2];
 
 log_new log_a_new,
@@ -851,20 +851,20 @@ void save_settings0(void)
 {
 	uint8_t sz;
 
-	sz = sizeof(settings0_stream1[0]);
+	sz = sizeof(settings_config_stream1[0]);
 
-	EEPROM_Write(save_settings01_loc, 0, &settings0_stream1[0], sz);
-	EEPROM_Write(save_settings02_loc, 0, &settings0_stream1[1], sz);
+	EEPROM_Write(save_settings01_loc, 0, &settings_config_stream1[0], sz);
+	EEPROM_Write(save_settings02_loc, 0, &settings_config_stream1[1], sz);
 
-	sz = sizeof(settings0_stream2[0]);
+	sz = sizeof(settings_config_stream2[0]);
 
-	EEPROM_Write(save_settings03_loc, 0, &settings0_stream2[0], sz);
-	EEPROM_Write(save_settings04_loc, 0, &settings0_stream2[1], sz);
+	EEPROM_Write(save_settings03_loc, 0, &settings_config_stream2[0], sz);
+	EEPROM_Write(save_settings04_loc, 0, &settings_config_stream2[1], sz);
 
-	sz = sizeof(settings0_stream3[0]);
+	sz = sizeof(settings_config_stream3[0]);
 
-	EEPROM_Write(save_settings05_loc, 0, &settings0_stream3[0], sz);
-	EEPROM_Write(save_settings06_loc, 0, &settings0_stream3[1], sz);
+	EEPROM_Write(save_settings05_loc, 0, &settings_config_stream3[0], sz);
+	EEPROM_Write(save_settings06_loc, 0, &settings_config_stream3[1], sz);
 }
 
 //-------------------------------------
@@ -884,14 +884,14 @@ void retrieve_settings(void)
 
 	sz = sizeof(copy_stream1[0]);
 
-//   if( EEPROM_Read(save_settings1_loc, 0, &settings0_stream1[0], sz) );
+//   if( EEPROM_Read(save_settings1_loc, 0, &settings_config_stream1[0], sz) );
 //   else
 //	   storage_fail = 1;
    EEPROM_Read(save_settings1_loc, 0, &settings_stream1[0], sz);
    HAL_Delay(2);
    EEPROM_Read(save_settings2_loc, 0, &settings_stream1[1], sz);
 
-//   if( EEPROM_Read(save_settings2_loc, 0, &settings0_stream1[1], sz) );
+//   if( EEPROM_Read(save_settings2_loc, 0, &settings_config_stream1[1], sz) );
 //   else
 //	   storage_fail = 1;
 
@@ -950,13 +950,13 @@ void retrieve_settings_fram(void)
 //
 //	sz = sizeof(copy_stream1[0]);
 //
-//   if( EEPROM_Read(0, 0, &settings0_stream1[0], sz) );
+//   if( EEPROM_Read(0, 0, &settings_config_stream1[0], sz) );
 //   else
 //	   storage_fail = 1;
 //
 //   HAL_Delay(10);
 //
-//   if( EEPROM_Read(1, 0, &settings0_stream1[1], sz) );
+//   if( EEPROM_Read(1, 0, &settings_config_stream1[1], sz) );
 //   else
 //	   storage_fail = 1;
 //
@@ -964,16 +964,16 @@ void retrieve_settings_fram(void)
 //
 //	sz = sizeof(copy_stream2[0]);
 //
-//   EEPROM_Read(2, 0, &settings0_stream2[0], sz);
+//   EEPROM_Read(2, 0, &settings_config_stream2[0], sz);
 //   HAL_Delay(10);
-//   EEPROM_Read(3, 0, &settings0_stream2[1], sz);
+//   EEPROM_Read(3, 0, &settings_config_stream2[1], sz);
 //   HAL_Delay(10);
 //
 //	sz = sizeof(copy_stream3[0]);
 //
-//   EEPROM_Read(4, 0, &settings0_stream3[0], sz);
+//   EEPROM_Read(4, 0, &settings_config_stream3[0], sz);
 //   HAL_Delay(10);
-//   EEPROM_Read(5, 0, &settings0_stream3[1], sz);
+//   EEPROM_Read(5, 0, &settings_config_stream3[1], sz);
 //
 //   dp_init(side_a);
 //   dp_init(side_b);
@@ -1004,25 +1004,25 @@ void retrieve_settings0(void)
 {
 	uint8_t sz;
 
-	sz = sizeof(settings0_stream1[0]);
+	sz = sizeof(settings_config_stream1[0]);
 
-	EEPROM_Read(save_settings01_loc, 0, &settings0_stream1[0], sz);
+	EEPROM_Read(save_settings01_loc, 0, &settings_config_stream1[0], sz);
 	HAL_Delay(2);
-	EEPROM_Read(save_settings02_loc, 0, &settings0_stream1[1], sz);
-	HAL_Delay(2);
-
-	sz = sizeof(settings0_stream2[0]);
-
-	EEPROM_Read(save_settings03_loc, 0, &settings0_stream2[0], sz);
-	HAL_Delay(2);
-	EEPROM_Read(save_settings04_loc, 0, &settings0_stream2[1], sz);
+	EEPROM_Read(save_settings02_loc, 0, &settings_config_stream1[1], sz);
 	HAL_Delay(2);
 
-	sz = sizeof(settings0_stream3[0]);
+	sz = sizeof(settings_config_stream2[0]);
 
-	EEPROM_Read(save_settings05_loc, 0, &settings0_stream3[0], sz);
+	EEPROM_Read(save_settings03_loc, 0, &settings_config_stream2[0], sz);
 	HAL_Delay(2);
-	EEPROM_Read(save_settings06_loc, 0, &settings0_stream3[1], sz);
+	EEPROM_Read(save_settings04_loc, 0, &settings_config_stream2[1], sz);
+	HAL_Delay(2);
+
+	sz = sizeof(settings_config_stream3[0]);
+
+	EEPROM_Read(save_settings05_loc, 0, &settings_config_stream3[0], sz);
+	HAL_Delay(2);
+	EEPROM_Read(save_settings06_loc, 0, &settings_config_stream3[1], sz);
 }
 
 //==============================================
@@ -2948,15 +2948,15 @@ void copy_settings(copy_dir dir)
 	 {
 		cpy1 = &copy_stream1[sd];
 		sett1 = &settings_stream1[sd];
-		sett01 = &settings0_stream1[sd];
+		sett01 = &settings_config_stream1[sd];
 
 		cpy2 = &copy_stream2[sd];
 		sett2 = &settings_stream2[sd];
-		sett02 = &settings0_stream2[sd];
+		sett02 = &settings_config_stream2[sd];
 
 		cpy3 = &copy_stream3[sd];
 		sett3 = &settings_stream3[sd];
-		sett03 = &settings0_stream3[sd];
+		sett03 = &settings_config_stream3[sd];
 
 		sz = sizeof(copy_stream1[0]);
 
