@@ -64,8 +64,8 @@ extern "C" {
 #define test_battery        		0
 #define test_power 					0
 #define test_rtc					0
-#define test_motor					0
-#define test_solenoid				0
+#define test_motor					1
+#define test_solenoid				1
 #define test_totaliser				0
 
 #define LCD_UPDATE_RATE             100
@@ -93,6 +93,9 @@ extern "C" {
 
 #define CONFIGMODIFIED				0b10011001
 #define CONFIGUNMODIFIED			0b00000000
+
+#define OTPSESSION_ON				0b10011001
+#define OTPSESSION_OFF				0b00000000
 
 
 
@@ -125,9 +128,9 @@ typedef enum
 	MO1,    // Mode => Manual/Auto                      					// index ==> 0x00
 	NA1,    // Nozzle Address												// index ==> 0x01
 	NO1,    // Nozzle Override												// index ==> 0x02
-	NS1,	// Nozzle Sides													// index ==> 0x03
+	NC1,	// Nozzle Count													// index ==> 0x03
 	UN1,	// Unit Price													// index ==> 0x04
-	TM1,	// Clock Setting => Date/Time									// index ==> 0x05
+//	TM1,	// Clock Setting => Date/Time									// index ==> 0x05
 	TO1,	// Timeout => No-Flow											// index ==> 0x06
 	ML1,	// Maximum Litre												// index ==> 0x07
 	PW1,	// Password-1 Change											// index ==> 0x08
@@ -136,15 +139,18 @@ typedef enum
 	CV1,	// Calibration Value-1 => Real Pulser-index						// index ==> 0x0B
 	CV2,	// Calibration Value-2 => Apparent Pulser-index					// index ==> 0x0C
 	CS1,	// Calibration Can-size											// index ==> 0x0D
-	DP1,	// Display Decimal Point										// index ==> 0x0E
-	DS1,	// Display Sytle => L/P or P/L									// index ==> 0x0F
-	DT1,	// Volume Display Threshold										// index ==> 0x10
-	SL1,	// Shift Login Type												// index ==> 0x11
-	SC1,	// Shift-Count per day											// index ==> 0x12
-	TN1,	// Tone															// index ==> 0x13
-	PT1,	// Pulser Type => Quadrature/Non-Quadrature						// index ==> 0x14
-	SF1,	// Start Slow-Flow Width										// index ==> 0x15
-	SF2		// Closing Slow-Flow Width                       				// index ==> 0x16
+	DP1,	// Display Decimal Point-1  => 	Amount							// index ==> 0x0E
+	DP2,	// Display Decimal Point-2	=> 	Volume							// index ==> 0x0F
+	DP3,	// Display Decimal Point-3	=> 	Unit Price						// index ==> 0x10
+	DS1,	// Display Format => L/P or P/L									// index ==> 0x11
+	DT1,	// Volume Display Threshold										// index ==> 0x12
+	SL1,	// Shift Login Type												// index ==> 0x13
+	SC1,	// Shift-Count per day											// index ==> 0x14
+	TN1,	// Tone															// index ==> 0x15
+	PT1,	// Pulser Type => Quadrature/Non-Quadrature						// index ==> 0x16
+	PO1,	// Pulser Offset Value											// index ==> 0x17
+	SF1,	// Start Slow-Flow Width										// index ==> 0x18
+	SF2		// Closing Slow-Flow Width                       				// index ==> 0x19  ==>0d25
 }config_change;
 
   enum
@@ -177,19 +183,19 @@ typedef enum
       float totaliser_;
     }log_;
 
-    typedef struct
-    {
-          uint8_t _mm; // 1
-          uint8_t _dd; // 2
-          uint8_t _yy; // 3
-          uint8_t _dow; //    +1
-    }date_;
+typedef struct
+{
+	  uint8_t _mm; // 1
+	  uint8_t _dd; // 2
+	  uint8_t _yy; // 3
+	  uint8_t _dow; //    +1
+}date_;
 
-	typedef struct
-	{
-         uint8_t _hh; // 4
-         uint8_t _mn; // 5
-	}time_;
+typedef struct
+{
+	 uint8_t _hh; // 4
+	 uint8_t _mn; // 5
+}time_;
 
 typedef struct   //structure for log.
 {
@@ -531,27 +537,70 @@ typedef enum
  typedef struct
  {
  	 opmode_  mode;
- 	 nozzle_override noz;
+ 	 nozzle_override noz_override;
  	 sellmode_ def_t;
  	 pump pump_type_;
  	 float price_;
- 	 unsigned int max_amt_;
- 	 float pi_c;
- 	 float pi_;
+ 	 float pi_cal;
+ 	 float pi_real;
  	 uint8_t noz_addr;
  	 uint8_t dp_amount;
  	 uint8_t dp_vol;
  	 uint8_t dp_unitprice;
 
 	 nozzleid noz_id;
-	 displaymode display_mode;  // PL/LP   ==> default : PL  // Level 2
+	 displaymode display_format;  // PL/LP   ==> default : PL  // Level 2
  	 //peripherals
  	 displaytype display__;
  	 keypadtype keypad__;
 
- 	 char product_[4];							//<== 32 Bytes
+ 	 char product_[4];
+
+ 	 uint16_t max_amt_;
+ 	 uint16_t timeOut_noFlow;             //<== 32 Bytes
 
  }pump_settings_stream1;
+
+
+// typedef struct
+// {
+// 	 opmode_  mode;
+// 	 nozzle_override noz_override;
+// 	 float price_;
+//
+// 	 float pi_c;
+// 	 float pi_;
+// 	 uint8_t noz_addr;
+// 	 uint8_t dp_amount;
+// 	 uint8_t dp_vol;
+// 	 uint8_t dp_unitprice;
+//
+//	 nozzleid noz_id;
+//	 displaymode display_mode;  // PL/LP   ==> default : PL  // Level 2
+//
+// 	 uint16_t max_amt_;
+//
+// 	 float valve_salesStart;
+//	 float valve_salesEnd;
+//
+//	 uint8_t calibration_measureCan;  // 10L/20L   ==> default : 20L  // Level 2
+//	 keypresstone keypress_tone;  // Yes/No   ==> default : No   // Level 2
+//
+//
+//	 uint8_t pulser_type_;
+//	 uint8_t pulser_offset;
+//	 uint8_t number_of_shifts;
+//
+//	 uint8_t noz_count;   // 1/2    ==> default : 2   // Level 2
+//	 shiftlogintype shift_login_type;
+//
+////	 uint16_t non_calibration_seed;
+//
+//	 char passwd1[9];
+//	 char passwd2[9];
+//	 char passwd3[9];
+//
+// }pump_settings_stream1;
 
 
 
@@ -559,10 +608,6 @@ typedef enum
  //structure for settings
  typedef struct
  {
-	 uint16_t noFlow_timeOut;
- 	 uint8_t totalizer_day;
- 	 uint8_t side_size;   // 1/2    ==> default : 2   // Level 2
-
  	 float valve_salesStart;
  	 float valve_salesEnd;
 
@@ -578,9 +623,12 @@ typedef enum
  	 uint8_t number_of_shifts;
  	 calibrationType calibration_type;
 
+ 	 uint8_t totalizer_day;
+ 	 uint8_t noz_count;   // 1/2    ==> default : 2   // Level 2
  	 bool commCard_enforced;
  	 shiftlogintype shift_login_type;
- 	 uint16_t non_calibration_seed;       //<== 28 Bytes
+
+ 	 uint16_t non_calibration_seed;       //<== 26 Bytes + 2 byte-padding  ==> 28 Bytes
 
  }pump_settings_stream2;
 
@@ -596,15 +644,15 @@ typedef enum
 
 
 // pump_settings_stream1 settings_stream1[2],
-//   					   settings_config_stream1[2],
+//   					   settings_original_stream1[2],
 //  					   copy_stream1[2];
 //
 //  pump_settings_stream2 settings_stream2[2],
-// 					   settings_config_stream2[2],
+// 					   settings_original_stream2[2],
 // 					   copy_stream2[2];
 //
 //  pump_settings_stream3 settings_stream3[2],
-//   				       settings_config_stream3[2],
+//   				       settings_original_stream3[2],
 //  					   copy_stream3[2];
 
 
@@ -894,7 +942,28 @@ ep20_ ep20_save;
 //      "ci":"aac2367d",
 //      "pin":"5600"
 //}
+typedef struct OtpSeed_Session
+{
+	uint32_t time_stamp;
+	uint16_t otp_seed;
+	uint8_t otpSeed_flag;   // 7 Bytes + 1 Byte-padding ==> 8 Bytes
+}OtpSeed_Session;
 
+OtpSeed_Session otpSeed_session[2];
+
+typedef struct OtpSeed
+{
+	uint16_t otp_seed;
+	uint32_t time_stamp;   // 6 Bytes + 2 Byte-padding ==> 8 Bytes
+}OtpSeed;
+
+typedef struct ConfigChange
+{
+	OtpSeed otpSeed;
+	uint32_t time_stamp;    // 12 Bytes
+}ConfigChange;
+
+ConfigChange configChange[2];
 
 //=== screen Arrays ====
 extern char upper1[10],
@@ -975,6 +1044,15 @@ float price_update1,
 uint8_t changeLitrePrice1,
 		changeLitrePrice2;
 
+uint8_t track_num1,
+		valid_pair1,
+		track_num2,
+		valid_pair2;
+
+
+uint16_t otp_seed1,
+		 otp_seed2;
+
 //void get_settings();
 
 void clr_pulser1();
@@ -983,12 +1061,15 @@ void clr_pulser2();
 void dp_init(pump_sid sdd);
 
 void save_settings(void);
-void save_settings0(void);
+void save_settings_original(void);
 void retrieve_settings(void);
-void retrieve_settings0(void);
+void retrieve_settings_original(void);
 
 void save_settings_fram(void);
 void retrieve_settings_fram(void);
+
+void save_settings_original_fram(pump_sid side);
+void retrieve_settings_original_fram(pump_sid side);
 
 void save_volumeTotaliser(pump_sid side);
 void retrieve_volumeTotaliser(pump_sid side);
@@ -1090,6 +1171,18 @@ void clear_configFlag_fram(pump_sid side);
 void save_otp(pump_sid side);
 void retrieve_otp(pump_sid side);
 void clear_otp(pump_sid side);
+
+void save_otpSeed_fram(pump_sid side);
+void retrieve_otpSeed_fram(pump_sid side);
+void clear_otpSeed_fram(pump_sid side);
+
+void save_otpSeed_session_fram(pump_sid side);
+void retrieve_otpSeed_session_fram(pump_sid side);
+void clear_otpSeed_session_fram(pump_sid side);
+
+void save_configChange_trackNum_fram(pump_sid side);
+void retrieve_configChange_trackNum_fram(pump_sid side);
+void clear_configChange_trackNum_fram(pump_sid side);
 
 void copy_settings(copy_dir dir);
 void load_settings(pump_sid side);

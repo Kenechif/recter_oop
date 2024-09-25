@@ -244,12 +244,12 @@ float price_upper1,
 				save_settings5_loc = 983,    //size => 28 Bytes
 				save_settings6_loc = 1011;   //1011 --> 1039
 
- const uint16_t save_settings01_loc = 1040,   //size => 32 Bytes
- 	 	   	    save_settings02_loc = 1072,   //1072 --> 1104
- 	 	   	    save_settings03_loc = 1104,   //size => 28 Bytes
- 	 	   	    save_settings04_loc = 1132,   //1132 --> 1243
-				save_settings05_loc = 1160,   //size => 28 Bytes
- 	 	   	    save_settings06_loc = 1188;   //1188 --> 1216
+ const uint16_t save_settings_original1_loc = 1040,   //size => 32 Bytes
+		 	    save_settings_original2_loc = 1072,   //1072 --> 1104
+				save_settings_original3_loc = 1104,   //size => 28 Bytes
+				save_settings_original4_loc = 1132,   //1132 --> 1243
+				save_settings_original5_loc = 1160,   //size => 28 Bytes
+				save_settings_original6_loc = 1188;   //1188 --> 1216
 
 
  //TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT//
@@ -308,6 +308,25 @@ float price_upper1,
 
  const uint16_t flash_stoA_fram  =  370,    //capacity for 2 * 32bit integer
 		 	 	flash_stoB_fram =  flash_stoA_fram + (1+(32*2));    	 //435 --> 499
+
+ const uint16_t otpSeed1_loc_fram = 500,
+ 		   	    otpSeed2_loc_fram = otpSeed1_loc_fram + 8;  //508 --> 515
+
+ const uint16_t save_settings_original1_loc_fram = 516,   //size => 32 Bytes
+ 		 	    save_settings_original2_loc_fram = 548,   //548 --> 580
+ 				save_settings_original3_loc_fram = 580,   //size => 28 Bytes
+ 				save_settings_original4_loc_fram = 608,   //608 --> 636
+ 				save_settings_original5_loc_fram = 636,   //size => 28 Bytes
+ 				save_settings_original6_loc_fram = 664;   //664 --> 691
+
+ const uint16_t configChange_timeStamp1_loc_fram = 692,   //size => 4 Bytes
+		 	 	configChange_timeStamp2_loc_fram = 696;   //696 --> 699
+
+ const uint16_t track_num1_loc_fram = 700,
+		 	 	track_num2_loc_fram = 701;
+
+ const uint16_t otpSeed_session1_loc_fram = 702,          //size => 12 Bytes
+ 		   	    otpSeed_session2_loc_fram = 714;          //714 --> 725
 
 
  //YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY//
@@ -454,15 +473,15 @@ const int flash_stoB =  flash_stoA + ( 1 + (32 * 2));    	 //1282 --> 1346
 // pump_settings settings[2], copy[2], settings0[2];
 
  pump_settings_stream1 settings_stream1[2],
- 					   settings_config_stream1[2],
+ 					   settings_original_stream1[2],
 					   copy_stream1[2];
 
  pump_settings_stream2 settings_stream2[2],
- 				       settings_config_stream2[2],
+ 				       settings_original_stream2[2],
 					   copy_stream2[2];
 
  pump_settings_stream3 settings_stream3[2],
- 				       settings_config_stream3[2],
+ 				       settings_original_stream3[2],
 					   copy_stream3[2];
 
 log_new log_a_new,
@@ -556,10 +575,10 @@ void load_settings(pump_sid side)
 	    sellmode = settings_stream1[sdd].def_t;
 	    //totaliser_vol1 = 57638694.00;
 
-	    override_ = settings_stream1[sdd].noz;
+	    override_ = settings_stream1[sdd].noz_override;
 
-	    pulser_index = settings_stream1[sdd].pi_;
-	    pulser_index_c = settings_stream1[sdd].pi_c;
+	    pulser_index = settings_stream1[sdd].pi_real;
+	    pulser_index_c = settings_stream1[sdd].pi_cal;
 
 	    fast_flow_threshold1 = pulser_index_c;
 
@@ -570,7 +589,7 @@ void load_settings(pump_sid side)
 
 	    timeout_picknozzle = 60;     //30;
 	    timeout_dispense   = 250;    //60;
-	    timeout_noflow = settings_stream2[sdd].noFlow_timeOut;
+	    timeout_noflow = settings_stream1[sdd].timeOut_noFlow;
 
 	    pump_type = settings_stream1[sdd].pump_type_;
 
@@ -614,10 +633,10 @@ void load_settings(pump_sid side)
 		sellmode2 = settings_stream1[sdd].def_t;
 		//totaliser_vol1 = 57638694.00;
 
-		override_2 = settings_stream1[sdd].noz;
+		override_2 = settings_stream1[sdd].noz_override;
 
-		pulser_index2 = settings_stream1[sdd].pi_;
-		pulser_index_c2 = settings_stream1[sdd].pi_c;
+		pulser_index2 = settings_stream1[sdd].pi_real;
+		pulser_index_c2 = settings_stream1[sdd].pi_cal;
 		opmode2  = settings_stream1[sdd].mode;
 
 		fast_flow_threshold2 = pulser_index_c2;
@@ -627,7 +646,7 @@ void load_settings(pump_sid side)
 
 		timeout_picknozzle = 30;
 		timeout_dispense   = 60;
-		timeout_noflow = settings_stream2[sdd].noFlow_timeOut;
+		timeout_noflow = settings_stream1[sdd].timeOut_noFlow;
 
 		pump_type = settings_stream1[sdd].pump_type_;
 
@@ -666,10 +685,10 @@ void make_settings(pump_sid side)
 	   sdd = 1;
    }
    	settings_stream1[sdd].def_t = L;    //P/L  ==> default : P
-   	settings_stream1[sdd].display_mode = LP;  // PL/LP   ==> default : PL  // Level 2
+   	settings_stream1[sdd].display_format = LP;  // PL/LP   ==> default : PL  // Level 2
 
-   	settings_stream1[sdd].pi_ = 407.3;   //399.25;   //798.35;
-   	settings_stream1[sdd].pi_c = 391.64;   //383.89;  //760.33;
+   	settings_stream1[sdd].pi_real = 407.3;   //399.25;   //798.35;
+   	settings_stream1[sdd].pi_cal = 391.64;   //383.89;  //760.33;
 //	    settings[0].pi_ = 407.3;   //399.25;   //798.35;
 //	  	settings[0].pi_c = 391.64;   //383.89;  //760.33;
 //	    settings[1].pi_ = 399.25;   //798.35;
@@ -681,7 +700,7 @@ void make_settings(pump_sid side)
 	    timeout_picknozzle = 60;
 	    timeout_dispense   = 250;
 
-	    settings_stream2[sdd].noFlow_timeOut = 300;
+	    settings_stream1[sdd].timeOut_noFlow = 300;
 
 //	    settings[sdd].pump_type_ = bluesky;    // lafeng;
 //	    settings[sdd].pump_type_ = pump_type;
@@ -694,10 +713,10 @@ void make_settings(pump_sid side)
 	    settings_stream1[sdd].dp_vol    = 2;
 	    settings_stream1[sdd].dp_unitprice = 2;
 
-	    settings_stream1[sdd].noz = override;  //nooveride;
+	    settings_stream1[sdd].noz_override = override;  //nooveride;
 	    settings_stream1[sdd].max_amt_ = 99999999;   //Maximum pump litres
 
-	    settings_stream2[sdd].side_size = 2;   // 1/2    ==> default : 2   // Level 2
+	    settings_stream2[sdd].noz_count = 2;   // 1/2    ==> default : 2   // Level 2
 	    settings_stream2[sdd].keypress_tone = No;  // Yes/No   ==> default : No   // Level 2
 
 	    settings_stream2[sdd].startUp_suppressVol = 0.04;  // (0 - 10) cL   ==> default : 4cL  // Level 2
@@ -847,24 +866,60 @@ void save_settings_fram(void)
  * save_settings0
  */
 
-void save_settings0(void)
+void save_settings_original(void)
 {
 	uint8_t sz;
 
-	sz = sizeof(settings_config_stream1[0]);
+	sz = sizeof(settings_original_stream1[0]);
 
-	EEPROM_Write(save_settings01_loc, 0, &settings_config_stream1[0], sz);
-	EEPROM_Write(save_settings02_loc, 0, &settings_config_stream1[1], sz);
+	EEPROM_Write(save_settings_original1_loc, 0, &settings_original_stream1[0], sz);
+	EEPROM_Write(save_settings_original2_loc, 0, &settings_original_stream1[1], sz);
 
-	sz = sizeof(settings_config_stream2[0]);
+	sz = sizeof(settings_original_stream2[0]);
 
-	EEPROM_Write(save_settings03_loc, 0, &settings_config_stream2[0], sz);
-	EEPROM_Write(save_settings04_loc, 0, &settings_config_stream2[1], sz);
+	EEPROM_Write(save_settings_original3_loc, 0, &settings_original_stream2[0], sz);
+	EEPROM_Write(save_settings_original4_loc, 0, &settings_original_stream2[1], sz);
 
-	sz = sizeof(settings_config_stream3[0]);
+	sz = sizeof(settings_original_stream3[0]);
 
-	EEPROM_Write(save_settings05_loc, 0, &settings_config_stream3[0], sz);
-	EEPROM_Write(save_settings06_loc, 0, &settings_config_stream3[1], sz);
+	EEPROM_Write(save_settings_original5_loc, 0, &settings_original_stream3[0], sz);
+	EEPROM_Write(save_settings_original6_loc, 0, &settings_original_stream3[1], sz);
+}
+
+void save_settings_original_fram(pump_sid side)
+{
+	uint8_t sz;
+
+	if(side == side_a)
+	{
+		sz = sizeof(settings_original_stream1[0]);
+		FRAM_Write(save_settings_original1_loc_fram, &settings_original_stream1[0], sz);
+
+		sz = sizeof(settings_original_stream2[0]);
+		FRAM_Write(save_settings_original3_loc_fram, &settings_original_stream2[0], sz);
+
+		sz = sizeof(settings_original_stream3[0]);
+		FRAM_Write(save_settings_original5_loc_fram, &settings_original_stream3[0], sz);
+
+		sz = sizeof(configChange[0].time_stamp);
+		configChange[0].time_stamp = RtcToInt(2019);
+		FRAM_Write(configChange_timeStamp1_loc_fram, &configChange[0].time_stamp, sz);
+	}
+	else if(side == side_b)
+	{
+		sz = sizeof(settings_original_stream1[0]);
+		FRAM_Write(save_settings_original2_loc_fram, &settings_original_stream1[1], sz);
+
+		sz = sizeof(settings_original_stream2[0]);
+		FRAM_Write(save_settings_original4_loc_fram, &settings_original_stream2[1], sz);
+
+		sz = sizeof(settings_original_stream3[0]);
+		FRAM_Write(save_settings_original6_loc_fram, &settings_original_stream3[1], sz);
+
+		sz = sizeof(configChange[0].time_stamp);
+		configChange[1].time_stamp = RtcToInt(2019);
+		FRAM_Write(configChange_timeStamp2_loc_fram, &configChange[1].time_stamp, sz);
+	}
 }
 
 //-------------------------------------
@@ -884,14 +939,14 @@ void retrieve_settings(void)
 
 	sz = sizeof(copy_stream1[0]);
 
-//   if( EEPROM_Read(save_settings1_loc, 0, &settings_config_stream1[0], sz) );
+//   if( EEPROM_Read(save_settings1_loc, 0, &settings_original_stream1[0], sz) );
 //   else
 //	   storage_fail = 1;
    EEPROM_Read(save_settings1_loc, 0, &settings_stream1[0], sz);
    HAL_Delay(2);
    EEPROM_Read(save_settings2_loc, 0, &settings_stream1[1], sz);
 
-//   if( EEPROM_Read(save_settings2_loc, 0, &settings_config_stream1[1], sz) );
+//   if( EEPROM_Read(save_settings2_loc, 0, &settings_original_stream1[1], sz) );
 //   else
 //	   storage_fail = 1;
 
@@ -919,8 +974,6 @@ void retrieve_settings_fram(void)
 
 	sz = sizeof(copy_stream1[0]);
 
-//	FRAM_Read(uint16_t memAddress, uint8_t *buffer, uint16_t size)
-
    FRAM_Read(save_settings1_loc_fram, &settings_stream1[0], sz);
    HAL_Delay(2);
    FRAM_Read(save_settings2_loc_fram, &settings_stream1[1], sz);
@@ -943,86 +996,73 @@ void retrieve_settings_fram(void)
    dp_init(side_b);
 }
 
-
-//void retrieve_settings(void)
-//{
-//	uint8_t sz;
-//
-//	sz = sizeof(copy_stream1[0]);
-//
-//   if( EEPROM_Read(0, 0, &settings_config_stream1[0], sz) );
-//   else
-//	   storage_fail = 1;
-//
-//   HAL_Delay(10);
-//
-//   if( EEPROM_Read(1, 0, &settings_config_stream1[1], sz) );
-//   else
-//	   storage_fail = 1;
-//
-//   HAL_Delay(10);
-//
-//	sz = sizeof(copy_stream2[0]);
-//
-//   EEPROM_Read(2, 0, &settings_config_stream2[0], sz);
-//   HAL_Delay(10);
-//   EEPROM_Read(3, 0, &settings_config_stream2[1], sz);
-//   HAL_Delay(10);
-//
-//	sz = sizeof(copy_stream3[0]);
-//
-//   EEPROM_Read(4, 0, &settings_config_stream3[0], sz);
-//   HAL_Delay(10);
-//   EEPROM_Read(5, 0, &settings_config_stream3[1], sz);
-//
-//   dp_init(side_a);
-//   dp_init(side_b);
-//}
-
-
-////==============================================
-///*
-// *  Retrieve Settings
-// */
-//void retrieve_settings0(void)
-//{
-//   extern const int save_settings01_loc;
-//   extern const int save_settings02_loc;
-//   int8_t sz;
-//
-//   sz = sizeof(copy[0]);
-//   EEPROM_Read(save_settings01_loc, 0, &settings0[0], sz);
-//   EEPROM_Read(save_settings02_loc, 0, &settings0[1], sz);
-//}
-
-
-//==============================================
+//=============================================
 /*
  *  Retrieve Settings
  */
-void retrieve_settings0(void)
+void retrieve_settings_original(void)
 {
 	uint8_t sz;
 
-	sz = sizeof(settings_config_stream1[0]);
+	sz = sizeof(settings_original_stream1[0]);
 
-	EEPROM_Read(save_settings01_loc, 0, &settings_config_stream1[0], sz);
+	EEPROM_Read(save_settings_original1_loc, 0, &settings_original_stream1[0], sz);
 	HAL_Delay(2);
-	EEPROM_Read(save_settings02_loc, 0, &settings_config_stream1[1], sz);
-	HAL_Delay(2);
-
-	sz = sizeof(settings_config_stream2[0]);
-
-	EEPROM_Read(save_settings03_loc, 0, &settings_config_stream2[0], sz);
-	HAL_Delay(2);
-	EEPROM_Read(save_settings04_loc, 0, &settings_config_stream2[1], sz);
+	EEPROM_Read(save_settings_original2_loc, 0, &settings_original_stream1[1], sz);
 	HAL_Delay(2);
 
-	sz = sizeof(settings_config_stream3[0]);
+	sz = sizeof(settings_original_stream2[0]);
 
-	EEPROM_Read(save_settings05_loc, 0, &settings_config_stream3[0], sz);
+	EEPROM_Read(save_settings_original3_loc, 0, &settings_original_stream2[0], sz);
 	HAL_Delay(2);
-	EEPROM_Read(save_settings06_loc, 0, &settings_config_stream3[1], sz);
+	EEPROM_Read(save_settings_original4_loc, 0, &settings_original_stream2[1], sz);
+	HAL_Delay(2);
+
+	sz = sizeof(settings_original_stream3[0]);
+
+	EEPROM_Read(save_settings_original5_loc, 0, &settings_original_stream3[0], sz);
+	HAL_Delay(2);
+	EEPROM_Read(save_settings_original6_loc, 0, &settings_original_stream3[1], sz);
+}
+
+
+void retrieve_settings_original_fram(pump_sid side)
+{
+	uint8_t sz;
+
+	if(side == side_a)
+	{
+		sz = sizeof(settings_original_stream1[0]);
+		FRAM_Read(save_settings_original1_loc_fram, &settings_original_stream1[0], sz);
+		HAL_Delay(2);
+
+		sz = sizeof(settings_original_stream2[0]);
+		FRAM_Read(save_settings_original3_loc_fram, &settings_original_stream2[0], sz);
+		HAL_Delay(2);
+
+		sz = sizeof(settings_original_stream3[0]);
+		FRAM_Read(save_settings_original5_loc_fram, &settings_original_stream3[0], sz);
+		HAL_Delay(2);
+
+		sz = sizeof(configChange[0].time_stamp);
+		FRAM_Read(configChange_timeStamp1_loc_fram, &configChange[0].time_stamp, sz);
+	}
+	else if(side == side_b)
+	{
+		sz = sizeof(settings_original_stream1[0]);
+		FRAM_Read(save_settings_original2_loc_fram, &settings_original_stream1[1], sz);
+		HAL_Delay(2);
+
+		sz = sizeof(settings_original_stream2[0]);
+		FRAM_Read(save_settings_original4_loc_fram, &settings_original_stream2[1], sz);
+		HAL_Delay(2);
+
+		sz = sizeof(settings_original_stream3[0]);
+		FRAM_Read(save_settings_original6_loc_fram, &settings_original_stream3[1], sz);
+
+		sz = sizeof(configChange[0].time_stamp);
+		FRAM_Read(configChange_timeStamp2_loc_fram, &configChange[1].time_stamp, sz);
+	}
 }
 
 //==============================================
@@ -2096,12 +2136,12 @@ void save_originalPi_c(pump_sid side)
 
 	if (side == side_a)
 	  {
-		  original_pi_c.original_pi_c1 = settings_stream1[0].pi_c;
+		  original_pi_c.original_pi_c1 = settings_stream1[0].pi_cal;
 	  	  EEPROM_Write(original_pi_c_loc, original_pi_c1_loc, &original_pi_c.original_pi_c1, sz);
 	  }
 	else if (side == side_b)
 	  {
-		  original_pi_c.original_pi_c2 = settings_stream1[1].pi_c;
+		  original_pi_c.original_pi_c2 = settings_stream1[1].pi_cal;
 	  	  EEPROM_Write(original_pi_c_loc, original_pi_c2_loc, &original_pi_c.original_pi_c1, sz);
 	  }
 }
@@ -2118,13 +2158,13 @@ void retrieve_originalPi_c(pump_sid side)
 	{
 		EEPROM_Read(original_pi_c_loc, original_pi_c1_loc, &original_pi_c.original_pi_c1, sz);
 
-		settings_stream1[0].pi_c = original_pi_c.original_pi_c1;
+		settings_stream1[0].pi_cal = original_pi_c.original_pi_c1;
 	}
 	else if (side == side_b)
 	{
 		 EEPROM_Write(original_pi_c_loc, original_pi_c2_loc, &original_pi_c.original_pi_c2, sz);
 
-		 settings_stream1[1].pi_c = original_pi_c.original_pi_c2;
+		 settings_stream1[1].pi_cal = original_pi_c.original_pi_c2;
 	}
 }
 
@@ -2138,12 +2178,12 @@ void clear_originalPi_c(pump_sid side)
 
 	if (side == side_a)
 	  {
-		    original_pi_c.original_pi_c1 = settings_stream1[0].pi_c;
+		    original_pi_c.original_pi_c1 = settings_stream1[0].pi_cal;
 			EEPROM_Write(original_pi_c_loc, original_pi_c1_loc, &original_pi_c.original_pi_c1, sz);
 	  }
 	else if (side == side_b)
 	  {
-			original_pi_c.original_pi_c2 = settings_stream1[1].pi_c;
+			original_pi_c.original_pi_c2 = settings_stream1[1].pi_cal;
 		    EEPROM_Write(original_pi_c_loc, original_pi_c2_loc, &original_pi_c.original_pi_c2, sz);
 	  }
 }
@@ -2192,7 +2232,7 @@ void retrieve_calibrationPulser(pump_sid side)
 	if (side == side_a)
 	{
 		EEPROM_Read(calib_pulser_loc, calib_pulser1_loc, &calib_pulser1, sz);
-		calib_pulser =  (settings_stream1[0].pi_c * vol_calibrated1);
+		calib_pulser =  (settings_stream1[0].pi_cal * vol_calibrated1);
 		if (calib_pulser != calib_pulser1)
 		{
 //			settings[0].pi_c = (calib_pulser1 / vol_calibrated1);
@@ -2203,7 +2243,7 @@ void retrieve_calibrationPulser(pump_sid side)
 	else if (side == side_b)
 	{
 		EEPROM_Read(calib_pulser_loc, calib_pulser2_loc, &calib_pulser2, sz);
-		calib_pulser =  (settings_stream1[1].pi_c * vol_calibrated2);
+		calib_pulser =  (settings_stream1[1].pi_cal * vol_calibrated2);
 		if (calib_pulser != calib_pulser2)
 		{
 //			settings[1].pi_c = (calib_pulser2 / vol_calibrated2);
@@ -2221,7 +2261,7 @@ void retrieve_calibrationPulser_fram(pump_sid side)
 	if (side == side_a)
 	{
 		FRAM_Read(calib_pulser1_loc_fram, &calib_pulser1, sz);
-		calib_pulser =  (settings_stream1[0].pi_c * vol_calibrated1);
+		calib_pulser =  (settings_stream1[0].pi_cal * vol_calibrated1);
 		if (calib_pulser != calib_pulser1)
 		{
 //			settings[0].pi_c = (calib_pulser1 / vol_calibrated1);
@@ -2232,7 +2272,7 @@ void retrieve_calibrationPulser_fram(pump_sid side)
 	else if (side == side_b)
 	{
 		FRAM_Read(calib_pulser2_loc_fram, &calib_pulser2, sz);
-		calib_pulser =  (settings_stream1[1].pi_c * vol_calibrated2);
+		calib_pulser =  (settings_stream1[1].pi_cal * vol_calibrated2);
 		if (calib_pulser != calib_pulser2)
 		{
 //			settings[1].pi_c = (calib_pulser2 / vol_calibrated2);
@@ -2798,11 +2838,11 @@ void clear_configFlag_fram(pump_sid side)
 {
 	if (side == side_a)
 	{
-		FRAM_WriteByte (configFlag1_loc_fram, 0);
+		FRAM_WriteByte (configFlag1_loc_fram, CONFIGUNMODIFIED);
 	}
 	else if (side == side_b)
 	{
-		FRAM_WriteByte (configFlag2_loc_fram, 0);
+		FRAM_WriteByte (configFlag2_loc_fram, CONFIGUNMODIFIED);
 	}
 }
 //==============================================
@@ -2892,6 +2932,45 @@ void save_otp(pump_sid side)
 	}
 }
 
+
+void save_otpSeed_fram(pump_sid side)
+{
+	uint8_t sz = sizeof(configChange[0].otpSeed.otp_seed);
+
+	if (side == side_a)
+	{
+		configChange[0].otpSeed.otp_seed = otp_seed1;
+	  	FRAM_Write(otpSeed1_loc_fram, &configChange[0].otpSeed.otp_seed, sz);
+	}
+	else if (side == side_b)
+	{
+		configChange[1].otpSeed.otp_seed = otp_seed2;
+		FRAM_Write(otpSeed2_loc_fram, &configChange[1].otpSeed.otp_seed, sz);
+	}
+}
+
+
+void save_otpSeed_session_fram(pump_sid side)
+{
+	uint8_t sz = sizeof(otpSeed_session[0]);
+
+	if (side == side_a)
+	{
+		otpSeed_session[0].otp_seed = otp_seed1;
+		otpSeed_session[0].time_stamp = RtcToInt(2019);
+		otpSeed_session[0].otpSeed_flag = OTPSESSION_ON;
+	  	FRAM_Write(otpSeed_session1_loc_fram, &otpSeed_session[0], sz);
+	}
+	else if (side == side_b)
+	{
+		otpSeed_session[1].otp_seed = otp_seed2;
+		otpSeed_session[1].time_stamp = RtcToInt(2019);
+		otpSeed_session[1].otpSeed_flag = OTPSESSION_ON;
+		FRAM_Write(otpSeed_session1_loc_fram, &otpSeed_session[1], sz);
+	}
+}
+
+
 //===================================================
 /*
  *  read OTP
@@ -2909,13 +2988,41 @@ void retrieve_otp(pump_sid side)
 	}
 }
 
+void retrieve_otpSeed_fram(pump_sid side)
+{
+	uint8_t sz = sizeof(configChange[0].otpSeed.otp_seed);
+	if (side == side_a)
+	{
+		FRAM_Read(otpSeed1_loc_fram, &configChange[0].otpSeed.otp_seed, sz);
+	}
+	else if (side == side_b)
+	{
+	  	 FRAM_Read(otpSeed2_loc_fram, &configChange[1].otpSeed.otp_seed, sz);
+	}
+}
+
+
+void retrieve_otpSeed_session_fram(pump_sid side)
+{
+	uint8_t sz = sizeof(otpSeed_session[0]);
+
+	if (side == side_a)
+	{
+		FRAM_Read(otpSeed_session1_loc_fram, &otpSeed_session[0], sz);
+	}
+	else if (side == side_b)
+	{
+		FRAM_Read(otpSeed_session1_loc_fram, &otpSeed_session[1], sz);
+	}
+}
+
 //==============================================
 /*
  * clear OTP
  */
 void clear_otp(pump_sid side)
 {
-	int sz = sizeof(otp_code1);
+	uint8_t sz = sizeof(otp_code1);
 
 	if (side == side_a)
 	  {
@@ -2929,10 +3036,91 @@ void clear_otp(pump_sid side)
 	  }
 }
 
+void clear_otpSeed_fram(pump_sid side)
+{
+	uint8_t sz = sizeof(configChange[0].otpSeed.otp_seed);
+
+	if (side == side_a)
+	  {
+		  configChange[0].otpSeed.otp_seed = 0;
+		  FRAM_Write(otpSeed1_loc_fram, &configChange[0].otpSeed.otp_seed, sz);
+	  }
+	else if (side == side_b)
+	  {
+		  configChange[1].otpSeed.otp_seed= 0;
+		  FRAM_Write(otpSeed2_loc_fram, &configChange[1].otpSeed.otp_seed, sz);
+	  }
+}
+
+void clear_otpSeed_session_fram(pump_sid side)
+{
+	uint8_t sz = sizeof(otpSeed_session[0]);
+
+	if (side == side_a)
+	{
+		otpSeed_session[0].otp_seed = 0;
+		otpSeed_session[0].time_stamp = 0;
+		otpSeed_session[0].otpSeed_flag = OTPSESSION_OFF;
+	  	FRAM_Write(otpSeed_session1_loc_fram, &otpSeed_session[0], sz);
+	}
+	else if (side == side_b)
+	{
+		otpSeed_session[1].otp_seed = 0;
+		otpSeed_session[1].time_stamp = 0;
+		otpSeed_session[1].otpSeed_flag = OTPSESSION_OFF;
+		FRAM_Write(otpSeed_session1_loc_fram, &otpSeed_session[1], sz);
+	}
+}
+
 //==============================================
 
+//==============================================
+/*
+ * save Config Change Track No.
+ */
+void save_configChange_trackNum_fram(pump_sid side)
+{
+	if (side == side_a)
+	{
+	  	FRAM_WriteByte(track_num1_loc_fram, track_num1);
+	}
+	else if (side == side_b)
+	{
+	  	FRAM_WriteByte(track_num2_loc_fram, track_num2);
+	}
+}
 
+//==============================================
+/*
+ * retrieve Config Change Track No.
+ */
+void retrieve_configChange_trackNum_fram(pump_sid side)
+{
+	if (side == side_a)
+	{
+		track_num1 = FRAM_ReadByte (track_num1_loc_fram);
+	}
+	else if (side == side_b)
+	{
+		track_num2 = FRAM_ReadByte (track_num2_loc_fram);
+	}
+}
 
+//==============================================
+/*
+ * clear Config Change Track No.
+ */
+void clear_configChange_trackNum_fram(pump_sid side)
+{
+	if (side == side_a)
+	{
+		FRAM_WriteByte(track_num1_loc_fram, 0);
+	}
+	else if (side == side_b)
+	{
+		FRAM_WriteByte(track_num2_loc_fram, 0);
+	}
+}
 //==============================================
 /*
  *  copy settings to the structure to be used for prog.
@@ -2948,15 +3136,15 @@ void copy_settings(copy_dir dir)
 	 {
 		cpy1 = &copy_stream1[sd];
 		sett1 = &settings_stream1[sd];
-		sett01 = &settings_config_stream1[sd];
+		sett01 = &settings_original_stream1[sd];
 
 		cpy2 = &copy_stream2[sd];
 		sett2 = &settings_stream2[sd];
-		sett02 = &settings_config_stream2[sd];
+		sett02 = &settings_original_stream2[sd];
 
 		cpy3 = &copy_stream3[sd];
 		sett3 = &settings_stream3[sd];
-		sett03 = &settings_config_stream3[sd];
+		sett03 = &settings_original_stream3[sd];
 
 		sz = sizeof(copy_stream1[0]);
 

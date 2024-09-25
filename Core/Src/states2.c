@@ -116,15 +116,15 @@ extern uint8_t ep1a_priceChangeFlag2 = 0;
 
 
 extern pump_settings_stream1 settings_stream1[2],
-						     settings_config_stream1[2],
+						     settings_original_stream1[2],
 						     copy_stream1[2];
 
 extern pump_settings_stream2 settings_stream2[2],
-				       	     settings_config_stream2[2],
+				       	     settings_original_stream2[2],
 							 copy_stream2[2];
 
 extern pump_settings_stream3 settings_stream3[2],
-				       	     settings_config_stream3[2],
+				       	     settings_original_stream3[2],
 							 copy_stream3[2];
 
 extern int8_t ttime2[3],
@@ -349,11 +349,17 @@ extern  uint16_t fast_flow_threshold2,
 
 //-------------------------------------------------
 //
-extern flash_store_info flash_infoA,flash_infoB;
+extern flash_store_info flash_infoA,
+						flash_infoB;
+
 extern uint32_t flash_read_idA;
 extern uint32_t flash_read_idB;
 
 extern uint32_t flash_locc;
+
+extern ConfigChange configChange[2];
+
+extern uint16_t otp_seed2 = 0;
 
 //extern int  disp_type1 , disp_type2;
 extern pump disp_type1,
@@ -1677,12 +1683,12 @@ eSystemState error_clear_Handler2(void)
 //			send_line12(upper2);
 //			send_line22(middle2);
 
-			if(settings_stream1[1].display_mode == PL)
+			if(settings_stream1[1].display_format == PL)
 			  {
 				 send_line12(upper2);
 				 send_line22(middle2);
 			  }
-			  else if(settings_stream1[1].display_mode == LP)
+			  else if(settings_stream1[1].display_format == LP)
 			  {
 				  send_line12(middle2);
 				  send_line22(upper2);
@@ -1832,7 +1838,7 @@ eSystemState progState_Handler2(void)
 
 	static uint8_t index_generic = 0;
 
-	static uint16_t otp_seed2;
+//	static uint16_t otp_seed2;
 
 	char st__[10] = {0},
 		 pass_[9];
@@ -2229,7 +2235,9 @@ eSystemState progState_Handler2(void)
 					#ifdef OTP_ENABLE
 						   if(strcmp(pass_, otp_code2) == 0)  //level 2 0r 3 access ?
 						   {
-							   save_otp(side_b);
+//							   save_otp(side_b);
+							   save_otpSeed_fram(side_b);
+							   configChange[1].otpSeed.time_stamp = RtcToInt(2019);
 					#else
 						   if( (strcmp(pass_, otp_code2) == 0) || (strcmp(pass_, otp_code2) != 0) )  //level 2 0r 3 access ?
 						   {
@@ -2604,7 +2612,7 @@ eSystemState progState_Handler2(void)
    	   {
    			//send_line22();
 //   		  if(copy[pump_indx-1].noz == overide)
-   		  if(copy_stream1[1].noz == override)
+   		  if(copy_stream1[1].noz_override == override)
    		  {
    			send_line22("Active");
    		  }
@@ -2643,18 +2651,18 @@ eSystemState progState_Handler2(void)
    			 if (pkey == 'B')  // up key
    				{
 //   				 if (copy[pump_indx-1].noz == overide)
-   				 if (copy_stream1[1].noz == override)
-   					copy_stream1[1].noz = nooverride;
+   				 if (copy_stream1[1].noz_override == override)
+   					copy_stream1[1].noz_override = nooverride;
    				 else
-   					copy_stream1[1].noz = override;
+   					copy_stream1[1].noz_override = override;
    				}
 
    			 else if (pkey == 'C')  // down key
    				{
-   				 if (copy_stream1[1].noz == override)
-   					copy_stream1[1].noz = nooverride;
+   				 if (copy_stream1[1].noz_override == override)
+   					copy_stream1[1].noz_override = nooverride;
    				 else
-   					copy_stream1[1].noz = override;
+   					copy_stream1[1].noz_override = override;
    				}
 
    			 else if (pkey == 'F')  //change pump index.
@@ -2740,12 +2748,12 @@ eSystemState progState_Handler2(void)
    			 {
    				 if(index_generic == PL)
    				 {
-   					copy_stream1[1].display_mode = PL;
+   					copy_stream1[1].display_format = PL;
    					copy_stream1[1].def_t = P;
    				 }
    				 else if(index_generic == LP)
    				 {
-   					copy_stream1[1].display_mode = LP;
+   					copy_stream1[1].display_format = LP;
    					copy_stream1[1].def_t = L;
    				 }
 
@@ -2924,7 +2932,7 @@ eSystemState progState_Handler2(void)
       {
    	   if (t2 >= 500)
    		 {
-   		   printDisp_i2(copy_stream2[pump_indx-1].noFlow_timeOut, 1, 0, 4, RT, CLEAR);
+   		   printDisp_i2(copy_stream1[pump_indx-1].timeOut_noFlow, 1, 0, 4, RT, CLEAR);
    		   send_line22(keyboard_entry2);
 
    		 if (pump_indx == 1)
@@ -2975,7 +2983,7 @@ eSystemState progState_Handler2(void)
 //   						}
 //   					 if (pump_indx == 2)   // if side b
 //   						{
-   				 copy_stream2[1].noFlow_timeOut =  atoi(keyboard_entry2);
+   				 copy_stream1[1].timeOut_noFlow =  atoi(keyboard_entry2);
 
    				 fxn = nothing;
 				 clr_screen2();
@@ -3832,8 +3840,8 @@ eSystemState progState_Handler2(void)
 //                          if(pump_indx == 2)
 //      					{
       						// data for side b.
-                          copy_stream1[1].pi_c = pi_c;
-      					  copy_stream1[1].pi_	 = pi;
+                          copy_stream1[1].pi_cal = pi_c;
+      					  copy_stream1[1].pi_real	 = pi;
 //      					}
       					 fxn = nothing;
       					 calibr2 = 0;
@@ -4357,9 +4365,9 @@ eSystemState progState_Handler2(void)
       			 else if (pkey == 'D')  // Enter key
       			 {
       				 if(index_generic == 1)
-      					copy_stream2[1].side_size = 1;
+      					copy_stream2[1].noz_count = 1;
       				 else if(index_generic == 2)
-      					copy_stream2[1].side_size = 2;
+      					copy_stream2[1].noz_count = 2;
 
       				 index_generic = 0;
 
@@ -7603,7 +7611,7 @@ eSystemState idleState_Handler2(void)
 			//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
 			if( (gerCtTime >= ctTimed_settingsB.startTime) && (gerCtTime <= ctTimed_settingsB.endTime) )
 			{
-				settings_stream1[1].pi_c = (calib_pulser2 / vol_effective2_2);
+				settings_stream1[1].pi_cal = (calib_pulser2 / vol_effective2_2);
 			}
 //			if(gerCtTime > ctTimed_settingsB.endTime)
 //			{
@@ -7699,12 +7707,12 @@ eSystemState idleState_Handler2(void)
 			&& (_auth_p2 == 0) && (_auth_v2 == 0) && (idle_backwardPulse2 == 0) && (idle_forwardPulse2 == 0)
 			&& (flow_loss2 == 0) && (display_overflow2 == 0) && (changeLitrePrice2_2 == 0) && (_pump_max_litres2 == 0) && (nonValid_sale2 == 0) )
 	{
-		if(settings_stream1[1].display_mode == PL)
+		if(settings_stream1[1].display_format == PL)
 		  {
 			 send_line12(upper2);
 			 send_line22(middle2);
 		  }
-		  else if(settings_stream1[1].display_mode == LP)
+		  else if(settings_stream1[1].display_format == LP)
 		  {
 			  send_line12(middle2);
 			  send_line22(upper2);
@@ -7748,12 +7756,12 @@ eSystemState idleState_Handler2(void)
 //					 send_line12(upper2);
 //					 send_line22(middle2);
 
-					 if(settings_stream1[1].display_mode == PL)
+					 if(settings_stream1[1].display_format == PL)
 					  {
 						 send_line12(upper2);
 						 send_line22(middle2);
 					  }
-					  else if(settings_stream1[1].display_mode == LP)
+					  else if(settings_stream1[1].display_format == LP)
 					  {
 						  send_line12(middle2);
 						  send_line22(upper2);
@@ -7779,12 +7787,12 @@ eSystemState idleState_Handler2(void)
 					 t2 = 0;
 
 					 clr_screen2();
-					 if(settings_stream1[1].display_mode == PL)
+					 if(settings_stream1[1].display_format == PL)
 					  {
 						 send_line12(upper2);
 						 send_line22(middle2);
 					  }
-					  else if(settings_stream1[1].display_mode == LP)
+					  else if(settings_stream1[1].display_format == LP)
 					  {
 						  send_line12(middle2);
 						  send_line22(upper2);
@@ -8473,12 +8481,12 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 
 		 if (t2 > 300)
 		 {
-			 if(settings_stream1[1].display_mode == PL)
+			 if(settings_stream1[1].display_format == PL)
 			{
 				 send_line12(upper2);
 				 send_line22(middle2);
 			 }
-			 else if(settings_stream1[1].display_mode == LP)
+			 else if(settings_stream1[1].display_format == LP)
 			 {
 				  send_line12(middle2);
 				  send_line22(upper2);
@@ -8870,12 +8878,12 @@ eSystemState filling_State_Handler2(void)
 //============================================================
 	  if (t2 > LCD_UPDATE_RATE)
 	  {
-		  if(settings_stream1[1].display_mode == PL)
+		  if(settings_stream1[1].display_format == PL)
 		  {
 			 send_line12(upper2);
 			 send_line22(middle2);
 		  }
-		  else if(settings_stream1[1].display_mode == LP)
+		  else if(settings_stream1[1].display_format == LP)
 		  {
 			  send_line12(middle2);
 			  send_line22(upper2);
@@ -9053,7 +9061,8 @@ eSystemState savesettings_State_Handler2(void)
 		 	send_line22("Settings");
 
 		 	copy_settings(move_to_settings0);
-		 	save_settings0();
+//		 	save_settings_original();
+		 	save_settings_original_fram(side_a);
 
 			configMode2 = CONFIGMODIFIED;
 //			save_configFlag(side_b);
@@ -9082,12 +9091,12 @@ eSystemState savesettings_State_Handler2(void)
 		 //clear keyboard buffers.
 		 clear_buffer2();
 
-		 if(settings_stream1[1].display_mode == PL)
+		 if(settings_stream1[1].display_format == PL)
 		 {
 			 send_line12(upper2);
 			 send_line22(middle2);
 		 }
-		 else if(settings_stream1[1].display_mode == LP)
+		 else if(settings_stream1[1].display_format == LP)
 		 {
 			  send_line12(middle2);
 			  send_line22(upper2);
@@ -9764,12 +9773,12 @@ eSystemState filling_pulse_Handler2(void)
 	status_change_pump2 = 1;
 
 		//initialise the solenoid and motor...
-	if(settings_stream1[1].display_mode == PL)
+	if(settings_stream1[1].display_format == PL)
 	  {
 		 send_line12(upper2);
 		 send_line22(middle2);
 	  }
-	  else if(settings_stream1[1].display_mode == LP)
+	  else if(settings_stream1[1].display_format == LP)
 	  {
 		  send_line12(middle2);
 		  send_line22(upper2);
@@ -10155,12 +10164,12 @@ if(
 					 keyboard2[i]= 0;
 				 }
 
-                 if(settings_stream1[1].display_mode == PL)
+                 if(settings_stream1[1].display_format == PL)
 				  {
 					 upper2[0]  = 'P';
 					 middle2[0] = 'L';
 				  }
-				  else if(settings_stream1[1].display_mode == LP)
+				  else if(settings_stream1[1].display_format == LP)
 				  {
 					 upper2[0]  = 'L';
 					 middle2[0] = 'P';
@@ -10563,12 +10572,12 @@ void do_calcs2 ()
 	   	  make_string2(P, dp2(price_2, dp_amount2));
 	   	  make_string2(L, dp2(amt_2, dp_vol2));
 
-	   	if(settings_stream1[1].display_mode == PL)
+	   	if(settings_stream1[1].display_format == PL)
 		  {
 			 send_line12(upper2);
 			 send_line22(middle2);
 		  }
-		  else if(settings_stream1[1].display_mode == LP)
+		  else if(settings_stream1[1].display_format == LP)
 		  {
 			  send_line12(middle2);
 			  send_line22(upper2);
@@ -10651,12 +10660,12 @@ void do_calcs2 ()
 			      price_real2 = dp2(temp, dp_amount2);
 		//=========================================================
 
-		  if(settings_stream1[1].display_mode == PL)
+		  if(settings_stream1[1].display_format == PL)
 		  {
 			 send_line12(upper2);
 			 send_line22(middle2);
 		  }
-		  else if(settings_stream1[1].display_mode == LP)
+		  else if(settings_stream1[1].display_format == LP)
 		  {
 			  send_line12(middle2);
 			  send_line22(upper2);
@@ -10732,12 +10741,12 @@ void do_calcs2 ()
 //		  send_line12(upper2);
 //		  send_line22(middle2);
 
-		  if(settings_stream1[1].display_mode == PL)
+		  if(settings_stream1[1].display_format == PL)
 		  {
 			 send_line12(upper2);
 			 send_line22(middle2);
 		  }
-		  else if(settings_stream1[1].display_mode == LP)
+		  else if(settings_stream1[1].display_format == LP)
 		  {
 			  send_line12(middle2);
 			  send_line22(upper2);
@@ -10814,19 +10823,19 @@ void state_ini2(void)
 
 //	filling2 = 0;
 //	stop_flow2();
-	if(settings_stream1[1].display_mode == PL)
+	if(settings_stream1[1].display_format == PL)
 	{
 		send_line12("P        ");
 		write_v2(1, "p        ");
 	}
-	else if(settings_stream1[1].display_mode == LP)
+	else if(settings_stream1[1].display_format == LP)
 	{
 		send_line12("L        ");
 		write_v2(1, "l        ");
 	}
 
 //	write_v(2, "l        ");
-	if(settings_stream1[1].display_mode == PL)
+	if(settings_stream1[1].display_format == PL)
 	{
 		send_line22("L        ");
 		write_v2(2, "l        ");
@@ -10834,7 +10843,7 @@ void state_ini2(void)
 //	    make_string2(P, dp2(lastAmountSale2c, dp_price2) );
 //	    make_string2(L, dp2(lastVolumeSale2c, dp_amount2) );
 	}
-	else if(settings_stream1[1].display_mode == LP)
+	else if(settings_stream1[1].display_format == LP)
 	{
 		send_line22("P        ");
 		write_v2(2, "p        ");
@@ -11000,12 +11009,12 @@ eSystemState filledmamo_State_Handler2(void)
 	  if (t2 > LCD_UPDATE_RATE)
 	  {
 
-		  if(settings_stream1[1].display_mode == PL)
+		  if(settings_stream1[1].display_format == PL)
 		  {
 			 send_line12(upper2);
 			 send_line22(middle2);
 		  }
-		  else if(settings_stream1[1].display_mode == LP)
+		  else if(settings_stream1[1].display_format == LP)
 		  {
 			  send_line12(middle2);
 			  send_line22(upper2);
@@ -11132,12 +11141,12 @@ eSystemState pnpState_Handler2(void)
 	 {
 //		 send_line1(upper1);
 //		 send_line2(middle1);
-		 if(settings_stream1[1].display_mode == PL)
+		 if(settings_stream1[1].display_format == PL)
 		  {
 //			 send_line1(upper1);
 //			 send_line2(middle1);
 		  }
-		  else if(settings_stream1[1].display_mode == LP)
+		  else if(settings_stream1[1].display_format == LP)
 		  {
 //			  send_line1(middle1);
 //			  send_line2(upper1);

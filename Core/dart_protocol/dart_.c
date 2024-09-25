@@ -87,6 +87,11 @@ extern uint8_t status_change_pump2 = 0,
 int16_t header = 0,
 		footer = 0;
 
+extern uint8_t track_num1 = 0,
+			   valid_pair11 = 0,
+			   track_num2 = 0,
+			   valid_pair12 = 0;
+
 unsigned long t_exec1 = 0,
 		      t_exec2 = 0,
 			  t_exec3 = 0,
@@ -812,16 +817,14 @@ void parse_decode(void)
 
 									break;
 								}
+
+								//###########################################################################//
 								//'50 37 05 03 00 58 10 a2 0a 03 fa
 								//===========================================================================//
 								//==========================   SET PUMP PARAMETERS   ========================//
 								//===========================================================================//
-								else if(r_raw_data1[i] == 0x09)   // && r_raw_data1[i+1] == 0x33) //51 Data Bytes
+								else if( (r_raw_data1[i] == 0x09) && (r_raw_data1[i+1] == 0x33) ) //51 Data Bytes
 								{
-									uint32_t price_updatee = 0;
-									uint8_t set_param[3];
-									char price_updateee[20];
-
 									crc_original = r_raw_data1[i+56];
 									crc_original = (crc_original << 8);
 									crc_original = (crc_original + r_raw_data1[i+55]);
@@ -834,10 +837,10 @@ void parse_decode(void)
 									data_[1] = r_ctrl;
 
 									////////////////////////////////////////
-									//'50 37 05 03 00 58 10 a2 0a 03 fa
+									//'50 37 05 03 00 58 - - - 10 a2 0a 03 fa
 									////////////////////////////////////////
-									//===the read buffer contains only from the transaction byte to the SF byte ===//
-									//================== Data contains a cumulative of 51 raw Bytes ===============//
+									//=== the read buffer contains only data from the transaction byte to the SF byte ===//
+									//================== Data contains a cumulative of 51 raw Bytes ================//
 									for(uint8_t ii = 0, j = 2; ii < 53; ii++, j++)  //51 + Trans No. + Data Len
 									{
 										data_[j] = r_raw_data1[ii];
@@ -851,7 +854,7 @@ void parse_decode(void)
 									{
 										for (uint8_t j = 0; j < 51; j++)
 										{
-											set_param[j] = r_raw_data1[i+2+j];
+											set_param1[j] = r_raw_data1[i+2+j];
 										}
 
 										resp = DATA_SET_PUMP_PARAM;
@@ -885,7 +888,7 @@ void parse_decode(void)
 									data_[0] = r_addr;
 									data_[1] = r_ctrl;
 
-									for(uint8_t ii = 0, j = 2; ii < 5; ii++, j++)
+									for(uint8_t ii = 0, j = 2; ii < 3; ii++, j++)   //1 + Trans No. + Data Len
 									{
 										data_[j] = r_raw_data1[ii];
 									}
@@ -930,7 +933,7 @@ void parse_decode(void)
 									data_[0] = r_addr;
 									data_[1] = r_ctrl;
 
-									for(uint8_t ii = 0, j = 2; ii < 5; ii++, j++)
+									for(uint8_t ii = 0, j = 2; ii < 3; ii++, j++)   //1 + Trans No. + Data Len
 									{
 										data_[j] = r_raw_data1[ii];
 									}
@@ -956,6 +959,88 @@ void parse_decode(void)
 
 									break;
 								}
+
+								//###########################################################################//
+								//
+								//res => ep:1a. {"st":0,"tk":31290,"ud":0,"tm":37427375,"am":0.0,
+								//"mt":{"ty":3,"pn":"all","pr":590.0,"sh":null,"fg":0,"tg":"p|all"},
+								//"pv":0.0,"wv":0.0,"sa":0.0,"bal":0.0,"dc":null,"wb":null,"ft":null}
+								//
+								///////////////////////////////////////////////////////////////////////////////
+								///////////////////////////////////////////////////////////////////////////////
+								//'50 37 68 04 37 42 73 75 a2 0a 03 fa
+								//===========================================================================//
+								//============================   UPDATE DATE/TIME   =========================//
+								//===========================================================================//
+								else if( (r_raw_data1[i] == 0x68) && (r_raw_data1[i+1] == 0x04) )//4 Data Bytes
+								{
+									uint8_t update_datetime[5];
+									uint32_t update_datetimeee;
+
+									crc_original = r_raw_data1[i+5];
+									crc_original = (crc_original << 8);
+									crc_original = (crc_original + r_raw_data1[i+4]);
+
+
+									//==============================================================//
+									//==================== VALIDATING THE CRC ======================//
+
+									data_[0] = r_addr;
+									data_[1] = r_ctrl;
+
+									////////////////////////////////////////
+									//'50 37 05 03 00 58 10 - - - a2 0a 03 fa
+									////////////////////////////////////////
+									//===the read buffer contains only from the transaction byte to the SF byte ===//
+									//================== Data contains a cumulative of 4 raw Bytes ===============//
+									for(uint8_t ii = 0, j = 2; ii < 6; ii++, j++)  //4 + Trans No. + Data Len
+									{
+										data_[j] = r_raw_data1[ii];
+									}
+
+
+									crc_check = crc_16(data_, 8);
+
+
+									if(crc_check == crc_original)
+									{
+										for (uint8_t j = 0; j < 4; j++)
+										{
+											update_datetime[j] = r_raw_data1[i+2+j];
+										}
+
+										uint32_t update_datetimee = ( (update_datetime[0] * 1000000) + (update_datetime[1] * 10000) + (update_datetime[2] * 100) + (update_datetime[3] * 1));
+										sprintf(update_datetimeee, "0x%ld", update_datetimee);
+
+										// char num[]="0x3076";
+										long n = strtol(update_datetimeee, NULL, 16);
+										update_date_time = packed_bcd_to_decimal(n);
+
+										///////////////////////////////////////////////////////////////////
+										///////////////////  ACTUATE THE CHANGE... ////////////////////////
+
+
+										//			if( (priceChange_check > 0.1) || (priceChange_check < -0.1) )
+										//			{
+														   ttostr(update_date_time, 1);
+														   ttostr(update_date_time, 2);
+										//			}
+
+										///////////////////////////////////////////////////////////////////
+
+										resp = DATA_DATE_TIME_UPDATE;
+										ack_send = true;
+									}
+									else
+									{
+										resp = CRC_ERROR;
+									}
+									//=================== DONE, VALIDATING THE CRC =================//
+									//==============================================================//
+
+									break;
+								}
+
 							}
 
 							break;
@@ -1386,12 +1471,8 @@ void parse_decode2(void)
 								//===========================================================================//
 								//==========================   SET PUMP PARAMETERS   ========================//
 								//===========================================================================//
-								else if(r_raw_data2[i] == 0x09)   // && r_raw_data1[i+1] == 0x33) //51 Data Bytes
+								else if( (r_raw_data2[i] == 0x09) && (r_raw_data1[i+1] == 0x33) ) //51 Data Bytes
 								{
-									uint32_t price_updatee = 0;
-									uint8_t set_param[3];
-									char price_updateee[20];
-
 									crc_original = r_raw_data2[i+56];
 									crc_original = (crc_original << 8);
 									crc_original = (crc_original + r_raw_data2[i+55]);
@@ -1404,9 +1485,9 @@ void parse_decode2(void)
 									data_[1] = r_ctrl2;
 
 									////////////////////////////////////////
-									//'50 37 05 03 00 58 10 a2 0a 03 fa
+									//'50 37 05 03 00 58 - - - 10 a2 0a 03 fa
 									////////////////////////////////////////
-									//===the read buffer contains only from the transaction byte to the SF byte ===//
+									//===the read buffer contains only data from the transaction byte to the SF byte ===//
 									//================== Data contains a cumulative of 51 raw Bytes ===============//
 									for(uint8_t ii = 0, j = 2; ii < 53; ii++, j++)  //51 + Trans No. + Data Len
 									{
@@ -1421,7 +1502,7 @@ void parse_decode2(void)
 									{
 										for (uint8_t j = 0; j < 51; j++)
 										{
-											set_param[j] = r_raw_data2[i+2+j];
+											set_param2[j] = r_raw_data2[i+2+j];
 										}
 
 										resp2 = DATA_SET_PUMP_PARAM;
@@ -1455,7 +1536,7 @@ void parse_decode2(void)
 									data_[0] = r_addr2;
 									data_[1] = r_ctrl2;
 
-									for(uint8_t ii = 0, j = 2; ii < 5; ii++, j++)
+									for(uint8_t ii = 0, j = 2; ii < 3; ii++, j++)   //1 + Trans No. + Data Len
 									{
 										data_[j] = r_raw_data2[ii];
 									}
@@ -1500,7 +1581,7 @@ void parse_decode2(void)
 									data_[0] = r_addr2;
 									data_[1] = r_ctrl2;
 
-									for(uint8_t ii = 0, j = 2; ii < 5; ii++, j++)
+									for(uint8_t ii = 0, j = 2; ii < 3; ii++, j++)   //1 + Trans No. + Data Len
 									{
 										data_[j] = r_raw_data2[ii];
 									}
@@ -1515,6 +1596,88 @@ void parse_decode2(void)
 
 										command_response2 = true;
 
+										ack_send2 = true;
+									}
+									else
+									{
+										resp2 = CRC_ERROR;
+									}
+									//=================== DONE, VALIDATING THE CRC =================//
+									//==============================================================//
+
+									break;
+								}
+
+								//###########################################################################//
+								//
+								//res => ep:1a. {"st":0,"tk":31290,"ud":0,"tm":37427375,"am":0.0,
+								//"mt":{"ty":3,"pn":"all","pr":590.0,"sh":null,"fg":0,"tg":"p|all"},
+								//"pv":0.0,"wv":0.0,"sa":0.0,"bal":0.0,"dc":null,"wb":null,"ft":null}
+								//
+								///////////////////////////////////////////////////////////////////////////////
+								///////////////////////////////////////////////////////////////////////////////
+								//'50 37 68 04 37 42 73 75 a2 0a 03 fa
+								//===========================================================================//
+								//============================   UPDATE DATE/TIME   =========================//
+								//===========================================================================//
+								else if( (r_raw_data2[i] == 0x68) && (r_raw_data2[i+1] == 0x04) ) //4 Data Bytes
+								{
+									uint8_t update_datetime[5];
+									uint32_t update_datetimeee;
+
+									crc_original = r_raw_data2[i+5];
+									crc_original = (crc_original << 8);
+									crc_original = (crc_original + r_raw_data2[i+4]);
+
+
+									//==============================================================//
+									//==================== VALIDATING THE CRC ======================//
+
+									data_[0] = r_addr2;
+									data_[1] = r_ctrl2;
+
+									////////////////////////////////////////
+									//'50 37 05 03 00 58 10 - - - a2 0a 03 fa
+									////////////////////////////////////////
+									//===the read buffer contains only data from the transaction byte to the SF byte ===//
+									//================== Data contains a cumulative of 4 raw Bytes ===============//
+									for(uint8_t ii = 0, j = 2; ii < 6; ii++, j++)  //4 + Trans No. + Data Len
+									{
+										data_[j] = r_raw_data2[ii];
+									}
+
+
+									crc_check = crc_16(data_, 8);
+
+
+									if(crc_check == crc_original)
+									{
+										for (uint8_t j = 0; j < 4; j++)
+										{
+											update_datetime[j] = r_raw_data2[i+2+j];
+										}
+
+										uint32_t update_datetimee = ( (update_datetime[0] * 1000000) + (update_datetime[1] * 10000) + (update_datetime[2] * 100) + (update_datetime[3] * 1));
+										sprintf(update_datetimeee, "0x%ld", update_datetimee);
+
+										// char num[]="0x3076";
+										long n = strtol(update_datetimeee, NULL, 16);
+										update_date_time = packed_bcd_to_decimal(n);
+
+										///////////////////////////////////////////////////////////////////
+										///////////////////  ACTUATE THE CHANGE... ////////////////////////
+
+
+										//			if( (priceChange_check > 0.1) || (priceChange_check < -0.1) )
+										//			{
+														   ttostr(update_date_time, 1);
+														   ttostr(update_date_time, 2);
+										//			}
+
+										///////////////////////////////////////////////////////////////////
+
+
+										resp2 = DATA_DATE_TIME_UPDATE;
 										ack_send2 = true;
 									}
 									else
@@ -1770,221 +1933,6 @@ void process_response1(response_enum response)
 		go_write1();
 	}
 }
-
-//	else if(response == DATA_COMMAND)   //This transaction is sent by the pump if the status is changed or if the pump receives the command 'RETURN STATUS’.
-//	{
-////		if (command_ == PUMP_NOT_PROGRAMMED || command_ == RESET0 || command_ == AUTHORIZED || command_ == FILLING || command_ == FILLING_COMPLETED || command_ == MAX_AMOUNTVOLUME_REACHED || command_ == SWITCHED_OFF)
-//
-//
-//		//===================================================================//
-//		//   This transaction is sent by the pump if the status is changed   //
-//		//   or if the pump receives the command 'RETURN STATUS’.            //
-//		//===================================================================//
-//
-//		if (command_ == GETSTATUS)
-//		{
-//			//---- Handles command for sending of data to controller -----//
-//
-//			ctrl |= 0x30 ;
-//			trans = 0x01;
-//			lng = 0x01;
-//			memset(DART_BUFF1, 0, sizeof(DART_BUFF1));
-//
-//			DART_BUFF1[0] = addr;
-//			DART_BUFF1[1] = ctrl;
-//			DART_BUFF1[2] = trans;
-//			DART_BUFF1[3] = lng;
-//
-//			pump_status_ = STATUS_RESET;
-//
-//			switch (pump_status_)
-//			{
-//				//for the Pump-Status Commands
-//				case STATUS_PNP		      				:	{status_ = 0x00; break;}
-//				case STATUS_RESET 						:	{status_ = 0x01; break;}
-//				case STATUS_AUTH 						:	{status_ = 0x02; break;}
-//				case STATUS_FILLING						:	{status_ = 0x04; break;}
-//				case STATUS_FILLING_COMP				:	{status_ = 0x05; break;}
-//				case STATUS_MAMO_REACHED				:	{status_ = 0x06; break;}   //MAX_AMOUNTVOLUME_REACHED
-//				case STATUS_SWITCHED_OFF				:	{status_ = 0x07; break;}
-//				default									: 	break;
-//			}
-//
-//			DART_BUFF1[4] = status_;
-//	//		uint16_t crc = calculate_crc(DART_BUFF1, 5);
-//			crc = crc_16(DART_BUFF1, 5);
-//			DART_BUFF1[5] = crc & 0x00FF;
-//			DART_BUFF1[6] = crc >> 8;
-//			DART_BUFF1[7] = ETX;
-//			DART_BUFF1[8] = SF;
-//
-//			array_len = 9;
-//		}
-//
-//		//=============================================================================//
-//		//        This transaction is sent by the pump at change of a value            //
-//		//        or if the pump receives the command RETURN FILLING INFORMATION       //
-//		//=============================================================================//
-//		else if (command_ == REQUEST_FILLING_INFO)        //FILLED_VOLUME_AND_AMOUNT
-//		{
-//
-//			float vol_ = 1550.1234;
-//			float amo_ = 15.1234;
-//			int decimalPlaces = 2;
-//			double roundedNum;
-//			int num_;
-//			// unsigned int bcd;
-//			unsigned char bcd_[10] = {0};  // Array to hold the BCD result
-//
-//			uint16_t crc;
-//
-//			ctrl |= 0x30 ;
-//			trans = 0x02;
-//			lng = 0x01;
-//
-//			memset(DART_BUFF1, 0, sizeof(DART_BUFF1));
-//
-//			DART_BUFF1[0] = addr;
-//			DART_BUFF1[1] = ctrl;
-//			DART_BUFF1[2] = trans;
-//			DART_BUFF1[3] = lng;
-//
-//			roundedNum = roundUp(vol_, decimalPlaces);
-//			roundedNum = roundedNum * 100;
-//			num_ = (int)(roundedNum);
-//
-//			int_to_bcd(num_, bcd_);
-//
-//			// for(uint8_t i = 0; i < 4; i++)
-//			for (uint8_t i = 0, j = 3; i < 4; i++, j--)
-//			{
-//				DART_BUFF1[i + 4] = bcd_[j];
-//			}
-//
-//			roundedNum = roundUp(amo_, decimalPlaces);
-//			roundedNum = roundedNum * 100;
-//			num_ = (int)(roundedNum);
-//
-//			memset(bcd_, 0, sizeof(bcd_));
-//
-//			int_to_bcd(num_, bcd_);
-//
-//			// for(uint8_t i = 0; i < 4; i++)
-//			for (uint8_t i = 0, j = 3; i < 4; i++, j--)
-//			{
-//				DART_BUFF1[i + 8] = bcd_[j];
-//			}
-//
-//	//		crc = calculate_crc(DART_BUFF1, 12);
-//			crc = crc_16(DART_BUFF1, 12);
-//			DART_BUFF1[12] = crc & 0x00FF;
-//			DART_BUFF1[13] = crc >> 8;
-//			DART_BUFF1[14] = ETX;
-//			DART_BUFF1[15] = SF;
-//
-//			array_len = 16;
-//		}
-//
-//		//=============================================================================//
-//		//   	  This transaction is sent by the pump if the status is changed        //
-//		//		  or if the pump receives the command                                  //
-//		//		  'RETURN STATUS' or ‘RETURN FILLING INFORMATION’.      			   //
-//		//=============================================================================//
-//
-//		else if ( (command_ == GETSTATUS) || (command_ == REQUEST_FILLING_INFO) )        // NOZSTATUS_AND_FILLINGPRICE
-//		{
-//
-//			float fillingPrice = 1550.1234;
-//			int decimalPlaces = 2;
-//			double roundedNum;
-//			int num_;
-//			unsigned char bcd_[10] = {0};  // Array to hold the BCD result
-//
-//			uint16_t crc;
-//
-//			ctrl |= 0x30 ;
-//			trans = 0x01;
-//			lng = 0x01;
-//
-//			memset(DART_BUFF1, 0, sizeof(DART_BUFF1));
-//
-//			DART_BUFF1[0] = addr;
-//			DART_BUFF1[1] = ctrl;
-//			DART_BUFF1[2] = trans;
-//			DART_BUFF1[3] = lng;
-//
-//			roundedNum = roundUp(fillingPrice, decimalPlaces);
-//			roundedNum = roundedNum * 100;
-//			num_ = (int)(roundedNum);
-//
-//			int_to_bcd(num_, bcd_);
-//
-//			for (uint8_t i = 0, j = 2;  i < 3; i++, j--)
-//			{
-//				DART_BUFF1[i + 4] = bcd_[j];
-//			}
-//
-//			uint8_t nozNum, nozStatus, nozIO;
-//
-//			// nozIO = nozNum;
-//			nozStatus = (nozStatus << 4);
-//			nozIO = nozNum | nozStatus;
-//
-//	//		crc = calculate_crc(DART_BUFF1, 7);
-//			crc = crc_16(DART_BUFF1, 7);
-//			DART_BUFF1[7] = crc & 0x00FF;
-//			DART_BUFF1[8] = crc >> 8;
-//			DART_BUFF1[9] = ETX;
-//			DART_BUFF1[10] = SF;
-//
-//			array_len = 11;
-//		}
-//
-//		else if (command_ = RETURN_PUMP_IDENTITY)       //PUMP_IDENTITY)
-//		{
-//			float fillingPrice = 1550.1234;
-//			int decimalPlaces = 2;
-//			double roundedNum;
-//			int num_, pump_id;
-//			unsigned char bcd_[10] = {0};  // Array to hold the BCD result
-//
-//			uint16_t crc;
-//
-//			ctrl |= 0x30 ;
-//			trans = 0x01;
-//			lng = 0x01;
-//
-//			memset(DART_BUFF1, 0, sizeof(DART_BUFF1));
-//
-//			DART_BUFF1[0] = addr;
-//			DART_BUFF1[1] = ctrl;
-//			DART_BUFF1[2] = trans;
-//			DART_BUFF1[3] = lng;
-//
-//			roundedNum = roundUp(fillingPrice, decimalPlaces);
-//			roundedNum = roundedNum * 100;
-//			num_ = pump_id;
-//
-//			int_to_bcd(num_, bcd_);
-//
-//			for (uint8_t i = 0, j = 4;  i < 5; i++, j--)
-//			{
-//				DART_BUFF1[i + 4] = bcd_[j];
-//			}
-//
-//	//		crc = calculate_crc(DART_BUFF1, 9);
-//			crc = crc_16(DART_BUFF1, 9);
-//			DART_BUFF1[9] = crc & 0x00FF;
-//			DART_BUFF1[10] = crc >> 8;
-//			DART_BUFF1[11] = ETX;
-//			DART_BUFF1[12] = SF;
-//
-//			array_len = 13;
-//			}
-//	}
-
-//	go_write(DART_BUFF1);
-//}
 
 
 void process_response2(response_enum response)
@@ -2278,49 +2226,9 @@ void _process_response1(response_enum response)
 											}
 											break;
 										}
-//				case PRESET_VOL							:
-//				case PRESET_AMO							:	{command_response = false; break;}
+
 				default									: 	break;
 			}
-
-//			STATUS_UNKNOWN,    //used for idle state by the Main
-//
-//			STATUS_PNP,
-//			STATUS_RESET,
-//			STATUS_AUTH,
-//			STATUS_FILLING,
-//			STATUS_FILLING_COMP,
-//			STATUS_SUSPENDED
-//			STATUS_MAMO_REACHED,
-//			STATUS_SWITCHED_OFF
-
-//			if (command_ == RESET1)
-//			{
-//				RESET1,
-//				AUTHORISE,
-//				STOP1,
-//				SWITCH_OFF,
-//				REQUEST_FILLING_INFO,
-//				RETURN_PUMP_PARAM,
-//				RETURN_PUMP_IDENTITY,
-//				SUSPEND_REQUEST,
-//				RESUME_REQUEST,
-//				NOZSTATUS_AND_FILLINGPRICE,
-//
-//				PUMP_IDENTITY,
-//
-//				PRESET_VOL,	//Set the respective volume of these before using them
-//				PRESET_AMO,
-//
-//				FILLED_VOLUME_AND_AMOUNT,
-//
-//				PRICE_UPDATE,
-//				SET_MAMO,
-//				REQUEST_VOL_TOTAL_COUNT,
-//				NO_COMMAND
-//
-//				command_ = NO_COMMAND;
-//			}
 
 		}
 		else
@@ -2410,7 +2318,7 @@ void _process_response1(response_enum response)
 
 				decimalPlaces = 1;
 
-				roundedNum = roundUp(fillingPrice, decimalPlaces);
+				roundedNum = round_off(fillingPrice, decimalPlaces);
 				roundedNum = roundedNum * 10;
 				num_ = (int)(roundedNum);
 
@@ -2498,7 +2406,7 @@ void _process_response1(response_enum response)
 
 				decimalPlaces = 2;
 
-				roundedNum = roundUp(vol_, decimalPlaces);
+				roundedNum = round_off(vol_, decimalPlaces);
 				roundedNum = roundedNum * 100;
 				num_ = (int)(roundedNum);
 
@@ -2511,7 +2419,7 @@ void _process_response1(response_enum response)
 
 				decimalPlaces = 1;
 
-				roundedNum = roundUp(amo_, decimalPlaces);
+				roundedNum = round_off(amo_, decimalPlaces);
 				roundedNum = roundedNum * 10;
 				num_ = (int)(roundedNum);
 
@@ -2549,7 +2457,7 @@ void _process_response1(response_enum response)
 
 				decimalPlaces = 1;
 
-				roundedNum = roundUp(fillingPrice, decimalPlaces);
+				roundedNum = round_off(fillingPrice, decimalPlaces);
 				roundedNum = roundedNum * 10;
 				num_ = (int)(roundedNum);
 
@@ -2659,7 +2567,7 @@ void _process_response1(response_enum response)
 
 					uint16_t crc;
 
-					ctrl |= 0x30 ;
+					ctrl |= 0x30;
 					trans = 0x07;
 					lng = 0x33;
 
@@ -2797,7 +2705,7 @@ void _process_response1(response_enum response)
 
 			decimalPlaces = 3;
 
-			roundedNum = roundUp(tot_vol, decimalPlaces);
+			roundedNum = round_off(tot_vol, decimalPlaces);
 			roundedNum = roundedNum * 1000;
 			num_ = (int)(roundedNum);
 
@@ -2808,7 +2716,7 @@ void _process_response1(response_enum response)
 				DART_BUFF1[ii + 5] = bcd_[j];
 			}
 
-			roundedNum = roundUp(tot_vol1, decimalPlaces);
+			roundedNum = round_off(tot_vol1, decimalPlaces);
 			roundedNum = roundedNum * 1000;
 			num_ = (int)(roundedNum);
 
@@ -2821,7 +2729,7 @@ void _process_response1(response_enum response)
 				DART_BUFF1[ii + 10] = bcd_[j];
 			}
 
-			roundedNum = roundUp(tot_vol2, decimalPlaces);
+			roundedNum = round_off(tot_vol2, decimalPlaces);
 			roundedNum = roundedNum * 1000;
 			num_ = (int)(roundedNum);
 
@@ -2896,6 +2804,164 @@ void _process_response1(response_enum response)
 				//Effect the Change...
 			}
 		}
+	}
+	else if(response == DATA_REQUEST_CONFIG_CHANGE_INFO)
+	{
+		if(ack_send == true)
+		{
+			//==> send ack
+			send_acknowledgement1(ACK);
+			ack_send = false;
+		}
+		else
+		{
+
+			//TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+			//  _________________________________________________________________________________________________________________________________________________________________
+			// | NOZ-NUM | TX-NUM | TX-CODE | TX-LEN | OTP-SEED [2 Bytes] | TIMESTAMP [4 Bytes] | CONFIG-1 PARTICULAR [1 Byte] | OLD-VALUE 1 [3 Bytes] | NEW-VALUE 1 [3 Bytes]|
+			// |_________|________|_________|________|____________________|_____________________|______________________________|_______________________|______________________|__
+			// ________________________________________________________________________________________________________
+			//   |CONFIG-2 PARTICULAR [1 Byte] | OLD-VALUE 2 [3 Bytes] | NEW-VALUE 2 [3 Bytes] | CRC1 |CRC2 | ETX | SF |
+			// __|_____________________________|_______________________|_______________________|______|_____|_____|____|
+			//
+			//YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+
+			//'50 38 67 0E 12 34 12 34 56 78    00 00 18 03 67 00 00   00 00 00 59 57 83 27   ab 03 fa '
+
+			//####################################################################################################################################################################
+
+
+
+			//=============================================================================//
+			//       	 This transaction is sent by the pump at a Request of              //
+			//        				 "REQUEST CONFIG CHANGE INFO"                          //
+			//=============================================================================//
+
+			uint16_t otp_seed,
+			         time_stamp;
+
+			unsigned char bcd_[6] = {0};  // Array to hold the BCD result
+
+			uint16_t crc;
+
+
+			retrieve_configFlag_fram(side_a);
+
+			//=================================================================//
+			// Checks for whether Config Mode has even been accessed @all
+			//=================================================================//
+			if(configMode1 == CONFIGUNMODIFIED)
+			{
+				send_acknowledgement1(EOT);
+				return;
+			}
+
+
+			retrieve_otpSeed_fram(side_a);
+			retrieve_settings_original_fram(side_a);
+
+			otp_seed = configChange[0].otpSeed.otp_seed;
+			time_stamp = configChange[0].time_stamp;
+
+			ctrl = 0x03;
+			ctrl |= 0x30;
+			trans = 0x67;
+
+			memset(DART_BUFF1, 0, sizeof(DART_BUFF1));
+
+			DART_BUFF1[0] = addr;
+			DART_BUFF1[1] = ctrl;
+			DART_BUFF1[2] = trans;
+//			DART_BUFF1[3] = lng;
+
+			//'50 38 67 0E   12 34 12 34 56 78    00 00 18 03 67 00 00   00 00 00 59 57 83 27   ab 03 fa '
+
+			int_to_bcd(otp_seed, bcd_);
+
+			for (uint8_t ii = 0, j = 1; ii < 2; ii++, j--)   //j=>1 : MSB in it, LSB is in j=>0
+			{
+				DART_BUFF1[ii + 4] = bcd_[j];
+			}
+
+			memset(bcd_, 0, sizeof(bcd_));
+
+			//'50 38 67 0E   12 34 12 34 56 78    00 00 18 03 67 00 00   00 00 00 59 57 83 27   ab 03 fa '
+
+			int_to_bcd(time_stamp, bcd_);
+
+			for (uint8_t ii = 0, j = 3; ii < 4; ii++, j--)   //j=>3 : MSB in it, LSB is in j=>0
+			{
+				DART_BUFF1[ii + 6] = bcd_[j];
+			}
+
+			retrieve_configChange_trackNum_fram(side_a);
+			uint8_t configCheck = configChange_notify_build(track_num1);
+			save_configChange_trackNum_fram(side_a);
+
+			if(configCheck == 2)
+			{
+				DART_BUFF1[3] = 20;  //Data-Length;
+
+				crc = crc_16(DART_BUFF1, 24);
+
+				DART_BUFF1[24] = crc & 0x00FF;
+				DART_BUFF1[25] = crc >> 8;
+				DART_BUFF1[26] = ETX;
+				DART_BUFF1[27] = SF;
+
+				array_len = 28;
+			}
+			else if (configCheck == 1)
+			{
+				DART_BUFF1[3] = 13;  //Data-Length;
+
+				crc = crc_16(DART_BUFF1, (24 - 7));
+
+				DART_BUFF1[24 - 7] = crc & 0x00FF;
+				DART_BUFF1[25 - 7] = crc >> 8;
+				DART_BUFF1[26 - 7] = ETX;
+				DART_BUFF1[27 - 7] = SF;
+
+				array_len = (28 - 7);
+			}
+
+			//================================================================================//
+			// If Config Mode is been accessed, but :
+			// (i)  No changes effected,
+			// (ii) Or all the possible changes info have been effectively passed on to GO
+			//===============================================================================//
+			else if (configCheck == 0)
+			{
+				send_acknowledgement1(EOT);
+
+				clear_configFlag_fram(side_a);
+				clear_configChange_trackNum_fram(side_a);
+			}
+
+
+
+			//'50 38 67 0E   12 34 12 34 56 78    00 00 18 03 67 00 00   00 00 00 59 57 83 27   ab 03 fa '
+
+			resp = NOREPLY;
+
+		}
+	}
+	else if(response == DATA_DATE_TIME_UPDATE)   //This transaction is sent by the pump if the status is changed or if the pump receives the command 'RETURN STATUS’.
+	{
+		send_acknowledgement1(ACK);
+		ack_send = false;
+
+		///////////////////////////////////////////////////////////////////
+		///////////////////  ACTUATE THE CHANGE... ////////////////////////
+
+
+//			if( (priceChange_check > 0.1) || (priceChange_check < -0.1) )
+//			{
+//				   ttostr(serverTime, 1);
+//				   ttostr(serverTime, 2);
+//			}
+
+		///////////////////////////////////////////////////////////////////
 	}
 }
 
@@ -3111,7 +3177,7 @@ void _process_response2(response_enum response)
 
 				decimalPlaces = 1;
 
-				roundedNum = roundUp(fillingPrice, decimalPlaces);
+				roundedNum = round_off(fillingPrice, decimalPlaces);
 				roundedNum = roundedNum * 10;
 				num_ = (int)(roundedNum);
 
@@ -3199,7 +3265,7 @@ void _process_response2(response_enum response)
 
 				decimalPlaces = 2;
 
-				roundedNum = roundUp(vol_, decimalPlaces);
+				roundedNum = round_off(vol_, decimalPlaces);
 				roundedNum = roundedNum * 100;
 				num_ = (int)(roundedNum);
 
@@ -3212,7 +3278,7 @@ void _process_response2(response_enum response)
 
 				decimalPlaces = 1;
 
-				roundedNum = roundUp(amo_, decimalPlaces);
+				roundedNum = round_off(amo_, decimalPlaces);
 				roundedNum = roundedNum * 10;
 				num_ = (int)(roundedNum);
 
@@ -3250,7 +3316,7 @@ void _process_response2(response_enum response)
 
 				decimalPlaces = 1;
 
-				roundedNum = roundUp(fillingPrice, decimalPlaces);
+				roundedNum = round_off(fillingPrice, decimalPlaces);
 				roundedNum = roundedNum * 10;
 				num_ = (int)(roundedNum);
 
@@ -3490,7 +3556,7 @@ void _process_response2(response_enum response)
 
 			decimalPlaces = 3;
 
-			roundedNum = roundUp(tot_vol, decimalPlaces);
+			roundedNum = round_off(tot_vol, decimalPlaces);
 			roundedNum = roundedNum * 1000;
 			num_ = (int)(roundedNum);
 
@@ -3501,7 +3567,7 @@ void _process_response2(response_enum response)
 				DART_BUFF2[ii + 5] = bcd_[j];
 			}
 
-			roundedNum = roundUp(tot_vol1, decimalPlaces);
+			roundedNum = round_off(tot_vol1, decimalPlaces);
 			roundedNum = roundedNum * 1000;
 			num_ = (int)(roundedNum);
 
@@ -3514,7 +3580,7 @@ void _process_response2(response_enum response)
 				DART_BUFF2[ii + 10] = bcd_[j];
 			}
 
-			roundedNum = roundUp(tot_vol2, decimalPlaces);
+			roundedNum = round_off(tot_vol2, decimalPlaces);
 			roundedNum = roundedNum * 1000;
 			num_ = (int)(roundedNum);
 
@@ -3589,6 +3655,23 @@ void _process_response2(response_enum response)
 				//Effect the Change...
 			}
 		}
+	}
+	else if(response == DATA_DATE_TIME_UPDATE)   //This transaction is sent by the pump if the status is changed or if the pump receives the command 'RETURN STATUS’.
+	{
+		send_acknowledgement2(ACK);
+		ack_send2 = false;
+
+		///////////////////////////////////////////////////////////////////
+		///////////////////  ACTUATE THE CHANGE... ////////////////////////
+
+
+//			if( (priceChange_check > 0.1) || (priceChange_check < -0.1) )
+//			{
+//				   ttostr(serverTime, 1);
+//				   ttostr(serverTime, 2);
+//			}
+
+		///////////////////////////////////////////////////////////////////
 	}
 }
 
@@ -4294,7 +4377,7 @@ uint16_t calculate_crc(uint8_t *data, size_t length) {
 }
 
 
-double roundUp(float value, int decimalPlaces)
+double round_off(float value, int decimalPlaces)
 {
     double factor = pow(10, decimalPlaces);
     return ceil(value * factor) / factor;
@@ -4559,7 +4642,7 @@ void send_nozzleStatus1(uint8_t buff_index)  //, float filling_price, uint8_t no
 
 				decimalPlaces = 1;
 
-				roundedNum = roundUp(fillingPrice, decimalPlaces);
+				roundedNum = round_off(fillingPrice, decimalPlaces);
 				roundedNum = roundedNum * 10;
 				num_ = (int)(roundedNum);
 
@@ -4615,7 +4698,7 @@ void send_nozzleStatus2(uint8_t buff_index)
 
 				decimalPlaces = 1;
 
-				roundedNum = roundUp(fillingPrice, decimalPlaces);
+				roundedNum = round_off(fillingPrice, decimalPlaces);
 				roundedNum = roundedNum * 10;
 				num_ = (int)(roundedNum);
 
@@ -5166,7 +5249,7 @@ void send_fillingInfo1(uint8_t buff_index)
 
 	decimalPlaces = 2;
 
-	roundedNum = roundUp(vol_, decimalPlaces);
+	roundedNum = round_off(vol_, decimalPlaces);
 	roundedNum = roundedNum * 100;
 	num_ = (int)(roundedNum);
 
@@ -5179,7 +5262,7 @@ void send_fillingInfo1(uint8_t buff_index)
 
 	decimalPlaces = 1;
 
-	roundedNum = roundUp(amo_, decimalPlaces);
+	roundedNum = round_off(amo_, decimalPlaces);
 	roundedNum = roundedNum * 10;
 	num_ = (int)(roundedNum);
 
@@ -5242,7 +5325,7 @@ void send_fillingInfo2(uint8_t buff_index)
 
 	decimalPlaces = 2;
 
-	roundedNum = roundUp(vol_, decimalPlaces);
+	roundedNum = round_off(vol_, decimalPlaces);
 	roundedNum = roundedNum * 100;
 	num_ = (int)(roundedNum);
 
@@ -5255,7 +5338,7 @@ void send_fillingInfo2(uint8_t buff_index)
 
 	decimalPlaces = 1;
 
-	roundedNum = roundUp(amo_, decimalPlaces);
+	roundedNum = round_off(amo_, decimalPlaces);
 	roundedNum = roundedNum * 10;
 	num_ = (int)(roundedNum);
 
@@ -5273,6 +5356,1432 @@ void send_fillingInfo2(uint8_t buff_index)
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
 }
+
+
+uint8_t configChange_notify_build(uint8_t track_num1_)
+{
+		//TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+		//  _________________________________________________________________________________________________________________________________________________________________
+		// | NOZ-NUM | TX-NUM | TX-CODE | TX-LEN | OTP-SEED [2 Bytes] | TIMESTAMP [4 Bytes] | CONFIG-1 PARTICULAR [1 Byte] | OLD-VALUE 1 [3 Bytes] | NEW-VALUE 1 [3 Bytes]|
+		// |_________|________|_________|________|____________________|_____________________|______________________________|_______________________|______________________|__
+		// ________________________________________________________________________________________________________
+		//   |CONFIG-2 PARTICULAR [1 Byte] | OLD-VALUE 2 [3 Bytes] | NEW-VALUE 2 [3 Bytes] | CRC1 |CRC2 | ETX | SF |
+		// __|_____________________________|_______________________|_______________________|______|_____|_____|____|
+		//
+		//YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+
+		//'50 38   67 0E   12 34 12 34 56 78    00 00 18 03 67 00 00   00 00 00 59 57 83 27   ab 03 fa '
+
+		//####################################################################################################################################################################
+
+	unsigned char bcd_[6] = {0};  // Array to hold the BCD result
+
+	switch(track_num1_)
+	{
+			case MO1 :  // Mode => Manual/Auto                      					// index ==> 0x00
+						track_num1++;
+						if(settings_original_stream1[0].mode != settings_stream1[0].mode)
+						{
+							DART_BUFF1[10] = MO1;
+
+							memset(bcd_, 0, sizeof(bcd_));
+
+							int_to_bcd(settings_original_stream1[0].mode, bcd_);
+
+							for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+							{
+								DART_BUFF1[ii + 11] = bcd_[j];
+							}
+
+							memset(bcd_, 0, sizeof(bcd_));
+
+							int_to_bcd(settings_stream1[0].mode, bcd_);
+
+							for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>3 : MSB in it, LSB is in j=>0
+							{
+								DART_BUFF1[ii + 14] = bcd_[j];
+							}
+
+							valid_pair1++;
+						}
+
+			case NA1 :  // Nozzle Address												// index ==> 0x01
+						track_num1++;
+						if(settings_original_stream1[0].noz_addr != settings_stream1[0].noz_addr)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = NA1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].noz_addr, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].noz_addr, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = NA1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].noz_addr, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].noz_addr, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+			case NO1 :	// Nozzle Override												// index ==> 0x02
+						track_num1++;
+						if(settings_original_stream1[0].noz_override != settings_stream1[0].noz_override)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = NO1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].noz_override, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].noz_override, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = NO1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].noz_override, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].noz_override, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+			case NC1 :  // Nozzle Count													// index ==> 0x03
+						track_num1++;
+						if(settings_original_stream2[0].noz_count != settings_stream2[0].noz_count)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = NC1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[0].noz_count, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[0].noz_count, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = NC1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[0].noz_count, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[0].noz_count, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+			case UN1 :  // Unit Price													// index ==> 0x04
+						track_num1++;
+						if(settings_original_stream1[0].dp_unitprice != settings_stream1[0].dp_unitprice)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = UN1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].dp_unitprice, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].dp_unitprice, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = UN1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].dp_unitprice, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].dp_unitprice, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+			case TO1 :  // Timeout => No-Flow											// index ==> 0x06
+						track_num1++;
+						if(settings_original_stream1[0].timeOut_noFlow != settings_stream1[0].timeOut_noFlow)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = TO1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].timeOut_noFlow, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].timeOut_noFlow, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = TO1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].timeOut_noFlow, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].timeOut_noFlow, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+			case ML1 :  // Maximum Litre												// index ==> 0x07
+						track_num1++;
+						if(settings_original_stream1[0].max_amt_ != settings_stream1[0].max_amt_)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = ML1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].max_amt_, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].max_amt_, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = ML1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].max_amt_, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].max_amt_, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+			case PW1 :  // Password-1 Change											// index ==> 0x08
+						track_num1++;
+						if(strcmp(settings_original_stream3[0].passwd1, settings_stream3[0].passwd1) != 0)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = PW1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream3[0].passwd1, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream3[0].passwd1, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = PW1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream3[0].passwd1, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream3[0].passwd1, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+			case PW2 :  // Password-2 Change											// index ==> 0x09
+						track_num1++;
+						if(strcmp(settings_original_stream3[0].passwd2, settings_stream3[0].passwd2) != 0)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = PW2;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream3[0].passwd2, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream3[0].passwd2, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = PW2;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream3[0].passwd2, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream3[0].passwd2, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+			case PW3 :  // Password-3 Change											// index ==> 0x0A
+						track_num1++;
+						if(strcmp(settings_original_stream3[0].passwd3, settings_stream3[0].passwd3) != 0)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = PW3;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream3[0].passwd3, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream3[0].passwd3, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = PW3;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream3[0].passwd3, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream3[0].passwd3, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+			case CV1 :  // Calibration Value-1 => Apparent Pulser-index					// index ==> 0x0B
+						track_num1++;
+						if(settings_original_stream1[0].pi_real != settings_stream1[0].pi_real)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = NO1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].pi_real, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].pi_real, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = NO1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].pi_real, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].pi_real, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+			case CV2 :  // Calibration Value-2 => Apparent Pulser-index					// index ==> 0x0C
+						track_num1++;
+						if(settings_original_stream1[0].pi_cal != settings_stream1[0].pi_cal)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = CV2;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].pi_cal, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].pi_cal, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = CV2;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].pi_cal, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].pi_cal, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+			case CS1 :  // Calibration Can-size											// index ==> 0x0D
+						track_num1++;
+						if(settings_original_stream2[0].calibration_measureCan != settings_stream2[0].calibration_measureCan)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = CS1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[0].calibration_measureCan, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[0].calibration_measureCan, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = CS1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[0].calibration_measureCan, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[0].calibration_measureCan, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+			case DP1 :  // Display Decimal Point-1	=> 	Amount						// index ==> 0x0E
+						track_num1++;
+						if(settings_original_stream1[0].dp_amount != settings_stream1[0].dp_amount)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = DP1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].dp_amount, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].dp_amount, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = DP1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].dp_amount, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].dp_amount, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+			case DP2 :  // Display Decimal Point-2	=> 	Volume						// index ==> 0x0F
+						track_num1++;if(settings_original_stream1[0].dp_vol != settings_stream1[0].dp_vol)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = DP2;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].dp_vol, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].dp_vol, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = DP2;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].dp_vol, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].dp_vol, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+			case DP3 :  // Display Decimal Point-3	=> 	Unit Price						// index ==> 0x10
+						track_num1++;
+						if(settings_original_stream1[0].dp_unitprice != settings_stream1[0].dp_unitprice)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = DP3;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].dp_unitprice, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].dp_unitprice, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = DP3;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].dp_unitprice, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].dp_unitprice, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+			case DS1 :   // Display Format => L/P or P/L									// index ==> 0x11
+						track_num1++;
+						if(settings_original_stream1[0].display_format != settings_stream1[0].display_format)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = DS1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].display_format, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].display_format, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = DS1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].display_format, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].display_format, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+			case DT1 :    // Volume Display Threshold										// index ==> 0x12
+						track_num1++;
+						if(settings_original_stream2[0].startUp_suppressVol != settings_stream2[0].startUp_suppressVol)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = DT1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[0].startUp_suppressVol, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[0].startUp_suppressVol, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = DT1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[0].startUp_suppressVol, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[0].startUp_suppressVol, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+			case SL1 :	// Shift Login Type												// index ==> 0x13
+						track_num1++;
+						if(settings_original_stream2[0].shift_login_type != settings_stream2[0].shift_login_type)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = SL1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[0].shift_login_type, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[0].shift_login_type, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = SL1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[0].shift_login_type, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[0].shift_login_type, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+			case SC1 :	// Shift-Count per day											// index ==> 0x14
+						track_num1++;
+						if(settings_original_stream2[0].number_of_shifts != settings_stream2[0].number_of_shifts)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = SC1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[0].number_of_shifts, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[0].number_of_shifts, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = SC1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[0].number_of_shifts, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[0].number_of_shifts, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+			case TN1 :	// Tone															// index ==> 0x15
+						track_num1++;
+						if(settings_original_stream2[0].keypress_tone != settings_stream2[0].keypress_tone)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = TN1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[0].keypress_tone, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[0].keypress_tone, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = TN1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[0].keypress_tone, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[0].keypress_tone, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+			case PT1 :	// Pulser Type => Quadrature/Non-Quadrature						// index ==> 0x16
+						track_num1++;
+						if(settings_original_stream2[0].pulser_type_ != settings_stream2[0].pulser_type_)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = PT1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[0].pulser_type_, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[0].pulser_type_, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = PT1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[0].pulser_type_, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[0].pulser_type_, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+			case PO1 :	// Pulser Offset Value											// index ==> 0x17
+						track_num1++;if(settings_original_stream2[0].pulser_offset != settings_stream2[0].pulser_offset)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = PO1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].noz_override, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].noz_override, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = PO1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[0].noz_override, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[0].noz_override, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+			case SF1 :	// Start Slow-Flow Width										// index ==> 0x18
+						track_num1++;
+						if(settings_original_stream2[0].valve_salesStart != settings_stream2[0].valve_salesStart)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = SF1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[0].valve_salesStart, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[0].valve_salesStart, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = SF1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[0].valve_salesStart, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[0].valve_salesStart, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+			case SF2 :  		// Closing Slow-Flow Width                       				// index ==> 0x19  ==>0d25
+						track_num1++;
+						if(settings_original_stream2[0].valve_salesEnd != settings_stream2[0].valve_salesEnd)
+						{
+							if(valid_pair1 == 0)
+							{
+								DART_BUFF1[10] = SF2;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[0].valve_salesEnd, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[0].valve_salesEnd, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1++;
+							}
+							else
+							{
+								DART_BUFF1[17] = SF2;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[0].valve_salesEnd, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 11] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[0].valve_salesEnd, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF1[ii + 14] = bcd_[j];
+								}
+
+								valid_pair1 = 0;
+
+								return 2;
+							}
+						}
+
+						//=====================================================================//
+						// If only one modification is made on the config
+						// valid_pair1 => 1  : @ this very stage
+						//=====================================================================//
+						if(valid_pair1 == 1)
+						{
+//							DART_BUFF1[3] = 13;  //Data-Length
+							return 1;
+						}
+						//=====================================================================//
+						// If no modification is made on the config
+						// valid_pair1 => 0  : @ this very stage
+						//=====================================================================//
+						else if(valid_pair1 == 0)
+						{
+							return 0;
+						}
+
+		}
+}
+
+
+//TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+//  _________________________________________________________________________________________________________________________________________________________________
+// | NOZ-NUM | TX-NUM | TX-CODE | TX-LEN | OTP-SEED [2 Bytes] | TIMESTAMP [4 Bytes] | CONFIG-1 PARTICULAR [1 Byte] | OLD-VALUE 1 [3 Bytes] | NEW-VALUE 1 [3 Bytes]|
+// |_________|________|_________|________|____________________|_____________________|______________________________|_______________________|______________________|__
+// ________________________________________________________________________________________________________
+//   |CONFIG-2 PARTICULAR [1 Byte] | OLD-VALUE 2 [3 Bytes] | NEW-VALUE 2 [3 Bytes] | CRC1 |CRC2 | ETX | SF |
+// __|_____________________________|_______________________|_______________________|______|_____|_____|____|
+//
+//YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+
+//'50 38 67 14 12 34 12 34 56 78    00 00 18 03 67 00 00   00 00 00 59 57 83 27   ab 03 fa '
+
+//####################################################################################################################################################################
 
 
 //void parse_decode2(void)

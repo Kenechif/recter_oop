@@ -266,6 +266,8 @@ extern ctTimed_settings ctTimed_settingsB;
 
 extern _calibrationData calibrationData[2];
 
+extern OtpSeed_Session otpSeed_session[2];
+
 bool leapYear_calc2(int8_t year);
 void save_date2(int8_t _entri);
 

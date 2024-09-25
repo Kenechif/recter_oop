@@ -661,7 +661,7 @@ void epSend_interval(void)
 			char ep200[1000];
 			char str[80];
 
-			retrieve_settings0();
+			retrieve_settings_original();
 			retrieve_otp(side_a);
 
 			memset(ep200, '\0', sizeof(ep200));
@@ -672,129 +672,129 @@ void epSend_interval(void)
 			sprintf(str, ",\"otp1\":\"%s\"", otp_code1);
 			strcat(ep200, str);
 
-			if(settings_config_stream1[0].noz_addr != settings_stream1[0].noz_addr)
+			if(settings_original_stream1[0].noz_addr != settings_stream1[0].noz_addr)
 			{
-				sprintf(str, ",\"na\":\"%d|%d\"", settings_config_stream1[0].noz_addr, settings_stream1[0].noz_addr);
+				sprintf(str, ",\"na\":\"%d|%d\"", settings_original_stream1[0].noz_addr, settings_stream1[0].noz_addr);
 				strcat(ep200, str);
 			}
-			if(settings_config_stream1[0].mode != settings_stream1[0].mode)
+			if(settings_original_stream1[0].mode != settings_stream1[0].mode)
 			{
-				sprintf(str, ",\"md\":\"%d|%d\"", settings_config_stream1[0].mode, settings_stream1[0].mode);
+				sprintf(str, ",\"md\":\"%d|%d\"", settings_original_stream1[0].mode, settings_stream1[0].mode);
 				strcat(ep200, str);
 			}
-			if(settings_config_stream1[0].noz != settings_stream1[0].noz)
+			if(settings_original_stream1[0].noz_override != settings_stream1[0].noz_override)
 			{
-				sprintf(str, ",\"no\":\"%d|%d\"", settings_config_stream1[0].noz, settings_stream1[0].noz);
+				sprintf(str, ",\"no\":\"%d|%d\"", settings_original_stream1[0].noz_override, settings_stream1[0].noz_override);
 				strcat(ep200, str);
 			}
-			if(settings_config_stream1[0].price_ != settings_stream1[0].price_)
+			if(settings_original_stream1[0].price_ != settings_stream1[0].price_)
 			{
-				sprintf(str, ",\"pr\":\"%0.2f|%0.2f\"", settings_config_stream1[0].price_, settings_stream1[0].price_);
+				sprintf(str, ",\"pr\":\"%0.2f|%0.2f\"", settings_original_stream1[0].price_, settings_stream1[0].price_);
 				strcat(ep200, str);
 			}
-			if(settings_config_stream2[0].noFlow_timeOut != settings_stream2[0].noFlow_timeOut)
+			if(settings_original_stream1[0].timeOut_noFlow != settings_stream1[0].timeOut_noFlow)
 			{
-				sprintf(str, ",\"nfl\":\"%d|%d\"", settings_config_stream2[0].noFlow_timeOut, settings_stream2[0].noFlow_timeOut);
+				sprintf(str, ",\"nfl\":\"%d|%d\"", settings_original_stream1[0].timeOut_noFlow, settings_stream1[0].timeOut_noFlow);
 				strcat(ep200, str);
 			}
-			if(settings_config_stream1[0].max_amt_ != settings_stream1[0].max_amt_)
+			if(settings_original_stream1[0].max_amt_ != settings_stream1[0].max_amt_)
 			{
-				sprintf(str, ",\"lmt\":\"%d|%d\"", settings_config_stream1[0].max_amt_, settings_stream1[0].max_amt_);
+				sprintf(str, ",\"lmt\":\"%d|%d\"", settings_original_stream1[0].max_amt_, settings_stream1[0].max_amt_);
 				strcat(ep200, str);
 			}
-			if(settings_config_stream1[0].dp_amount != settings_stream1[0].dp_amount)
+			if(settings_original_stream1[0].dp_amount != settings_stream1[0].dp_amount)
 			{
-				sprintf(str, ",\"dpp\":\"%d|%d\"", settings_config_stream1[0].dp_amount, settings_stream1[0].dp_amount);
+				sprintf(str, ",\"dpp\":\"%d|%d\"", settings_original_stream1[0].dp_amount, settings_stream1[0].dp_amount);
 				strcat(ep200, str);
 			}
-			if(settings_config_stream1[0].dp_vol != settings_stream1[0].dp_vol)
+			if(settings_original_stream1[0].dp_vol != settings_stream1[0].dp_vol)
 			{
-				sprintf(str, ",\"dpa\":\"%d|%d\"", settings_config_stream1[0].dp_vol, settings_stream1[0].dp_vol);
+				sprintf(str, ",\"dpa\":\"%d|%d\"", settings_original_stream1[0].dp_vol, settings_stream1[0].dp_vol);
 				strcat(ep200, str);
 			}
-			if(settings_config_stream1[0].dp_unitprice != settings_stream1[0].dp_unitprice)
+			if(settings_original_stream1[0].dp_unitprice != settings_stream1[0].dp_unitprice)
 			{
-				sprintf(str, ",\"dpu\":\"%d|%d\"", settings_config_stream1[0].dp_unitprice, settings_stream1[0].dp_unitprice);
+				sprintf(str, ",\"dpu\":\"%d|%d\"", settings_original_stream1[0].dp_unitprice, settings_stream1[0].dp_unitprice);
 				strcat(ep200, str);
 			}
-			if(settings_config_stream2[0].side_size != settings_stream2[0].side_size)
+			if(settings_original_stream2[0].noz_count != settings_stream2[0].noz_count)
 			{
-				sprintf(str, ",\"ss\":\"%d|%d\"", settings_config_stream2[0].side_size, settings_stream2[0].side_size);
+				sprintf(str, ",\"ss\":\"%d|%d\"", settings_original_stream2[0].noz_count, settings_stream2[0].noz_count);
 				strcat(ep200, str);
 			}
-			if(settings_config_stream1[0].display_mode != settings_stream1[0].display_mode)
+			if(settings_original_stream1[0].display_format != settings_stream1[0].display_format)
 			{
-				sprintf(str, ",\"dm\":\"%d|%d\"", settings_config_stream1[0].display_mode, settings_stream1[0].display_mode);
+				sprintf(str, ",\"dm\":\"%d|%d\"", settings_original_stream1[0].display_format, settings_stream1[0].display_format);
 				strcat(ep200, str);
 			}
-			if(settings_config_stream2[0].keypress_tone != settings_stream2[0].keypress_tone)
+			if(settings_original_stream2[0].keypress_tone != settings_stream2[0].keypress_tone)
 			{
-				sprintf(str, ",\"kt\":\"%d|%d\"", settings_config_stream2[0].keypress_tone, settings_stream2[0].keypress_tone);
+				sprintf(str, ",\"kt\":\"%d|%d\"", settings_original_stream2[0].keypress_tone, settings_stream2[0].keypress_tone);
 				strcat(ep200, str);
 			}
-			if(settings_config_stream2[0].startUp_suppressVol != settings_stream2[0].startUp_suppressVol)
+			if(settings_original_stream2[0].startUp_suppressVol != settings_stream2[0].startUp_suppressVol)
 			{
-				sprintf(str, ",\"sv\":\"%0.2f|%0.2f\"", settings_config_stream2[0].startUp_suppressVol, settings_stream2[0].startUp_suppressVol);
+				sprintf(str, ",\"sv\":\"%0.2f|%0.2f\"", settings_original_stream2[0].startUp_suppressVol, settings_stream2[0].startUp_suppressVol);
 				strcat(ep200, str);
 			}
-			if(settings_config_stream2[0].calibration_measureCan != settings_stream2[0].calibration_measureCan)
+			if(settings_original_stream2[0].calibration_measureCan != settings_stream2[0].calibration_measureCan)
 			{
-				sprintf(str, ",\"mc\":\"%d|%d\"", settings_config_stream2[0].calibration_measureCan, settings_stream2[0].calibration_measureCan);
+				sprintf(str, ",\"mc\":\"%d|%d\"", settings_original_stream2[0].calibration_measureCan, settings_stream2[0].calibration_measureCan);
 				strcat(ep200, str);
 			}
-			if(settings_config_stream2[0].number_of_shifts != settings_stream2[0].number_of_shifts)
+			if(settings_original_stream2[0].number_of_shifts != settings_stream2[0].number_of_shifts)
 			{
-				sprintf(str, ",\"sn\":\"%d|%d\"", settings_config_stream2[0].number_of_shifts, settings_stream2[0].number_of_shifts);
+				sprintf(str, ",\"sn\":\"%d|%d\"", settings_original_stream2[0].number_of_shifts, settings_stream2[0].number_of_shifts);
 				strcat(ep200, str);
 			}
-			if(settings_config_stream2[0].calibration_type != settings_stream2[0].calibration_type)
+			if(settings_original_stream2[0].calibration_type != settings_stream2[0].calibration_type)
 			{
-				sprintf(str, ",\"ct\":\"%d|%d\"", settings_config_stream2[0].calibration_type, settings_stream2[0].calibration_type);
+				sprintf(str, ",\"ct\":\"%d|%d\"", settings_original_stream2[0].calibration_type, settings_stream2[0].calibration_type);
 				strcat(ep200, str);
 			}
-			if(settings_config_stream2[0].commCard_enforced != settings_stream2[0].commCard_enforced)
+			if(settings_original_stream2[0].commCard_enforced != settings_stream2[0].commCard_enforced)
 			{
-				sprintf(str, ",\"cc\":\"%d|%d\"", settings_config_stream2[0].commCard_enforced, settings_stream2[0].commCard_enforced);
+				sprintf(str, ",\"cc\":\"%d|%d\"", settings_original_stream2[0].commCard_enforced, settings_stream2[0].commCard_enforced);
 				strcat(ep200, str);
 			}
-			if(strcmp(settings_config_stream3[0].passwd1, settings_stream3[0].passwd1) != 0)
+			if(strcmp(settings_original_stream3[0].passwd1, settings_stream3[0].passwd1) != 0)
 			{
-				sprintf(str, ",\"pwd1\":\"%s|%s\"", settings_config_stream3[0].passwd1, settings_stream3[0].passwd1);
+				sprintf(str, ",\"pwd1\":\"%s|%s\"", settings_original_stream3[0].passwd1, settings_stream3[0].passwd1);
 				strcat(ep200, str);
 			}
-			if(strcmp(settings_config_stream3[0].passwd2, settings_stream3[0].passwd2) != 0)
+			if(strcmp(settings_original_stream3[0].passwd2, settings_stream3[0].passwd2) != 0)
 			{
-				sprintf(str, ",\"pwd2\":\"%s|%s\"", settings_config_stream3[0].passwd2, settings_stream3[0].passwd2);
+				sprintf(str, ",\"pwd2\":\"%s|%s\"", settings_original_stream3[0].passwd2, settings_stream3[0].passwd2);
 				strcat(ep200, str);
 			}
-			if(strcmp(settings_config_stream3[0].passwd3, settings_stream3[0].passwd3) != 0)
+			if(strcmp(settings_original_stream3[0].passwd3, settings_stream3[0].passwd3) != 0)
 			{
-				sprintf(str, ",\"pwd3\":\"%s|%s\"", settings_config_stream3[0].passwd3, settings_stream3[0].passwd3);
+				sprintf(str, ",\"pwd3\":\"%s|%s\"", settings_original_stream3[0].passwd3, settings_stream3[0].passwd3);
 				strcat(ep200, str);
 			}
-			if(settings_config_stream2[0].shift_login_type != settings_stream2[0].shift_login_type)
+			if(settings_original_stream2[0].shift_login_type != settings_stream2[0].shift_login_type)
 			{
-				sprintf(str, ",\"lt\":\"%d|%d\"", settings_config_stream2[0].shift_login_type, settings_stream2[0].shift_login_type);
+				sprintf(str, ",\"lt\":\"%d|%d\"", settings_original_stream2[0].shift_login_type, settings_stream2[0].shift_login_type);
 				strcat(ep200, str);
 			}
-			if(settings_config_stream2[0].pulser_type_ != settings_stream2[0].pulser_type_)
+			if(settings_original_stream2[0].pulser_type_ != settings_stream2[0].pulser_type_)
 			{
-				sprintf(str, ",\"pt\":\"%d|%d\"", settings_config_stream2[0].pulser_type_, settings_stream2[0].pulser_type_);
+				sprintf(str, ",\"pt\":\"%d|%d\"", settings_original_stream2[0].pulser_type_, settings_stream2[0].pulser_type_);
 				strcat(ep200, str);
 			}
-			if(settings_config_stream2[0].pulser_offset != settings_stream2[0].pulser_offset)
+			if(settings_original_stream2[0].pulser_offset != settings_stream2[0].pulser_offset)
 			{
-				sprintf(str, ",\"pof\":\"%d|%d\"", settings_config_stream2[0].pulser_offset, settings_stream2[0].pulser_offset);
+				sprintf(str, ",\"pof\":\"%d|%d\"", settings_original_stream2[0].pulser_offset, settings_stream2[0].pulser_offset);
 				strcat(ep200, str);
 			}
-			if(settings_config_stream2[0].valve_salesStart != settings_stream2[0].valve_salesStart)
+			if(settings_original_stream2[0].valve_salesStart != settings_stream2[0].valve_salesStart)
 			{
-				sprintf(str, ",\"vs\":\"%0.2f|%0.2f\"", settings_config_stream2[0].valve_salesStart, settings_stream2[0].valve_salesStart);
+				sprintf(str, ",\"vs\":\"%0.2f|%0.2f\"", settings_original_stream2[0].valve_salesStart, settings_stream2[0].valve_salesStart);
 				strcat(ep200, str);
 			}
-			if(settings_config_stream2[0].valve_salesEnd != settings_stream2[0].valve_salesEnd)
+			if(settings_original_stream2[0].valve_salesEnd != settings_stream2[0].valve_salesEnd)
 			{
-				sprintf(str, ",\"ve\":\"%0.2f|%0.2f\"", settings_config_stream2[0].valve_salesEnd, settings_stream2[0].valve_salesEnd);
+				sprintf(str, ",\"ve\":\"%0.2f|%0.2f\"", settings_original_stream2[0].valve_salesEnd, settings_stream2[0].valve_salesEnd);
 				strcat(ep200, str);
 			}
 

@@ -35,13 +35,13 @@ extern pump disp_type1,
 //extern pump_settings settings[2];
 
 extern pump_settings_stream1 settings_stream1[2],
-					 	 	 settings_config_stream1[2];
+					 	 	 settings_original_stream1[2];
 
 extern pump_settings_stream2 settings_stream2[2],
-							 settings_config_stream2[2];
+							 settings_original_stream2[2];
 
 extern pump_settings_stream3 settings_stream3[2],
-				       	     settings_config_stream3[2],
+				       	     settings_original_stream3[2],
 							 copy_stream3[2];
 
 extern ADC_HandleTypeDef hadc1;

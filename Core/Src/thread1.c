@@ -76,15 +76,15 @@ extern I2C_HandleTypeDef hi2c1;
 
 
 extern pump_settings_stream1 settings_stream1[2],
-						     settings_config_stream1[2],
+						     settings_original_stream1[2],
 						     copy_stream1[2];
 
 extern pump_settings_stream2 settings_stream2[2],
-				       	     settings_config_stream2[2],
+				       	     settings_original_stream2[2],
 							 copy_stream2[2];
 
 extern pump_settings_stream3 settings_stream3[2],
-				       	     settings_config_stream3[2],
+				       	     settings_original_stream3[2],
 							 copy_stream3[2];
 
 extern pump_status_enum pump_status_1,
@@ -1503,6 +1503,17 @@ void compose_printer()
     	  drive_motor1(DEACTIVATE);
     	  drive_motor2(DEACTIVATE);
     	  HAL_Delay(1000);
+
+    	  drive_slow_sole1(ACTIVATE);
+        	  drive_slow_sole2(ACTIVATE);
+        	  drive_fast_sole1(ACTIVATE);
+        	  drive_fast_sole2(ACTIVATE);
+        	  HAL_Delay(1000);
+        	  drive_slow_sole1(DEACTIVATE);
+        	  drive_slow_sole2(DEACTIVATE);
+        	  drive_fast_sole1(DEACTIVATE);
+        	  drive_fast_sole2(DEACTIVATE);
+        	  HAL_Delay(1000);
       }
 #endif
 
@@ -1677,6 +1688,19 @@ tmmm:
 	  clear_1stvolTotaliser_day_fram(side_a);
 	  clear_1stvolTotaliser_day_fram(side_b);
 
+	  clear_configFlag_fram(side_a);
+	  clear_configFlag_fram(side_b);
+
+	  clear_configChange_trackNum_fram(side_a);
+	  clear_configChange_trackNum_fram(side_b);
+
+	  clear_otpSeed_fram(side_a);
+	  clear_otpSeed_fram(side_b);
+
+	  clear_otpSeed_session_fram(side_a);
+	  clear_otpSeed_session_fram(side_b);
+
+
 //	  clear_ctSettings(side_a);
 //	  clear_ctSettings(side_b);
 
@@ -1721,10 +1745,10 @@ tmmm:
 		 settings_stream1[0].noz_addr = 0x01;
 		 settings_stream1[1].noz_addr = 0x02;
 
-		 settings_stream1[0].pi_ = 797.15;   //798.1;  //407.3;   //399.25;   //798.35;
-		 settings_stream1[0].pi_c = 797.15;  //767.40;  //391.64;   //383.89;  //760.33;
-		 settings_stream1[1].pi_ = 799.8;    //799.25;  //399.25;   //798.35;
-		 settings_stream1[1].pi_c = 799.8;   //768.51;   //383.89;  //760.33;
+		 settings_stream1[0].pi_real = 797.15;   //798.1;  //407.3;   //399.25;   //798.35;
+		 settings_stream1[0].pi_cal = 797.15;  //767.40;  //391.64;   //383.89;  //760.33;
+		 settings_stream1[1].pi_real = 799.8;    //799.25;  //399.25;   //798.35;
+		 settings_stream1[1].pi_cal = 799.8;   //768.51;   //383.89;  //760.33;
 
 //		Pulser_count1 = 15962 20|0.8|0.0
 //		Pulser_count2 = 15985 20|0.8|0.0
@@ -1737,8 +1761,8 @@ tmmm:
 		 vol_effective1 = 20;   //20.8;    //21.0;
 		 vol_effective2 = 20;   //20.8;
 
-		 calib_pulser1 =  (settings_stream1[0].pi_c * vol_calibrated1);
-		 calib_pulser2 =  (settings_stream1[1].pi_c * vol_calibrated2);
+		 calib_pulser1 =  (settings_stream1[0].pi_cal * vol_calibrated1);
+		 calib_pulser2 =  (settings_stream1[1].pi_cal * vol_calibrated2);
 
 //		 save_settings();
 		 save_settings_fram();
@@ -2139,7 +2163,7 @@ skip_test:
 //    settings_stream1[0].mode = AUTO_MODE;    //AUTO_MODE;
 //
 //    settings_stream1[0].noz = nooverride;  //nooveride
-    settings_stream1[0].noz = override;  //nooveride
+    settings_stream1[0].noz_override = override;  //nooveride
 
 //    settings_stream2[0].calibration_measureCan = 2;
 

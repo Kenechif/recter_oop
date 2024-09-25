@@ -21,7 +21,13 @@ I2C_HandleTypeDef *_ds1307_ui2c;
 
 extern I2C_HandleTypeDef hi2c1;
 
-uint8_t hour,minute,second,day,month,year,dayofweek = 0 ;
+uint8_t hour,
+		minute,
+		second,
+		day,
+		month,
+		year,
+		dayofweek = 0;
 
 
 /**

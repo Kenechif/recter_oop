@@ -288,6 +288,8 @@ static bool mth_success = false,
 //int8_t pump_LitreOverflow = 0;
 //static int8_t idleState_flag = 1;
 
+extern OtpSeed_Session otpSeed_session[2];
+
 extern float lastVolumeSale1,
 	  	  	 lastVolumeSale1c,
 			 lastAmountSale1,

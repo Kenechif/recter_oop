@@ -50,13 +50,13 @@ extern char uart5_rx_buf[pump_rx_bufsize];
 //					 settings0[2];
 
 extern pump_settings_stream1 settings_stream1[2],
-					 	 	 settings_config_stream1[2];
+					 	 	 settings_original_stream1[2];
 
 extern pump_settings_stream2 settings_stream2[2],
-							 settings_config_stream2[2];
+							 settings_original_stream2[2];
 
 extern pump_settings_stream3 settings_stream3[2],
-				       	     settings_config_stream3[2],
+				       	     settings_original_stream3[2],
 							 copy_stream3[2];
 
 extern bool go_message;
@@ -107,11 +107,18 @@ uint8_t  DART_BUFF1[128],
 		 array_len,
 		 array_len2;
 
+uint8_t set_param1[51],
+		set_param2[51];
+
+uint32_t update_date_time;
+
 
 uint8_t	 r_raw_data1[128],
 		 r_raw_data2[128];
 
 //uint8_t rx_buf1[pump_rx_bufsize] = {0};
+
+extern ConfigChange configChange[2];
 
 extern int millis;
 
@@ -204,6 +211,7 @@ extern bool nozzle_out1,
 				DATA_SET_PUMP_PARAM,
 				DATA_CLEAR_OTP_SESSION,
 				DATA_REQUEST_CONFIG_CHANGE_INFO,
+				DATA_DATE_TIME_UPDATE,
 
 
 				// PRESET_VOL,	//Set the respective volume of these before using them
@@ -549,7 +557,7 @@ void parse_message1(unsigned char* arr);
 
 void int_to_bcd(int num, unsigned char *bcd);
 
-double roundUp(float value, int decimalPlaces);
+double round_off(float value, int decimalPlaces);
 
 void dart_init(void);
 
@@ -560,6 +568,8 @@ void send_fillingInfo1(uint8_t buff_index);
 void send_nozzleStatus2(uint8_t buff_index);
 void send_pumpStatus2(uint8_t buff_index);
 void send_fillingInfo2(uint8_t buff_index);
+
+uint8_t configChange_notify_build(uint8_t track_num_);
 
 
 #endif /* SOURCE_GOGO_P_WAYNE_485_H_ */

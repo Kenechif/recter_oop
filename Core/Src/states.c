@@ -63,6 +63,8 @@ extern const uint32_t flash_endB;
 
 extern uint8_t prog_entry1;
 
+extern ConfigChange configChange[2];
+
 int8_t index_menu = 0;
 
 uint8_t dummyValue = 0;
@@ -83,6 +85,9 @@ uint16_t countar = 0,
 float price_dp;
 
 extern float temppp_ = 0.000;
+
+
+extern uint16_t otp_seed1 = 0;
 
 eSystemState eNextState1_1;
 eSystemEvent eNewEvent1_1;
@@ -137,15 +142,15 @@ extern uint8_t ep1a_priceChangeFlag1 = 0;
 //					 settings0[2];
 
 extern pump_settings_stream1 settings_stream1[2],
-						     settings_config_stream1[2],
+						     settings_original_stream1[2],
 						     copy_stream1[2];
 
 extern pump_settings_stream2 settings_stream2[2],
-				       	     settings_config_stream2[2],
+				       	     settings_original_stream2[2],
 							 copy_stream2[2];
 
 extern pump_settings_stream3 settings_stream3[2],
-				       	     settings_config_stream3[2],
+				       	     settings_original_stream3[2],
 							 copy_stream3[2];
 
 extern int8_t ttime[3],
@@ -718,50 +723,24 @@ sEventMachine asEventMachine_1 [] =
 sStateEventMachine asStateEventMachine_1 [] =
 {
 	{prog_State, progState_Handler,{_keydown_Event,_keypress_Event}},
-//    {idle_State,idlestate_Handler,{_operator_Event,_keyup_Event,_tot_error_Event,_keypress_Event,_nozzleup_Event,_auth_command_Event, _nozzledown_Event}},
-	//{fillingcomplete_State, fillingcompletestate_Handler, {_nozzleup_Event, _resetcommand_Event, _switchoffcommand_Event}},
 	{idle_State, idleState_Handler, {_operator_Event,_keyup_Event,_tot_error_Event, _keypress_Event,_nozzleup_Event, _auth_command_Event, _nozzledown_Event, _resetcommand_Event, _switchoffcommand_Event}},
 	{inactive_State, inactiveState_Handler,{_error_clear_Event, _keyup_Event, _keypress_Event}},
-//    {nozzleup_waitingforauth_State,nozzleup_waitingforauthState_Handler,{_authorise_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
-//	{reset_State, resetState_Handler, {_authorisecommand_Event, _stopcommand_Event, _switchoffcommand_Event, hardwarereset_Event, hardwareerror_Event}},
 	{nozzleup_waitingforauth_State, nozzleup_waitingforauthState_Handler, {_authorise_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _authorisecommand_Event, _stopcommand_Event, _switchoffcommand_Event, _hardwarereset_Event, _hardwareerror_Event}},
-
 	{authorised_nozzledown_State, authorised_nozzledown_State_Handler,{_nozzleup_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
-//    {authorised_nozzleup_State,authorised_nozzleup_State_Handler,{_filling_pulse_Event,_pause_Event,_timeout_Event,_nozzledown_Event,_keypress_Event,_function_key_Event}},
 	{authorised_nozzleup_State, authorised_nozzleup_State_Handler, {_filling_pulse_Event,_pause_Event,_timeout_Event,_nozzledown_Event,_keypress_Event,_function_key_Event, _stopcommand_Event, _auth_suspendcommand_Event, _hardwarereset_Event, _hardwareerror_Event}},
-
-//	{authorisation_paused_State,authorisation_paused_State_Handler,{_resume_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
 	{authorisation_paused_State, authorisation_paused_State_Handler, {_resume_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _auth_resumecommand_Event,  _stopcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _switchoffcommand_Event}},
 	{authorisation_resumed_State, authorisation_resumed_State_Handler, {}},
-
-//	{filling_State,filling_state_Handler,{_filling_paused_Event,_keypress_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
 	{filling_State, filling_State_Handler, {_filling_paused_Event,_keypress_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _stopcommand_Event, _filling_suspendcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _mamo_Event, _switchoffcommand_Event}},
-
-//	{filling_paused_State,filling_paused_state_Handler,{_filling_resumed_Event,_keypress_Event,_timeout_Event,_nozzledown_Event}},
 	{filling_paused_State, filling_paused_State_Handler, {_filling_resumed_Event, _keypress_Event, _timeout_Event,_nozzledown_Event, _filling_resumecommand_Event, _stopcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _switchoffcommand_Event}},
 	{filling_resumed_State, filling_resumed_State_Handler, {}},
-
 	{keypad_entry_State, keypad_entry_State_Handler, {}},
 	{operator_State, operator_State_Handler, {_keypress_Event}},
 	{savesettings_State, savesettings_State_Handler, {_keypress_Event}},
 	{read_flash_State, read_flash_State_Handler, {}},
 	{write_flash_State, write_flash_State_Handler, {}},
-
 	{switchedoff_State, switchedoffState_Handler, {_stopcommand_Event, _resetcommand_Event}},
     {pnp_State, pnpState_Handler, {_fillingcomplete_Event}},
-//    {fillingcomplete_State, fillingcompletestate_Handler, {_nozzleup_Event, _resetcommand_Event, _switchoffcommand_Event}},
-//	{idle_State,idlestate_Handler,{_operator_Event,_keyup_Event,_tot_error_Event,_keypress_Event,_nozzleup_Event,_auth_command_Event, _nozzledown_Event}},
-	//{_nozzleup_Event, _resetcommand_Event, _switchoffcommand_Event}},
-//	{fillingcomplete_State, fillingcompletestate_Handler, {_operator_Event,_keyup_Event,_tot_error_Event,_keypress_Event,_nozzleup_Event,_auth_command_Event, _nozzledown_Event, _resetcommand_Event, _switchoffcommand_Event}},
-
-//	{reset_State, resetState_Handler, {_authorisecommand_Event, _stopcommand_Event, _switchoffcommand_Event, hardwarereset_Event, hardwareerror_Event}},
-//	{authorised_State, authorisedState_Handler,{_nozzleup_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _stopcommand_Event, hardwarereset_Event, hardwareerror_Event, _suspendcommand_Event}},
-//    {authorised_nozzleup_State,authorised_nozzleup_State_Handler,{_filling_pulse_Event,_pause_Event,_timeout_Event,_nozzledown_Event,_keypress_Event,_function_key_Event, _stopcommand_Event, _suspendcommand_Event, hardwarereset_Event, hardwareerror_Event}},
-//	{authorisation_paused_State,authorisation_paused_State_Handler,{_resume_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _auth_resumecommand_Event,  _stopcommand_Event, hardwarereset_Event, hardwareerror_Event, _switchoffcommand_Event}},
-//	{filling_State, filling_state_Handler,{_filling_paused_Event,_keypress_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _stopcommand_Event, _suspendcommand_Event, hardwarereset_Event, hardwareerror_Event, mamo_Event, _switchoffcommand_Event}},
-//	{filling_paused_State, filling_paused_state_Handler,{_filling_resumed_Event,_keypress_Event,_timeout_Event,_nozzledown_Event, _filling_resumecommand_Event, _stopcommand_Event, hardwarereset_Event, hardwareerror_Event, _switchoffcommand_Event}},
 	{filledmamo_State, filledmamo_State_Handler, {_nozzledown_Event, _resetcommand_Event, _stopcommand_Event, _switchoffcommand_Event}},
-
     {last_State, 0, {}}
 };
 
@@ -906,8 +885,7 @@ eSystemState savesettings_State_Handler(void)
 		send_line2("settings");
 
 		copy_settings(move_to_settings0);
-		save_settings0();
-
+		save_settings_original_fram(side_a);
 
 		copy_settings(move_to_settings); // copy the structure.
 		save_settings();   //save to eeprom
@@ -915,6 +893,10 @@ eSystemState savesettings_State_Handler(void)
 		configMode1 = CONFIGMODIFIED;
 //		save_configFlag(side_a);
 		save_configFlag_fram(side_a);
+		save_otpSeed_fram(side_a);
+		configChange[0].time_stamp = RtcToInt(2019);
+
+		clear_configChange_trackNum_fram(side_a);
 
 		load_settings(side_a); //load the settings into the
 		load_settings(side_b); // internal variables
@@ -941,12 +923,12 @@ eSystemState savesettings_State_Handler(void)
 //		 send_line1(upper1);
 //		 send_line2(middle1);
 
-		 if(settings_stream1[0].display_mode == PL)
+		 if(settings_stream1[0].display_format == PL)
 		 {
 			 send_line1(upper1);
 			 send_line2(middle1);
 		 }
-		 else if(settings_stream1[0].display_mode == LP)
+		 else if(settings_stream1[0].display_format == LP)
 		 {
 			  send_line1(middle1);
 			  send_line2(upper1);
@@ -1533,12 +1515,12 @@ if(
 						 keyboard[i] = 0;
 					 }
 
-                 if(settings_stream1[0].display_mode == PL)
+                 if(settings_stream1[0].display_format == PL)
                  {
                 	 upper1[0]  = 'P';
                 	 middle1[0] = 'L';
                  }
-                 else if(settings_stream1[0].display_mode == LP)
+                 else if(settings_stream1[0].display_format == LP)
                  {
                 	 upper1[0]  = 'L';
                 	 middle1[0] = 'P';
@@ -2908,12 +2890,12 @@ eSystemState error_clear_Handler(void)
 //			send_line1(upper1);
 //			send_line2(middle1);
 
-			if(settings_stream1[0].display_mode == PL)
+			if(settings_stream1[0].display_format == PL)
 		  	  {
 		  		 send_line1(upper1);
 		  		 send_line2(middle1);
 		  	  }
-			  else if(settings_stream1[0].display_mode == LP)
+			  else if(settings_stream1[0].display_format == LP)
 			  {
 				  send_line1(middle1);
 				  send_line2(upper1);
@@ -3088,8 +3070,8 @@ eSystemState progState_Handler(void)
 //				  index_pass = 0;
 
    static uint8_t index_generic = 0;
-
-   static uint16_t otp_seed1;
+//
+//   static uint16_t otp_seed1;
 
    char st__[10] = {0},
 		pass_[9];
@@ -3193,12 +3175,29 @@ eSystemState progState_Handler(void)
 					   access = level2;
 					   fxn = nothing;
 					   clear_buffer1();
-					 // keypad_buf[0] = 0;
-					 // keyboard_entry[0] = 0;
 
-				   //   				randnum(1000, 9999);
+					   retrieve_otpSeed_session_fram(side_a);
 
-					   otp_seed1 = generate_otpVariable1();
+					   if(otpSeed_session[0].otpSeed_flag == OTPSESSION_ON)
+					   {
+						   uint32_t time_stamp = RtcToInt(2019);
+						   time_stamp = time_stamp - otpSeed_session[0].time_stamp;
+
+						   if(time_stamp <= 4096)  //4096 translates to 1 hour
+						   {
+							   otp_seed1 = otpSeed_session[0].otp_seed;
+						   }
+						   else
+						   {
+							   clear_otpSeed_session_fram(side_a);
+						   }
+					   }
+					   else
+					   {
+						   otp_seed1 = generate_otpVariable1();
+						   save_otpSeed_session_fram(side_a);
+					   }
+
 					   return prog_State;
 				   }
 				   else if( (index_menu == pass3) && (strcmp(pass_, password_level3) == 0) ) //level 3 access ?
@@ -3337,9 +3336,6 @@ eSystemState progState_Handler(void)
 
 			 if (pkey == 'D')  // enter key
 				{
-
-//				 if(index_menu == 2) index_menu += 1;
-
 					   switch(index_menu)
 						{
 					   	   	  case 0 :
@@ -3351,14 +3347,8 @@ eSystemState progState_Handler(void)
 					   	   	  case 1 :
 									fxn = setprice;
 									pump_indx = 1;
-									//clear the keyboard buffer
 									clear_buffer1();
 									clr_screen1();
-									//index_ = 0;
-									//keyboard_entry[0] = 0;
-									//keyboard_entry[1] = 0;
-									//copy[0].price_ = litre_price1;
-									//copy[1].price_ = litre_price2;
 									break;
 
 							  case 2 :
@@ -3384,8 +3374,6 @@ eSystemState progState_Handler(void)
    		  snprintf(st__, sizeof(st__), "    %d", otp_seed1);
    		  send_line2(st__);
 
-//   		  write_v(3, st__);
-//   		  strncpy(keyboard, st__, 8);
 			for(uint8_t ii = 0 ; ii < 7; ii++)
 			{
 				keyboard[ii] = st__[ii+1];
@@ -3446,10 +3434,6 @@ eSystemState progState_Handler(void)
 			{
 			  send_line1("   OTP  ");
 
-	//		  snprintf(st__, sizeof(st__), "    %d", otp_variable);
-
-//			  if(keypad_buf[0] == NULL)
-//			  {
 			  send_line2("_       ");
 			}
 			else if ( (t > 500) && (t <= 700) )
@@ -3466,8 +3450,6 @@ eSystemState progState_Handler(void)
 		else if (t >= 300)
 		{
 		  send_line1("   OTP  ");
-
-//		  snprintf(st__, sizeof(st__), "    %d", otp_variable);
 
 		 send_line2(keypad_buf);
 
@@ -3498,7 +3480,9 @@ eSystemState progState_Handler(void)
 			#ifdef OTP_ENABLE
 				   if(strcmp(pass_, otp_code1) == 0)  //level 2 0r 3 access ?
 				   {
-					   save_otp(side_a);
+//					   save_otp(side_a);
+					   save_otpSeed_fram(side_a);
+					   configChange[0].otpSeed.time_stamp = RtcToInt(2019);
 			#else
 				   if( (strcmp(pass_, otp_code1) == 0) || (strcmp(pass_, otp_code1) != 0) )  //level 2 0r 3 access ?
 				   {
@@ -3898,7 +3882,7 @@ eSystemState progState_Handler(void)
 	   if (t >= 300)
 	   {
 			//send_line1();
-		  if(copy_stream1[pump_indx-1].noz == override)
+		  if(copy_stream1[pump_indx-1].noz_override == override)
 		  {
 			send_line2("Active");
 		  }
@@ -3936,18 +3920,18 @@ eSystemState progState_Handler(void)
 		 {
 			 if (pkey == 'B')  // up key
 				{
-				 if (copy_stream1[pump_indx-1].noz == override)
-					 copy_stream1[pump_indx-1].noz = nooverride;
+				 if (copy_stream1[pump_indx-1].noz_override == override)
+					 copy_stream1[pump_indx-1].noz_override = nooverride;
 				 else
-					 copy_stream1[pump_indx-1].noz = override;
+					 copy_stream1[pump_indx-1].noz_override = override;
 				}
 
 			 else if (pkey == 'C')  // down key
 				{
-				 if (copy_stream1[pump_indx-1].noz == override)
-					 copy_stream1[pump_indx-1].noz = nooverride;
+				 if (copy_stream1[pump_indx-1].noz_override == override)
+					 copy_stream1[pump_indx-1].noz_override = nooverride;
 				 else
-					 copy_stream1[pump_indx-1].noz = override;
+					 copy_stream1[pump_indx-1].noz_override = override;
 				}
 
 			 else if (pkey == 'F')  //change pump index.
@@ -4033,12 +4017,12 @@ eSystemState progState_Handler(void)
 			 {
 				 if(index_generic == PL)
 				 {
-					 copy_stream1[0].display_mode = PL;
+					 copy_stream1[0].display_format = PL;
 					 copy_stream1[0].def_t = P;
 				 }
 				 else if(index_generic == LP)
 				 {
-					 copy_stream1[0].display_mode = LP;
+					 copy_stream1[0].display_format = LP;
 					 copy_stream1[0].def_t = L;
 				 }
 
@@ -4217,7 +4201,7 @@ eSystemState progState_Handler(void)
    {
 	   if (t >= 500)
 		 {
-		   printDisp_i(copy_stream2[pump_indx-1].noFlow_timeOut, 1, 0, 4, RT, CLEAR);
+		   printDisp_i(copy_stream1[pump_indx-1].timeOut_noFlow, 1, 0, 4, RT, CLEAR);
 		   send_line2(keyboard_entry);
 
 //		 if (pump_indx == 1)
@@ -4264,11 +4248,11 @@ eSystemState progState_Handler(void)
 				{
 					 if (pump_indx == 1)   // if side A
 						{
-						 copy_stream2[0].noFlow_timeOut =  atoi(keyboard_entry);
+						 copy_stream1[0].timeOut_noFlow =  atoi(keyboard_entry);
 						}
 					 else if (pump_indx == 2)   // if side b
 						{
-						 copy_stream2[1].noFlow_timeOut =  atoi(keyboard_entry);
+						 copy_stream1[1].timeOut_noFlow =  atoi(keyboard_entry);
 						}
 
 					 fxn = nothing;
@@ -5168,15 +5152,15 @@ eSystemState progState_Handler(void)
                     if(pump_indx == 1)
                     {
                     	// data for side a.
-                    	copy_stream1[0].pi_c = pi_c;
-                    	copy_stream1[0].pi_  = pi;
+                    	copy_stream1[0].pi_cal = pi_c;
+                    	copy_stream1[0].pi_real  = pi;
                     }
 
                     if(pump_indx == 2)
 					{
 						// data for side b.
-                    	copy_stream1[1].pi_c = pi_c;
-                    	copy_stream1[1].pi_	 = pi;
+                    	copy_stream1[1].pi_cal = pi_c;
+                    	copy_stream1[1].pi_real	 = pi;
 					}
 					 fxn = nothing;
 					 calibr1 = 0;
@@ -5700,9 +5684,9 @@ eSystemState progState_Handler(void)
 			 else if (pkey == 'D')  // Enter key
 			 {
 				 if(index_generic == 1)
-					 copy_stream2[0].side_size = 1;
+					 copy_stream2[0].noz_count = 1;
 				 else if(index_generic == 2)
-					 copy_stream2[0].side_size = 2;
+					 copy_stream2[0].noz_count = 2;
 
 				 index_generic = 0;
 				 fxn = nothing;
@@ -7087,7 +7071,7 @@ eSystemState idleState_Handler(void)
 			//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
 			if( (gerCtTime >= ctTimed_settingsA.startTime) && (gerCtTime <= ctTimed_settingsA.endTime) )
 			{
-				settings_stream1[0].pi_c = (calib_pulser1 / vol_effective1_1);
+				settings_stream1[0].pi_cal = (calib_pulser1 / vol_effective1_1);
 			}
 			else
 			{
@@ -7187,12 +7171,12 @@ eSystemState idleState_Handler(void)
 	{
 //		 send_line1(upper1);
 //		 send_line2(middle1);
-		 if(settings_stream1[0].display_mode == PL)
+		 if(settings_stream1[0].display_format == PL)
 		  {
 			 send_line1(upper1);
 			 send_line2(middle1);
 		  }
-		  else if(settings_stream1[0].display_mode == LP)
+		  else if(settings_stream1[0].display_format == LP)
 		  {
 			  send_line1(middle1);
 			  send_line2(upper1);
@@ -7265,12 +7249,12 @@ eSystemState idleState_Handler(void)
 //					 send_line1(upper1);
 //					 send_line2(middle1);
 
-					 if(settings_stream1[0].display_mode == PL)
+					 if(settings_stream1[0].display_format == PL)
 				  	  {
 				  		 send_line1(upper1);
 				  		 send_line2(middle1);
 				  	  }
-					  else if(settings_stream1[0].display_mode == LP)
+					  else if(settings_stream1[0].display_format == LP)
 					  {
 						  send_line1(middle1);
 						  send_line2(upper1);
@@ -7297,12 +7281,12 @@ eSystemState idleState_Handler(void)
 
 					 clr_screen1();
 
-					 if(settings_stream1[0].display_mode == PL)
+					 if(settings_stream1[0].display_format == PL)
 					  {
 						 send_line1(upper1);
 						 send_line2(middle1);
 					  }
-					  else if(settings_stream1[0].display_mode == LP)
+					  else if(settings_stream1[0].display_format == LP)
 					  {
 						  send_line1(middle1);
 						  send_line2(upper1);
@@ -8084,12 +8068,12 @@ eSystemState authorised_nozzleup_State_Handler(void)
 //				send_line1(upper1);
 //				send_line2(middle1);
 
-				if(settings_stream1[0].display_mode == PL)
+				if(settings_stream1[0].display_format == PL)
 				{
 					 send_line1(upper1);
 					 send_line2(middle1);
 				 }
-				 else if(settings_stream1[0].display_mode == LP)
+				 else if(settings_stream1[0].display_format == LP)
 				 {
 					  send_line1(middle1);
 					  send_line2(upper1);
@@ -8397,12 +8381,12 @@ eSystemState filling_pulse_Handler(void)
 //	send_line1(upper1);
 //	send_line2(middle1);
 
-	if(settings_stream1[0].display_mode == PL)
+	if(settings_stream1[0].display_format == PL)
 	  {
 		 send_line1(upper1);
 		 send_line2(middle1);
 	  }
-	  else if(settings_stream1[0].display_mode == LP)
+	  else if(settings_stream1[0].display_format == LP)
 	  {
 		  send_line1(middle1);
 		  send_line2(upper1);
@@ -8766,12 +8750,12 @@ eSystemState filling_State_Handler(void)
 		  {
 //			  send_line1(upper1);
 //			  send_line2(middle1);
-			  if(settings_stream1[0].display_mode == PL)
+			  if(settings_stream1[0].display_format == PL)
 			  {
 				 send_line1(upper1);
 				 send_line2(middle1);
 			  }
-			  else if(settings_stream1[0].display_mode == LP)
+			  else if(settings_stream1[0].display_format == LP)
 			  {
 				  send_line1(middle1);
 				  send_line2(upper1);
@@ -8966,12 +8950,12 @@ float temp;
 	   	  make_string(P, dp(price_, dp_amount1));
 	   	  make_string(L, dp(amt_, dp_vol1));
 
-	  	  if(settings_stream1[0].display_mode == PL)
+	  	  if(settings_stream1[0].display_format == PL)
 	  	  {
 	  		 send_line1(upper1);
 	  		 send_line2(middle1);
 	  	  }
-		  else if(settings_stream1[0].display_mode == LP)
+		  else if(settings_stream1[0].display_format == LP)
 		  {
 			  send_line1(middle1);
 			  send_line2(upper1);
@@ -9055,12 +9039,12 @@ float temp;
 
 //		  send_line1(upper1);
 //		  send_line2(middle1);
-		  if(settings_stream1[0].display_mode == PL)
+		  if(settings_stream1[0].display_format == PL)
 	  	  {
 	  		 send_line1(upper1);
 	  		 send_line2(middle1);
 	  	  }
-		  else if(settings_stream1[0].display_mode == LP)
+		  else if(settings_stream1[0].display_format == LP)
 		  {
 			  send_line1(middle1);
 			  send_line2(upper1);
@@ -9136,12 +9120,12 @@ float temp;
 //		  send_line1(upper1);
 //		  send_line2(middle1);
 
-		  if(settings_stream1[0].display_mode == PL)
+		  if(settings_stream1[0].display_format == PL)
 		  {
 			 send_line1(upper1);
 			 send_line2(middle1);
 		  }
-		  else if(settings_stream1[0].display_mode == LP)
+		  else if(settings_stream1[0].display_format == LP)
 		  {
 			  send_line1(middle1);
 			  send_line2(upper1);
@@ -9232,19 +9216,19 @@ void state_ini(void)
 //	snprintf(str_l, sizeof(str_l), "%.2f", lastVolumeSale1);
 
 //	write_v(1, "p        ");
-	if(settings_stream1[0].display_mode == PL)
+	if(settings_stream1[0].display_format == PL)
 	{
 		send_line1("P        ");
 		write_v(1, "p        ");
 	}
-	else if(settings_stream1[0].display_mode == LP)
+	else if(settings_stream1[0].display_format == LP)
 	{
 		send_line1("L        ");
 		write_v(1, "l        ");
 	}
 
 //	write_v(2, "l        ");
-	if(settings_stream1[0].display_mode == PL)
+	if(settings_stream1[0].display_format == PL)
 	{
 		send_line2("L        ");
 		write_v(2, "l        ");
@@ -9252,7 +9236,7 @@ void state_ini(void)
 		make_string(P, dp(lastAmountSale1c, dp_amount1) );
 		    make_string(L, dp(lastVolumeSale1c, dp_vol1) );
 	}
-	else if(settings_stream1[0].display_mode == LP)
+	else if(settings_stream1[0].display_format == LP)
 	{
 		send_line2("P        ");
 		write_v(2, "p        ");
@@ -9616,12 +9600,12 @@ eSystemState filledmamo_State_Handler(void)
 	  if (t > LCD_UPDATE_RATE)
 	  {
 
-		  if(settings_stream1[0].display_mode == PL)
+		  if(settings_stream1[0].display_format == PL)
 		  {
 			 send_line1(upper1);
 			 send_line2(middle1);
 		  }
-		  else if(settings_stream1[0].display_mode == LP)
+		  else if(settings_stream1[0].display_format == LP)
 		  {
 			  send_line1(middle1);
 			  send_line2(upper1);
@@ -9749,12 +9733,12 @@ eSystemState pnpState_Handler(void)
 	 {
 //		 send_line1(upper1);
 //		 send_line2(middle1);
-		 if(settings_stream1[0].display_mode == PL)
+		 if(settings_stream1[0].display_format == PL)
 		  {
 //			 send_line1(upper1);
 //			 send_line2(middle1);
 		  }
-		  else if(settings_stream1[0].display_mode == LP)
+		  else if(settings_stream1[0].display_format == LP)
 		  {
 //			  send_line1(middle1);
 //			  send_line2(upper1);
