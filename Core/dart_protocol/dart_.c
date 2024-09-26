@@ -871,7 +871,7 @@ void parse_decode(void)
 								}
 
 								//###########################################################################//
-								//'50 37 66 01 01 a2 0a 03 fa
+								//'50 37 66 01 01 ee 37 03 fa
 								//===========================================================================//
 								//============================ OTP SESSION CLEAR ============================//
 								//===========================================================================//
@@ -884,7 +884,7 @@ void parse_decode(void)
 
 									//==============================================================//
 									//==================== VALIDATING THE CRC ======================//
-									//'50 35 66 01 01 1f 8f 03 fa '
+									//'50 37 66 01 01 d2 83 03 fa'
 									data_[0] = r_addr;
 									data_[1] = r_ctrl;
 
@@ -916,7 +916,7 @@ void parse_decode(void)
 								}
 
 								//###########################################################################//
-								//'50 37 67 01 01 a2 0a 03 fa
+								//'50 37 67 01 01 83 43 03 fa
 								//===========================================================================//
 								//============================ CONFIG CHANGE QUERY ==========================//
 								//===========================================================================//
@@ -929,7 +929,7 @@ void parse_decode(void)
 
 									//==============================================================//
 									//==================== VALIDATING THE CRC ======================//
-									//'50 35 67 01 01 1f 8f 03 fa '
+									//50 37 67 01 01 bf f7 03 fa'
 									data_[0] = r_addr;
 									data_[1] = r_ctrl;
 
@@ -1894,6 +1894,12 @@ void process_response1(response_enum response)
 							else if(command_ == REQUEST_VOL_TOTAL_COUNT)
 							{
 								_process_response1(DATA_REQUEST_VOL_TOTAL_COUNT);
+
+								go_write1();
+							}
+							else if(command_ == REQUEST_CONFIG_CHANGE_INFO)
+							{
+								_process_response1(DATA_REQUEST_CONFIG_CHANGE_INFO);
 
 								go_write1();
 							}
@@ -2946,7 +2952,7 @@ void _process_response1(response_enum response)
 
 		}
 	}
-	else if(response == DATA_DATE_TIME_UPDATE)   //This transaction is sent by the pump if the status is changed or if the pump receives the command 'RETURN STATUS’.
+	else if(response == DATA_DATE_TIME_UPDATE)
 	{
 		send_acknowledgement1(ACK);
 		ack_send = false;
@@ -2960,6 +2966,18 @@ void _process_response1(response_enum response)
 //				   ttostr(serverTime, 1);
 //				   ttostr(serverTime, 2);
 //			}
+
+		///////////////////////////////////////////////////////////////////
+	}
+	else if(response == DATA_CLEAR_OTP_SESSION)
+	{
+		send_acknowledgement1(ACK);
+		ack_send = false;
+
+		///////////////////////////////////////////////////////////////////
+		///////////////////  ACTUATE THE CHANGE... ////////////////////////
+
+		clear_otpSeed_session_fram(side_a);
 
 		///////////////////////////////////////////////////////////////////
 	}

@@ -322,22 +322,50 @@ void drive_motor2(drive drv)
 //---------------------------------------------------------------
 void drive_slow_sole1(drive drv)
 {
-	 HAL_GPIO_WritePin(slow_sole1_GPIO_Port,slow_sole1_Pin, drv);
+	if ( (settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) )
+	{
+		HAL_GPIO_WritePin(slow_sole1_GPIO_Port,slow_sole1_Pin, !drv);
+	}
+	else
+	{
+		HAL_GPIO_WritePin(slow_sole1_GPIO_Port,slow_sole1_Pin, drv);
+	}
 }
 //---------------------------------------------------------------
 void drive_slow_sole2(drive drv)
 {
-	 HAL_GPIO_WritePin(slow_sole2_GPIO_Port,slow_sole2_Pin, drv);
+	if ( (settings_stream1[1].keypad__ == LAFNG17_K) || (settings_stream1[1].keypad__ == LAFNG18_K) )
+	{
+		HAL_GPIO_WritePin(slow_sole2_GPIO_Port,slow_sole2_Pin, !drv);
+	}
+	else
+	{
+		HAL_GPIO_WritePin(slow_sole2_GPIO_Port,slow_sole2_Pin, drv);
+	}
 }
 //---------------------------------------------------------------
 void drive_fast_sole1(drive drv)
 {
-	 HAL_GPIO_WritePin(fast_sole1_GPIO_Port,fast_sole1_Pin, drv);
+	if ( (settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) )
+	{
+		HAL_GPIO_WritePin(fast_sole1_GPIO_Port,fast_sole1_Pin, !drv);
+	}
+	else
+	{
+		HAL_GPIO_WritePin(fast_sole1_GPIO_Port,fast_sole1_Pin, drv);
+	}
 }
 //---------------------------------------------------------------
 void drive_fast_sole2(drive drv)
 {
-	 HAL_GPIO_WritePin(fast_sole2_GPIO_Port,fast_sole2_Pin, drv);
+	if ( (settings_stream1[1].keypad__ == LAFNG17_K) || (settings_stream1[1].keypad__ == LAFNG18_K) )
+	{
+		HAL_GPIO_WritePin(fast_sole2_GPIO_Port,fast_sole2_Pin, !drv);
+	}
+	else
+	{
+		HAL_GPIO_WritePin(fast_sole2_GPIO_Port,fast_sole2_Pin, drv);
+	}
 }
 //---------------------------------------------------------------
 
@@ -406,7 +434,7 @@ void shiftOut(uint8_t data_byte,uint8_t lat)
 //      if(disp_type1 == BLSKY886_N )
 //      if( (disp_type1 == DN_BLSKY18K ) || (disp_type1 == DN_BLSKY22 ) )
 		if(settings_stream1[0].display__ == BLSKY886_N)
-      {
+		{
 			if ( byteRead(data_byte, i) == 0 )
 				HAL_GPIO_WritePin(dataPin_GPIO_Port, dataPin_Pin, GPIO_PIN_SET);
 			else	//if low set dp low
@@ -414,7 +442,7 @@ void shiftOut(uint8_t data_byte,uint8_t lat)
 
 			//set clock pin high
 			HAL_GPIO_WritePin(clockPin_GPIO_Port, clockPin_Pin, GPIO_PIN_SET);
-      }
+		}
 //      else if( (disp_type1 == DIN_BLSKY18K ) || (disp_type1 == DIN_BLSKY22 ) )
       else if(settings_stream1[0].display__ == BLSKY886_IN)
 	  {

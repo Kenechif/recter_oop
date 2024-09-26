@@ -1088,6 +1088,27 @@ void compose_printer()
 
 	 modem_power(ACTIVATE);
 
+	 settings_stream1[0].keypad__ = LAFNG18_K;
+	 settings_stream1[1].keypad__ = LAFNG18_K;
+
+	 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
+	 // 				LAFENG Valve Signal is inverted for this version of PCB                        //
+	 //											PCB V5.0											   //
+	 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
+
+	 if ( (settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) )
+	 {
+		 drive_slow_sole1(ACTIVATE);     // ACTIVATE here actually means DEACTIVATE
+		 drive_fast_sole1(ACTIVATE);
+	 }
+	 if ( (settings_stream1[1].keypad__ == LAFNG17_K) || (settings_stream1[1].keypad__ == LAFNG18_K) )
+	 {
+		 drive_slow_sole2(ACTIVATE);
+		 drive_fast_sole2(ACTIVATE);
+	 }
+
+	 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
+
 //	 while(1)
 //	 {
 //		 retn = write_keypad_lcd(0,"1234");
@@ -1222,8 +1243,10 @@ void compose_printer()
 
 	retrieve_settings_fram();
 
-	settings_stream2[0].pulser_type_ = quadrature; //non_quadrature;   //quadrature;
-	settings_stream2[1].pulser_type_ = quadrature;   //non_quadrature;   //quadrature;
+//	settings_stream2[0].pulser_type_ = quadrature; //non_quadrature;   //quadrature;
+//	settings_stream2[1].pulser_type_ = quadrature;   //non_quadrature;   //quadrature;
+//	settings_stream1[0].keypad__ = LAFNG18_K;
+//	settings_stream1[1].keypad__ = LAFNG18_K;
 
 	if(settings_stream2[0].pulser_type_ == quadrature)
 	{
@@ -1503,17 +1526,6 @@ void compose_printer()
     	  drive_motor1(DEACTIVATE);
     	  drive_motor2(DEACTIVATE);
     	  HAL_Delay(1000);
-
-    	  drive_slow_sole1(ACTIVATE);
-        	  drive_slow_sole2(ACTIVATE);
-        	  drive_fast_sole1(ACTIVATE);
-        	  drive_fast_sole2(ACTIVATE);
-        	  HAL_Delay(1000);
-        	  drive_slow_sole1(DEACTIVATE);
-        	  drive_slow_sole2(DEACTIVATE);
-        	  drive_fast_sole1(DEACTIVATE);
-        	  drive_fast_sole2(DEACTIVATE);
-        	  HAL_Delay(1000);
       }
 #endif
 
@@ -2163,12 +2175,12 @@ skip_test:
 //    settings_stream1[0].mode = AUTO_MODE;    //AUTO_MODE;
 //
 //    settings_stream1[0].noz = nooverride;  //nooveride
-    settings_stream1[0].noz_override = override;  //nooveride
+//    settings_stream1[0].noz_override = override;  //nooveride
 
 //    settings_stream2[0].calibration_measureCan = 2;
 
 //    settings_stream1[0].keypad__ = BLSKY22;   //BLSKY22
-////    settings_stream1[0].keypad__ = LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
+//    settings_stream1[0].keypad__ = LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
 //
 //    settings_stream1[1].mode = MANUAL_MODE;  //AUTO;   //MANUAL;
 ////    settings_stream1[1].mode = AUTO_MODE;    //AUTO_MODE;
@@ -2177,6 +2189,11 @@ skip_test:
 ////	settings_stream1[1].noz = override;  //nooveride
 ////	settings_stream1[1].keypad__ = BLSKY22;   //BLSKY22
 //    settings_stream1[1].keypad__ = LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
+
+//    settings_stream1[0].pi_cal = 797.150024;
+
+//    settings_stream1[0].noz_addr = 0x01;
+//    settings_stream1[1].noz_addr = 0x02;
 
 
     // ===========================================================================
@@ -2246,18 +2263,20 @@ skip_test:
     retrieve_ctSettings_fram(side_a);
     retrieve_ctSettings_fram(side_b);
 
-
+    //JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ//
     //============================================//
     //xxxxxxxxxx FETCHES PULSER-COUNT xxxxxxxxxxxx//
     //============================================//
+    //LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL//
 
 //    retrieve_calibrationPulser(side_a);
 //    retrieve_calibrationPulser(side_b);
 
-    retrieve_calibrationPulser_fram(side_a);
-	retrieve_calibrationPulser_fram(side_b);
+      retrieve_calibrationPulser_fram(side_a);
+      retrieve_calibrationPulser_fram(side_b);
 
     //============================================//
+	//JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ//
 
 
 //    retrieve_ctTimedSettings(side_a);

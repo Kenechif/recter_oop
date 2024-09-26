@@ -45,8 +45,8 @@ extern "C" {
 //============================================
 
 #ifdef DEV_MODE
-//	#define _USE_SOFT_PULSER            1
-	#define _USE_SOFT_PULSER            0
+	#define _USE_SOFT_PULSER            1
+//	#define _USE_SOFT_PULSER            0
 	#define sense_battery 				0
 //	#define sense_power  				0
 //	#define sense_battery 				1
@@ -64,8 +64,8 @@ extern "C" {
 #define test_battery        		0
 #define test_power 					0
 #define test_rtc					0
-#define test_motor					1
-#define test_solenoid				1
+#define test_motor					0
+#define test_solenoid				0
 #define test_totaliser				0
 
 #define LCD_UPDATE_RATE             100

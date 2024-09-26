@@ -7994,8 +7994,18 @@ eSystemState authorised_nozzleup_State_Handler(void)
 		  if (motor_tmr1 >= 2000)
 		  {
 				drive_motor1(ACTIVATE);
-				drive_slow_sole1(ACTIVATE);
-				drive_fast_sole1(DEACTIVATE);
+
+				if( (settings_stream1[0].keypad__ != LAFNG17_K) && (settings_stream1[0].keypad__ != LAFNG18_K) )
+				{
+					 drive_slow_sole1(ACTIVATE);
+					 drive_fast_sole1(DEACTIVATE);
+				}
+				else
+				{
+					drive_slow_sole1(DEACTIVATE);     // DEACTIVATE here actually means ACTIVATE
+					drive_fast_sole1(ACTIVATE);		  // ACTIVATE here actually means DEACTIVATE
+				}
+
 
 			  if( (lock_clr == 0) && (firstTime_1 == 0) ) ///   to activate this section once.
 			  {
@@ -8325,7 +8335,7 @@ void make_string(sellmode_ sll, float pr)
 			 space--;
 		 }
     //-----------------------------------------------------
-		 for (int i = 0 ; i < 10 ; i++)
+		 for (uint8_t i = 0 ; i < 10 ; i++)
 		   {
 				if (sll == P)
 				{
