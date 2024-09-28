@@ -148,7 +148,7 @@ int16_t head = 0,
 		tail = 0;
 
 
-int millis = 0;
+int milliseconds = 0;
 
 unsigned int cheq1 = 0;
 

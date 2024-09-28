@@ -37,6 +37,8 @@ typedef enum{
 
 #define MAX_STRLEN 23   //40
 
+extern uint32_t millis;
+
 /***
  * Enables other source files reference functions in the
  * source file with the same name as this header file

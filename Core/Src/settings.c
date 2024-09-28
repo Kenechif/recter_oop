@@ -309,8 +309,8 @@ float price_upper1,
  const uint16_t flash_stoA_fram  =  370,    //capacity for 2 * 32bit integer
 		 	 	flash_stoB_fram =  flash_stoA_fram + (1+(32*2));    	 //435 --> 499
 
- const uint16_t otpSeed1_loc_fram = 500,
- 		   	    otpSeed2_loc_fram = otpSeed1_loc_fram + 8;  //508 --> 515
+ const uint16_t config_otpSeed_time1_fram = 500,
+		 	 	config_otpSeed_time2_fram = 508;  //508 --> 515
 
  const uint16_t save_settings_original1_loc_fram = 516,   //size => 32 Bytes
  		 	    save_settings_original2_loc_fram = 548,   //548 --> 580
@@ -901,9 +901,9 @@ void save_settings_original_fram(pump_sid side)
 		sz = sizeof(settings_original_stream3[0]);
 		FRAM_Write(save_settings_original5_loc_fram, &settings_original_stream3[0], sz);
 
-		sz = sizeof(configChange[0].time_stamp);
-		configChange[0].time_stamp = RtcToInt(2019);
-		FRAM_Write(configChange_timeStamp1_loc_fram, &configChange[0].time_stamp, sz);
+//		sz = sizeof(configChange[0].time_stamp);
+//		configChange[0].time_stamp = RtcToInt(2019);
+//		FRAM_Write(configChange_timeStamp1_loc_fram, &configChange[0].time_stamp, sz);
 	}
 	else if(side == side_b)
 	{
@@ -916,9 +916,9 @@ void save_settings_original_fram(pump_sid side)
 		sz = sizeof(settings_original_stream3[0]);
 		FRAM_Write(save_settings_original6_loc_fram, &settings_original_stream3[1], sz);
 
-		sz = sizeof(configChange[0].time_stamp);
-		configChange[1].time_stamp = RtcToInt(2019);
-		FRAM_Write(configChange_timeStamp2_loc_fram, &configChange[1].time_stamp, sz);
+//		sz = sizeof(configChange[0].time_stamp);
+//		configChange[1].time_stamp = RtcToInt(2019);
+//		FRAM_Write(configChange_timeStamp2_loc_fram, &configChange[1].time_stamp, sz);
 	}
 }
 
@@ -1044,8 +1044,8 @@ void retrieve_settings_original_fram(pump_sid side)
 		FRAM_Read(save_settings_original5_loc_fram, &settings_original_stream3[0], sz);
 		HAL_Delay(2);
 
-		sz = sizeof(configChange[0].time_stamp);
-		FRAM_Read(configChange_timeStamp1_loc_fram, &configChange[0].time_stamp, sz);
+//		sz = sizeof(configChange[0].time_stamp);
+//		FRAM_Read(configChange_timeStamp1_loc_fram, &configChange[0].time_stamp, sz);
 	}
 	else if(side == side_b)
 	{
@@ -1060,8 +1060,8 @@ void retrieve_settings_original_fram(pump_sid side)
 		sz = sizeof(settings_original_stream3[0]);
 		FRAM_Read(save_settings_original6_loc_fram, &settings_original_stream3[1], sz);
 
-		sz = sizeof(configChange[0].time_stamp);
-		FRAM_Read(configChange_timeStamp2_loc_fram, &configChange[1].time_stamp, sz);
+//		sz = sizeof(configChange[0].time_stamp);
+//		FRAM_Read(configChange_timeStamp2_loc_fram, &configChange[1].time_stamp, sz);
 	}
 }
 
@@ -2933,19 +2933,21 @@ void save_otp(pump_sid side)
 }
 
 
-void save_otpSeed_fram(pump_sid side)
+void save_config_otpSeed_time_fram(pump_sid side)
 {
-	uint8_t sz = sizeof(configChange[0].otpSeed.otp_seed);
+	uint8_t sz = sizeof(configChange[0]);
 
 	if (side == side_a)
 	{
-		configChange[0].otpSeed.otp_seed = otp_seed1;
-	  	FRAM_Write(otpSeed1_loc_fram, &configChange[0].otpSeed.otp_seed, sz);
+		configChange[0].otp_seed = otp_seed1;
+		configChange[0].time_stamp = RtcToInt(2019);
+	  	FRAM_Write(config_otpSeed_time1_fram, &configChange[0], sz);
 	}
 	else if (side == side_b)
 	{
-		configChange[1].otpSeed.otp_seed = otp_seed2;
-		FRAM_Write(otpSeed2_loc_fram, &configChange[1].otpSeed.otp_seed, sz);
+		configChange[1].otp_seed = otp_seed2;
+		configChange[1].time_stamp = RtcToInt(2019);
+		FRAM_Write(config_otpSeed_time2_fram, &configChange[1], sz);
 	}
 }
 
@@ -2988,16 +2990,17 @@ void retrieve_otp(pump_sid side)
 	}
 }
 
-void retrieve_otpSeed_fram(pump_sid side)
+void retrieve_config_otpSeed_time_fram(pump_sid side)
 {
-	uint8_t sz = sizeof(configChange[0].otpSeed.otp_seed);
+	uint8_t sz = sizeof(configChange[0]);
+
 	if (side == side_a)
 	{
-		FRAM_Read(otpSeed1_loc_fram, &configChange[0].otpSeed.otp_seed, sz);
+		FRAM_Read(config_otpSeed_time1_fram, &configChange[0], sz);
 	}
 	else if (side == side_b)
 	{
-	  	 FRAM_Read(otpSeed2_loc_fram, &configChange[1].otpSeed.otp_seed, sz);
+	  	 FRAM_Read(config_otpSeed_time2_fram, &configChange[1], sz);
 	}
 }
 
@@ -3036,19 +3039,21 @@ void clear_otp(pump_sid side)
 	  }
 }
 
-void clear_otpSeed_fram(pump_sid side)
+void clear_config_otpSeed_time_fram(pump_sid side)
 {
-	uint8_t sz = sizeof(configChange[0].otpSeed.otp_seed);
+	uint8_t sz = sizeof(configChange[0]);
 
 	if (side == side_a)
 	  {
-		  configChange[0].otpSeed.otp_seed = 0;
-		  FRAM_Write(otpSeed1_loc_fram, &configChange[0].otpSeed.otp_seed, sz);
+		  configChange[0].otp_seed = 0;
+		  configChange[0].time_stamp = 0;
+		  FRAM_Write(config_otpSeed_time1_fram, &configChange[0], sz);
 	  }
 	else if (side == side_b)
 	  {
-		  configChange[1].otpSeed.otp_seed= 0;
-		  FRAM_Write(otpSeed2_loc_fram, &configChange[1].otpSeed.otp_seed, sz);
+		  configChange[1].otp_seed = 0;
+		  configChange[1].time_stamp = 0;
+		  FRAM_Write(config_otpSeed_time2_fram, &configChange[1], sz);
 	  }
 }
 

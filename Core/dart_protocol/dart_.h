@@ -120,7 +120,7 @@ uint8_t	 r_raw_data1[128],
 
 extern ConfigChange configChange[2];
 
-extern int millis;
+extern int milliseconds;
 
 int millis2;
 

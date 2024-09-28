@@ -1088,8 +1088,8 @@ void compose_printer()
 
 	 modem_power(ACTIVATE);
 
-	 settings_stream1[0].keypad__ = LAFNG18_K;
-	 settings_stream1[1].keypad__ = LAFNG18_K;
+//	 settings_stream1[0].keypad__ = LAFNG18_K;
+//	 settings_stream1[1].keypad__ = LAFNG18_K;
 
 	 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
 	 // 				LAFENG Valve Signal is inverted for this version of PCB                        //
@@ -1307,6 +1307,21 @@ void compose_printer()
 ////	      extern char pump_rx_buf[pump_rx_bufsize];
 ////	      HAL_UART_Receive(&huart1,&pump_rx_buf, 10,10000);
 //		}
+
+//	while(1)
+//	 {
+//		 otp_seed1 = 1234;
+//
+//		 save_config_otpSeed_time_fram(side_a);
+//
+//		 configChange[0].otp_seed = 0;
+//		 configChange[0].time_stamp = 0;
+//
+//		 retrieve_config_otpSeed_time_fram(side_a);
+//
+//		 HAL_Delay(1000);
+//
+//	 }
 
 //	while(1)
 //	{
@@ -1706,8 +1721,8 @@ tmmm:
 	  clear_configChange_trackNum_fram(side_a);
 	  clear_configChange_trackNum_fram(side_b);
 
-	  clear_otpSeed_fram(side_a);
-	  clear_otpSeed_fram(side_b);
+	  clear_config_otpSeed_time_fram(side_a);
+	  clear_config_otpSeed_time_fram(side_b);
 
 	  clear_otpSeed_session_fram(side_a);
 	  clear_otpSeed_session_fram(side_b);
@@ -2567,6 +2582,8 @@ void run()
 	{
 	//		server_rx_parse();
 
+		timer_go = 0;
+
 			t_exec1 = DWT->CYCCNT;
 //			t_exec7 = t_exec6 - t_exec4;
 
@@ -2607,7 +2624,7 @@ void run()
 //		t_exec7 = t_exec6 - t_exec4;
 
 //	HAL_GPIO_WritePin(batt_check_GPIO_Port, batt_check_Pin, GPIO_PIN_RESET);
-//	float batt_val = battery_sense();
+	float batt_val = battery_sense();
 
 //	t_exec6 = DWT->CYCCNT;
 //	t_exec7 = t_exec6 - t_exec4;

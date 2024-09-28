@@ -893,8 +893,7 @@ eSystemState savesettings_State_Handler(void)
 		configMode1 = CONFIGMODIFIED;
 //		save_configFlag(side_a);
 		save_configFlag_fram(side_a);
-		save_otpSeed_fram(side_a);
-		configChange[0].time_stamp = RtcToInt(2019);
+		save_config_otpSeed_time_fram(side_a);
 
 		clear_configChange_trackNum_fram(side_a);
 
@@ -3189,7 +3188,8 @@ eSystemState progState_Handler(void)
 						   }
 						   else
 						   {
-							   clear_otpSeed_session_fram(side_a);
+							   otp_seed1 = generate_otpVariable1();
+							   save_otpSeed_session_fram(side_a);
 						   }
 					   }
 					   else
@@ -3208,7 +3208,29 @@ eSystemState progState_Handler(void)
 					   fxn = nothing;
 					   clear_buffer1();
 
-					   otp_seed1 = generate_otpVariable1();
+					   retrieve_otpSeed_session_fram(side_a);
+
+					   if(otpSeed_session[0].otpSeed_flag == OTPSESSION_ON)
+					   {
+						   uint32_t time_stamp = RtcToInt(2019);
+						   time_stamp = time_stamp - otpSeed_session[0].time_stamp;
+
+						   if(time_stamp <= 4096)  //4096 translates to 1 hour
+						   {
+							   otp_seed1 = otpSeed_session[0].otp_seed;
+						   }
+						   else
+						   {
+							   otp_seed1 = generate_otpVariable1();
+							   save_otpSeed_session_fram(side_a);
+						   }
+					   }
+					   else
+					   {
+						   otp_seed1 = generate_otpVariable1();
+						   save_otpSeed_session_fram(side_a);
+					   }
+
 					   return prog_State;
 				   }
 				   else if(access == non)             //no match...
@@ -3481,8 +3503,7 @@ eSystemState progState_Handler(void)
 				   if(strcmp(pass_, otp_code1) == 0)  //level 2 0r 3 access ?
 				   {
 //					   save_otp(side_a);
-					   save_otpSeed_fram(side_a);
-					   configChange[0].otpSeed.time_stamp = RtcToInt(2019);
+					   save_otpSeed_session_fram(side_a);
 			#else
 				   if( (strcmp(pass_, otp_code1) == 0) || (strcmp(pass_, otp_code1) != 0) )  //level 2 0r 3 access ?
 				   {
@@ -3782,7 +3803,7 @@ eSystemState progState_Handler(void)
   //================================= MODE ==================================
   //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   //=========================================================================
-  //                      SET MODE  ( ONLINE / OFFLINE )
+  //            SET MODE { ( ONLINE (AUTO) / OFFLINE (MANUAL) }
   //=========================================================================
    else if ( (auth == authed) && ( (access == level2)||(access == level3) ) && (fxn == setmode)  )
    {
@@ -3965,9 +3986,10 @@ eSystemState progState_Handler(void)
 
 	   if (t >= 300)
 	   {
-		   if( (index_generic !=  PL) && (index_generic !=  LP) ) index_generic = PL;
+//		   if( (index_generic !=  PL) && (index_generic !=  LP) ) index_generic = PL;
 
-		   if(index_generic ==  PL)
+		   if(copy_stream1[0].display_format == PL)
+//		   if(index_generic ==  PL)
 		   {
 			   send_line1("PL NNode");
 		   }
@@ -3997,14 +4019,22 @@ eSystemState progState_Handler(void)
 		 {
 			 if (pkey == 'B')  // up key
 			 {
-				 if (index_generic == PL)  index_generic = LP;
-				 else if(index_generic == LP) index_generic = PL;
+//				 if (index_generic == PL)  index_generic = LP;
+//				 else if(index_generic == LP) index_generic = PL;
+				 if(copy_stream1[0].display_format == PL)
+					copy_stream1[0].display_format = LP;
+				 else if(copy_stream1[0].display_format == LP)
+					copy_stream1[0].display_format = PL;
 			 }
 
 			 else if (pkey == 'C')  // down key
 			 {
-				 if (index_generic == LP)  index_generic = PL;
-				 else if(index_generic == PL) index_generic = LP;
+//				 if (index_generic == LP)  index_generic = PL;
+//				 else if(index_generic == PL) index_generic = LP;
+				 if(copy_stream1[0].display_format == PL)
+					copy_stream1[0].display_format = LP;
+				 else if(copy_stream1[0].display_format == LP)
+					copy_stream1[0].display_format = PL;
 			 }
 
 			 else if (pkey == 'F')  //change pump index.
@@ -4015,16 +4045,21 @@ eSystemState progState_Handler(void)
 
 			 else if (pkey == 'D')  // Enter key
 			 {
-				 if(index_generic == PL)
-				 {
-					 copy_stream1[0].display_format = PL;
+//				 if(index_generic == PL)
+//				 {
+//					 copy_stream1[0].display_format = PL;
+//					 copy_stream1[0].def_t = P;
+//				 }
+//				 else if(index_generic == LP)
+//				 {
+//					 copy_stream1[0].display_format = LP;
+//					 copy_stream1[0].def_t = L;
+//				 }
+
+				 if(copy_stream1[0].display_format == PL)
 					 copy_stream1[0].def_t = P;
-				 }
-				 else if(index_generic == LP)
-				 {
-					 copy_stream1[0].display_format = LP;
+				 else if(copy_stream1[0].display_format == LP)
 					 copy_stream1[0].def_t = L;
-				 }
 
 				 fxn = nothing;
 				 index_generic = 0;
@@ -5636,11 +5671,12 @@ eSystemState progState_Handler(void)
 
 	   if (t >= 300)
 	   {
-		      if( (index_generic != 1) && (index_generic != 2) ) index_generic = 1;
+//		      if( (index_generic != 1) && (index_generic != 2) ) index_generic = 1;
 
 			  send_line1("Sides  ");
 
-			  snprintf(st__, sizeof(st__), "       %d", index_generic);
+//			  snprintf(st__, sizeof(st__), "       %d", index_generic);
+			  snprintf(st__, sizeof(st__), "       %d", copy_stream2[0].noz_count);
 			  send_line2(st__);
 
 
@@ -5665,14 +5701,24 @@ eSystemState progState_Handler(void)
 		 {
 			 if (pkey == 'B')  // up key
 			 {
-				 if (index_generic == 1)  index_generic = 2;
-				 else if(index_generic == 2) index_generic = 1;
+//				 if (index_generic == 1)  index_generic = 2;
+//				 else if(index_generic == 2) index_generic = 1;
+
+				 if(copy_stream2[0].noz_count == 1)
+					 copy_stream2[0].noz_count = 2;
+				 else if(copy_stream2[0].noz_count == 2)
+					 copy_stream2[0].noz_count = 1;
 			 }
 
 			 else if (pkey == 'C')  // down key
 			 {
-				 if (index_generic == 2)  index_generic = 1;
-				 else if(index_generic == 1) index_generic = 2;
+//				 if (index_generic == 2)  index_generic = 1;
+//				 else if(index_generic == 1) index_generic = 2;
+
+				 if(copy_stream2[0].noz_count == 1)
+					 copy_stream2[0].noz_count = 2;
+				 else if(copy_stream2[0].noz_count == 2)
+					 copy_stream2[0].noz_count = 1;
 			 }
 
 			 else if (pkey == 'F')  //change pump index.
@@ -5683,10 +5729,10 @@ eSystemState progState_Handler(void)
 
 			 else if (pkey == 'D')  // Enter key
 			 {
-				 if(index_generic == 1)
-					 copy_stream2[0].noz_count = 1;
-				 else if(index_generic == 2)
-					 copy_stream2[0].noz_count = 2;
+//				 if(index_generic == 1)
+//					 copy_stream2[0].noz_count = 1;
+//				 else if(index_generic == 2)
+//					 copy_stream2[0].noz_count = 2;
 
 				 index_generic = 0;
 				 fxn = nothing;
@@ -5712,6 +5758,13 @@ eSystemState progState_Handler(void)
   //======================================================================
    else if ( (auth == authed) && ( (access == level2)||(access == level3) ) && (fxn == suppressed_display_vol)  )
    {
+	   static uint8_t firstTime_sV = 1;
+
+	   if(firstTime_sV == 1)
+	   {
+		   index_generic = (copy_stream2[0].startUp_suppressVol * 100);
+		   firstTime_sV = 0;
+	   }
 
 	   if (t >= 300)
 	   {
@@ -5766,6 +5819,8 @@ eSystemState progState_Handler(void)
 				 index_generic = 0;
 				 fxn = nothing;
 				 clr_screen1();
+
+				 firstTime_sV = 1;
 			 }
 
 			 else if (pkey == 'A')  // back key
@@ -5774,6 +5829,8 @@ eSystemState progState_Handler(void)
 
 				 fxn = nothing;
 				 clr_screen1();
+
+				 firstTime_sV = 1;
 			 }
 		 }
 	 return prog_State;
@@ -5790,11 +5847,11 @@ eSystemState progState_Handler(void)
 
 	   if (t >= 300)
 	   {
-		   if( (index_generic != 10) && (index_generic != 20) ) index_generic = 10;
+//		   if( (index_generic != 10) && (index_generic != 20) ) index_generic = 10;
 
 		   send_line1("Can Size");
 
-		   snprintf(st__, sizeof(st__), "    %02d L", index_generic);
+		   snprintf(st__, sizeof(st__), "    %02d L", copy_stream2[0].calibration_measureCan);
 		   send_line2(st__);
 
 		   send_line3("  A  ");
@@ -5818,14 +5875,24 @@ eSystemState progState_Handler(void)
 		 {
 			 if (pkey == 'B')  // up key
 			 {
-				 if (index_generic == 10)  index_generic = 20;
-				 else if(index_generic == 20) index_generic = 10;
+//				 if (index_generic == 10)  index_generic = 20;
+//				 else if(index_generic == 20) index_generic = 10;
+
+				   if(copy_stream2[0].calibration_measureCan == 10)
+					 copy_stream2[0].calibration_measureCan = 20;
+				   else  if(copy_stream2[0].calibration_measureCan == 20)
+					 copy_stream2[0].calibration_measureCan = 10;
 			 }
 
 			 else if (pkey == 'C')  // down key
 			 {
-				 if (index_generic == 20)  index_generic = 10;
-				 else if(index_generic == 10) index_generic = 20;
+//				 if (index_generic == 20)  index_generic = 10;
+//				 else if(index_generic == 10) index_generic = 20;
+
+				   if(copy_stream2[0].calibration_measureCan == 10)
+					 copy_stream2[0].calibration_measureCan = 20;
+				   else  if(copy_stream2[0].calibration_measureCan == 20)
+					 copy_stream2[0].calibration_measureCan = 10;
 			 }
 
 			 else if (pkey == 'F')  //change pump index.
@@ -5836,10 +5903,10 @@ eSystemState progState_Handler(void)
 
 			 else if (pkey == 'D')  // Enter key
 			 {
-				 if(index_generic == 10)
-					 copy_stream2[0].calibration_measureCan = 10;
-				 else if(index_generic == 20)
-					 copy_stream2[0].calibration_measureCan = 20;
+//				 if(index_generic == 10)
+//					 copy_stream2[0].calibration_measureCan = 10;
+//				 else if(index_generic == 20)
+//					 copy_stream2[0].calibration_measureCan = 20;
 
 				 index_generic = 0;
 				 fxn = nothing;
@@ -5866,11 +5933,11 @@ eSystemState progState_Handler(void)
 
 	   if (t >= 300)
 	   {
-		   if( (index_generic != None_) && (index_generic != Code_)  && (index_generic != Card_) ) index_generic = None_;
+//		   if( (index_generic != None_) && (index_generic != Code_)  && (index_generic != Card_) ) index_generic = None_;
 		   send_line1("Login.Typ");
 
 //		   snprintf(st__, sizeof(st__), "       %d", index_generic);
-		   send_line2(login_type[index_generic]);
+		   send_line2(login_type[copy_stream2[0].shift_login_type]);
 
 		   send_line3("  A  ");
 
@@ -5893,14 +5960,28 @@ eSystemState progState_Handler(void)
 		 {
 			 if (pkey == 'B')  // up key
 			 {
-				 if (index_generic <= 2 )  index_generic++;
-				 else if(index_generic == 3) index_generic = 0;
+//				 if (index_generic <= 2 )  index_generic++;
+//				 else if(index_generic == 3) index_generic = 0;
+
+				 if(copy_stream2[0].shift_login_type == None_)
+					 copy_stream2[0].shift_login_type = Code_;
+				 else if(copy_stream2[0].shift_login_type == Code_)
+					 copy_stream2[0].shift_login_type = Card_;
+				 else if(copy_stream2[0].shift_login_type == Card_)
+					 copy_stream2[0].shift_login_type = None_;
 			 }
 
 			 else if (pkey == 'C')  // down key
 			 {
-				 if (index_generic > 0)  index_generic--;
-				 else if(index_generic == 0) index_generic = 2;
+//				 if (index_generic > 0)  index_generic--;
+//				 else if(index_generic == 0) index_generic = 2;
+
+				 if(copy_stream2[0].shift_login_type == None_)
+					 copy_stream2[0].shift_login_type = Card_;
+				 else if(copy_stream2[0].shift_login_type == Code_)
+					 copy_stream2[0].shift_login_type = None_;
+				 else if(copy_stream2[0].shift_login_type == Card_)
+					 copy_stream2[0].shift_login_type = Code_;
 			 }
 
 			 else if (pkey == 'F')  //change pump index.
@@ -5911,12 +5992,12 @@ eSystemState progState_Handler(void)
 
 			 else if (pkey == 'D')  // Enter key
 			 {
-				 if(index_generic == None_)
-					 copy_stream2[0].shift_login_type = None_;
-				 else if(index_generic == Code_)
-					 copy_stream2[0].shift_login_type = Code_;
-				 else if(index_generic == Card_)
-					 copy_stream2[0].shift_login_type = Card_;
+//				 if(index_generic == None_)
+//					 copy_stream2[0].shift_login_type = None_;
+//				 else if(index_generic == Code_)
+//					 copy_stream2[0].shift_login_type = Code_;
+//				 else if(index_generic == Card_)
+//					 copy_stream2[0].shift_login_type = Card_;
 
 				 index_generic = 0;
 				 fxn = nothing;
@@ -5944,10 +6025,10 @@ eSystemState progState_Handler(void)
 
 	   if (t >= 300)
 	   {
-		   if( (index_generic != 1) && (index_generic != 2) ) index_generic = 1;
+//		   if( (index_generic != 1) && (index_generic != 2) ) index_generic = 1;
 		   send_line1("Shifts   ");
 
-		   snprintf(st__, sizeof(st__), "       %d", index_generic);
+		   snprintf(st__, sizeof(st__), "       %d", copy_stream2[0].number_of_shifts);
 		   send_line2(st__);
 
 		   send_line3("  A  ");
@@ -5971,14 +6052,24 @@ eSystemState progState_Handler(void)
 		 {
 			 if (pkey == 'B')  // up key
 			 {
-				 if (index_generic == 1)  index_generic = 2;
-				 else if(index_generic == 2) index_generic = 1;
+//				 if (index_generic == 1)  index_generic = 2;
+//				 else if(index_generic == 2) index_generic = 1;
+
+				 if(copy_stream2[0].number_of_shifts == 1)
+					 copy_stream2[0].number_of_shifts = 2;
+				 else if(copy_stream2[0].number_of_shifts == 2)
+					 copy_stream2[0].number_of_shifts = 1;
 			 }
 
 			 else if (pkey == 'C')  // down key
 			 {
-				 if (index_generic == 2)  index_generic = 1;
-				 else if(index_generic == 1) index_generic = 2;
+//				 if (index_generic == 2)  index_generic = 1;
+//				 else if(index_generic == 1) index_generic = 2;
+
+				 if(copy_stream2[0].number_of_shifts == 1)
+					 copy_stream2[0].number_of_shifts = 2;
+				 else if(copy_stream2[0].number_of_shifts == 2)
+					 copy_stream2[0].number_of_shifts = 1;
 			 }
 
 			 else if (pkey == 'F')  //change pump index.
@@ -5989,10 +6080,10 @@ eSystemState progState_Handler(void)
 
 			 else if (pkey == 'D')  // Enter key
 			 {
-				 if(index_generic == 1)
-					 copy_stream2[0].number_of_shifts = 1;
-				 else if(index_generic == 2)
-					 copy_stream2[0].number_of_shifts = 2;
+//				 if(index_generic == 1)
+//					 copy_stream2[0].number_of_shifts = 1;
+//				 else if(index_generic == 2)
+//					 copy_stream2[0].number_of_shifts = 2;
 
 				 index_generic = 0;
 				 fxn = nothing;
@@ -6019,9 +6110,9 @@ eSystemState progState_Handler(void)
 
 	   if (t >= 300)
 	   {
-			  if( (index_generic !=  Wizard) && (index_generic != Manual_calib) ) index_generic = Wizard;
+//			  if( (index_generic !=  Wizard) && (index_generic != Manual_calib) ) index_generic = Wizard;
 
-			  if(index_generic ==  Wizard)
+			  if(copy_stream2[0].calibration_type ==  Wizard)
 			  {
 				send_line1("UUizard");
 			  }
@@ -6051,14 +6142,24 @@ eSystemState progState_Handler(void)
 		 {
 			 if (pkey == 'B')  // up key
 			 {
-				 if (index_generic == Wizard)  index_generic = 2;
-				 else if(index_generic == 2) index_generic = Wizard;
+//				 if (index_generic == Wizard)  index_generic = 2;
+//				 else if(index_generic == 2) index_generic = Wizard;
+
+				 if(copy_stream2[0].calibration_type == Wizard)
+					 copy_stream2[0].calibration_type = Manual_calib;
+				 else if(copy_stream2[0].calibration_type == Manual_calib)
+					 copy_stream2[0].calibration_type = Wizard;
 			 }
 
 			 else if (pkey == 'C')  // down key
 			 {
-				 if (index_generic == 2)  index_generic = Wizard;
-				 else if(index_generic == Wizard) index_generic = 2;
+//				 if (index_generic == 2)  index_generic = Wizard;
+//				 else if(index_generic == Wizard) index_generic = 2;
+
+				 if(copy_stream2[0].calibration_type == Wizard)
+					 copy_stream2[0].calibration_type = Manual_calib;
+				 else if(copy_stream2[0].calibration_type == Manual_calib)
+					 copy_stream2[0].calibration_type = Wizard;
 			 }
 
 			 else if (pkey == 'F')  //change pump index.
@@ -6069,10 +6170,10 @@ eSystemState progState_Handler(void)
 
 			 else if (pkey == 'D')  // Enter key
 			 {
-				 if(index_generic == Wizard)
-					 copy_stream2[0].calibration_type = Wizard;
-				 else if(index_generic == Manual_calib)
-					 copy_stream2[0].calibration_type = Manual_calib;
+//				 if(index_generic == Wizard)
+//					 copy_stream2[0].calibration_type = Wizard;
+//				 else if(index_generic == Manual_calib)
+//					 copy_stream2[0].calibration_type = Manual_calib;
 
 				 index_generic = 0;
 				 fxn = nothing;
@@ -6261,9 +6362,9 @@ eSystemState progState_Handler(void)
    	   {
    		   send_line1("Suuitch ");
 
-   		   if( (index_generic !=  Yes) && (index_generic !=  No) ) index_generic = Yes;
+//   		   if( (index_generic !=  Yes) && (index_generic !=  No) ) index_generic = Yes;
 
-   		   if(index_generic ==  Yes)
+   		   if(copy_stream2[0].keypress_tone ==  Yes)
    		   {
    			   send_line2("      ON");
    		   }
@@ -6293,14 +6394,33 @@ eSystemState progState_Handler(void)
    		 {
    			 if (pkey == 'B')  // up key
    			 {
-   				 if (index_generic == Yes)  index_generic = No;
-   				 else if(index_generic == No) index_generic = Yes;
+//   				 if (index_generic == Yes)  index_generic = No;
+//   				 else if(index_generic == No) index_generic = Yes;
+
+
+				 if(copy_stream2[0].keypress_tone == Yes)
+ 				 {
+ 					copy_stream2[0].keypress_tone = No;
+ 				 }
+ 				 else if(copy_stream2[0].keypress_tone == No)
+ 				 {
+ 					copy_stream2[0].keypress_tone = Yes;
+ 				 }
    			 }
 
    			 else if (pkey == 'C')  // down key
    			 {
-   				 if (index_generic == No)  index_generic = Yes;
-   				 else if(index_generic == Yes) index_generic = No;
+//   				 if (index_generic == No)  index_generic = Yes;
+//   				 else if(index_generic == Yes) index_generic = No;
+
+   				if(copy_stream2[0].keypress_tone == Yes)
+				 {
+					copy_stream2[0].keypress_tone = No;
+				 }
+				 else if(copy_stream2[0].keypress_tone == No)
+				 {
+					copy_stream2[0].keypress_tone = Yes;
+				 }
    			 }
 
    			 else if (pkey == 'F')  //change pump index.
@@ -6311,14 +6431,14 @@ eSystemState progState_Handler(void)
 
    			 else if (pkey == 'D')  // Enter key
    			 {
-   				 if(index_generic == Yes)
-   				 {
-   					copy_stream2[0].keypress_tone = Yes;
-   				 }
-   				 else if(index_generic == No)
-   				 {
-   					copy_stream2[0].keypress_tone = No;
-   				 }
+//   				 if(index_generic == Yes)
+//   				 {
+//   					copy_stream2[0].keypress_tone = Yes;
+//   				 }
+//   				 else if(index_generic == No)
+//   				 {
+//   					copy_stream2[0].keypress_tone = No;
+//   				 }
 
    				 fxn = nothing;
    				 index_generic = 0;
@@ -6347,9 +6467,9 @@ eSystemState progState_Handler(void)
 		   {
 			   send_line1("Enforce ");
 
-			   if( (index_generic !=  Yes) && (index_generic !=  No) ) index_generic = Yes;
+//			   if( (index_generic !=  Yes) && (index_generic !=  No) ) index_generic = Yes;
 
-			   if(index_generic ==  Yes)
+			   if(copy_stream2[0].commCard_enforced ==  true)
 			   {
 				   send_line2("     Yes");
 			   }
@@ -6379,14 +6499,32 @@ eSystemState progState_Handler(void)
 			 {
 				 if (pkey == 'B')  // up key
 				 {
-					 if (index_generic == Yes)  index_generic = No;
-					 else if(index_generic == No) index_generic = Yes;
+//					 if (index_generic == Yes)  index_generic = No;
+//					 else if(index_generic == No) index_generic = Yes;
+
+					 if(copy_stream2[0].commCard_enforced == true)
+					 {
+						 copy_stream2[0].commCard_enforced = false;
+					 }
+					 else if(copy_stream2[0].commCard_enforced == false)
+					 {
+						 copy_stream2[0].commCard_enforced = true;
+					 }
 				 }
 
 				 else if (pkey == 'C')  // down key
 				 {
-					 if (index_generic == No)  index_generic = Yes;
-					 else if(index_generic == Yes) index_generic = No;
+//					 if (index_generic == No)  index_generic = Yes;
+//					 else if(index_generic == Yes) index_generic = No;
+
+					 if(copy_stream2[0].commCard_enforced == true)
+					 {
+						 copy_stream2[0].commCard_enforced = false;
+					 }
+					 else if(copy_stream2[0].commCard_enforced == false)
+					 {
+						 copy_stream2[0].commCard_enforced = true;
+					 }
 				 }
 
 				 else if (pkey == 'F')  //change pump index.
@@ -6397,14 +6535,14 @@ eSystemState progState_Handler(void)
 
 				 else if (pkey == 'D')  // Enter key
 				 {
-					 if(index_generic == Yes)
-					 {
-						 copy_stream2[0].commCard_enforced = true;
-					 }
-					 else if(index_generic == No)
-					 {
-						 copy_stream2[0].commCard_enforced = false;
-					 }
+//					 if(index_generic == Yes)
+//					 {
+//						 copy_stream2[0].commCard_enforced = true;
+//					 }
+//					 else if(index_generic == No)
+//					 {
+//						 copy_stream2[0].commCard_enforced = false;
+//					 }
 
 					 fxn = nothing;
 					 index_generic = 0;
@@ -6430,7 +6568,8 @@ eSystemState progState_Handler(void)
   {
 	 static uint8_t pulserr = 0,
 					pulserType_original,
-					pulserOffset_original;
+					pulserOffset_original,
+					firstTime_pOffset = 1;
 
       if(prog_revisit1 == 1)
  	   {
@@ -6536,7 +6675,12 @@ eSystemState progState_Handler(void)
 			   }
 			   else if (pulserr == 3)
 			   {
-				   if(index_generic > 99) index_generic = 0;
+				   if(firstTime_pOffset == 1)
+				   {
+					   index_generic = pulserOffset_original;
+					   firstTime_pOffset = 0;
+				   }
+//				   if(index_generic > 99) index_generic = 0;
 
 					send_line1("Ofset.Val");
 
@@ -6634,6 +6778,8 @@ eSystemState progState_Handler(void)
 						 pulser_flag = 0;
 						 fxn = nothing;
 						 clr_screen1();
+
+						 firstTime_pOffset = 1;
 					 }
 
 					 else if (pkey == 'A')  // back key
@@ -6645,6 +6791,8 @@ eSystemState progState_Handler(void)
 
 						 fxn = nothing;
 						 clr_screen1();
+
+						 firstTime_pOffset = 1;
 					 }
 				 }
 			 }
@@ -6663,7 +6811,8 @@ eSystemState progState_Handler(void)
 						salesStart_original,
 						salesEnd_original;
 
-		   static uint8_t _valve = 0;
+		   static uint8_t _valve = 0,
+				   	   	  firstTime_v = 1;
 
 		         if(prog_revisit1 == 1)
 		    	 {
@@ -6754,16 +6903,28 @@ eSystemState progState_Handler(void)
 				   {
 					   if (_valve == 2)
 					   {
-						    if(float_generic > 2.00) float_generic = 0.00;
-						    else if(float_generic < 0.00) float_generic = 2.00;
+						    if(firstTime_v == 1)
+						    {
+						    	float_generic = copy_stream2[0].valve_salesStart;
+								firstTime_v =  0;
+						    }
+
+//							if(float_generic > 2.00) float_generic = 0.00;
+//						    else if(float_generic < 0.00) float_generic = 2.00;
 
 							snprintf(st__, sizeof(st__), "  %5.2f L", float_generic);
 							send_line2(st__);
 					   }
 					   else if (_valve == 3)
 					   {
-						   if(float_generic > 10.00) float_generic = 0.30;
-							else if(float_generic < 0.30) float_generic = 10.00;
+						   if(firstTime_v == 1)
+							{
+								float_generic = copy_stream2[0].valve_salesEnd;
+								firstTime_v =  0;
+							}
+
+//						   if(float_generic > 10.00) float_generic = 0.30;
+//							else if(float_generic < 0.30) float_generic = 10.00;
 
 							snprintf(st__, sizeof(st__), "  %5.2f L", float_generic);
 							send_line2(st__);
@@ -6811,6 +6972,9 @@ eSystemState progState_Handler(void)
 
 								fxn = nothing;
 								clr_screen1();
+
+								firstTime_v = 0;
+
 								return prog_State;
 							 }
 							 else if (pkey == 'A')  // back key
@@ -6820,6 +6984,8 @@ eSystemState progState_Handler(void)
 								 _valve = 0;
 								 valve_flag = 0;
 								 clr_screen1();
+
+								 firstTime_v = 0;
 							 }
 						 }
 						 else if (_valve == 3)
@@ -6844,6 +7010,9 @@ eSystemState progState_Handler(void)
 								copy_stream2[0].valve_salesEnd = float_generic;
 
 								clr_screen1();
+
+								firstTime_v = 0;
+
 								return prog_State;
 							 }
 							 else if (pkey == 'A')  // back key
@@ -6853,6 +7022,9 @@ eSystemState progState_Handler(void)
 
 								 _valve = 0;
 								 valve_flag = 0;
+
+								 firstTime_v = 0;
+
 								 clr_screen1();
 							 }
 						 }

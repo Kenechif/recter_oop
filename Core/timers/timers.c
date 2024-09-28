@@ -50,10 +50,14 @@ extern unsigned int ttt1,
 extern uint32_t transaction_period,
 				transaction_period2;
 
+uint32_t millis = 0;
+uint8_t timer_go = 0;
+
 
 //=====================================================
 void dec_var()
 	{
+		millis++;
 		t++; t2++; server_time++;
 		if (server_time > 7) server_time = 7;
 
@@ -95,6 +99,8 @@ void dec_var()
 		if(transaction_period > 4294967294) transaction_period = 0;
 		transaction_period2++;
 		if(transaction_period2 > 4294967294) transaction_period2 = 0;
+
+		timer_go++;
 
 	}
 //------------------------------------------------------

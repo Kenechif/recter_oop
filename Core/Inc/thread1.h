@@ -28,6 +28,9 @@ uint8_t awaiting_masterResponse;
 uint8_t config_mode,
  	    config_found;
 
+extern uint32_t millis;
+extern uint8_t timer_go;
+
 extern char rx_buf[pump_rx_bufsize];
 
 void setup();

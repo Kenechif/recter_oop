@@ -123,38 +123,88 @@ float battery_read(void)
 	return batt_v;
 }
 
+
 float battery_sense(void)
 {
 	uint16_t digital_reading;
 	float batt_v;
 
-	ADC_ChannelConfTypeDef sConfig = {0};
+	static uint8_t firstTime_battSense = 1;
+	uint8_t interval = 100;   //100 milli-seconds
 
-	 /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
-	  */
-	  sConfig.Channel = ADC_CHANNEL_3;
-	  sConfig.Rank = 1;
-	  sConfig.SamplingTime = ADC_SAMPLETIME_84CYCLES;
-	  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-	  {
-	    Error_Handler();
-	  }
+	static uint32_t previousMillis = 0;
 
-//	sConfig.Channel = ADC_CHANNEL_2;
-//	HAL_ADC_ConfigChannel(&hadc1, &sConfig);
-
-	HAL_ADC_Start(&hadc1); // start A/D conversion
-	if(HAL_ADC_PollForConversion(&hadc1, 500) == HAL_OK) //check if conversion is completed & 500ms Timeout
+	if(firstTime_battSense == 1)
 	{
-		digital_reading  = HAL_ADC_GetValue(&hadc1); // read digital value and save it inside uint32_t variable
-	}
-	HAL_ADC_Stop(&hadc1); // stop conversion
-	HAL_Delay(100);
+		ADC_ChannelConfTypeDef sConfig = {0};
 
-	batt_v = ( (digital_reading * 3.3 ) / 4095 );   //BATTERY : Fully-charged => 2.22V (@ 8.4V) low_cutoff => 1.98 (@ 6.4V); 1.91 (@ 6.0V)
-													//	1.88V (@ 5.90V)  1.8V (@5.5V)
-	return batt_v;
+		/** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+		*/
+		sConfig.Channel = ADC_CHANNEL_3;
+		sConfig.Rank = 1;
+		sConfig.SamplingTime = ADC_SAMPLETIME_84CYCLES;
+		if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+		{
+			Error_Handler();
+		}
+
+		HAL_ADC_Start(&hadc1); // start A/D conversion
+		if(HAL_ADC_PollForConversion(&hadc1, 500) == HAL_OK) //check if conversion is completed & 500ms Timeout
+		{
+			digital_reading = HAL_ADC_GetValue(&hadc1); // read digital value and save it inside uint32_t variable
+		}
+		HAL_ADC_Stop(&hadc1); // stop conversion
+
+		previousMillis = millis;
+
+		firstTime_battSense = 0;
+	}
+
+	if(firstTime_battSense == 0)
+	{
+		if (millis - previousMillis >= interval)       //		HAL_Delay(100);
+		{
+			firstTime_battSense = 1;
+
+			batt_v = ( (digital_reading * 3.3 ) / 4095 );   //BATTERY : Fully-charged => 2.22V (@ 8.4V) low_cutoff => 1.98 (@ 6.4V); 1.91 (@ 6.0V)
+															//	1.88V (@ 5.90V)  1.8V (@5.5V)
+			return batt_v;
+		}
+	}
 }
+
+//float battery_sense(void)
+//{
+//	uint16_t digital_reading;
+//	float batt_v;
+//
+//	ADC_ChannelConfTypeDef sConfig = {0};
+//
+//	 /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+//	  */
+//	  sConfig.Channel = ADC_CHANNEL_3;
+//	  sConfig.Rank = 1;
+//	  sConfig.SamplingTime = ADC_SAMPLETIME_84CYCLES;
+//	  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+//	  {
+//	    Error_Handler();
+//	  }
+//
+////	sConfig.Channel = ADC_CHANNEL_2;
+////	HAL_ADC_ConfigChannel(&hadc1, &sConfig);
+//
+//	HAL_ADC_Start(&hadc1); // start A/D conversion
+//	if(HAL_ADC_PollForConversion(&hadc1, 500) == HAL_OK) //check if conversion is completed & 500ms Timeout
+//	{
+//		digital_reading  = HAL_ADC_GetValue(&hadc1); // read digital value and save it inside uint32_t variable
+//	}
+//	HAL_ADC_Stop(&hadc1); // stop conversion
+//	HAL_Delay(100);
+//
+//	batt_v = ( (digital_reading * 3.3 ) / 4095 );   //BATTERY : Fully-charged => 2.22V (@ 8.4V) low_cutoff => 1.98 (@ 6.4V); 1.91 (@ 6.0V)
+//													//	1.88V (@ 5.90V)  1.8V (@5.5V)
+//	return batt_v;
+//}
 
 //float battery_sense(void)
 //{

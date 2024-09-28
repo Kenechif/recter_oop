@@ -659,7 +659,7 @@ void parse_decode(void)
 									i += 6; //no. of data(8) plus 2 for the r_trans and r_lng
 									a++;
 
-									millis = HAL_GetTick();
+									milliseconds = HAL_GetTick();
 									break;
 								}
 
@@ -916,7 +916,7 @@ void parse_decode(void)
 								}
 
 								//###########################################################################//
-								//'50 37 67 01 01 83 43 03 fa
+								//'50 37 67 01 01 bf f7 03 fa
 								//===========================================================================//
 								//============================ CONFIG CHANGE QUERY ==========================//
 								//===========================================================================//
@@ -2824,7 +2824,7 @@ void _process_response1(response_enum response)
 
 			//TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
 			//  _________________________________________________________________________________________________________________________________________________________________
-			// | NOZ-NUM | TX-NUM | TX-CODE | TX-LEN | OTP-SEED [2 Bytes] | TIMESTAMP [4 Bytes] | CONFIG-1 PARTICULAR [1 Byte] | OLD-VALUE 1 [3 Bytes] | NEW-VALUE 1 [3 Bytes]|
+			// | NOZ-NUM | TX-NUM | TX-CODE | TX-LEN | OTP-SEED [2 Bytes] | TIMESTAMP [5 Bytes] | CONFIG-1 PARTICULAR [1 Byte] | OLD-VALUE 1 [3 Bytes] | NEW-VALUE 1 [3 Bytes]|
 			// |_________|________|_________|________|____________________|_____________________|______________________________|_______________________|______________________|__
 			// ________________________________________________________________________________________________________
 			//   |CONFIG-2 PARTICULAR [1 Byte] | OLD-VALUE 2 [3 Bytes] | NEW-VALUE 2 [3 Bytes] | CRC1 |CRC2 | ETX | SF |
@@ -2832,7 +2832,7 @@ void _process_response1(response_enum response)
 			//
 			//YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
 
-			//'50 38 67 0E 12 34 12 34 56 78    00 00 18 03 67 00 00   00 00 00 59 57 83 27   ab 03 fa '
+			//'50 38  67 15  12 34  12 34 56 78 90   00 00 18 03 67 00 00   00 00 00 59 57 83 27   ab 03 fa '
 
 			//####################################################################################################################################################################
 
@@ -2843,8 +2843,8 @@ void _process_response1(response_enum response)
 			//        				 "REQUEST CONFIG CHANGE INFO"                          //
 			//=============================================================================//
 
-			uint16_t otp_seed,
-			         time_stamp;
+			uint16_t otp_seed;
+			uint32_t time_stamp;
 
 			unsigned char bcd_[6] = {0};  // Array to hold the BCD result
 
@@ -2863,10 +2863,10 @@ void _process_response1(response_enum response)
 			}
 
 
-			retrieve_otpSeed_fram(side_a);
+			retrieve_config_otpSeed_time_fram(side_a);
 			retrieve_settings_original_fram(side_a);
 
-			otp_seed = configChange[0].otpSeed.otp_seed;
+			otp_seed = configChange[0].otp_seed;
 			time_stamp = configChange[0].time_stamp;
 
 			ctrl = 0x03;
@@ -2880,7 +2880,7 @@ void _process_response1(response_enum response)
 			DART_BUFF1[2] = trans;
 //			DART_BUFF1[3] = lng;
 
-			//'50 38 67 0E   12 34 12 34 56 78    00 00 18 03 67 00 00   00 00 00 59 57 83 27   ab 03 fa '
+			//'50 38  67 15   12 34  12 34 56 78 90   00 00 18 03 67 00 00   00 00 00 59 57 83 27   ab 03 fa '
 
 			int_to_bcd(otp_seed, bcd_);
 
@@ -2891,11 +2891,11 @@ void _process_response1(response_enum response)
 
 			memset(bcd_, 0, sizeof(bcd_));
 
-			//'50 38 67 0E   12 34 12 34 56 78    00 00 18 03 67 00 00   00 00 00 59 57 83 27   ab 03 fa '
+			//'50 38  67 15   12 34  12 34 56 78 90   00 00 18 03 67 00 00   00 00 00 59 57 83 27   ab 03 fa '
 
 			int_to_bcd(time_stamp, bcd_);
 
-			for (uint8_t ii = 0, j = 3; ii < 4; ii++, j--)   //j=>3 : MSB in it, LSB is in j=>0
+			for (uint8_t ii = 0, j = 4; ii < 5; ii++, j--)   //j=>4 : MSB in it, LSB is in j=>0
 			{
 				DART_BUFF1[ii + 6] = bcd_[j];
 			}
@@ -2906,29 +2906,29 @@ void _process_response1(response_enum response)
 
 			if(configCheck == 2)
 			{
-				DART_BUFF1[3] = 20;  //Data-Length;
+				DART_BUFF1[3] = 21;  //Data-Length;
 
-				crc = crc_16(DART_BUFF1, 24);
+				crc = crc_16(DART_BUFF1, 25);
 
-				DART_BUFF1[24] = crc & 0x00FF;
-				DART_BUFF1[25] = crc >> 8;
-				DART_BUFF1[26] = ETX;
-				DART_BUFF1[27] = SF;
+				DART_BUFF1[25] = crc & 0x00FF;
+				DART_BUFF1[26] = crc >> 8;
+				DART_BUFF1[27] = ETX;
+				DART_BUFF1[28] = SF;
 
-				array_len = 28;
+				array_len = 29;
 			}
 			else if (configCheck == 1)
 			{
-				DART_BUFF1[3] = 13;  //Data-Length;
+				DART_BUFF1[3] = 14;  //Data-Length;
 
-				crc = crc_16(DART_BUFF1, (24 - 7));
+				crc = crc_16(DART_BUFF1, (25 - 7));
 
-				DART_BUFF1[24 - 7] = crc & 0x00FF;
-				DART_BUFF1[25 - 7] = crc >> 8;
-				DART_BUFF1[26 - 7] = ETX;
-				DART_BUFF1[27 - 7] = SF;
+				DART_BUFF1[25 - 7] = crc & 0x00FF;
+				DART_BUFF1[26 - 7] = crc >> 8;
+				DART_BUFF1[27 - 7] = ETX;
+				DART_BUFF1[28 - 7] = SF;
 
-				array_len = (28 - 7);
+				array_len = (29 - 7);
 			}
 
 			//================================================================================//
@@ -4936,7 +4936,7 @@ void send_pumpStatus2(uint8_t buff_index)
 //		trans = 0x01;
 //		lng = 0x01;
 //
-//		DART_BUFF1[18] = trans;
+//		DART_BUFF1[ii + 19] = trans;
 //		DART_BUFF1[19] = lng;
 //
 //		//==============================//
@@ -5380,7 +5380,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 {
 		//TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
 		//  _________________________________________________________________________________________________________________________________________________________________
-		// | NOZ-NUM | TX-NUM | TX-CODE | TX-LEN | OTP-SEED [2 Bytes] | TIMESTAMP [4 Bytes] | CONFIG-1 PARTICULAR [1 Byte] | OLD-VALUE 1 [3 Bytes] | NEW-VALUE 1 [3 Bytes]|
+		// | NOZ-NUM | TX-NUM | TX-CODE | TX-LEN | OTP-SEED [2 Bytes] | TIMESTAMP [5 Bytes] | CONFIG-1 PARTICULAR [1 Byte] | OLD-VALUE 1 [3 Bytes] | NEW-VALUE 1 [3 Bytes]|
 		// |_________|________|_________|________|____________________|_____________________|______________________________|_______________________|______________________|__
 		// ________________________________________________________________________________________________________
 		//   |CONFIG-2 PARTICULAR [1 Byte] | OLD-VALUE 2 [3 Bytes] | NEW-VALUE 2 [3 Bytes] | CRC1 |CRC2 | ETX | SF |
@@ -5388,7 +5388,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 		//
 		//YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
 
-		//'50 38   67 0E   12 34 12 34 56 78    00 00 18 03 67 00 00   00 00 00 59 57 83 27   ab 03 fa '
+		//'50 38   67 15   12 34  12 34 56 78 90   00  00 18 03  67 00 00   00  00 00 59  57 83 27   ab 03 fa '
 
 		//####################################################################################################################################################################
 
@@ -5400,7 +5400,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						track_num1++;
 						if(settings_original_stream1[0].mode != settings_stream1[0].mode)
 						{
-							DART_BUFF1[10] = MO1;
+							DART_BUFF1[11] = MO1;
 
 							memset(bcd_, 0, sizeof(bcd_));
 
@@ -5408,16 +5408,16 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 							for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 							{
-								DART_BUFF1[ii + 11] = bcd_[j];
+								DART_BUFF1[ii + 12] = bcd_[j];
 							}
 
 							memset(bcd_, 0, sizeof(bcd_));
 
 							int_to_bcd(settings_stream1[0].mode, bcd_);
 
-							for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>3 : MSB in it, LSB is in j=>0
+							for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 							{
-								DART_BUFF1[ii + 14] = bcd_[j];
+								DART_BUFF1[ii + 15] = bcd_[j];
 							}
 
 							valid_pair1++;
@@ -5429,7 +5429,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = NA1;
+								DART_BUFF1[11] = NA1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -5437,7 +5437,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -5446,14 +5446,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = NA1;
+								DART_BUFF1[18] = NA1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -5461,7 +5461,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -5470,7 +5470,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 22] = bcd_[j];
 								}
 
 								valid_pair1 = 0;
@@ -5485,7 +5485,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = NO1;
+								DART_BUFF1[11] = NO1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -5493,7 +5493,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -5502,14 +5502,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = NO1;
+								DART_BUFF1[18] = NO1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -5517,7 +5517,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -5526,7 +5526,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 22] = bcd_[j];
 								}
 
 								valid_pair1 = 0;
@@ -5541,7 +5541,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = NC1;
+								DART_BUFF1[11] = NC1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -5549,7 +5549,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -5558,14 +5558,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = NC1;
+								DART_BUFF1[18] = NC1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -5573,7 +5573,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -5582,7 +5582,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 22] = bcd_[j];
 								}
 
 								valid_pair1 = 0;
@@ -5597,7 +5597,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = UN1;
+								DART_BUFF1[11] = UN1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -5605,7 +5605,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -5614,14 +5614,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = UN1;
+								DART_BUFF1[18] = UN1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -5629,7 +5629,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -5638,7 +5638,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 22] = bcd_[j];
 								}
 
 								valid_pair1 = 0;
@@ -5653,7 +5653,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = TO1;
+								DART_BUFF1[11] = TO1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -5661,7 +5661,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -5670,14 +5670,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = TO1;
+								DART_BUFF1[18] = TO1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -5685,7 +5685,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -5694,7 +5694,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 22] = bcd_[j];
 								}
 
 								valid_pair1 = 0;
@@ -5709,7 +5709,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = ML1;
+								DART_BUFF1[11] = ML1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -5717,7 +5717,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -5726,14 +5726,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = ML1;
+								DART_BUFF1[18] = ML1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -5741,7 +5741,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -5750,7 +5750,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 22] = bcd_[j];
 								}
 
 								valid_pair1 = 0;
@@ -5765,7 +5765,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = PW1;
+								DART_BUFF1[11] = PW1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -5773,7 +5773,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -5782,14 +5782,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = PW1;
+								DART_BUFF1[18] = PW1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -5797,7 +5797,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -5806,7 +5806,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 22] = bcd_[j];
 								}
 
 								valid_pair1 = 0;
@@ -5821,7 +5821,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = PW2;
+								DART_BUFF1[11] = PW2;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -5829,7 +5829,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -5838,14 +5838,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = PW2;
+								DART_BUFF1[18] = PW2;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -5853,7 +5853,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -5862,7 +5862,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 22] = bcd_[j];
 								}
 
 								valid_pair1 = 0;
@@ -5877,7 +5877,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = PW3;
+								DART_BUFF1[11] = PW3;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -5885,7 +5885,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -5894,14 +5894,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = PW3;
+								DART_BUFF1[18] = PW3;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -5909,7 +5909,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -5918,7 +5918,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 22] = bcd_[j];
 								}
 
 								valid_pair1 = 0;
@@ -5933,7 +5933,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = NO1;
+								DART_BUFF1[11] = NO1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -5941,7 +5941,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -5950,14 +5950,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = NO1;
+								DART_BUFF1[18] = NO1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -5965,7 +5965,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -5974,7 +5974,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 22] = bcd_[j];
 								}
 
 								valid_pair1 = 0;
@@ -5989,7 +5989,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = CV2;
+								DART_BUFF1[11] = CV2;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -5997,7 +5997,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6006,14 +6006,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = CV2;
+								DART_BUFF1[18] = CV2;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6021,7 +6021,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6030,7 +6030,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 22] = bcd_[j];
 								}
 
 								valid_pair1 = 0;
@@ -6045,7 +6045,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = CS1;
+								DART_BUFF1[11] = CS1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6053,7 +6053,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6062,14 +6062,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = CS1;
+								DART_BUFF1[18] = CS1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6077,7 +6077,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6086,7 +6086,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 22] = bcd_[j];
 								}
 
 								valid_pair1 = 0;
@@ -6101,7 +6101,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = DP1;
+								DART_BUFF1[11] = DP1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6109,7 +6109,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6118,14 +6118,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = DP1;
+								DART_BUFF1[18] = DP1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6133,7 +6133,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6142,7 +6142,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 22] = bcd_[j];
 								}
 
 								valid_pair1 = 0;
@@ -6156,7 +6156,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = DP2;
+								DART_BUFF1[11] = DP2;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6164,7 +6164,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6173,14 +6173,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = DP2;
+								DART_BUFF1[18] = DP2;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6188,7 +6188,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6197,7 +6197,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 22] = bcd_[j];
 								}
 
 								valid_pair1 = 0;
@@ -6212,7 +6212,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = DP3;
+								DART_BUFF1[11] = DP3;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6220,7 +6220,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6229,14 +6229,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = DP3;
+								DART_BUFF1[18] = DP3;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6244,7 +6244,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6253,7 +6253,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 22] = bcd_[j];
 								}
 
 								valid_pair1 = 0;
@@ -6268,7 +6268,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = DS1;
+								DART_BUFF1[11] = DS1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6276,7 +6276,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6285,14 +6285,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = DS1;
+								DART_BUFF1[18] = DS1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6300,7 +6300,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6309,7 +6309,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 22] = bcd_[j];
 								}
 
 								valid_pair1 = 0;
@@ -6324,7 +6324,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = DT1;
+								DART_BUFF1[11] = DT1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6332,7 +6332,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6341,14 +6341,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = DT1;
+								DART_BUFF1[18] = DT1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6356,7 +6356,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6365,7 +6365,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 22] = bcd_[j];
 								}
 
 								valid_pair1 = 0;
@@ -6380,7 +6380,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = SL1;
+								DART_BUFF1[11] = SL1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6388,7 +6388,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6397,14 +6397,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = SL1;
+								DART_BUFF1[18] = SL1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6412,7 +6412,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6421,7 +6421,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 22] = bcd_[j];
 								}
 
 								valid_pair1 = 0;
@@ -6436,7 +6436,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = SC1;
+								DART_BUFF1[11] = SC1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6444,7 +6444,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6453,14 +6453,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = SC1;
+								DART_BUFF1[18] = SC1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6468,7 +6468,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6477,7 +6477,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 22] = bcd_[j];
 								}
 
 								valid_pair1 = 0;
@@ -6492,7 +6492,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = TN1;
+								DART_BUFF1[11] = TN1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6500,7 +6500,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6509,14 +6509,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = TN1;
+								DART_BUFF1[18] = TN1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6524,7 +6524,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6533,7 +6533,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 22] = bcd_[j];
 								}
 
 								valid_pair1 = 0;
@@ -6548,7 +6548,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = PT1;
+								DART_BUFF1[11] = PT1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6556,7 +6556,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6565,14 +6565,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = PT1;
+								DART_BUFF1[18] = PT1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6580,7 +6580,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6589,7 +6589,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 22] = bcd_[j];
 								}
 
 								valid_pair1 = 0;
@@ -6603,7 +6603,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = PO1;
+								DART_BUFF1[11] = PO1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6611,7 +6611,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6620,14 +6620,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = PO1;
+								DART_BUFF1[18] = PO1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6635,7 +6635,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6644,7 +6644,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 22] = bcd_[j];
 								}
 
 								valid_pair1 = 0;
@@ -6659,7 +6659,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = SF1;
+								DART_BUFF1[11] = SF1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6667,7 +6667,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6676,14 +6676,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = SF1;
+								DART_BUFF1[18] = SF1;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6691,7 +6691,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6700,7 +6700,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1 = 0;
@@ -6715,7 +6715,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 						{
 							if(valid_pair1 == 0)
 							{
-								DART_BUFF1[10] = SF2;
+								DART_BUFF1[11] = SF2;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6723,7 +6723,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 12] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6732,14 +6732,14 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
 								valid_pair1++;
 							}
 							else
 							{
-								DART_BUFF1[17] = SF2;
+								DART_BUFF1[18] = SF2;
 
 								memset(bcd_, 0, sizeof(bcd_));
 
@@ -6747,7 +6747,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 11] = bcd_[j];
+									DART_BUFF1[ii + 19] = bcd_[j];
 								}
 
 								memset(bcd_, 0, sizeof(bcd_));
@@ -6756,7 +6756,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
-									DART_BUFF1[ii + 14] = bcd_[j];
+									DART_BUFF1[ii + 22] = bcd_[j];
 								}
 
 								valid_pair1 = 0;

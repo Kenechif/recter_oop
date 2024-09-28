@@ -2236,8 +2236,7 @@ eSystemState progState_Handler2(void)
 						   if(strcmp(pass_, otp_code2) == 0)  //level 2 0r 3 access ?
 						   {
 //							   save_otp(side_b);
-							   save_otpSeed_fram(side_b);
-							   configChange[1].otpSeed.time_stamp = RtcToInt(2019);
+							   save_config_otpSeed_time_fram(side_b);
 					#else
 						   if( (strcmp(pass_, otp_code2) == 0) || (strcmp(pass_, otp_code2) != 0) )  //level 2 0r 3 access ?
 						   {

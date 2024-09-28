@@ -951,16 +951,16 @@ typedef struct OtpSeed_Session
 
 OtpSeed_Session otpSeed_session[2];
 
-typedef struct OtpSeed
-{
-	uint16_t otp_seed;
-	uint32_t time_stamp;   // 6 Bytes + 2 Byte-padding ==> 8 Bytes
-}OtpSeed;
+//typedef struct OtpSeed
+//{
+//	uint16_t otp_seed;
+//	uint32_t time_stamp;   // 6 Bytes + 2 Byte-padding ==> 8 Bytes
+//}OtpSeed;
 
 typedef struct ConfigChange
 {
-	OtpSeed otpSeed;
-	uint32_t time_stamp;    // 12 Bytes
+	uint32_t time_stamp;
+	uint16_t otp_seed;		// 6 Bytes + 2Byte Padding ==>8 Bytes
 }ConfigChange;
 
 ConfigChange configChange[2];
@@ -1172,9 +1172,9 @@ void save_otp(pump_sid side);
 void retrieve_otp(pump_sid side);
 void clear_otp(pump_sid side);
 
-void save_otpSeed_fram(pump_sid side);
-void retrieve_otpSeed_fram(pump_sid side);
-void clear_otpSeed_fram(pump_sid side);
+void save_config_otpSeed_time_fram(pump_sid side);
+void retrieve_config_otpSeed_time_fram(pump_sid side);
+void clear_config_otpSeed_time_fram(pump_sid side);
 
 void save_otpSeed_session_fram(pump_sid side);
 void retrieve_otpSeed_session_fram(pump_sid side);
