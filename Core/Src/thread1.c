@@ -1727,6 +1727,9 @@ tmmm:
 	  clear_otpSeed_session_fram(side_a);
 	  clear_otpSeed_session_fram(side_b);
 
+	  clear_online_calibFlag_fram(side_a);
+	  clear_online_calibFlag_fram(side_b);
+
 
 //	  clear_ctSettings(side_a);
 //	  clear_ctSettings(side_b);
@@ -2277,6 +2280,8 @@ skip_test:
 
     retrieve_ctSettings_fram(side_a);
     retrieve_ctSettings_fram(side_b);
+    retrieve_online_calibFlag_fram(side_a);
+    retrieve_online_calibFlag_fram(side_b);
 
     //JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ//
     //============================================//

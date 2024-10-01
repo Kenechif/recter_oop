@@ -110,6 +110,9 @@ uint8_t  DART_BUFF1[128],
 uint8_t set_param1[51],
 		set_param2[51];
 
+uint8_t set_calib1[3],
+		set_calib2[3];
+
 uint32_t update_date_time;
 
 
@@ -175,6 +178,7 @@ extern bool nozzle_out1,
 				REQUEST_VOL_TOTAL_COUNT,
 				REQUEST_CONFIG_CHANGE_INFO,
 				CLEAR_OTP_SESSION,
+				REQUEST_CALIBRATION_PARAM,
 				NO_COMMAND
 			}command_enum1;
 
@@ -212,6 +216,8 @@ extern bool nozzle_out1,
 				DATA_CLEAR_OTP_SESSION,
 				DATA_REQUEST_CONFIG_CHANGE_INFO,
 				DATA_DATE_TIME_UPDATE,
+				DATA_REQUEST_CALIBRATION_PARAM,
+				DATA_SET_CALIBRATION_PARAM,
 
 
 				// PRESET_VOL,	//Set the respective volume of these before using them

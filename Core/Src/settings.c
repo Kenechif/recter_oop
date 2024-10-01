@@ -328,6 +328,9 @@ float price_upper1,
  const uint16_t otpSeed_session1_loc_fram = 702,          //size => 12 Bytes
  		   	    otpSeed_session2_loc_fram = 714;          //714 --> 725
 
+ const uint16_t online_calibFlag1_loc_fram = 726,
+		 	 	online_calibFlag2_loc_fram = 727;
+
 
  //YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY//
 
@@ -2565,6 +2568,20 @@ void save_calibrationFlag_fram(pump_sid side)
 
 }
 
+
+void save_online_calibFlag_fram(pump_sid side)
+{
+	if (side == side_a)
+	{
+		FRAM_WriteByte (online_calibFlag1_loc_fram, online_calibFlag1);
+	}
+	else if (side == side_b)
+	{
+		FRAM_WriteByte (online_calibFlag2_loc_fram, online_calibFlag2);
+	}
+
+}
+
 //===================================================
 /*
  *  read Calibration Flag
@@ -2590,6 +2607,18 @@ void retrieve_calibrationFlag_fram(pump_sid side)
 	else if (side == side_b)
 	{
 		calibration_flag2 = FRAM_ReadByte (calibrationFlag2_loc_fram);
+	}
+}
+
+void retrieve_online_calibFlag_fram(pump_sid side)
+{
+	if (side == side_a)
+	{
+		online_calibFlag1 = FRAM_ReadByte (online_calibFlag1_loc_fram);
+	}
+	else if (side == side_b)
+	{
+		online_calibFlag2 = FRAM_ReadByte (online_calibFlag2_loc_fram);
 	}
 }
 
@@ -2621,6 +2650,18 @@ void clear_calibrationFlag_fram(pump_sid side)
 	}
 }
 
+void clear_online_calibFlag_fram(pump_sid side)
+{
+	if (side == side_a)
+	{
+		FRAM_WriteByte (online_calibFlag1_loc_fram, 0);
+	}
+	else if (side == side_b)
+	{
+		FRAM_WriteByte (online_calibFlag2_loc_fram, 0);
+	}
+
+}
 
 //===================================================
 

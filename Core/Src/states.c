@@ -126,6 +126,8 @@ extern float litre_price2;
 extern uint8_t calibration_flag1 = 0,
 			   configMode1 = 0;
 
+extern uint8_t online_calibFlag1 = 0;
+
 extern uint8_t pwr1 = NOPOWERINTERRUPTION;
 
 extern float price_upper1 = 0.000,
@@ -7138,7 +7140,13 @@ eSystemState idleState_Handler(void)
 
 //	current_pulser_++;
 //	current_pulser_--;
+	if(settings_stream1[0].mode == AUTO_MODE)
+	{
+		if(timer_go >= TIMEOUT_GO)   //if go's timeout is 5sec threshold
+		{
 
+		}
+	}
 
 	#if sense_power == 1
 	  if(readpwr() == 0)
@@ -7270,6 +7278,17 @@ eSystemState idleState_Handler(void)
 				}
 			}
 
+		}
+	}
+
+	if (settings_stream1[0].mode == AUTO_MODE)
+	{
+		if(online_calibFlag1 == 1)
+		{
+			settings_stream1[0].pi_cal = (calib_pulser1 / vol_effective1);
+
+			online_calibFlag1 = 0;
+			save_online_calibFlag_fram(side_a);
 		}
 	}
 

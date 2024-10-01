@@ -101,6 +101,8 @@ extern float litre_price2;
 extern uint8_t calibration_flag2 = 0,
 			   configMode2 = 0;
 
+extern uint8_t online_calibFlag2 = 0;
+
 extern uint8_t pwr2 = NOPOWERINTERRUPTION;
 
 extern float price_upper2 = 0.000,

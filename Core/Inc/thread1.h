@@ -31,6 +31,12 @@ uint8_t config_mode,
 extern uint32_t millis;
 extern uint8_t timer_go;
 
+extern uint8_t calibration_flag1,
+			   calibration_flag2;
+
+extern uint8_t online_calibFlag1,
+			   online_calibFlag2;
+
 extern char rx_buf[pump_rx_bufsize];
 
 void setup();

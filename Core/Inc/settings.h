@@ -27,9 +27,11 @@ extern "C" {
 #define randnum(min, max) \ ((rand() % (int)(((max) + 1) - (min))) + (min))
 
 
-#define _PMS      1
-#define _AGO      2
-#define _DPK      3
+#define _PMS      					1
+#define _AGO      					2
+#define _DPK      					3
+
+#define TIMEOUT_GO					5       //5sec
 
 //:::::::::::::::::::::::::::::::::::::::::::://
 
@@ -56,6 +58,7 @@ extern "C" {
 //	#define sense_battery 				1
 	#define sense_battery 				0
 	#define sense_power  				1
+//	#define TIMEOUT_GO					5       //5sec
 #endif
 
 #define use_internal_rtc			0
@@ -1035,6 +1038,9 @@ uint8_t calibration_flag1,
 		configMode1,
 		configMode2;
 
+uint8_t online_calibFlag1,
+		online_calibFlag2;
+
 float temppp_;
 
 
@@ -1102,6 +1108,10 @@ void clear_ctSettings(pump_sid side);
 void save_ctSettings_fram(pump_sid side);
 void retrieve_ctSettings_fram(pump_sid side);
 void clear_ctSettings_fram(pump_sid side);
+
+void save_online_calibFlag_fram(pump_sid side);
+void retrieve_online_calibFlag_fram(pump_sid side);
+void clear_online_calibFlag_fram(pump_sid side);
 
 void save_ctTimedSettings(pump_sid side);
 void retrieve_ctTimedSettings(pump_sid side);
