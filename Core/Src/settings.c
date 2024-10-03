@@ -1099,14 +1099,12 @@ void save_volumeTotaliser_fram(pump_sid side)
 
 	if (side == side_a)
 	  {
-		//EEPROM_Write_NUM(totVol_loc, totVol1_loc, tot);
 		  totaliser_vol_storeA.totaliserVol_cal = totaliser_vol1c;
 	  	  totaliser_vol_storeA.totaliserVol_real = totaliser_vol1;
 	  	  FRAM_Write(totVol1_loc_fram, &totaliser_vol_storeA, sz);
 	  }
 	else if (side == side_b)
 	  {
-		//EEPROM_Write_NUM(totVol_loc, totVol2_loc, tot);
 		  totaliser_vol_storeB.totaliserVol_cal = totaliser_vol2c;
 	  	  totaliser_vol_storeB.totaliserVol_real = totaliser_vol2;
 	  	  FRAM_Write(totVol2_loc_fram, &totaliser_vol_storeB, sz);
@@ -1721,9 +1719,6 @@ void save_ctSettings_fram(pump_sid side)
 
 	if (side == side_a)
 	  {
-//		  vol_effective1 = ( (atof(ep31_save.pump[0].calibrate_ct.ct_effectiveMinusBase) + vol_calibrated1) + 0.00011);
-		  vol_effective1 = ( (atof(ep31_save.pump[0].calibrate_ct.ct_effectiveMinusBase) + vol_real1) + 0.00011);
-
 		  ct_settingsA.original = vol_real1;
 		  ct_settingsA.base = vol_calibrated1;
 	  	  ct_settingsA.effective = vol_effective1;
@@ -1731,9 +1726,6 @@ void save_ctSettings_fram(pump_sid side)
 	  }
 	else if (side == side_b)
 	  {
-//		  vol_effective2 = ( (atof(ep31_save.pump[1].calibrate_ct.ct_effectiveMinusBase) + vol_calibrated2) + 0.00011);
-		  vol_effective2 = ( (atof(ep31_save.pump[1].calibrate_ct.ct_effectiveMinusBase) + vol_real2) + 0.00011);
-
 		  ct_settingsB.original = vol_real2;
 		  ct_settingsB.base = vol_calibrated2;
 		  ct_settingsB.effective = vol_effective2;

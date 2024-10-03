@@ -414,26 +414,26 @@ void drive_fast_sole2(drive drv)
 	}
 	else
 	{
-		HAL_GPIO_WritePin(fast_sole2_GPIO_Port,fast_sole2_Pin, drv);
+		HAL_GPIO_WritePin(fast_sole2_GPIO_Port, fast_sole2_Pin, drv);
 	}
 }
 //---------------------------------------------------------------
 
  void clear_screen1()
   {
-     for(int i = 0; i < 22;i++)
+     for(uint8_t i = 0; i < 22; i++)
      {
        vbuf[i] = 0;     //initialise buffer with spaces
-  	   shiftOut(0,1);
+  	   shiftOut(0, 1);
      }
   }
 //---------------------------------------------
  void clear_screen2()
   {
-     for(int i = 0; i < 22;i++)
+     for(uint8_t i = 0; i < 22; i++)
      {
        vbuf2[i] = 0;     			//initialise buffer with spaces
-  	   shiftOut2(0,1);
+  	   shiftOut2(0, 1);
      }
   }
 //---------------------------------------------

@@ -395,7 +395,7 @@ int main(void)
 
 //  	Ringbuf_init ();
 
-  	SOP = settings_stream1[0].noz_addr + 0x4F;
+//  	SOP = settings_stream1[0].noz_addr + 0x4F;
 
   HAL_UARTEx_ReceiveToIdle_DMA(&huart2, RxBuf, RxBuf_SIZE);
    __HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);

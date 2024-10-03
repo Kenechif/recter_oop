@@ -3329,7 +3329,7 @@ uint8_t ep1_ctCheck(void)
 	   return 0;
 }
 
-void ttostr(uint32_t time_integer,uint8_t typ) // typ: 1=> time 2=>date
+void ttostr(uint32_t time_integer, uint8_t typ) // typ: 1=> time 2=>date
 {
 	u32 yearShift = 27;
 	u32 mnmask = 0x1f;

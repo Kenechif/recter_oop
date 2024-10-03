@@ -54,7 +54,11 @@ extern uint8_t mamo_reached_flag2,
 			   nozzleDown_source2 = 0,
 			   reset_flag2 = 0,
 			   hardwareError_flag2 = 0,
-			   hardwareErrorFlag_source2 = 0;
+			   hardwareErrorFlag_source2 = 0,
+			   go_timeOut1 = 0,
+			   go_timeOut2 = 0;
+
+
 
 uint32_t flash_write_id;    //read and write.
 uint32_t flash_read_id;     //address of the flash.
@@ -532,6 +536,13 @@ eSystemState write_flash_State_Handler(void)
 
 				return filling_State;
 			}
+			else if(go_timeOut1 == 1)
+			{
+				go_timeOut1 = 0;
+
+				pump_status_1 = STATUS_PNP;
+				return pnp_State;
+			}
 		}
 
 		if(settings_stream1[1].mode == AUTO_MODE)
@@ -570,6 +581,13 @@ eSystemState write_flash_State_Handler(void)
 				hardwareError_flag2 = 1;
 
 				return filling_State;
+			}
+			else if(go_timeOut2 == 1)
+			{
+				go_timeOut2 = 0;
+
+				pump_status_2 = STATUS_PNP;
+				return pnp_State;
 			}
 		}
 

@@ -132,7 +132,6 @@ eSystemState switchedoffState_Handler2(void);
 
 
 
-
 //eSystemState read_flash_state_Handler(void);  //moved to log.h
 //eSystemState write_flash_state_Handler(void);
 
@@ -226,6 +225,24 @@ eSystemState mamo_Handler2(void);
 //	nothing
 //};
 
+uint8_t go_timeOut2;
+
+static bool mth_success2 = false,
+			clock_save2 = false;
+
+extern float lastVolumeSale2,
+	  	  	 lastVolumeSale2c,
+			 lastAmountSale2,
+			 lastAmountSale2c;
+
+extern uint8_t ctTimed_day2;
+
+extern ctTimed_settings ctTimed_settingsB;
+
+extern _calibrationData calibrationData[2];
+
+extern OtpSeed_Session otpSeed_session[2];
+
 int8_t nozzleup_awaitingauth_state_not_timedOut2;
 
 extern uint8_t batteryStatus;
@@ -250,23 +267,6 @@ uint8_t long_press_progExit2();
 
 uint8_t long_press_log2();
 uint8_t long_press_tot2();
-
-
-static bool mth_success2 = false,
-			clock_save2 = false;
-
-extern float lastVolumeSale2,
-	  	  	 lastVolumeSale2c,
-			 lastAmountSale2,
-			 lastAmountSale2c;
-
-extern uint8_t ctTimed_day2;
-
-extern ctTimed_settings ctTimed_settingsB;
-
-extern _calibrationData calibrationData[2];
-
-extern OtpSeed_Session otpSeed_session[2];
 
 bool leapYear_calc2(int8_t year);
 void save_date2(int8_t _entri);

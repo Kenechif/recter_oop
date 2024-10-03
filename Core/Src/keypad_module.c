@@ -108,6 +108,12 @@ int scankey(void)
 	count++;
 	  if( checkkey() == 1) {
 		  keynumber = 1;
+
+		  if(settings_stream2[0].keypress_tone == Yes)
+		  {
+			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);_Delay(100);
+		  }
+
 		  goto keyfound;    //return i;
 	  }
  //-----------------------------------------------------------------------
@@ -122,6 +128,12 @@ int scankey(void)
 			count++;
 			  if( checkkey() == 1) {
 					  keynumber = i;
+
+					  if(settings_stream2[0].keypress_tone == Yes)
+					  {
+						  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);_Delay(100);
+					  }
+
 					  goto keyfound;    //return i;
 				  }
 	}
@@ -143,6 +155,8 @@ int scankey(void)
 				HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);  //shift the rest 20 bits.
 				_Delay(1);
 				HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
+
+	  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 	  return keynumber;
 }
 //============================================================================================

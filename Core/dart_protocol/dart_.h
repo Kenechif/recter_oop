@@ -562,6 +562,8 @@ void parse_message1(unsigned char* arr);
 //void parse_message(unsigned char* arr, int size);
 
 void int_to_bcd(int num, unsigned char *bcd);
+uint8_t bcd_to_int(unsigned char bcd);
+uint32_t bcdArray_to_int(unsigned char bcd[], uint8_t length);
 
 double round_off(float value, int decimalPlaces);
 
@@ -575,7 +577,9 @@ void send_nozzleStatus2(uint8_t buff_index);
 void send_pumpStatus2(uint8_t buff_index);
 void send_fillingInfo2(uint8_t buff_index);
 
-uint8_t configChange_notify_build(uint8_t track_num_);
+uint8_t configChange_notify_build1(uint8_t track_num_);
+
+uint8_t configChange_notify_build2(uint8_t track_num_);
 
 
 #endif /* SOURCE_GOGO_P_WAYNE_485_H_ */

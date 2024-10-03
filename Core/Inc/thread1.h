@@ -37,6 +37,9 @@ extern uint8_t calibration_flag1,
 extern uint8_t online_calibFlag1,
 			   online_calibFlag2;
 
+extern uint32_t calib_pulser1,
+				calib_pulser2;
+
 extern char rx_buf[pump_rx_bufsize];
 
 void setup();

@@ -1960,6 +1960,7 @@ eSystemState _fillingcomplete_Handler(void)
 {
 	pump_status_1 = STATUS_FILLING_COMP;
 	status_change_pump1 = 1;
+	clr_screen1();
 
 	return idle_State;
 }
@@ -2291,6 +2292,16 @@ eSystemState operator_State_Handler(void)
    //===========================================================
 	    // POWER FAILURE SENSE
    //===========================================================
+
+	if(settings_stream1[0].mode == AUTO_MODE)
+	{
+		if(timer_go >= TIMEOUT_GO)   //if go's timeout is 5sec threshold
+		{
+			pump_status_1 = STATUS_PNP;
+			return pnp_State;
+		}
+	}
+
 
 	#if sense_power == 1
 		  	  if(readpwr() == 0)
@@ -5034,24 +5045,33 @@ eSystemState progState_Handler(void)
 				  HAL_Delay(200);
 				  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 				  stop_flow1();
-//				  get_time();
-//				  do_calcs();
-//				  update_info();
 
 				  if(calibration_flag1 == CALIBRATED)
 				  {
-					  pulser_totalizer1 = ( (calib_pulser1 / (float) (pulser_benchMark1)) * calibrationCan_measure1 );
-					  totaliser_vol1c += pulser_totalizer1;
-					  totaliser_vol1 += pulser_totalizer1;
-					  totaliser_amt1c += (pulser_totalizer1 * litre_price);
-					  totaliser_amt1 += (pulser_totalizer1 * litre_price);
-					  amt_real1 = pulser_totalizer1;
-					  amt_middle1 = pulser_totalizer1;
-					  price_real1 = (pulser_totalizer1 * litre_price);
-					  price_upper1 = (pulser_totalizer1 * litre_price);
+//					  pulser_totalizer1 = ( (calib_pulser1 / (float) (pulser_benchMark1)) * calibrationCan_measure1 );
+//					  totaliser_vol1c += pulser_totalizer1;
+//					  totaliser_vol1 += pulser_totalizer1;
+//					  totaliser_amt1c += (pulser_totalizer1 * litre_price);
+//					  totaliser_amt1 += (pulser_totalizer1 * litre_price);
+//					  amt_real1 = pulser_totalizer1;
+
+//					  amt_middle1 = pulser_totalizer1;
+//					  price_real1 = (pulser_totalizer1 * litre_price);
+//					  price_upper1 = (pulser_totalizer1 * litre_price)
+
+
+					  amt_middle1 = calibrationCan_measure1;
+					  price_real1 = (calibrationCan_measure1 * litre_price);
+					  price_upper1 = (calibrationCan_measure1 * litre_price);
+					  amt_real1 = calibrationCan_measure1;
+
+					  totaliser_vol1c += calibrationCan_measure1;
+					  totaliser_vol1 += calibrationCan_measure1;
+					  totaliser_amt1c += price_real1;
+					  totaliser_amt1 += price_real1;
+
 					  save_volumeTotaliser_fram(operating_side);
 					  save_amountTotaliser_fram(operating_side);
-//					  save_lastSale(operating_side);
 					  save_lastSale_fram(operating_side);
 
 //					  pwr1 = POWERINTERRUPTION;
@@ -5061,10 +5081,23 @@ eSystemState progState_Handler(void)
 				  {
 //					  calibrationData[0].pulser_value = calib_pulser1;
 
-					  pulser_benchMark1 = 0;
-					  pwr1 = POWERINTERRUPTION;
-//					  save_calibrationData(side_a);
-					  save_calibrationData_fram(side_a);
+//					  pulser_benchMark1 = 0;
+//					  pwr1 = POWERINTERRUPTION;
+//					  save_calibrationData_fram(side_a);
+
+					  amt_middle1 = calibrationCan_measure1;
+					  price_real1 = (calibrationCan_measure1 * litre_price);
+					  price_upper1 = (calibrationCan_measure1 * litre_price);
+					  amt_real1 = calibrationCan_measure1;
+
+					  totaliser_vol1c += calibrationCan_measure1;
+					  totaliser_vol1 += calibrationCan_measure1;
+					  totaliser_amt1c += price_real1;
+					  totaliser_amt1 += price_real1;
+
+					  save_volumeTotaliser_fram(operating_side);
+					  save_amountTotaliser_fram(operating_side);
+					  save_lastSale_fram(operating_side);
 				  }
 
 				  return write_flash_State;
@@ -5072,6 +5105,57 @@ eSystemState progState_Handler(void)
 			#endif
 			  t = 0;
 		  }
+
+		  if(settings_stream1[0].mode == AUTO_MODE)
+			{
+				if(timer_go >= TIMEOUT_GO)   //if go's timeout is 5sec threshold
+				{
+					go_timeOut1 = 1;
+
+					HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+					HAL_Delay(200);
+					HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+					stop_flow1();
+
+
+					if(calibration_flag1 == CALIBRATED)
+					{
+						  amt_middle1 = calibrationCan_measure1;
+						  price_real1 = (calibrationCan_measure1 * litre_price);
+						  price_upper1 = (calibrationCan_measure1 * litre_price);
+						  amt_real1 = calibrationCan_measure1;
+
+						  totaliser_vol1c += calibrationCan_measure1;
+						  totaliser_vol1 += calibrationCan_measure1;
+						  totaliser_amt1c += price_real1;
+						  totaliser_amt1 += price_real1;
+
+						  save_volumeTotaliser_fram(operating_side);
+						  save_amountTotaliser_fram(operating_side);
+						  save_lastSale_fram(operating_side);
+
+					}
+					else if(calibration_flag1 == UNCALIBRATED)
+					{
+						  amt_middle1 = calibrationCan_measure1;
+						  price_real1 = (calibrationCan_measure1 * litre_price);
+						  price_upper1 = (calibrationCan_measure1 * litre_price);
+						  amt_real1 = calibrationCan_measure1;
+
+						  totaliser_vol1c += calibrationCan_measure1;
+						  totaliser_vol1 += calibrationCan_measure1;
+						  totaliser_amt1c += price_real1;
+						  totaliser_amt1 += price_real1;
+
+						  save_volumeTotaliser_fram(operating_side);
+						  save_amountTotaliser_fram(operating_side);
+						  save_lastSale_fram(operating_side);
+					}
+
+					return write_flash_State;
+				}
+			}
+
 
 			  pkey = read_keypad();
 //			  if (pkey == 'A')  //off key to stop fueling...  Stop/Exit Button
@@ -5091,19 +5175,19 @@ eSystemState progState_Handler(void)
 
 				  pulser_benchMark1 = calib_pulser1;
 
-				  totaliser_vol1c += pulser_totalizer1;
-				  totaliser_vol1 += pulser_totalizer1;
-				  totaliser_amt1c += (pulser_totalizer1 * litre_price);
-				  totaliser_amt1 += (pulser_totalizer1 * litre_price);
 				  amt_real1 = pulser_totalizer1;
 				  amt_middle1 = pulser_totalizer1;
 				  price_real1 = (pulser_totalizer1 * litre_price);
 				  price_upper1 = (pulser_totalizer1 * litre_price);
+
+				  totaliser_vol1c += pulser_totalizer1;
+				  totaliser_vol1 += pulser_totalizer1;
+				  totaliser_amt1c += price_real1;
+				  totaliser_amt1 += price_real1;
+
 				  save_volumeTotaliser_fram(operating_side);
 				  save_amountTotaliser_fram(operating_side);
-//				  save_lastSale(operating_side);
 				  save_lastSale_fram(operating_side);
-//				  save_calibrationData(side_a);
 				  save_calibrationData_fram(side_a);
 
 
@@ -5172,12 +5256,10 @@ eSystemState progState_Handler(void)
 
 					vol_real1 = sold_v;
 					vol_calibrated1 = cal_vol;
-					save_ctSettings(side_a);
-//					save_calibrationPulser(side_a);
+					save_ctSettings_fram(side_a);
 					save_calibrationPulser_fram(side_a);
 
 					calibration_flag1 = CALIBRATED;
-//					save_calibrationFlag(side_a);
 					save_calibrationFlag_fram(side_a);
 
                     HAL_Delay(1700);
@@ -5185,6 +5267,7 @@ eSystemState progState_Handler(void)
                     send_line1("  Done  ");
                     printDisp_f(pi_c, 2, 0, 8, RT, CLEAR);
                     HAL_Delay(2500);
+
                     //store in the settings structure.
                     if(pump_indx == 1)
                     {
@@ -5864,11 +5947,11 @@ eSystemState progState_Handler(void)
 		rd19 = readkey19_state();
 
 		if ( (rd19 == 1)&&( key19_sto_ == 0) )
-			 {
-				pump_indx++;
-				if (pump_indx > 2) pump_indx = 1;  //wrap around
-				   key19_sto_ = rd19;
-			 }
+		 {
+			pump_indx++;
+			if (pump_indx > 2) pump_indx = 1;  //wrap around
+			   key19_sto_ = rd19;
+		 }
 		 key19_sto_ = rd19;
 
 		 pkey = read_keypad();
@@ -6131,11 +6214,11 @@ eSystemState progState_Handler(void)
 		rd19 = readkey19_state();
 
 		if ( (rd19 == 1)&&( key19_sto_ == 0) )
-			 {
-				pump_indx++;
-				if (pump_indx > 2) pump_indx = 1;  //wrap around
-				   key19_sto_ = rd19;
-			 }
+		 {
+			pump_indx++;
+			if (pump_indx > 2) pump_indx = 1;  //wrap around
+			   key19_sto_ = rd19;
+		 }
 		 key19_sto_ = rd19;
 
 		 pkey = read_keypad();
@@ -6305,11 +6388,11 @@ eSystemState progState_Handler(void)
 		rd19 = readkey19_state();
 
 		if ( (rd19 == 1)&&( key19_sto_ == 0) )
-			 {
-				pump_indx++;
-				if (pump_indx > 2) pump_indx = 1;  //wrap around
-				   key19_sto_ = rd19;
-			 }
+		 {
+			pump_indx++;
+			if (pump_indx > 2) pump_indx = 1;  //wrap around
+			   key19_sto_ = rd19;
+		 }
 		 key19_sto_ = rd19;
 
 		 pkey = read_keypad();
@@ -6488,11 +6571,11 @@ eSystemState progState_Handler(void)
 			rd19 = readkey19_state();
 
 			if ( (rd19 == 1)&&( key19_sto_ == 0) )
-				 {
-					pump_indx++;
-					if (pump_indx > 2) pump_indx = 1;  //wrap around
-					   key19_sto_ = rd19;
-				 }
+			 {
+				pump_indx++;
+				if (pump_indx > 2) pump_indx = 1;  //wrap around
+				   key19_sto_ = rd19;
+			 }
 			 key19_sto_ = rd19;
 
 			 pkey = read_keypad();
@@ -6846,7 +6929,7 @@ eSystemState progState_Handler(void)
 		     				if (pump_indx > 2) pump_indx = 1;  //wrap around
 		     				   key19_sto_ = rd19;
 		     			 }
-		     			   key19_sto_ = rd19;
+		     			 key19_sto_ = rd19;
 
 		     	     pkey = read_keypad();
 
@@ -7134,17 +7217,12 @@ eSystemState idleState_Handler(void)
 
 	firstTime_nozz1 = 1;
 
-
-
-//	current_pulser_ = __HAL_TIM_GET_COUNTER(&htim5);
-
-//	current_pulser_++;
-//	current_pulser_--;
 	if(settings_stream1[0].mode == AUTO_MODE)
 	{
 		if(timer_go >= TIMEOUT_GO)   //if go's timeout is 5sec threshold
 		{
-
+			pump_status_1 = STATUS_PNP;
+			return pnp_State;
 		}
 	}
 
@@ -7287,6 +7365,7 @@ eSystemState idleState_Handler(void)
 		{
 			settings_stream1[0].pi_cal = (calib_pulser1 / vol_effective1);
 
+			save_settings_fram();
 			online_calibFlag1 = 0;
 			save_online_calibFlag_fram(side_a);
 		}
@@ -8755,6 +8834,30 @@ eSystemState filling_State_Handler(void)
 		}
 	#endif   //#if !defined (DEV_MODE)
 
+	if(settings_stream1[0].mode == AUTO_MODE)
+	{
+		if(timer_go >= TIMEOUT_GO)   //if go's timeout is 5sec threshold
+		{
+			go_timeOut1 = 1;
+
+			HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+			HAL_Delay(200);
+			HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+			filling1 = 0;
+			stop_flow1();
+			get_time();
+			do_calcs();
+			update_info();
+
+			save_volumeTotaliser_fram(side_a);
+			save_amountTotaliser_fram(side_a);
+			save_lastSale_fram(side_a);
+
+			return write_flash_State;
+		}
+	}
+
+
 	if (stop_flag == 1)   //if stop key pressed
 	{
 		filling1 = 0,  nozzle_bit = 0;
@@ -9932,7 +10035,8 @@ eSystemState pnpState_Handler(void)
 
 	 if  (t > 500)
 	 {
-//		 send_line1(upper1);
+		 send_line1("        ");
+		 send_line2(" Offline");
 //		 send_line2(middle1);
 		 if(settings_stream1[0].display_format == PL)
 		  {

@@ -1954,9 +1954,33 @@ eSystemState progState_Handler2(void)
 					   access = level2;
 					   fxn = nothing;
 					   clear_buffer2();
-					   otp_seed2 = generate_otpVariable2();
+
+					   retrieve_otpSeed_session_fram(side_b);
+
+					   if(otpSeed_session[1].otpSeed_flag == OTPSESSION_ON)
+					   {
+						   uint32_t time_stamp = RtcToInt(2019);
+						   time_stamp = time_stamp - otpSeed_session[1].time_stamp;
+
+						   if(time_stamp <= 4096)  //4096 translates to 1 hour
+						   {
+							   otp_seed2 = otpSeed_session[1].otp_seed;
+						   }
+						   else
+						   {
+							   otp_seed2 = generate_otpVariable2();
+							   save_otpSeed_session_fram(side_b);
+						   }
+					   }
+					   else
+					   {
+						   otp_seed2 = generate_otpVariable2();
+						   save_otpSeed_session_fram(side_b);
+					   }
+
 					   return prog_State;
 				   }
+
 				   else if( (index_menu == pass3) && (strcmp(pass_, password_level3) == 0) ) //level 3 access ?
 				   {
 					   index_menu = 0;
@@ -1965,9 +1989,32 @@ eSystemState progState_Handler2(void)
 					   fxn = nothing;
 					   clear_buffer2();
 
-					   otp_seed2 = generate_otpVariable2();
+					   retrieve_otpSeed_session_fram(side_b);
+
+					   if(otpSeed_session[1].otpSeed_flag == OTPSESSION_ON)
+					   {
+						   uint32_t time_stamp = RtcToInt(2019);
+						   time_stamp = time_stamp - otpSeed_session[1].time_stamp;
+
+						   if(time_stamp <= 4096)  //4096 translates to 1 hour
+						   {
+							   otp_seed2 = otpSeed_session[1].otp_seed;
+						   }
+						   else
+						   {
+							   otp_seed2 = generate_otpVariable2();
+							   save_otpSeed_session_fram(side_b);
+						   }
+					   }
+					   else
+					   {
+						   otp_seed2 = generate_otpVariable2();
+						   save_otpSeed_session_fram(side_b);
+					   }
+
 					   return prog_State;
 				   }
+
 //				   else if(access == non)             //no match...
 //				   {
 //					  send_line22("---no---");
@@ -2532,7 +2579,7 @@ eSystemState progState_Handler2(void)
 //   			 if (pump_indx == 1)
 //   				 {
    					//snprintf(line3, sizeof(line3), "an1.%d",log_indx_indx + 1);
-   					send_line32("  B  ");
+			send_line32("  B  ");
 //   				 }
 //   			 if (pump_indx == 2)
 //   				 {
@@ -2659,12 +2706,12 @@ eSystemState progState_Handler2(void)
    				}
 
    			 else if (pkey == 'C')  // down key
-   				{
+   			 {
    				 if (copy_stream1[1].noz_override == override)
    					copy_stream1[1].noz_override = nooverride;
    				 else
    					copy_stream1[1].noz_override = override;
-   				}
+			}
 
    			 else if (pkey == 'F')  //change pump index.
    			 {
@@ -2697,9 +2744,7 @@ eSystemState progState_Handler2(void)
 
    	   if (t2 >= 300)
    	   {
-   		   if( (index_generic !=  PL) && (index_generic !=  LP) ) index_generic = PL;
-
-   		   if(index_generic ==  PL)
+   		   if(copy_stream1[1].display_format == PL)
    		   {
    			   send_line12("PL NNode");
    		   }
@@ -2716,11 +2761,12 @@ eSystemState progState_Handler2(void)
    		rd19 = readkey192_state();
 
    		if ( (rd19 == 1)&&( key19_sto_ == 0) )
-   			 {
-   				pump_indx++;
-   				if (pump_indx > 2) pump_indx = 1;  //wrap around
-   				   key19_sto_ = rd19;
-   			 }
+		 {
+			pump_indx++;
+			if (pump_indx > 2) pump_indx = 1;  //wrap around
+			   key19_sto_ = rd19;
+		 }
+
    		 key19_sto_ = rd19;
 
    		 pkey = read_keypad2();
@@ -2728,10 +2774,20 @@ eSystemState progState_Handler2(void)
    		 if( (pkey > 0) )  //key detected
    		 {
    			 if (pkey == 'B')  // up key
-   			 {
-   				 if (index_generic == PL)  index_generic = LP;
-   				 else if(index_generic == LP) index_generic = PL;
-   			 }
+			 {
+				 if(copy_stream1[1].display_format == PL)
+					copy_stream1[1].display_format = LP;
+				 else if(copy_stream1[1].display_format == LP)
+					copy_stream1[1].display_format = PL;
+			 }
+
+			 else if (pkey == 'C')  // down key
+			 {
+				 if(copy_stream1[1].display_format == PL)
+					copy_stream1[1].display_format = LP;
+				 else if(copy_stream1[1].display_format == LP)
+					copy_stream1[1].display_format = PL;
+			 }
 
    			 else if (pkey == 'C')  // down key
    			 {
@@ -2747,20 +2803,14 @@ eSystemState progState_Handler2(void)
 
    			 else if (pkey == 'D')  // Enter key
    			 {
-   				 if(index_generic == PL)
-   				 {
-   					copy_stream1[1].display_format = PL;
-   					copy_stream1[1].def_t = P;
-   				 }
-   				 else if(index_generic == LP)
-   				 {
-   					copy_stream1[1].display_format = LP;
-   					copy_stream1[1].def_t = L;
-   				 }
+   				 if(copy_stream1[1].display_format == PL)
+					 copy_stream1[1].def_t = P;
+				 else if(copy_stream1[1].display_format == LP)
+					 copy_stream1[1].def_t = L;
 
-   				 fxn = nothing;
-   				 index_generic = 0;
-   				 clr_screen2();
+				 fxn = nothing;
+				 index_generic = 0;
+				 clr_screen2();
    			 }
 
    			 else if (pkey == 'A')  // back key
@@ -3573,8 +3623,8 @@ eSystemState progState_Handler2(void)
          {
 
              static float calib_price = 0.0;
-      	   static float inv_price   =  0.0;
-      	   static int vol_sold = 1;
+      	     static float inv_price   =  0.0;
+      	     static int vol_sold = 1;
 
              if(prog_revisit2 == 1)
         	   {
@@ -3701,19 +3751,20 @@ eSystemState progState_Handler2(void)
       				  HAL_Delay(200);
       				  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
       				  stop_flow2();
-      //				  get_time2();
-      //				  do_calcs();
-      //				  update_info();
 
       				  pulser_totalizer2 = ( (calib_pulser2 / (float) (pulser_benchMark2)) * calibrationCan_measure2 );
-      				  totaliser_vol2 += pulser_totalizer2;
-      				  totaliser_vol2c += pulser_totalizer2;
-      				  totaliser_amt2 += (pulser_totalizer2 * litre_price2);
-      				  totaliser_amt2c += (pulser_totalizer2 * litre_price2);
+
       				  amt_real2 = pulser_totalizer2;
       				  amt_middle2 = pulser_totalizer2;
       				  price_real2 = (pulser_totalizer2 * litre_price2);
       				  price_upper2 = (pulser_totalizer2 * litre_price2);
+
+
+      				  totaliser_vol2 += pulser_totalizer2;
+      				  totaliser_vol2c += pulser_totalizer2;
+      				  totaliser_amt2 += price_real2;
+      				  totaliser_amt2c += price_real2;
+
       				  save_volumeTotaliser_fram(operating_side);
       				  save_amountTotaliser_fram(operating_side);
       				  save_lastSale_fram(operating_side);
@@ -3723,6 +3774,57 @@ eSystemState progState_Handler2(void)
       			#endif
       			  t2 = 0;
       		  }
+
+      		  if(settings_stream1[1].mode == AUTO_MODE)
+  			  {
+					if(timer_go >= TIMEOUT_GO)   //if go's timeout is 5sec threshold
+					{
+						go_timeOut2 = 1;
+
+						HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+						HAL_Delay(200);
+						HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+						stop_flow2();
+
+
+						if(calibration_flag2 == CALIBRATED)
+						{
+							  amt_middle2 = calibrationCan_measure2;
+							  price_real2 = (calibrationCan_measure2 * litre_price2);
+							  price_upper2 = (calibrationCan_measure1 * litre_price2);
+							  amt_real2 = calibrationCan_measure2;
+
+							  totaliser_vol2c += calibrationCan_measure2;
+							  totaliser_vol2 += calibrationCan_measure2;
+							  totaliser_amt2c += price_real2;
+							  totaliser_amt2 += price_real2;
+
+							  save_volumeTotaliser_fram(operating_side);
+							  save_amountTotaliser_fram(operating_side);
+							  save_lastSale_fram(operating_side);
+
+						}
+						else if(calibration_flag2 == UNCALIBRATED)
+						{
+							  amt_middle2 = calibrationCan_measure2;
+							  price_real2 = (calibrationCan_measure2 * litre_price2);
+							  price_upper2 = (calibrationCan_measure2 * litre_price2);
+							  amt_real2 = calibrationCan_measure2;
+
+							  totaliser_vol2c += calibrationCan_measure2;
+							  totaliser_vol2 += calibrationCan_measure2;
+							  totaliser_amt2c += price_real2;
+							  totaliser_amt2 += price_real2;
+
+							  save_volumeTotaliser_fram(operating_side);
+							  save_amountTotaliser_fram(operating_side);
+							  save_lastSale_fram(operating_side);
+						}
+
+						return write_flash_State;
+					}
+				}
+
 
       			  pkey = read_keypad2();
       //			  if (pkey == 'A')  //off key to stop fueling...  Stop/Exit Button
@@ -3739,18 +3841,19 @@ eSystemState progState_Handler2(void)
 
       				  pulser_totalizer2 = ( (calib_pulser2 / (float) (pulser_benchMark2)) * calibrationCan_measure2 );
 
-      				  totaliser_vol2c += pulser_totalizer2;
-      				  totaliser_vol2 += pulser_totalizer2;
-      				  totaliser_amt2c += (pulser_totalizer2 * litre_price2);
-      				  totaliser_amt2 += (pulser_totalizer2 * litre_price2);
       				  amt_real2 = pulser_totalizer2;
       				  amt_middle2 = pulser_totalizer2;
       				  price_real2 = (pulser_totalizer2 * litre_price2);
       				  price_upper2 = (pulser_totalizer2 * litre_price2);
+
+      				  totaliser_vol2c += pulser_totalizer2;
+      				  totaliser_vol2 += pulser_totalizer2;
+      				  totaliser_amt2c += price_real2;
+      				  totaliser_amt2 += price_real2;
+
       				  save_volumeTotaliser_fram(operating_side);
       				  save_amountTotaliser_fram(operating_side);
-//      				  save_lastSale(operating_side);
-      				save_lastSale_fram(operating_side);
+      				  save_lastSale_fram(operating_side);
 
 
         //				  calib_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);  //use hardware counter
@@ -3786,7 +3889,7 @@ eSystemState progState_Handler2(void)
 
       			  pkey = read_keypad2();
       			  if (pkey == 'D')  //ENTER key to adjusted volume.
-      				{
+      			  {
       				  float cal_vol = atoff(keyboard_entry2);
       				  send_line12("        ");   //clear screen.
       				  send_line22("        ");
@@ -3798,7 +3901,7 @@ eSystemState progState_Handler2(void)
       					//==================================
       					// calculate the price of the pulses
       					// float pop = calib_pulser1  / cal_vol;
-      					int sold_v = 0;
+      					uint16_t sold_v = 0;
       					float pi_c;
       					float pi;
 
@@ -3817,12 +3920,10 @@ eSystemState progState_Handler2(void)
 
       					vol_real2 = sold_v;
       					vol_calibrated2 = cal_vol;
-      					save_ctSettings(side_b);
-//      					save_calibrationPulser(side_b);
+      					save_ctSettings_fram(side_b);
       					save_calibrationPulser_fram(side_b);
 
     					calibration_flag2 = CALIBRATED;
-//    					save_calibrationFlag(side_b);
     					save_calibrationFlag_fram(side_b);
 
                         HAL_Delay(1700);
@@ -3857,7 +3958,7 @@ eSystemState progState_Handler2(void)
       			 return prog_State;
       	   }
           return prog_State;
-           }
+        }
 
       //=====================================================================
 
@@ -3866,8 +3967,8 @@ eSystemState progState_Handler2(void)
       //=============================================================================================
       //                      DISPLAY DECIMAL-PLACES (1, 2 or 3) ==> Default : 2
       //=============================================================================================
-         else if ( (auth2 == authed) &&  ( (access == level2)||(access == level3) ) && (fxn == display_)  )
-         {
+	  else if ( (auth2 == authed) &&  ( (access == level2)||(access == level3) ) && (fxn == display_)  )
+	  {
 
       	 if(enter_key == 1)
       	 {
@@ -4003,8 +4104,8 @@ eSystemState progState_Handler2(void)
        //=====================================================================
        //               			 CLOCK SETTING
        //=====================================================================
-         else if ( (auth2 == authed) &&  ( (access == level1)||(access == level2)||(access == level3) ) && (fxn == setclock) )
-      	 {
+       else if ( (auth2 == authed) &&  ( (access == level1)||(access == level2)||(access == level3) ) && (fxn == setclock) )
+       {
 
       		    static int8_t respons_dir = 0,
       						   entry_clear = 1,
@@ -4302,10 +4403,10 @@ eSystemState progState_Handler2(void)
        			 clr_screen2();
        			 clear_buffer2();
       		}
-      	}
+      	 }
       	//=======================================
-      	return prog_State;
-        }
+      	  return prog_State;
+       }
 
 
         //================================ MODE ================================
@@ -4318,11 +4419,11 @@ eSystemState progState_Handler2(void)
 
       	   if (t2 >= 300)
       	   {
-      		      if( (index_generic != 1) && (index_generic != 2) ) index_generic = 1;
+//      		      if( (index_generic != 1) && (index_generic != 2) ) index_generic = 1;
 
       			  send_line12("Sides  ");
 
-      			  snprintf(st__, sizeof(st__), "       %d", index_generic);
+      			  snprintf(st__, sizeof(st__), "       %d", copy_stream2[1].noz_count);
       			  send_line22(st__);
 
 
@@ -4347,14 +4448,18 @@ eSystemState progState_Handler2(void)
       		 {
       			 if (pkey == 'B')  // up key
       			 {
-      				 if (index_generic == 1)  index_generic = 2;
-      				 else if(index_generic == 2) index_generic = 1;
+      				 if(copy_stream2[1].noz_count == 1)
+						 copy_stream2[1].noz_count = 2;
+					 else if(copy_stream2[1].noz_count == 2)
+						 copy_stream2[1].noz_count = 1;
       			 }
 
       			 else if (pkey == 'C')  // down key
       			 {
-      				 if (index_generic == 2)  index_generic = 1;
-      				 else if(index_generic == 1) index_generic = 2;
+      				 if(copy_stream2[1].noz_count == 1)
+						 copy_stream2[1].noz_count = 2;
+					 else if(copy_stream2[1].noz_count == 2)
+						 copy_stream2[1].noz_count = 1;
       			 }
 
       			 else if (pkey == 'F')  //change pump index.
@@ -4365,12 +4470,7 @@ eSystemState progState_Handler2(void)
 
       			 else if (pkey == 'D')  // Enter key
       			 {
-      				 if(index_generic == 1)
-      					copy_stream2[1].noz_count = 1;
-      				 else if(index_generic == 2)
-      					copy_stream2[1].noz_count = 2;
-
-      				 index_generic = 0;
+     				 index_generic = 0;
 
       				 fxn = nothing;
       				 clr_screen2();
@@ -4395,6 +4495,13 @@ eSystemState progState_Handler2(void)
         //======================================================================
          else if ( (auth2 == authed) && ( (access == level2)||(access == level3) ) && (fxn == suppressed_display_vol)  )
          {
+        	 static uint8_t firstTime_sV = 1;
+
+			 if(firstTime_sV == 1)
+			 {
+				   index_generic = (copy_stream2[1].startUp_suppressVol * 100);
+				   firstTime_sV = 0;
+			 }
 
       	   if (t2 >= 300)
       	   {
@@ -4449,6 +4556,8 @@ eSystemState progState_Handler2(void)
       				 index_generic = 0;
       				 fxn = nothing;
       				 clr_screen2();
+
+      				 firstTime_sV = 1;
       			 }
 
       			 else if (pkey == 'A')  // back key
@@ -4457,6 +4566,8 @@ eSystemState progState_Handler2(void)
 
       				 fxn = nothing;
       				 clr_screen2();
+
+      				 firstTime_sV = 1;
       			 }
       		 }
       	 return prog_State;
@@ -4473,11 +4584,11 @@ eSystemState progState_Handler2(void)
 
       	   if (t2 >= 300)
       	   {
-      		   if( (index_generic != 10) && (index_generic != 20) ) index_generic = 10;
+//      		   if( (index_generic != 10) && (index_generic != 20) ) index_generic = 10;
 
       		   send_line12("Can Size");
 
-      		   snprintf(st__, sizeof(st__), "    %02d L", index_generic);
+      		   snprintf(st__, sizeof(st__), "    %02d L", copy_stream2[1].calibration_measureCan);
       		   send_line22(st__);
 
       		   send_line32("  B  ");
@@ -4501,14 +4612,18 @@ eSystemState progState_Handler2(void)
       		 {
       			 if (pkey == 'B')  // up key
       			 {
-      				 if (index_generic == 10)  index_generic = 20;
-      				 else if(index_generic == 20) index_generic = 10;
+      				 if(copy_stream2[1].calibration_measureCan == 10)
+    					 copy_stream2[1].calibration_measureCan = 20;
+    				 else if(copy_stream2[1].calibration_measureCan == 20)
+    					 copy_stream2[1].calibration_measureCan = 10;
       			 }
 
       			 else if (pkey == 'C')  // down key
       			 {
-      				 if (index_generic == 20)  index_generic = 10;
-      				 else if(index_generic == 10) index_generic = 20;
+      				 if(copy_stream2[1].calibration_measureCan == 10)
+    					 copy_stream2[1].calibration_measureCan = 20;
+    				 else if(copy_stream2[1].calibration_measureCan == 20)
+    					 copy_stream2[1].calibration_measureCan = 10;
       			 }
 
       			 else if (pkey == 'F')  //change pump index.
@@ -4519,11 +4634,6 @@ eSystemState progState_Handler2(void)
 
       			 else if (pkey == 'D')  // Enter key
       			 {
-      				 if(index_generic == 10)
-      					copy_stream2[1].calibration_measureCan = 10;
-      				 else if(index_generic == 20)
-      					copy_stream2[1].calibration_measureCan = 20;
-
       				 index_generic = 0;
       				 fxn = nothing;
       				 clr_screen2();
@@ -4549,11 +4659,9 @@ eSystemState progState_Handler2(void)
 
       	   if (t2 >= 300)
       	   {
-      		   if( (index_generic != None_) && (index_generic != Code_)  && (index_generic != Card_) ) index_generic = None_;
       		   send_line12("Login.Typ");
 
-      //		   snprintf(st__, sizeof(st__), "       %d", index_generic);
-      		   send_line22(login_type[index_generic]);
+      		   send_line22(login_type[copy_stream2[0].shift_login_type]);
 
       		   send_line32("  B  ");
 
@@ -4576,14 +4684,22 @@ eSystemState progState_Handler2(void)
       		 {
       			 if (pkey == 'B')  // up key
       			 {
-      				 if (index_generic <= 2 )  index_generic++;
-      				 else if(index_generic == 3) index_generic = 0;
+     				 if(copy_stream2[1].shift_login_type == None_)
+						 copy_stream2[1].shift_login_type = Code_;
+					 else if(copy_stream2[1].shift_login_type == Code_)
+						 copy_stream2[1].shift_login_type = Card_;
+					 else if(copy_stream2[1].shift_login_type == Card_)
+						 copy_stream2[1].shift_login_type = None_;
       			 }
 
       			 else if (pkey == 'C')  // down key
       			 {
-      				 if (index_generic > 0)  index_generic--;
-      				 else if(index_generic == 0) index_generic = 2;
+      				 if(copy_stream2[1].shift_login_type == None_)
+    					 copy_stream2[1].shift_login_type = Card_;
+    				 else if(copy_stream2[1].shift_login_type == Code_)
+    					 copy_stream2[1].shift_login_type = None_;
+    				 else if(copy_stream2[1].shift_login_type == Card_)
+    					 copy_stream2[1].shift_login_type = Code_;
       			 }
 
       			 else if (pkey == 'F')  //change pump index.
@@ -4594,13 +4710,6 @@ eSystemState progState_Handler2(void)
 
       			 else if (pkey == 'D')  // Enter key
       			 {
-      				 if(index_generic == None_)
-      					copy_stream2[1].shift_login_type = None_;
-      				 else if(index_generic == Code_)
-      					copy_stream2[1].shift_login_type = Code_;
-      				 else if(index_generic == Card_)
-      					copy_stream2[1].shift_login_type = Card_;
-
       				 index_generic = 0;
       				 fxn = nothing;
       				 clr_screen2();
@@ -4627,10 +4736,9 @@ eSystemState progState_Handler2(void)
 
       	   if (t2 >= 300)
       	   {
-      		   if( (index_generic != 1) && (index_generic != 2) ) index_generic = 1;
       		   send_line12("Shifts   ");
 
-      		   snprintf(st__, sizeof(st__), "       %d", index_generic);
+      		   snprintf(st__, sizeof(st__), "       %d", copy_stream2[1].number_of_shifts);
       		   send_line22(st__);
 
       		   send_line32("  B  ");
@@ -4654,14 +4762,18 @@ eSystemState progState_Handler2(void)
       		 {
       			 if (pkey == 'B')  // up key
       			 {
-      				 if (index_generic == 1)  index_generic = 2;
-      				 else if(index_generic == 2) index_generic = 1;
+      				 if(copy_stream2[1].number_of_shifts == 1)
+    					 copy_stream2[1].number_of_shifts = 2;
+    				 else if(copy_stream2[1].number_of_shifts == 2)
+    					 copy_stream2[1].number_of_shifts = 1;
       			 }
 
       			 else if (pkey == 'C')  // down key
       			 {
-      				 if (index_generic == 2)  index_generic = 1;
-      				 else if(index_generic == 1) index_generic = 2;
+      				 if(copy_stream2[1].number_of_shifts == 1)
+						 copy_stream2[1].number_of_shifts = 2;
+					 else if(copy_stream2[1].number_of_shifts == 2)
+						 copy_stream2[1].number_of_shifts = 1;
       			 }
 
       			 else if (pkey == 'F')  //change pump index.
@@ -4672,11 +4784,6 @@ eSystemState progState_Handler2(void)
 
       			 else if (pkey == 'D')  // Enter key
       			 {
-      				 if(index_generic == 1)
-      					copy_stream2[1].number_of_shifts = 1;
-      				 else if(index_generic == 2)
-      					copy_stream2[1].number_of_shifts = 2;
-
       				 index_generic = 0;
       				 fxn = nothing;
       				 clr_screen2();
@@ -4702,9 +4809,7 @@ eSystemState progState_Handler2(void)
 
       	   if (t2 >= 300)
       	   {
-      			  if( (index_generic !=  Wizard) && (index_generic != Manual_calib) ) index_generic = Wizard;
-
-      			  if(index_generic ==  Wizard)
+      		   	  if(copy_stream2[1].calibration_type ==  Wizard)
       			  {
       				send_line12("UUizard");
       			  }
@@ -4721,11 +4826,11 @@ eSystemState progState_Handler2(void)
       		rd19 = readkey192_state();
 
       		if ( (rd19 == 1)&&( key19_sto_ == 0) )
-      			 {
-      				pump_indx++;
-      				if (pump_indx > 2) pump_indx = 1;  //wrap around
-      				   key19_sto_ = rd19;
-      			 }
+			 {
+				pump_indx++;
+				if (pump_indx > 2) pump_indx = 1;  //wrap around
+				   key19_sto_ = rd19;
+			 }
       		 key19_sto_ = rd19;
 
       		 pkey = read_keypad2();
@@ -4734,14 +4839,18 @@ eSystemState progState_Handler2(void)
       		 {
       			 if (pkey == 'B')  // up key
       			 {
-      				 if (index_generic == Wizard)  index_generic = 2;
-      				 else if(index_generic == 2) index_generic = Wizard;
+      				 if(copy_stream2[1].calibration_type == Wizard)
+    					 copy_stream2[1].calibration_type = Manual_calib;
+    				 else if(copy_stream2[1].calibration_type == Manual_calib)
+    					 copy_stream2[1].calibration_type = Wizard;
       			 }
 
       			 else if (pkey == 'C')  // down key
       			 {
-      				 if (index_generic == 2)  index_generic = Wizard;
-      				 else if(index_generic == Wizard) index_generic = 2;
+      				 if(copy_stream2[1].calibration_type == Wizard)
+    					 copy_stream2[1].calibration_type = Manual_calib;
+    				 else if(copy_stream2[1].calibration_type == Manual_calib)
+    					 copy_stream2[1].calibration_type = Wizard;
       			 }
 
       			 else if (pkey == 'F')  //change pump index.
@@ -4752,11 +4861,6 @@ eSystemState progState_Handler2(void)
 
       			 else if (pkey == 'D')  // Enter key
       			 {
-      				 if(index_generic == Wizard)
-      					copy_stream2[1].calibration_type = Wizard;
-      				 else if(index_generic == Manual_calib)
-      					copy_stream2[1].calibration_type = Manual_calib;
-
       				 index_generic = 0;
       				 fxn = nothing;
       				 clr_screen2();
@@ -4883,11 +4987,11 @@ eSystemState progState_Handler2(void)
       		rd19 = readkey192_state();
 
       		if ( (rd19 == 1)&&( key19_sto_ == 0) )
-      			 {
-      				pump_indx++;
-      				if (pump_indx > 2) pump_indx = 1;  //wrap around
-      				   key19_sto_ = rd19;
-      			 }
+			 {
+				pump_indx++;
+				if (pump_indx > 2) pump_indx = 1;  //wrap around
+				   key19_sto_ = rd19;
+			 }
       		 key19_sto_ = rd19;
 
       		 pkey = read_keypad2();
@@ -4940,16 +5044,14 @@ eSystemState progState_Handler2(void)
        //========================================================================================================
        //                  		     KEYPRESS-TONE ( Yes / No )  ==> Default : No
        //========================================================================================================
-         else if ( (auth2 == authed) && ( (access == level2)||(access == level3) ) && (fxn == keypress_tone_)  )
-            {
+       else if ( (auth2 == authed) && ( (access == level2)||(access == level3) ) && (fxn == keypress_tone_)  )
+       {
 
          	   if (t2 >= 300)
          	   {
          		   send_line12("Suuitch ");
 
-         		   if( (index_generic !=  Yes) && (index_generic !=  No) ) index_generic = Yes;
-
-         		   if(index_generic ==  Yes)
+         		   if(copy_stream2[1].keypress_tone ==  Yes)
          		   {
          			   send_line22("      ON");
          		   }
@@ -4966,11 +5068,11 @@ eSystemState progState_Handler2(void)
          		rd19 = readkey192_state();
 
          		if ( (rd19 == 1)&&( key19_sto_ == 0) )
-         			 {
-         				pump_indx++;
-         				if (pump_indx > 2) pump_indx = 1;  //wrap around
-         				   key19_sto_ = rd19;
-         			 }
+				 {
+					pump_indx++;
+					if (pump_indx > 2) pump_indx = 1;  //wrap around
+					   key19_sto_ = rd19;
+				 }
          		 key19_sto_ = rd19;
 
          		 pkey = read_keypad2();
@@ -4979,14 +5081,26 @@ eSystemState progState_Handler2(void)
          		 {
          			 if (pkey == 'B')  // up key
          			 {
-         				 if (index_generic == Yes)  index_generic = No;
-         				 else if(index_generic == No) index_generic = Yes;
+         				 if(copy_stream2[1].keypress_tone == Yes)
+         				 {
+         					copy_stream2[1].keypress_tone = No;
+         				 }
+         				 else if(copy_stream2[1].keypress_tone == No)
+         				 {
+         					copy_stream2[1].keypress_tone = Yes;
+         				 }
          			 }
 
          			 else if (pkey == 'C')  // down key
          			 {
-         				 if (index_generic == No)  index_generic = Yes;
-         				 else if(index_generic == Yes) index_generic = No;
+         				 if(copy_stream2[1].keypress_tone == Yes)
+         				 {
+         					copy_stream2[1].keypress_tone = No;
+         				 }
+         				 else if(copy_stream2[1].keypress_tone == No)
+         				 {
+         					copy_stream2[1].keypress_tone = Yes;
+         				 }
          			 }
 
          			 else if (pkey == 'F')  //change pump index.
@@ -4997,15 +5111,6 @@ eSystemState progState_Handler2(void)
 
          			 else if (pkey == 'D')  // Enter key
          			 {
-         				 if(index_generic == Yes)
-         				 {
-         					copy_stream2[1].keypress_tone = Yes;
-         				 }
-         				 else if(index_generic == No)
-         				 {
-         					copy_stream2[1].keypress_tone = No;
-         				 }
-
          				 fxn = nothing;
          				 index_generic = 0;
          				 clr_screen2();
@@ -5033,9 +5138,7 @@ eSystemState progState_Handler2(void)
       		   {
       			   send_line12("Enforce ");
 
-      			   if( (index_generic !=  Yes) && (index_generic !=  No) ) index_generic = Yes;
-
-      			   if(index_generic ==  Yes)
+      			   if(copy_stream2[1].commCard_enforced ==  true)
       			   {
       				   send_line22("     Yes");
       			   }
@@ -5052,11 +5155,11 @@ eSystemState progState_Handler2(void)
       			rd19 = readkey192_state();
 
       			if ( (rd19 == 1)&&( key19_sto_ == 0) )
-      				 {
-      					pump_indx++;
-      					if (pump_indx > 2) pump_indx = 1;  //wrap around
-      					   key19_sto_ = rd19;
-      				 }
+				 {
+					pump_indx++;
+					if (pump_indx > 2) pump_indx = 1;  //wrap around
+					   key19_sto_ = rd19;
+				 }
       			 key19_sto_ = rd19;
 
       			 pkey = read_keypad2();
@@ -5065,14 +5168,26 @@ eSystemState progState_Handler2(void)
       			 {
       				 if (pkey == 'B')  // up key
       				 {
-      					 if (index_generic == Yes)  index_generic = No;
-      					 else if(index_generic == No) index_generic = Yes;
+      					 if(copy_stream2[1].commCard_enforced == true)
+    					 {
+    						 copy_stream2[1].commCard_enforced = false;
+    					 }
+    					 else if(copy_stream2[1].commCard_enforced == false)
+    					 {
+    						 copy_stream2[1].commCard_enforced = true;
+    					 }
       				 }
 
       				 else if (pkey == 'C')  // down key
       				 {
-      					 if (index_generic == No)  index_generic = Yes;
-      					 else if(index_generic == Yes) index_generic = No;
+      					 if(copy_stream2[1].commCard_enforced == true)
+    					 {
+    						 copy_stream2[1].commCard_enforced = false;
+    					 }
+    					 else if(copy_stream2[1].commCard_enforced == false)
+    					 {
+    						 copy_stream2[1].commCard_enforced = true;
+    					 }
       				 }
 
       				 else if (pkey == 'F')  //change pump index.
@@ -5083,15 +5198,6 @@ eSystemState progState_Handler2(void)
 
       				 else if (pkey == 'D')  // Enter key
       				 {
-      					 if(index_generic == Yes)
-      					 {
-      						copy_stream2[1].commCard_enforced = true;
-      					 }
-      					 else if(index_generic == No)
-      					 {
-      						copy_stream2[1].commCard_enforced = false;
-      					 }
-
       					 fxn = nothing;
       					 index_generic = 0;
       					 clr_screen2();
@@ -5115,7 +5221,8 @@ eSystemState progState_Handler2(void)
        {
      	 static uint8_t pulserr = 0,
      					pulserType_original,
-     					pulserOffset_original;
+     					pulserOffset_original,
+						firstTime_pOffset = 1;
 
            if(prog_revisit2 == 1)
       	   {
@@ -5221,7 +5328,11 @@ eSystemState progState_Handler2(void)
      			   }
      			   else if (pulserr == 3)
      			   {
-     				   if(index_generic > 99) index_generic = 0;
+     				  if(firstTime_pOffset == 1)
+					   {
+						   index_generic = pulserOffset_original;
+						   firstTime_pOffset = 0;
+					   }
 
      					send_line12("Ofset.Val");
 
@@ -5318,6 +5429,8 @@ eSystemState progState_Handler2(void)
      						 pulser_flag2 = 0;
      						 fxn = nothing;
      						 clr_screen2();
+
+     						firstTime_pOffset = 1;
      					 }
 
      					 else if (pkey == 'A')  // back key
@@ -5329,6 +5442,8 @@ eSystemState progState_Handler2(void)
 
      						 fxn = nothing;
      						 clr_screen2();
+
+     						firstTime_pOffset = 1;
      					 }
      				 }
      			 }
@@ -5347,7 +5462,8 @@ eSystemState progState_Handler2(void)
      						salesStart_original,
      						salesEnd_original;
 
-     		   static uint8_t _valve = 0;
+     		   static uint8_t _valve = 0,
+				   	   	  firstTime_v = 1;
 
      		         if(prog_revisit2 == 1)
      		    	 {
@@ -5438,16 +5554,22 @@ eSystemState progState_Handler2(void)
      				   {
      					   if (_valve == 2)
      					   {
-     						    if(float_generic > 2.00) float_generic = 0.00;
-     						    else if(float_generic < 0.00) float_generic = 2.00;
+     						    if(firstTime_v == 1)
+    						    {
+    						    	float_generic = copy_stream2[1].valve_salesStart;
+    								firstTime_v =  0;
+    						    }
 
      							snprintf(st__, sizeof(st__), "  %5.2f L", float_generic);
      							send_line22(st__);
      					   }
      					   else if (_valve == 3)
      					   {
-     						   if(float_generic > 10.00) float_generic = 0.30;
-     							else if(float_generic < 0.30) float_generic = 10.00;
+     						    if(firstTime_v == 1)
+    							{
+    								float_generic = copy_stream2[1].valve_salesEnd;
+    								firstTime_v =  0;
+    							}
 
      							snprintf(st__, sizeof(st__), "  %5.2f L", float_generic);
      							send_line22(st__);
@@ -5495,6 +5617,9 @@ eSystemState progState_Handler2(void)
 
      								fxn = nothing;
 									clr_screen2();
+
+									firstTime_v = 0;
+
      								return prog_State;
      							 }
      							 else if (pkey == 'A')  // back key
@@ -5503,6 +5628,7 @@ eSystemState progState_Handler2(void)
      								copy_stream2[1].valve_salesStart = salesStart_original;
      								 _valve = 0;
      								 valve_flag2 = 0;
+     								 firstTime_v = 0;
      								 clr_screen2();
      							 }
      						 }
@@ -5527,6 +5653,8 @@ eSystemState progState_Handler2(void)
      								_valve = 0;
      								copy_stream2[1].valve_salesEnd = float_generic;
      								clr_screen2();
+     								firstTime_v = 0;
+
      								return prog_State;
      							 }
      							 else if (pkey == 'A')  // back key
@@ -5536,6 +5664,7 @@ eSystemState progState_Handler2(void)
 
      								 _valve = 0;
      								 valve_flag2 = 0;
+     								 firstTime_v = 0;
      								 clr_screen2();
      							 }
      						 }
@@ -5619,1902 +5748,6 @@ eSystemState progState_Handler2(void)
 
 
 
-//     		   else if ( (auth2 == authed) && ( (access == level2)||(access == level3) ) && (fxn == nothing)  )
-//     		   {
-//          	       if(pump_indx == 0) pump_indx = 1;
-//
-//          	         if( (pkey > 0) )  //key detected
-//          	         {
-//          	        	 if (pkey == 'B')  // up key
-//          					{
-////          					 if (index_menu < 13)  index_menu++;
-//          					 if (index_menu <= 13)  index_menu++;
-//          					 else if(index_menu == 14) index_menu = 0;
-//          					}
-//
-//          	        	 if (pkey == 'C')  // down key
-//          					{
-////          						if (index_menu > 0) index_menu--;
-//          						if (index_menu > 0) index_menu--;
-//          						else if(index_menu == 0) index_menu = 14;
-//          					}
-//
-//          	        	 if (pkey == 'A')  // BACK key...
-//							   {
-//								   auth2 = authed;
-//								   access = level1;
-//								   fxn = nothing;
-//								   clear_buffer2();
-//								  // keypad_buf[0] = 0;
-//							   }
-//
-//          	        	 if (pkey == 'D')  // enter key
-//          					{
-//									if(index_menu == 14) index_menu += 1;
-//
-//									switch(index_menu)
-//          							{
-//                                          case setmode:
-//												fxn = setmode;
-//												pump_indx = 1;
-//												return prog_State;
-//												clear_buffer2();
-//												clr_screen2();
-//												break;
-//
-//                                          case setnozzle:
-//                                        	    pump_indx = 1;
-//												fxn = setnozzle;
-//												clear_buffer2();
-//												clr_screen2();
-//												break;
-//
-//                                          case display_orientation:
-//                                        	   pump_indx = 1;
-//                                          	   fxn = display_orientation;
-//                                          	   clear_buffer2();
-//                                          	   clr_screen2();
-//          									   break;
-//
-//                                          case setprice:
-//												fxn = setprice;
-//												pump_indx = 1;
-//												//clear the keyboard buffer
-//												clear_buffer2();
-//												clr_screen2();
-//												//index_ = 0;
-//												//keyboard_entry2[0] = 0;
-//												//keyboard_entry2[1] = 0;
-//												//copy[0].price_ = litre_price1;
-//												//copy[1].price_ = litre_price2;
-//												break;
-//
-//										  case setaddress:
-//											    pump_indx = 1;
-//												fxn = setaddress;
-//												//clear the keyboard buffer
-//												//index_ = 0;
-//												clear_buffer2();
-//												clr_screen2();
-//											  break;
-//
-//										  case set_no_flow_time:
-//												fxn = set_no_flow_time;
-//												clear_buffer2();
-//												clr_screen2();
-//												break;
-//
-//                                          case setmax_amt:
-//                                          	   fxn = setmax_amt;
-//                                          	   clear_buffer2();
-//                                          	   clr_screen2();
-//          									   break;
-//
-//										  case set_password:
-//											    attempts = 0;
-//												fxn = set_password;
-//												clear_buffer2();
-//												clr_screen2();
-//												break;
-//
-//										  case send_config:
-//												   fxn = send_config;
-//												   clear_buffer2();
-//												   clr_screen2();
-//												   break;
-//                                          case get_config:
-//												fxn = get_config;
-//												clear_buffer2();
-//												clr_screen2();
-//												break;
-//
-//										  case clr_log_:
-//											   fxn = clr_log_;
-//											   //clr_screen2();
-//											   clear_buffer2();
-//											   break;
-//
-//										  case clr_tot_:
-//											   fxn = clr_tot_;
-//											   //clr_screen2();
-//											   clear_buffer2();
-//											   break;
-//
-//										  case calibrate_:
-//											   fxn = calibrate_;
-//											   clr_screen2();
-//											   clear_buffer2();
-//											   break;
-//										  case display_:
-//											   fxn = display_;
-//											   clear_buffer2();
-//											   clr_screen2();
-//											   dp_ = 1;
-//											   ln_ = 1;
-//											   break;
-//
-//										  case setclock:
-//											   fxn = setclock;
-//											   clear_buffer2();
-//											   clr_screen2();
-//											   break;
-//          							}
-//          					}
-//          	         }
-//          	     return prog_State;
-//               }
-//          //      end of show menu
-//
-// /*   //check keypad for pressed xter
-//  	 if ( keypress__ > 0)  //if any key was pressed.
-//  	  {
-//  		keypress__ = 0;
-//
-//  		if (kkey == 'B')  // up key
-//  			{
-//  			 if (index2 < 3-1)	index2++;
-//  			}
-//
-//  		if (kkey == 'C')  // down key
-//  			{
-//  				if (index2 > 0)   index2--;
-//  			}
-//  	   }
-//  	 //-----------------------------------------------------------
-//  	   if (t >= 500)
-//  		 {
-//  			send_line22(menu1[index2]);
-//  			t = 0;
-//  		 }                                     */
-//			  //=======================================================
-//			  //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-//			  //=======================================================
-//			  //                set mode   ONLINE / OFFLINE.
-//			  //=======================================================
-//   else if ( (auth2 == authed) && (access == level1)&&(fxn == setmode)  )
-//  	               {
-//  					   if (t2 >= 300)
-//  						 {
-//  							//send_line22();
-//                            if(copy[pump_indx-1].mode == AUTO)
-//								{
-//									send_line22(" Auto ");
-//								}
-//                               else
-//								{
-//									send_line22("manual ");
-//								}
-//
-//  							 if (pump_indx == 1)
-//								 {
-//									//snprintf(line3, sizeof(line3), "an1.%d",log_indx_indx + 1);
-//									send_line32("  A  ");
-//								 }
-//  							 if (pump_indx == 2)
-//								 {
-//									//snprintf(line3, sizeof(line3), "an1.%d",log_indx_indx + 1);
-//									send_line32("  B  ");
-//								 }
-//  							t2 = 0;
-//  						 }
-//  	           // -------------- test keys....----------------
-//  	    		int rd19 = readkey192_state();
-//
-//				if ( (rd19 == 1)&&( key19_sto_ == 0) )
-//					 {
-//						pump_indx++;
-//						if (pump_indx > 2) pump_indx = 1;  //wrap around
-//						   key19_sto_ = rd19;
-//					 }
-//				    key19_sto_ = rd19;
-//
-//  	          	     pkey = read_keypad2();
-//
-//  	          	         if( (pkey > 0) )  //key detected
-//  	          	         {
-//  	          	        	 if (pkey == 'B')  // up key
-//  	          					{
-//  	          	        	      if (copy[pump_indx-1].mode == AUTO) //;
-//  	          	        	     	copy[pump_indx-1].mode = MANUAL;
-//  	          	        	      else
-//  	          	        	    	copy[pump_indx-1].mode = AUTO;
-//  	          					}
-//
-//  	          	        	 if (pkey == 'C')  // down key
-//  	          					{
-//									if (copy[pump_indx-1].mode == AUTO) //;
-//										copy[pump_indx-1].mode = MANUAL;
-//									  else
-//										copy[pump_indx-1].mode = AUTO;
-//  	          					}
-//
-//  	          	             if (pkey == 'F')  //change pump index.
-//								{
-//								  // pump_indx++;
-//									//if (pump_indx > 2) pump_indx = 1; //wrap around
-//								}
-//
-//  	          	        	 if (pkey == 'A')  // back key
-//  	          					{
-//  	          	        		 	fxn = nothing;
-//  	          	        		 	send_line32("      ");
-//  	          					}
-//  	          	         }
-//  	          	     return prog_State;
-//  	               }
-//      //========================= MODE ==========================
-//      //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-//	  //==========================================================================
-//	  //                set mode   OVERIDE.
-//	  //==========================================================================
-//   else if ( (auth2 == authed) && (access == level1)&&(fxn == setnozzle)  )
-//		   {
-//			   if (t2 >= 300)
-//				 {
-//					//send_line22();
-//				  if(copy[pump_indx-1].noz == overide)
-//				  {
-//					send_line22("Active");
-//				  }
-//				  else
-//				  {
-//					send_line22("Inactive");
-//				  }
-//
-//				 if (pump_indx == 1)
-//				 {
-//					//snprintf(line3, sizeof(line3), "an1.%d",log_indx_indx + 1);
-//					send_line32("  A  ");
-//				 }
-//				 if (pump_indx == 2)
-//				 {
-//					//snprintf(line3, sizeof(line3), "an1.%d",log_indx_indx + 1);
-//					send_line32("  B  ");
-//				 }
-//				t2 = 0;
-//		 }
-//			 // -------------- test keys....----------------
-//				int rd19 = readkey192_state();
-//
-//				if ( (rd19 == 1)&&( key19_sto_ == 0) )
-//					 {
-//						pump_indx++;
-//						if (pump_indx > 2) pump_indx = 1;  //wrap around
-//						   key19_sto_ = rd19;
-//					 }
-//				 key19_sto_ = rd19;
-//
-//			 pkey = read_keypad2();
-//
-//				 if( (pkey > 0) )  //key detected
-//				 {
-//					 if (pkey == 'B')  // up key
-//						{
-//						 if (copy[pump_indx-1].noz == overide)
-//							 copy[pump_indx-1].noz = nooveride;
-//						 else
-//							 copy[pump_indx-1].noz = overide;
-//						}
-//
-//					 if (pkey == 'C')  // down key
-//						{
-//						 if (copy[pump_indx-1].noz == overide)
-//							 copy[pump_indx-1].noz = nooveride;
-//						 else
-//							 copy[pump_indx-1].noz = overide;
-//						}
-//
-//					 if (pkey == 'F')  //change pump index.
-//					{
-//					  // pump_indx++;
-//					  // if (pump_indx > 2) pump_indx = 1; //wrap around
-//					}
-//
-//					 if (pkey == 'A')  // back key
-//						{
-//							 fxn = nothing;
-//							 clr_screen2();
-//						}
-//				 }
-//			 return prog_State;
-//		   }
-//	      //========================= MODE =======================================
-//		  //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-//		  //======================================================================
-//		  //                    default sell/prog type .
-//		  //======================================================================
-//   else if ( (auth2 == authed) && (access == level1)&&(fxn == display_orientation)  )
-//				   {
-//					   if (t2 >= 300)
-//						 {
-//							//send_line22();
-//							  if(copy[pump_indx-1].def_t ==  P)
-//							  {
-//								send_line22("price   ");
-//							  }
-//							  else
-//							  {
-//								send_line22("litre   ");
-//							  }
-//
-//							 if (pump_indx == 1)
-//							 {
-//								//snprintf(line3, sizeof(line3), "an1.%d",log_indx_indx + 1);
-//								send_line32("  A  ");
-//							 }
-//							 if (pump_indx == 2)
-//							 {
-//								//snprintf(line3, sizeof(line3), "an1.%d",log_indx_indx + 1);
-//								send_line32("  B  ");
-//							 }
-//							t2 = 0;
-//			        	 }
-//					 // -------------- test keys....----------------
-//						int rd19 = readkey192_state();
-//
-//						if ( (rd19 == 1)&&( key19_sto_ == 0) )
-//							 {
-//								pump_indx++;
-//								if (pump_indx > 2) pump_indx = 1;  //wrap around
-//								   key19_sto_ = rd19;
-//							 }
-//						 key19_sto_ = rd19;
-//
-//				    	 pkey = read_keypad2();
-//
-//						 if( (pkey > 0) )  //key detected
-//						 {
-//							 if (pkey == 'B')  // up key
-//								{
-//								 if(copy[pump_indx-1].def_t == P)
-//								   copy[pump_indx-1].def_t = L;
-//								 else
-//								   copy[pump_indx-1].def_t = P;
-//								}
-//
-//							 if (pkey == 'C')  // down key
-//								{
-//								 if(copy[pump_indx-1].def_t == P)
-//								   copy[pump_indx-1].def_t = L;
-//								 else
-//								   copy[pump_indx-1].def_t = P;
-//								}
-//
-//							 if (pkey == 'F')  //change pump index.
-//								{
-//								  // pump_indx++;
-//								  //if (pump_indx > 2) pump_indx = 1; //wrap around
-//								}
-//
-//							 if (pkey == 'A')  // back key
-//								{
-//									 fxn = nothing;
-//									 clr_screen2();
-//								}
-//						 }
-//					 return prog_State;
-//				   }
-//
-//		  //=========================== MODE ====================================
-//		  //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-//		  //=====================================================================
-//		  //               set the  litre price
-//		  //=====================================================================
-//   else if ( (auth2 == authed) && (access == level1)&&(fxn == setprice) )
-//			   {
-//				 if (t2 >= 300)
-//				  {
-//					 //copy[pump_indx-1].price_ =  atoi(keyboard_entry2);
-//					 printDisp_f2(copy[pump_indx-1].price_, 1, 0, 6, RT, CLEAR);
-//                     float pr = atoff(keyboard_entry2);
-//					 printDisp_f2(pr,2,0,7,RT,CLEAR);
-//
-//					 if (pump_indx == 1)
-//					 {
-//					   send_line32("  A  ");
-//					 }
-//
-//					 if (pump_indx == 2)
-//					 {
-//						 send_line32("  B  ");
-//					 }
-//					t2 = 0;
-//			 }
-//				 // -------------- test keys....----------------
-//				 int rd19 = readkey192_state();
-//
-//				   if ( (rd19 == 1)&&( key19_sto_ == 0) )
-//					 {
-//					   keyboard_entry2[0] = 0;   //clear the previous entry...
-//					   index_2 = 0;
-//					   pump_indx++;
-//						if (pump_indx > 2) pump_indx = 1;  //wrap around
-//						   key19_sto_ = rd19;
-//					 }
-//					   key19_sto_ = rd19;
-//
-//
-//			         pkey = read_keypad2();
-//
-//					 if( (pkey > 0) )  //key detected
-//					 {
-//						 if (pkey == 'B')  // up key
-//							{
-//
-//							}
-//
-//						 if (pkey == 'C')  // down key
-//							{
-//
-//							}
-//
-//						 if (pkey == 'D')  //store entered value.
-//							{
-//							 if (pump_indx == 1)   // if side A
-//								{
-//								   copy[0].price_ =  atof(keyboard_entry2);
-//								}
-//							 if (pump_indx == 2)   // if side A
-//								{
-//								   copy[1].price_ =  atof(keyboard_entry2);
-//								}
-//							}
-//
-//						 if (pkey == 'A')  // back key
-//							{
-//								 fxn = nothing;
-//								 clr_screen2();
-//							}
-//					 }
-//				 return prog_State;
-//			   }
-//		         //=========================== MODE =====================================
-//			     //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-//				  //=====================================================================
-//				  //                          ID SETTINGS.
-//				  //=====================================================================
-//   else if ( (auth2 == authed) && (access == level1)&&(fxn == setaddress)  )
-//					   {
-//						   if (t2 >= 500)
-//							 {
-//								printDisp_i2(copy[pump_indx-1].id_, 1, 0, 4, RT, CLEAR);
-//								send_line22(keyboard_entry2);
-//
-//								if (pump_indx == 1)
-//								 {
-//									send_line32("  A  ");
-//								 }
-//
-//								if (pump_indx == 2)
-//								 {
-//									send_line32("  b  ");
-//								 }
-//								t2 = 0;
-//					        }
-//						 // -------------- test keys....----------------
-//							 int rd19 = readkey192_state();
-//
-//							   if ( (rd19 == 1)&&( key19_sto_ == 0) )
-//								 {
-//								   keyboard_entry2[0] = 0;   //clear the previous entry...
-//								    index_2 = 0;
-//									pump_indx++;
-//									if (pump_indx > 2) pump_indx = 1;  //wrap around
-//									   key19_sto_ = rd19;
-//								 }
-//								   key19_sto_ = rd19;
-//
-//				    	        pkey = read_keypad2();
-//
-//							 if( (pkey > 0) )  //key detected
-//							 {
-//								 if (pkey == 'B')  // up key
-//									{
-//
-//									}
-//
-//								 if (pkey == 'C')  // down key
-//									{
-//
-//									}
-//
-//								 if (pkey == 'D')  //enter key
-//									{
-//										 if (pump_indx == 1)   // if side A
-//											{
-//											   copy[0].id_ =  atoi(keyboard_entry2);
-//											}
-//										 if (pump_indx == 2)   // if side b
-//											{
-//											   copy[1].id_ =  atoi(keyboard_entry2);
-//											}
-//									}
-//
-//								 if (pkey == 'A')  // back key
-//									{
-//										 fxn = nothing;
-//										 clr_screen2();
-//									}
-//							 }
-//						 return prog_State;
-//					   }
-//	  //=============================== MODE =====================================
-//	  //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-//	  //==========================================================================
-//	  //                         SET NO FLOW TIME.
-//	  //==========================================================================
-//   else if ( (auth2 == authed) && (access == level1)&&(fxn == set_no_flow_time)  )
-//		   {
-//			   if (t2 >= 500)
-//				 {
-//				   printDisp_i2(copy[pump_indx-1].noFlow_timeOut, 1, 0, 4, RT, CLEAR);
-//				   send_line22(keyboard_entry2);
-//
-//				 if (pump_indx == 1)
-//				 {
-//					//snprintf(line3, sizeof(line3), "an1.%d",log_indx_indx + 1);
-//					send_line32("  A  ");
-//				 }
-//
-//				 if (pump_indx == 2)
-//				 {
-//					//snprintf(line3, sizeof(line3), "an1.%d",log_indx_indx + 1);
-//					send_line32("  b  ");
-//				 }
-//				t2 = 0;
-//		 }
-//			 // -------------- test keys....----------------
-//				 int rd19 = readkey192_state();
-//
-//				   if ( (rd19 == 1)&&( key19_sto_ == 0) )
-//					 {
-//					   keyboard_entry2[0] = 0;   //clear the previous entry...
-//					 	   index_2 = 0;
-//						pump_indx++;
-//						if (pump_indx > 2) pump_indx = 1;  //wrap around
-//						   key19_sto_ = rd19;
-//					 }
-//					   key19_sto_ = rd19;
-//
-//			 pkey = read_keypad2();
-//
-//				 if( (pkey > 0) )  //key detected
-//				 {
-//					 if (pkey == 'B')  // up key
-//						{
-//
-//						}
-//
-//					 if (pkey == 'C')  // down key
-//						{
-//
-//						}
-//
-//					 if (pkey == 'D')  //enter key
-//						{
-//							 if (pump_indx == 1)   // if side A
-//								{
-//								   copy[0].noFlow_timeOut =  atoi(keyboard_entry2);
-//								}
-//							 if (pump_indx == 2)   // if side b
-//								{
-//								   copy[1].noFlow_timeOut =  atoi(keyboard_entry2);
-//								}
-//						}
-//
-//					 if (pkey == 'A')  // back key
-//						{
-//							 fxn = nothing;
-//							 clr_screen2();
-//						}
-//				 }
-//			 return prog_State;
-//		   }
-//  //============================ MODE ===================================
-//  //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-//  //=====================================================================
-//  //                         SET MAX AMOUNT.
-//  //=====================================================================
-//   else if ( (auth2 == authed) && (access == level1)&&(fxn == setmax_amt)  )
-//	   {
-//		   if (t2 >= 500)
-//			 {
-//			   printDisp_i2(copy[pump_indx-1].max_amt_, 1, 0, 4, RT, CLEAR);
-//			   send_line22(keyboard_entry2);
-//
-//			 if (pump_indx == 1)
-//			 {
-//				send_line32("  A  ");
-//			 }
-//
-//			 if (pump_indx == 2)
-//			 {
-//				send_line32("  b  ");
-//			 }
-//			t2 = 0;
-//	 }
-//		 // -------------- test keys....----------------
-//			 int rd19 = readkey192_state();
-//
-//			   if ( (rd19 == 1)&&( key19_sto_ == 0) )
-//				 {
-//				   keyboard_entry2[0] = 0;   //clear the previous entry...
-//				   					   index_2 = 0;
-//					pump_indx++;
-//					if (pump_indx > 2) pump_indx = 1;  //wrap around
-//					   key19_sto_ = rd19;
-//				 }
-//				   key19_sto_ = rd19;
-//
-//		   pkey = read_keypad2();
-//
-//			 if( (pkey > 0) )  //key detected
-//			 {
-//				 if (pkey == 'B')  // up key
-//					{
-//
-//					}
-//
-//				 if (pkey == 'C')  // down key
-//					{
-//
-//					}
-//
-//				 if (pkey == 'D')  //enter key
-//					{
-//						 if (pump_indx == 1)   // if side A
-//							{
-//							   copy[0].max_amt_ =  atoi(keyboard_entry2);
-//							}
-//						 if (pump_indx == 2)   // if side b
-//							{
-//							   copy[1].max_amt_ =  atoi(keyboard_entry2);
-//							}
-//					}
-//
-//				 if (pkey == 'A')  // back key
-//					{
-//						 fxn = nothing;
-//						 clr_screen2();
-//					}
-//			 }
-//		 return prog_State;
-//	   }
-//
-////============================== MODE ==================================
-// //=====================================================================
-// //                         CLEAR LOG.
-// //=====================================================================
-//   else if ( (auth2 == authed) && (access == level1)&&(fxn == clr_log_)  )
-//   {
-//	   if (t2 >= 500)
-//		 {
-//		   //printDisp_i2(copy[pump_indx-1].max_amt_, 1, 0, 4, RT, CLEAR);
-////		   send_line22(keyboard_entry2);
-////
-////		 if (pump_indx == 1)
-////		 {
-////			send_line32("  a  ");
-////		 }
-////
-////		 if (pump_indx == 2)
-////		 {
-//			send_line32("  b  ");
-////		 }
-//		t2 = 0;
-// }
-//	 // -------------- test keys....----------------
-////		 int rd19 = readkey192_state();
-////
-////		   if ( (rd19 == 1)&&( key19_sto_ == 0) )
-////			 {
-////			   keyboard_entry2[0] = 0;   //clear the previous entry...
-////				   index_2 = 0;
-////				pump_indx++;
-////				if (pump_indx > 2) pump_indx = 1;  //wrap around
-////				   key19_sto_ = rd19;
-////			 }
-////			   key19_sto_ = rd19;
-//
-//	 pkey = read_keypad2();
-//
-//		 if( (pkey > 0) )  //key detected
-//		 {
-////			 if (pkey == 'C')  // up key
-////				{
-////
-////				}
-////
-////			 if (pkey == 'B')  // down key
-////				{
-////
-////				}
-//
-////			 if (pkey == 'D')  //enter key
-////				{
-////					 if (pump_indx == 1)   // if side A
-////						{
-////						  //clear side A log
-////						  clear_logA();
-////						  send_line12("        ");
-////						  send_line22("cleared ");
-////						  HAL_Delay(2000);
-////						  clr_screen2(); //send_line22("        ");
-////						  fxn = nothing;
-////						}
-////
-////					 if (pump_indx == 2)   // if side b
-////						{
-////						 //clear side B log
-////						 clear_logB();
-////						 send_line12("        ");
-////						 send_line22("cleared ");
-////						 HAL_Delay(2000);
-////						 clr_screen2(); //send_line22("        ");
-////						 fxn = nothing;
-////						}
-////				}
-//
-//			 if (pkey == 'A')  // back key
-//				{
-//					 keyboard_entry2[0] = 0;   //clear the previous entry...
-//					 index_2 = 0;
-//					 fxn = nothing;
-//					 clr_screen2();
-//				}
-//		 }
-//	 return prog_State;
-//   }
-//
-// //=====================================================================
-//  //                         CLEAR totaliser.
-//  //=====================================================================
-//   else if ( (auth2 == authed) && (access == level1)&&(fxn == clr_tot_)  )
-//    {
-// 	   if (t2 >= 500)
-// 		 {
-// 		   //printDisp_i2(copy[pump_indx-1].max_amt_, 1, 0, 4, RT, CLEAR);
-//// 		   send_line22(keyboard_entry2);
-//
-//// 		 if (pump_indx == 1)
-//// 		 {
-//// 			send_line32("  a  ");
-//// 		 }
-//
-//// 		 if (pump_indx == 2)
-//// 		 {
-// 		 send_line32("  b  ");
-//// 		 }
-// 		 t2 = 0;
-//  }
-// 	 // -------------- test keys....----------------
-//// 		 int rd19 = readkey192_state();
-////
-//// 		   if ( (rd19 == 1)&&( key19_sto_ == 0) )
-//// 			 {
-//// 			   keyboard_entry2[0] = 0;   //clear the previous entry...
-//// 				   index_2 = 0;
-//// 				pump_indx++;
-//// 				if (pump_indx > 2) pump_indx = 1;  //wrap around
-//// 				   key19_sto_ = rd19;
-//// 			 }
-//// 			   key19_sto_ = rd19;
-//
-// 		 pkey = read_keypad2();
-//
-// 		 if( (pkey > 0) )  //key detected
-// 		 {
-//// 			 if (pkey == 'C')  // up key
-//// 				{
-////
-//// 				}
-////
-//// 			 if (pkey == 'B')  // down key
-//// 				{
-////
-//// 				}
-////
-//// 			 if (pkey == 'D')  //enter key
-//// 				{
-//// 					 if (pump_indx == 1)   // if side A
-//// 						{
-//// 						  //clear side A log
-//// 						  clear_totA();
-//// 						  send_line12("        ");
-//// 						  send_line22("cleared ");
-//// 						 HAL_Delay(2000);
-//// 						  fxn = nothing;
-//// 						 clr_screen2();
-//// 						}
-////
-//// 					 if (pump_indx == 2)   // if side b
-//// 						{
-//// 						 //clear side B log
-//// 						 clear_totB();
-//// 						 send_line12("        ");
-//// 						 send_line22("cleared ");
-//// 						 HAL_Delay(2000);
-//// 						 fxn = nothing;
-//// 						 clr_screen2();
-//// 						}
-//// 				}
-//
-// 			if (pkey == 'A')  // back key
-//			{
-//				 keyboard_entry2[0] = 0;   //clear the previous entry...
-//				 index_2 = 0;
-//
-//				 fxn = nothing;
-//				 clr_screen2();
-//			}
-// 		 }
-// 	 return prog_State;
-//    }
-// //============================ MODE ===================================
-// //=====================================================================
-// //                         SEND CONFIG.
-// //=====================================================================
-//   else if ( (auth2 == authed) && (access == level1)&&(fxn == send_config)  )
-//   {
-//	   if (t2 >= 500)
-//		 {
-//		   //printDisp_i2(copy[pump_indx-1].max_amt_, 1, 0, 4, RT, CLEAR);
-//		  // send_line22(keyboard_entry2);
-///*
-//		 if (pump_indx == 1)
-//		 {
-//			//snprintf(line3, sizeof(line3), "an1.%d",log_indx_indx + 1);
-//			send_line32("  a  ");
-//		 }
-//
-//		 if (pump_indx == 2)
-//		 {
-//			//snprintf(line3, sizeof(line3), "an1.%d",log_indx_indx + 1);
-//			send_line32("  b  ");
-//		 }  */
-//
-//		t2 = 0;
-// }
-//	 // -------------- test keys....----------------
-//		 int rd19 = readkey192_state();
-//
-//		   if ( (rd19 == 1)&&( key19_sto_ == 0) )
-//			 {
-//				pump_indx++;
-//				if (pump_indx > 2) pump_indx = 1;  //wrap around
-//				   key19_sto_ = rd19;
-//			 }
-//			   key19_sto_ = rd19;
-//
-//	 pkey = read_keypad2();
-//
-//		 if( (pkey > 0) )  //key detected
-//		 {
-//			 if (pkey == 'B')  // up key
-//				{
-//
-//				}
-//
-//			 if (pkey == 'C')  // down key
-//				{
-//
-//				}
-//
-//			 if (pkey == 'D')  //enter key
-//				{
-//					    for (int i = 0 ; i < 14;i++)
-//						  {
-//							//   send the bits to the external system
-//
-//						  }
-//
-//						  for (int i = 0 ; i < 14;i++)
-//						  {
-//							  //   send the bits to the external system
-//						  }
-//
-//					  send_line22("sent    ");
-//					  fxn = nothing;
-//				}
-//
-//			 if (pkey == 'A')  // back key
-//				{
-//					 fxn = nothing;
-//					 clr_screen2();
-//				}
-//		 }
-//	 return prog_State;
-//   }
-//
-//
-//  //============================ MODE ===================================
-//  //=====================================================================
-//  //                         get config
-//  //=====================================================================
-//   else if ( (auth2 == authed) && (access == level1)&&(fxn == get_config)  )
-//    {
-// 	   if (t2 >= 3000)
-// 		 {
-//
-// 		  send_line32("      ");
-// 		  send_line22(" done ");
-// 		  fxn = nothing;
-// 		t2 = 0;
-//    }
-//
-//  //-------------------------------------------------
-//  // Receive the bytes sent from the external system
-//  //       and store in the settings array.
-//
-//
-//
-//
-//
-//  //-------------------------------------------------
-//  // -------------- test keys....--------------------
-// 		 int rd19 = readkey192_state();
-//
-// 		   if ( (rd19 == 1)&&( key19_sto_ == 0) )
-// 			 {
-// 				pump_indx++;
-// 				if (pump_indx > 2) pump_indx = 1;  //wrap around
-// 				   key19_sto_ = rd19;
-// 			 }
-// 			   key19_sto_ = rd19;
-//
-// 	          pkey = read_keypad2();
-//
-//			   if( (pkey > 0) )  //key detected
-//				 {
-//					 if (pkey == 'A')  // back key
-//						{
-//							 fxn = nothing;
-//							 clr_screen2();
-//						}
-//				 }
-// 	 return prog_State;
-//    }
-//  //============================ MODE ==================================
-//  //====================================================================
-//  //                         SET PASSWORD
-//  //====================================================================
-//   else if ( (auth2 == authed) && (access == level1)&&(fxn == set_password)  )
-//    {
-//	   static uint8_t chg_pw = 0;
-////	   static int pw1 = 0;
-////	   static int pw2 = 0;
-//	   static char pw1[9] = { 0 };
-//
-//	   if(prog_revisit2 == 1)
-//	   {
-//		   chg_pw = 0;
-////		   pw1 = 0;
-////		   pw2 = 0;
-//
-//		   memset(pw1, '\0', sizeof(pw1));
-//
-//		   prog_revisit2 = 0;
-//	   }
-//
-// 	   if (t2 >= 500)
-// 		 {
-// 		    send_line12(keypad_pw_xter2); //keyboard_entry2);
-// 		    send_line22("  Enter ");
-//		    send_line32("Pass. ");
-// 		   if (pump_indx == 1)
-// 		  		 {
-// 		  	//		send_line32("  a  ");
-// 		  		 }
-//
-// 		  		 if (pump_indx == 2)
-// 		  		 {
-// 		  	//		send_line32("  b  ");
-// 		  		 }
-// 	    	t2 = 0;
-//         }
-// 	 // -------------- test keys....----------------
-// 		 int rd19 = readkey192_state();
-//
-// 		   if ( (rd19 == 1)&&( key19_sto_ == 0) )
-// 			 {
-// 				pump_indx++;
-// 				if (pump_indx > 2) pump_indx = 1;  //wrap around
-// 				   key19_sto_ = rd19;
-// 			 }
-// 			   key19_sto_ = rd19;
-//
-// 	    pkey = read_keypad2();
-//
-// 		 if( (pkey > 0) )  //key detected
-// 		 {
-// 			 if (pkey == 'B')  // up key
-// 				{
-//
-// 				}
-//
-// 			 if (pkey == 'C')  // down key
-// 				{
-//
-// 				}
-//
-// 			 if (pkey == 'D')  //enter key
-// 				{
-// 				 if (chg_pw == 0)
-//				  {
-////					     pw1 = atoi(keyboard_entry2);
-//					 strncpy(pw1, keyboard_entry2, sizeof(pw1));
-//					 chg_pw = 1;
-//					 send_line22("re-enter");
-//					 HAL_Delay(2500);
-//					 send_line12("        ");
-//					 clear_buffer2();
-//					 //index_ = 0;
-//					 //keyboard_entry2[0] = 0;
-//					 //keyboard_entry2[1] = 0;
-//					 //keypad_pw_xter1[0] = 0;
-//					 //_index = 0;
-//					 return prog_State;
-//				  }
-// 				 else if (chg_pw == 1)
-//				 {
-//						 if (strcmp(pw1, keyboard_entry2) == 0)  //if strings are same
-//						 {
-//							 send_line12("correct ");
-//							 send_line22("        ");
-//							 HAL_Delay(2500);
-//							 send_line12("        ");
-//
-////							 copy[0].passwd1 = pw1;
-////							 copy[1].passwd2 = pw1;
-//							 strncpy(copy[0].passwd1, pw1, sizeof(pw1));
-//							 strncpy(copy[1].passwd1, pw1, sizeof(pw1));
-//
-//							 HAL_Delay(2500);
-//							 send_line12("pass    ");
-//							 send_line22("changed ");
-//							 HAL_Delay(2500);
-//							 fxn = nothing;
-//							 chg_pw = 1;
-//							 clear_buffer2();
-//							// index_ = 0;
-//							//keyboard_entry2[0] = 0;
-//							//keypad_pw_xter1[0] = 0;
-//							//_index = 0;
-//							return prog_State;
-//
-//						 }
-//					 else
-//					 {
-//
-//							send_line22("---no---");
-//							HAL_Delay(1500);
-//							send_line22("        ");
-//							attempts++;
-//							if (attempts >= 3)
-//							{
-//								send_line22("        ");
-//								send_line22(" denied ");
-//								HAL_Delay(1500);
-//								send_line22("        ");
-//								 fxn = nothing;
-//								 chg_pw = 1;
-//								clear_buffer2();
-//								// index_ = 0;
-//								//keyboard_entry2[0] = 0;
-//								//keypad_pw_xter1[0] = 0;
-//								//_index = 0;
-//								 return prog_State;
-//							}
-//							else
-//							{
-//								send_line22("        ");
-//								send_line22(" retry  ");
-//								HAL_Delay(1500);
-//								send_line22("        ");
-//								clear_buffer2();
-//								// index_ = 0;
-//								//keyboard_entry2[0] = 0;
-//								//keypad_pw_xter1[0] = 0;
-//								//_index = 0;
-//								return prog_State;
-//							}
-//					 	 }
-//						 chg_pw = 1;
-//					  }
-// 				}
-//
-// 			 if (pkey == 'A')  // back key
-// 				{
-// 					 fxn = nothing;
-// 				   	clr_screen2();
-// 				}
-// 		 }
-// 	 return prog_State;
-//    }
-//
-//
-//    //============================ MODE ==================================
-//    //====================================================================
-//    //                        CALIBRATE..
-//    //====================================================================
-//   else if ( (auth2 == authed) && (access == level1)&&(fxn == calibrate_)  )
-//      {
-//  	   static float calib_price = 0.0;
-//  	   static float inv_price   =  0.0;
-//  	   static int vol_sold = 1;
-//
-//  	 if(prog_revisit2 == 1)
-//  	 {
-//  		 calib_price = 0.0;
-//	     inv_price   =  0.0;
-//	     vol_sold = 1;
-//	     volume_flag2 = 0;
-//	     calibr2 = 0;        /// notify the interrupt routine to off the pump
-//	     prog_revisit2 = 0;
-//  	 }
-//
-//	   if (volume_flag2 == 0)
-//	    {
-//		   //select sales volume first...
-//
-//			   if (t2 >= 500)
-//				 {
-//					if (vol_sold == l1)
-//					{
-//						send_line12("10 litre");
-//					}
-//					else
-//						send_line12("20 litre");
-//
-//				   if (pump_indx == 1)
-//						 {
-//							send_line32("  A  ");
-//						 }
-//
-//				   if (pump_indx == 2)
-//						 {
-//							send_line32("  b  ");
-//						 }
-//					   t2 = 0;
-//				   }
-//   	 // -------------- test keys....----------------
-//   		 int rd19 = readkey192_state();
-//
-//   		   if ( (rd19 == 1)&&( key19_sto_ == 0) )
-//   			 {
-//   				pump_indx++;
-//   				if (pump_indx > 2) pump_indx = 1;  //wrap around
-//   				   key19_sto_ = rd19;
-//   			 }
-//   			   key19_sto_ = rd19;
-//
-//   	    pkey = read_keypad2();
-//
-//   		 if( (pkey > 0) )  //key detected
-//   		 {
-//   			 if (pkey == 'B')  // up key
-//   				{
-//                   if (vol_sold == l1)
-//                   {
-//                	   vol_sold = l2;
-//                   }
-//                   else
-//                	   vol_sold = l1;
-//   				}
-//
-//   			 if (pkey == 'C')  // down key
-//   				{
-//   				 if (vol_sold == l1)
-//					   {
-//						   vol_sold = l2;
-//					   }
-//					   else
-//						   vol_sold = l1;
-//   				}
-//
-//   			 if (pkey == 'D')  //enter key
-//   				{
-//   				 	 //enter pressed user has made a choice.
-//   				     // then dispense the selcted volume
-//					volume_flag2  = 1;   //set flag and goto dispense
-//					calib_pulser2 = 0;  //clear pulser
-//		           __HAL_TIM_SET_COUNTER(&htim2,0);   //clear harware pulser here...
-//					return prog_State;
-//   				}
-//
-//   			 if (pkey == 'A')  // back key
-//   				{
-//   					 fxn = nothing;
-//   				     calibr2 = 0;
-//   				     clr_screen2();
-//   				}
-//   		 }
-//      	 return prog_State;
-//	   }// if selected volume = 0.....
-//	//========= volume has been selected =============
-//    // dispense
-//      if(volume_flag2 == 1)
-//      {
-//         send_line12("dispense");
-//         HAL_Delay(2000);
-//         volume_flag2 = 2;
-//         calibr2 = 1;        /// notify the interrupt routine to on the pump
-//         return prog_State;
-//      }
-//    //=============================
-//	  if(volume_flag2 == 2)  //dispense.
-//	   {
-//		 if(t2 > 60)
-//		  {
-//
-//			#if _USE_SOFT_PULSER == 0
-//			  calib_pulser2 = __HAL_TIM_GET_COUNTER(&htim2);  //use hardware counter
-//			#else
-//			  calib_pulser2++; 							// use software counter.
-//			#endif
-//
-//			  send_line12(" Pulser ");
-//			  printDisp_i2(calib_pulser2, 2, 0, 7, RT, CLEAR); //    power outage during filling1  end transaction...
-//
-//			#if sense_power == 1
-//			  if( (readpwr() == 0)||(read_p_pwr() == 0) )
-//			  {
-//				  HAL_GPIO_WritePin(buzzer_GPIO_Port, GPIO_PIN_12, GPIO_PIN_SET);
-//				  HAL_Delay(200);
-//				  HAL_GPIO_WritePin(buzzer_GPIO_Port, GPIO_PIN_12, GPIO_PIN_RESET);
-//				  stop_flow1();
-//			//				  get_time();
-//			//				  do_calcs();
-//			//				  update_info();
-//
-//				  pulser_totalizer2 = ( (calib_pulser2 / (float) (pulser_benchMark2)) * calibrationCan_measure2 );
-//
-//				  totaliser_vol2c += pulser_totalizer2;
-//				  totaliser_vol2 += pulser_totalizer2;
-//				  totaliser_amt2c += (pulser_totalizer2 * litre_price2);
-//				  totaliser_amt2 += (pulser_totalizer2 * litre_price2);
-//				  amt_real2 = pulser_totalizer2;
-//				  amt_middle2 = pulser_totalizer2;
-//				  price_real2 = (pulser_totalizer2 * litre_price2);
-//				  price_upper2 = (pulser_totalizer2 * litre_price2);
-//				  save_volumeTotaliser(operating_side);
-//				  save_amountTotaliser(operating_side);
-//				  save_lastSale(operating_side);
-//
-//				  return write_flash_state;
-//			  }
-//			#endif
-//
-//			t2 = 0;
-//		  }
-//
-//			  pkey = read_keypad2();
-////			  if (pkey == 'A')  //off key to stop fueling...
-//			  if (pkey == 'D')  //Enter key to transit to the next page
-//				{
-//                    //capture the pulser.
-//				  calibr2 = 0;  /// notify the interrupt routine to on the pump
-//				  #if _USE_SOFT_PULSER == 0
-//				  	  calib_pulser2 = __HAL_TIM_GET_COUNTER(&htim2);  //use hardware counter
-//				  #else
-//				  	  calib_pulser2++; 							// use software counter.
-//				  #endif
-//
-//				  pulser_totalizer2 = ( (calib_pulser2 / (float) (pulser_benchMark2)) * calibrationCan_measure2 );
-//
-//				  totaliser_vol2c += pulser_totalizer2;
-//				  totaliser_vol2 += pulser_totalizer2;
-//				  totaliser_amt2c += (pulser_totalizer2 * litre_price2);
-//				  totaliser_amt2 += (pulser_totalizer2 * litre_price2);
-//				  amt_real2 = pulser_totalizer2;
-//				  amt_middle2 = pulser_totalizer2;
-//				  price_real2 = (pulser_totalizer2 * litre_price2);
-//				  price_upper2 = (pulser_totalizer2 * litre_price2);
-//				  save_volumeTotaliser(operating_side);
-//				  save_amountTotaliser(operating_side);
-//				  save_lastSale(operating_side);
-//
-////				  calib_pulser2 = __HAL_TIM_GET_COUNTER(&htim2);  //use hardware counter
-//				  send_line12("Set your");
-//				  send_line22("  Annt  ");
-//				  HAL_Delay(2000);
-//				  volume_flag2 = 3;   //enter the price.
-//				  return prog_State;
-//				}
-//
-////			  if (pkey == 'A')  // back key
-////				{
-////                 	volume_flag2 = 0;
-////                    calibr2 = 0;
-////                   // clr_screen2();
-////				}
-//
-//		     return prog_State;
-//	   }
-//  //==========================================================
-//
-//  //==========================================================
-//    if(volume_flag2 == 3)  //Enter the price.
-//	   {
-//			  if(t2 > 400)
-//				  {
-//					send_line12("  Annt  ");
-//					printDisp_f2(atoff(keyboard_entry2), 2, 0, 7, RT, CLEAR);
-//					t2 = 0;
-//				  }
-//
-//			  pkey = read_keypad2();
-//			  if (pkey == 'D')  //ENTER key to adjusted volume.
-//				{
-//				  float cal_vol = atoff(keyboard_entry2);
-//				  send_line12("        ");   //clear screen.
-//				  send_line22("        ");
-//				  clear_buffer2();
-//					//index_ = 0;
-//					//keyboard_entry2[0] = 0;  //clear buffer...
-//					//keypad_pw_xter1[0] = 0;
-//					//_index = 0;
-//					//==================================
-//					// calculate the price of the pulses
-//					// float pop = calib_pulser1  / cal_vol;
-//					int sold_v = 0;
-//					float pi_c;
-//					float pi;
-//
-//					if (vol_sold == l1)
-//					{
-//						sold_v = 10;
-//						pi_c = calib_pulser2 / cal_vol; //calibrated pi.
-//						pi   = calib_pulser2 / sold_v;
-//					}
-//					else
-//					{
-//						sold_v = 20;
-//						pi_c = calib_pulser2 / cal_vol; //calibrated pi.
-//						pi   = calib_pulser2 / sold_v;
-//					}
-//
-//					vol_real2 = sold_v;
-//					vol_calibrated2 = cal_vol;
-//					save_ctSettings(side_b);
-//					save_calibrationPulser(side_b);
-//
-//                    HAL_Delay(1700);
-//
-//                    send_line12("  done  ");
-//                    printDisp_f2(pi_c, 2,0, 8, RT, CLEAR);
-//                    HAL_Delay(2500);
-//                    //store in the settings structure.
-//                    if(pump_indx == 1)
-//                    {
-//                    	// data for side a.
-//                    	copy[0].pi_c = pi_c;
-//                    	copy[0].pi_  = pi;
-//                    }
-//
-//                    if(pump_indx == 2)
-//					{
-//						// data for side b.
-//						copy[1].pi_c = pi_c;
-//						copy[1].pi_	 = pi;
-//					}
-//					 fxn = nothing;
-//					 calibr2 = 0;
-//					 clr_screen2();
-//				}
-//
-//			  if (pkey == 'A')  // back key
-//				{
-//					volume_flag2 = 0;
-//					clr_screen2();
-//				}
-//			 return prog_State;
-//	   }
-//    return prog_State;
-//     }
-//
-////============================ MODE ===================================
-////xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-////=====================================================================
-////                      display precision
-////=====================================================================
-//   else if ( (auth2 == authed) && (access == level1)&&(fxn == display_)  )
-//   {
-//	 if(enter_key == 1)
-//	 {
-//		 if(timer_config2 < 1000)
-//		 {
-//			 send_line22(" Entered");
-//		 }
-//		 else
-//		 {
-//			 enter_key = 0;
-//			 fxn = nothing;
-//			 clr_screen2();
-//		 }
-//
-//		 return prog_State;
-//	 }
-//
-//	 if (ln_ == 0) ln_ = 1;
-//	 if (dp_ == 0) dp_ = 1;
-//
-//	   if (t2 >= 500)
-//		 {
-//		    if (ln_ == 1)
-//			 {
-//				send_line12("   p    ");
-//			 }
-//
-//			if (ln_ == 2)
-//			 {
-//				send_line12("   l    ");
-//			 }
-//
-//			if (ln_ == 3)
-//			 {
-//				send_line12(" unit p ");
-//			 }
-//       //---------------------------------
-//		    if (dp_ == 1)
-//			 {
-//				send_line22(" 999999.9");
-//			 }
-//
-//		    if (dp_ == 2)
-//			 {
-//				send_line22(" 99999.99");
-//			 }
-//
-//		    if (dp_ == 3)
-//			 {
-//		    	send_line22(" 9999.999");
-//			 }
-//		    if (dp_ == 4)
-//			 {
-//				send_line22(" 999.9999");
-//			 }
-//        //--------------------------------
-//			 if (pump_indx == 1)
-//			 {
-//				send_line32("  A  ");
-//			 }
-//
-//			 if (pump_indx == 2)
-//			 {
-//				send_line32("  b  ");
-//			 }
-//			t2 = 0;
-//        }
-//	 // -------------- test keys....----------------
-//		 int rd19 = readkey192_state();
-//
-//		   if ( (rd19 == 1)&&( key19_sto_ == 0) )
-//			 {
-//			   keyboard_entry2[0] = 0;   //clear the previous entry...
-//								   index_2 = 0;
-//				pump_indx++;
-//				if (pump_indx > 2) pump_indx = 1;  //wrap around
-//				   key19_sto_ = rd19;
-//			 }
-//			   key19_sto_ = rd19;
-//
-//	   pkey = read_keypad2();
-//
-//
-//		 if( (pkey > 0) )  //key detected
-//		 {
-//			 if (pkey == 'C')  // up key
-//				{
-//				 	 dp_++;
-//				 	 if(dp_ > max_dp) dp_ = 1;
-//				}
-//
-//			 if (pkey == 'B')  // down key
-//				{
-//				 	 ln_++;
-//				 	 if(ln_ > 3)ln_ = 1;
-//				}
-//
-//			 if (pkey == 'D')  //enter key
-//				{
-//					 if (pump_indx == 1)   // if side A
-//					 {
-//					   if(ln_ == 1) copy[0].dp_price  = dp_;
-//					   if(ln_ == 2) copy[0].dp_amount = dp_;
-//					   if(ln_ == 3) copy[0].dp_unitprice = dp_;
-//					 }
-//					 if (pump_indx == 2)   // if side b
-//					 {
-//						   if(ln_ == 1) copy[1].dp_price  = dp_;
-//						   if(ln_ == 2) copy[1].dp_amount = dp_;
-//						   if(ln_ == 3) copy[1].dp_unitprice = dp_;
-//					 }
-//
-//					 clr_screen2();
-//					 timer_config2 = 0;
-//					 send_line22("Entered ");
-//
-//					 enter_key = 1;
-//					 return prog_State;
-//				}
-//
-//			 if (pkey == 'A')  // back key
-//				{
-//					 fxn = nothing;
-//					 clr_screen2();
-//					 return prog_State;
-//				}
-//		 }
-//	 return prog_State;
-//   }
-//
-//
-//
-// //=========================== MODE ====================================
-//  //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-//  //=====================================================================
-//  //               set the  CLOCK
-//  //=====================================================================
-//   else if ( (auth2 == authed) && (access == level1) && (fxn == setclock) )
-// 	 {
-// 		    static int8_t respons_dir = 0,
-// 				   entry_clear = 1,
-// 				   montth = 0,
-// 				   failFlag_tm = 0,
-// 				   failFlag_dt = 0;
-//
-// 		    int8_t respons = 0,
-// 		    	   tm = 0,
-// 		    	   dte = 0;
-//
-// 		    static bool hh_success = false,
-// 		    			yy_success = false;
-//
-// 		    char st__[10] = {0};
-//
-// 		   if(prog_revisit2 == 1)
-//		   {
-// 			   respons_dir = 0;
-//			   entry_clear = 1;
-//			   montth = 0;
-//			   failFlag_tm = 0;
-//			   failFlag_dt = 0;
-// 			   hh_success = false;
-// 			   yy_success = false;
-// 			   prog_revisit2 = 0;
-//		   }
-//
-// 		  //====================================================
-// 		  if( (t2>200) && (respons_dir == 0) )
-// 		  {
-// 			  send_line12("1- tinne");
-// 			  send_line22("2-  date");
-// 			  t2 = 0;
-//
-// 		  }
-// 		  if(entry_clear)
-// 			  respons = atoi(keyboard_entry2);
-//
-// 		 //------------------------------------------------
-// 		  if( ((respons == 1) || (respons_dir == 1)) && (!failFlag_tm) )
-// 		  {
-// 			  if(entry_clear == 1)
-// 			  {
-// 				  respons = 0;
-// 				  respons_dir = 1;
-// 				  clear_buffer2();
-// 				  entry_clear = 0;
-// 			  }
-//
-// 			  if (!hh_success)
-// 			  {
-// 				  snprintf(st__, sizeof(st__), "  %02d", hour);
-// 				  printDisp_c2("hr",1,0,8,LT,CLEAR); printDisp_c2(st__,1,4,8,RT,NOCLEAR);
-// 			  }
-// 			  else if(hh_success)
-// 			  {
-// 				  snprintf(st__, sizeof(st__), "  %02d", minute);
-// 				  printDisp_c2("nnI",1,0,8,LT,CLEAR); printDisp_c2(st__,1,4,8,RT,NOCLEAR);
-// 			  }
-//
-// 			  if( (atoi(keyboard_entry2)) <= 59 )
-// 				  tm = atoi(keyboard_entry2);
-// 			  else clear_buffer2();
-//
-// 			  printDisp_i2(tm,2,4,8,RT,CLEAR);
-//
-// 			  //=======================================
-// 			  if (clock_save2)
-// 			  {
-// 				clock_save2 = false;
-//
-// 				DS1307_SetHour(ttime2[0]);
-// 				DS1307_SetMinute(ttime2[1]);
-// 				DS1307_SetSecond(00);
-// 				HAL_Delay(15);
-//
-// 				clr_screen2();
-// 				send_line22("  saved");
-// 				HAL_Delay(1000);
-//
-// 				hour = DS1307_GetHour();
-// 				minute = DS1307_GetMinute();
-// 				second = DS1307_GetSecond();
-//
-// 				clear_buffer2();
-// 				entry_clear = 1;
-// 				respons_dir = 0;
-// 			  }
-// 		  }
-//
-// 		  else if( ((respons == 2) || (respons_dir == 2)) && (!failFlag_dt) )
-// 		  {
-// 			  if(entry_clear == 1)
-// 			  {
-// 				  respons = 0;
-// 				  respons_dir = 2;
-// 				  clear_buffer2();
-// 				  entry_clear = 0;
-// 			  }
-// 			  if ( (!yy_success) && (!mth_success2) )
-// 			  {
-// 				  snprintf(st__, sizeof(st__), "  %02d", year);
-// 				  printDisp_c2("Yr",1,0,8,LT,CLEAR); printDisp_c2(st__,1,4,8,RT,NOCLEAR);
-// 			  }
-// 			  else if( (yy_success) && (!mth_success2) )
-// 			  {
-// 				  snprintf(st__, sizeof(st__), "  %02d", month);
-// 				  printDisp_c2("nnO",1,0,8,LT,CLEAR); printDisp_c2(st__,1,4,8,RT,NOCLEAR);
-// 			  }
-// 			  else if(mth_success2)
-// 			  {
-// 				  snprintf(st__, sizeof(st__), "  %02d", day);
-// 				  printDisp_c2("dd",1,0,8,LT,CLEAR); printDisp_c2(st__,1,4,8,RT,NOCLEAR);
-// 			  }
-//
-// 			  if( (atoi(keyboard_entry2)) <= 99 )
-// 				  dte = atoi(keyboard_entry2);
-// 			  else clear_buffer2();
-//
-// 			  printDisp_i2(dte,2,4,8,RT,CLEAR);
-//
-// 			  //=======================================
-// 			  if (clock_save2)
-// 			  {
-// 				clock_save2 = false;
-// 				DS1307_SetDate(ddate2[0]);
-// 				DS1307_SetMonth(ddate2[1]);
-// 				DS1307_SetYear(ddate2[2]);
-// //							DS1307_SetDayOfWeek(3);
-// 				HAL_Delay(15);
-//
-// 				clr_screen2();
-// 				send_line22("  saved");
-// 				HAL_Delay(500);
-//
-// 				day = DS1307_GetDate();
-// 				month = DS1307_GetMonth();
-// 				year = DS1307_GetYear();
-// 				dayofweek = DS1307_GetDayOfWeek();
-//
-// 				clear_buffer2();
-// 				entry_clear = 1;
-// 				respons_dir = 0;
-// 			  }
-//    		 }
-//
-// 		 pkey = read_keypad2();
-//
-// 		 if( (pkey > 0) || (failFlag_tm) || (failFlag_dt) )         //key detected
-// 		 {
-// 			if (pkey == 'C')  // up key
-// 			{
-//
-// 			}
-//
-// 			if (pkey == 'B')  // down key
-// 			{
-//
-// 			}
-//
-// 			if ( ((pkey == 'D') && ((respons == 1) || (respons_dir == 1))) || (failFlag_tm) )  //store entered value.
-// 	        {
-// 				 if( ((tm <= 23) && (!hh_success)) && (!failFlag_tm) )
-// 				 {
-// 					 ttime2[0] = tm;
-// 					 clear_buffer2();
-// 					 hh_success = true;
-// 				 }
-// 				 else if ( ((tm <=59) && (hh_success)) && (!failFlag_tm) )
-// 				 {
-// 					 ttime2[1] = tm;
-// 					 clear_buffer2();
-// 					 hh_success = false;
-// 					 clock_save2 = true;
-// 				 }
-// 				 else
-// 				 {
-// 					 send_line22("        ");
-// 					 if(!hh_success)
-// 					 {
-// 						 snprintf(st__, sizeof(st__), "  %02d", hour); //,log_a_new.time._mn);
-// 						 printDisp_c2("hr",1,0,8,LT,CLEAR); printDisp_c2(st__,1,4,8,RT,NOCLEAR);
-// 					 }
-// 					 else if(hh_success)
-// 					 {
-// 						 snprintf(st__, sizeof(st__), "  %02d", minute);
-// 						 printDisp_c2("nnI",1,0,8,LT,CLEAR); printDisp_c2(st__,1,4,8,RT,NOCLEAR);
-// 					 }
-// 					 send_line22(" failed");
-// 					 clear_buffer2();
-//
-// 					 if(!failFlag_tm) _tt2 = 0;
-//
-// 					 if( (failFlag_tm) && (_tt2 > 600) ) failFlag_tm = 0;
-// 					 else failFlag_tm = 1;
-// 				 }
-// 			}
-//
-// 			else if( ((pkey == 'D') && ( (respons == 2) || (respons_dir == 2) )) || (failFlag_dt) )  //store entered value.
-// 			{
-// 				 if( (dte <= 99) && (!yy_success) && (!mth_success2) && (!failFlag_dt) )
-// 				 {
-// 					 ddate2[2] = dte;
-// 					 clear_buffer2();
-// 					 yy_success = true;
-// 				 }
-// 				 else if ( (dte != 0) && (dte <= 12) && (yy_success) && (!mth_success2) && (!failFlag_dt) )
-// 				 {
-// 					 ddate2[1] = dte;
-// 					 clear_buffer2();
-// 					 yy_success = false;
-// 					 mth_success2 = true;
-// 					 montth = dte;
-// 				 }
-// 				else if( (mth_success2) && ((montth == January) || (montth == March) || (montth == May) || (montth == July) || (montth == August) || (montth == October) || (month == December)) && (!failFlag_dt) )
-// 				{
-// 					if ( (dte != 0) && (dte <= 31) )
-// 					{
-// 						save_date2(dte);
-// 					}
-// 					else goto __fail2;
-// 				}
-// 				else if( (mth_success2) && ((montth == April) || (montth == June) || (montth == September) || (montth == November)) && (!failFlag_dt) )
-// 				{
-// 					if ( (dte != 0) && (dte <= 30) )
-// 					{
-// 						save_date2(dte);
-// 					}
-// 					else goto __fail2;
-// 				}
-// 				else if( (mth_success2) && (montth == February) && (!failFlag_dt) )
-// 				{
-// 					if( leapYear_calc2(ddate2[2]) )
-// 					{
-// 						if ( (dte != 0) && (dte <= 29) )
-// 						{
-// 							save_date2(dte);
-// 						}
-// 						else goto __fail2;
-// 					}
-// 					else
-// 					{
-// 						if ( (dte != 0) && (dte <= 28) )
-// 						{
-// 							save_date2(dte);
-// 						}
-// 						else goto __fail2;
-// 					}
-// 				}
-// 				else
-// 				{
-// 					__fail2:   send_line22("        ");
-// 							  if( (!yy_success) && (!mth_success2) )
-// 							  {
-// 								  snprintf(st__, sizeof(st__), "  %02d", year);
-// 								  printDisp_c2("Yr",1,0,8,LT,CLEAR); printDisp_c2(st__,1,4,8,RT,NOCLEAR);
-// 							  }
-// 							  else if( (yy_success) && (!mth_success2) )
-// 							  {
-// 								  snprintf(st__, sizeof(st__), "  %02d", month);
-// 								  printDisp_c2("nnO",1,0,8,LT,CLEAR); printDisp_c2(st__,1,4,8,RT,NOCLEAR);
-// 							  }
-// 							  else if(mth_success2)
-// 							  {
-// 								  snprintf(st__, sizeof(st__), "  %02d", day);
-// 								  printDisp_c2("dd",1,0,8,LT,CLEAR); printDisp_c2(st__,1,4,8,RT,NOCLEAR);
-// 							  }
-//
-// 							 send_line22(" failed");
-// 							 clear_buffer2();
-//
-// 							 if(!failFlag_dt) _tt2 = 0;
-//
-// 							 if( (failFlag_dt) && (_tt2 > 600) ) failFlag_dt = 0;
-// 							 else failFlag_dt = 1;
-// 				 }
-// 		}
-//
-// 		 if (pkey == 'A')  // back key
-// 		{
-// 			 fxn = nothing;
-// 			 respons_dir = 0;
-// 			 failFlag_dt = 0;
-// 			 failFlag_tm = 0;
-// 			 hh_success = false;
-//			 yy_success = false;
-// 			 mth_success2 = false;
-// 			 clock_save2 = 0;
-// 			 montth = 0;
-// 			 entry_clear = 1;
-// 			 clr_screen2();
-// 			 clear_buffer2();
-// 		}
-// 	}
-// 	//=======================================
-// 	return prog_State;
-//   }
-//
-//
-//
-//
-//
-////============================== MODE ==================================
-//
-//  return prog_State;
-//} //end of prog_state.
-
-//----------------------------------------
-//eSystemState idlestate_Handler2(void)
-//{
-//	  progg2 = 0;
-//		if (t2 > 500)
-//		  {
-//			 send_line12(upper2);
-//			 send_line22(middle2);
-//			 char str__[8]= {0};
-//			 snprintf(str__, sizeof(str__), "%.2f", litre_price2);
-//			 send_line32(str__);
-//			 t2 = 0;
-//		  }
-//
-//#if sense_power == 1
-//	  	  if(readpwr() == 0)
-//			  {
-//	  		  	   //count time elapsed
-//	  		       if (shutdown_timer1 > 120)
-//	  		    	   displayandkeypad_power(DEACTIVATE);   //shutdown... after  2 minutes
-//			  }
-//	  	  else
-//	  	  {
-//	  		  //clear the timer//
-//	  		  shutdown_timer1 = 0;
-//	  	  }
-//#endif
-//
-//		return idle_State;
-//}
 
 
 eSystemState idleState_Handler2(void)
@@ -7538,6 +5771,41 @@ eSystemState idleState_Handler2(void)
 	progg2 = 0;
 
 	firstTime_nozz2 = 1;
+
+	if(settings_stream1[1].mode == AUTO_MODE)
+		{
+			if(timer_go >= TIMEOUT_GO)   //if go's timeout is 5sec threshold
+			{
+				pump_status_2 = STATUS_PNP;
+				return pnp_State;
+			}
+		}
+
+		#if sense_power == 1
+		  if(readpwr() == 0)
+		  {
+			   modem_power(DEACTIVATE);
+
+			   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+			   HAL_Delay(200);
+			   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+
+			   //count time elapsed
+			   if (shutdown_timer2 > 120)
+			   {
+				   displayandkeypad_power(DEACTIVATE);   //shutdown... after  2 minutes
+			   }
+		  }
+		  else
+		  {
+			  //clear the timer//
+			  shutdown_timer2 = 0;
+
+			  modem_power(ACTIVATE);
+			  displayandkeypad_power(ACTIVATE);
+		  }
+		#endif
+
 
 	#if !defined (DEV_MODE)
 		if(batteryStatus == LOWBATTERY)
@@ -7645,6 +5913,19 @@ eSystemState idleState_Handler2(void)
 			}
 		}
 	}
+
+	if (settings_stream1[1].mode == AUTO_MODE)
+	{
+		if(online_calibFlag2 == 1)
+		{
+			settings_stream1[1].pi_cal = (calib_pulser2 / vol_effective2);
+
+			save_settings_fram();
+			online_calibFlag2 = 0;
+			save_online_calibFlag_fram(side_b);
+		}
+	}
+
 
 	if( (idleState_flag == 1) && (eLastState2 != filling_State) )
 	{
@@ -8675,6 +6956,29 @@ eSystemState filling_State_Handler2(void)
 
 #endif   //#if !defined (DEV_MODE)
 
+		if(settings_stream1[1].mode == AUTO_MODE)
+		{
+			if(timer_go >= TIMEOUT_GO)   //if go's timeout is 5sec threshold
+			{
+				go_timeOut2 = 1;
+
+				HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+				HAL_Delay(200);
+				HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+				filling2 = 0;
+				stop_flow2();
+				get_time();
+				do_calcs2();
+				update_info();
+
+				save_volumeTotaliser_fram(side_b);
+				save_amountTotaliser_fram(side_b);
+				save_lastSale_fram(side_b);
+
+				return write_flash_State;
+			}
+		}
+
 	if (stop_flag2 == 1)   //if stop key pressed
 	{
 		filling2 = 0;
@@ -8988,6 +7292,8 @@ eSystemState filling_State_Handler2(void)
 				save_volumeTotaliser_fram(operating_side);
 				save_amountTotaliser_fram(operating_side);
 				save_lastSale_fram(operating_side);
+
+				keypad_zerorize2();
 
 				if(settings_stream1[1].mode == AUTO_MODE)
 				  {
@@ -11140,8 +9446,8 @@ eSystemState pnpState_Handler2(void)
 
 	 if  (t2 > 500)
 	 {
-//		 send_line1(upper1);
-//		 send_line2(middle1);
+		 send_line12("        ");
+		 send_line22(" Offline");
 		 if(settings_stream1[1].display_format == PL)
 		  {
 //			 send_line1(upper1);

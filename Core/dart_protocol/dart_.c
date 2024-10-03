@@ -968,18 +968,19 @@ void parse_decode(void)
 								//
 								///////////////////////////////////////////////////////////////////////////////
 								///////////////////////////////////////////////////////////////////////////////
-								//'50 37 68 04 37 42 73 75 a2 0a 03 fa
+								//'50 37  68 05  12 34 56 78 90  a2 0a 03 fa
+								//'50 38 68 05 00 37 42 48 57 CE BC 03 fa
 								//===========================================================================//
 								//============================   UPDATE DATE/TIME   =========================//
 								//===========================================================================//
-								else if( (r_raw_data1[i] == 0x68) && (r_raw_data1[i+1] == 0x04) )//4 Data Bytes
+								else if( (r_raw_data1[i] == 0x68) && (r_raw_data1[i+1] == 0x05) )//4 Data Bytes
 								{
 									uint8_t update_datetime[5];
-									uint32_t update_datetimeee;
+									char update_datetimeee[20];
 
-									crc_original = r_raw_data1[i+5];
+									crc_original = r_raw_data1[i+8];
 									crc_original = (crc_original << 8);
-									crc_original = (crc_original + r_raw_data1[i+4]);
+									crc_original = (crc_original + r_raw_data1[i+7]);
 
 
 									//==============================================================//
@@ -989,32 +990,33 @@ void parse_decode(void)
 									data_[1] = r_ctrl;
 
 									////////////////////////////////////////
-									//'50 37 05 03 00 58 10 - - - a2 0a 03 fa
+									//'50 37  68 05  12 34 56 78 90  a2 0a 03 fa
 									////////////////////////////////////////
 									//===the read buffer contains only from the transaction byte to the SF byte ===//
-									//================== Data contains a cumulative of 4 raw Bytes ===============//
-									for(uint8_t ii = 0, j = 2; ii < 6; ii++, j++)  //4 + Trans No. + Data Len
+									//================== Data contains a cumulative of 5 raw Bytes ===============//
+									for(uint8_t ii = 0, j = 2; ii < 7; ii++, j++)  //5 + Trans No. + Data Len
 									{
 										data_[j] = r_raw_data1[ii];
 									}
 
 
-									crc_check = crc_16(data_, 8);
-
+									crc_check = crc_16(data_, 9);
 
 									if(crc_check == crc_original)
 									{
-										for (uint8_t j = 0; j < 4; j++)
+										for (uint8_t j = 0; j < 5; j++)
 										{
 											update_datetime[j] = r_raw_data1[i+2+j];
 										}
 
-										uint32_t update_datetimee = ( (update_datetime[0] * 1000000) + (update_datetime[1] * 10000) + (update_datetime[2] * 100) + (update_datetime[3] * 1));
-										sprintf(update_datetimeee, "0x%ld", update_datetimee);
+//										uint32_t update_datetimee = ( (update_datetime[0] * 1000000) + (update_datetime[1] * 10000) + (update_datetime[2] * 100) + (update_datetime[3] * 1));
+//										sprintf(update_datetimeee, "0x%ld", update_datetimee);
+//
+//										// char num[]="0x3076";
+//										long n = strtol(update_datetimeee, NULL, 16);
+//										update_date_time = packed_bcd_to_decimal(n);
 
-										// char num[]="0x3076";
-										long n = strtol(update_datetimeee, NULL, 16);
-										update_date_time = packed_bcd_to_decimal(n);
+										update_date_time = bcdArray_to_int(update_datetime, 5);
 
 										///////////////////////////////////////////////////////////////////
 										///////////////////  ACTUATE THE CHANGE... ////////////////////////
@@ -1041,17 +1043,17 @@ void parse_decode(void)
 									break;
 								}
 
-								//###########################################################################//
-								//'50 37  68 04  00  58 10 00  a2 0a  03 fa
-								//===========================================================================//
-								//==================   SET/REQUEST CALIBRATION DETAILS   ====================//
-								//===========================================================================//
+								//##############################################################################//
+								//'50 38  69 04  01  20 04 00 46 f0 03 fa '   //Calibration Data Request
+								//'50 38  69 04  00  20 04 05 87 0f 03 fa '   //In-bound Calibration-Set Command
+								//==============================================================================//
+								//=====================   SET/REQUEST CALIBRATION DETAILS   ====================//
+								//==============================================================================//
 								else if( (r_raw_data1[i] == 0x69) && (r_raw_data1[i+1] == 0x04) ) //4 Data Bytes
 								{
-									crc_original = r_raw_data1[i+9];
+									crc_original = r_raw_data1[i+7];
 									crc_original = (crc_original << 8);
-									crc_original = (crc_original + r_raw_data1[i+8]);
-
+									crc_original = (crc_original + r_raw_data1[i+6]);
 
 									//==============================================================//
 									//==================== VALIDATING THE CRC ======================//
@@ -1059,11 +1061,12 @@ void parse_decode(void)
 									data_[0] = r_addr;
 									data_[1] = r_ctrl;
 
-									////////////////////////////////////////
-									//'50 37 05 03 00 58 - - - 10 a2 0a 03 fa
-									////////////////////////////////////////
+									////////////////////////////////////////////
+									//'50 38  69 04  01  20 04 00 46 f0 03 fa '   //Calibration Data Request
+									//'50 38  69 04  00  20 04 05 87 0f 03 fa '   //In-bound Calibration-Set Command
+									////////////////////////////////////////////
 									//=== the read buffer contains only data from the transaction byte to the SF byte ===//
-									//================== Data contains a cumulative of 51 raw Bytes ================//
+									//================== Data contains a cumulative of 4 raw Bytes ================//
 									for(uint8_t ii = 0, j = 2; ii < 6; ii++, j++)  //4 + Trans No. + Data Len
 									{
 										data_[j] = r_raw_data1[ii];
@@ -1072,14 +1075,13 @@ void parse_decode(void)
 
 									crc_check = crc_16(data_, 8);
 
-
 									if(crc_check == crc_original)
 									{
 										if(data_[4] == 0x00)                       //Controller commands to set new Calibration Parameters
 										{
 											for (uint8_t j = 0; j < 3; j++)
 											{
-												set_calib1[j] = r_raw_data1[i+2+j];
+												set_calib1[j] = bcd_to_int(r_raw_data1[i+3+j]);
 											}
 
 											resp = DATA_SET_CALIBRATION_PARAM;
@@ -1581,7 +1583,7 @@ void parse_decode2(void)
 								}
 
 								//###########################################################################//
-								//'50 37 66 01 01 a2 0a 03 fa
+								//'50 37 66 01 01 ee 37 03 fa
 								//===========================================================================//
 								//============================ OTP SESSION CLEAR ============================//
 								//===========================================================================//
@@ -1594,7 +1596,7 @@ void parse_decode2(void)
 
 									//==============================================================//
 									//==================== VALIDATING THE CRC ======================//
-									//'50 35 66 01 01 1f 8f 03 fa '
+									//'50 37 66 01 01 d2 83 03 fa'
 									data_[0] = r_addr2;
 									data_[1] = r_ctrl2;
 
@@ -1626,7 +1628,7 @@ void parse_decode2(void)
 								}
 
 								//###########################################################################//
-								//'50 37 67 01 01 a2 0a 03 fa
+								//'50 37 67 01 01 bf f7 03 fa
 								//===========================================================================//
 								//============================ CONFIG CHANGE QUERY ==========================//
 								//===========================================================================//
@@ -1639,7 +1641,7 @@ void parse_decode2(void)
 
 									//==============================================================//
 									//==================== VALIDATING THE CRC ======================//
-									//'50 35 67 01 01 1f 8f 03 fa '
+									//50 37 67 01 01 bf f7 03 fa'
 									data_[0] = r_addr2;
 									data_[1] = r_ctrl2;
 
@@ -1662,7 +1664,7 @@ void parse_decode2(void)
 									}
 									else
 									{
-										resp2 = CRC_ERROR;
+										resp = CRC_ERROR;
 									}
 									//=================== DONE, VALIDATING THE CRC =================//
 									//==============================================================//
@@ -1678,18 +1680,18 @@ void parse_decode2(void)
 								//
 								///////////////////////////////////////////////////////////////////////////////
 								///////////////////////////////////////////////////////////////////////////////
-								//'50 37 68 04 37 42 73 75 a2 0a 03 fa
+								//'50 37  68 05  12 34 56 78 90  a2 0a 03 fa
 								//===========================================================================//
 								//============================   UPDATE DATE/TIME   =========================//
 								//===========================================================================//
-								else if( (r_raw_data2[i] == 0x68) && (r_raw_data2[i+1] == 0x04) ) //4 Data Bytes
+								else if( (r_raw_data2[i] == 0x68) && (r_raw_data2[i+1] == 0x05) )  //4 Data Bytes
 								{
 									uint8_t update_datetime[5];
-									uint32_t update_datetimeee;
+									char update_datetimeee[20];
 
-									crc_original = r_raw_data2[i+5];
+									crc_original = r_raw_data2[i+8];
 									crc_original = (crc_original << 8);
-									crc_original = (crc_original + r_raw_data2[i+4]);
+									crc_original = (crc_original + r_raw_data2[i+7]);
 
 
 									//==============================================================//
@@ -1699,32 +1701,27 @@ void parse_decode2(void)
 									data_[1] = r_ctrl2;
 
 									////////////////////////////////////////
-									//'50 37 05 03 00 58 10 - - - a2 0a 03 fa
+									//'50 37  68 05  12 34 56 78 90  a2 0a 03 fa
 									////////////////////////////////////////
-									//===the read buffer contains only data from the transaction byte to the SF byte ===//
-									//================== Data contains a cumulative of 4 raw Bytes ===============//
-									for(uint8_t ii = 0, j = 2; ii < 6; ii++, j++)  //4 + Trans No. + Data Len
+									//===the read buffer contains only from the transaction byte to the SF byte ===//
+									//================== Data contains a cumulative of 5 raw Bytes ===============//
+									for(uint8_t ii = 0, j = 2; ii < 7; ii++, j++)  //5 + Trans No. + Data Len
 									{
 										data_[j] = r_raw_data2[ii];
 									}
 
 
-									crc_check = crc_16(data_, 8);
+									crc_check = crc_16(data_, 9);
 
 
 									if(crc_check == crc_original)
 									{
-										for (uint8_t j = 0; j < 4; j++)
+										for (uint8_t j = 0; j < 5; j++)
 										{
 											update_datetime[j] = r_raw_data2[i+2+j];
 										}
 
-										uint32_t update_datetimee = ( (update_datetime[0] * 1000000) + (update_datetime[1] * 10000) + (update_datetime[2] * 100) + (update_datetime[3] * 1));
-										sprintf(update_datetimeee, "0x%ld", update_datetimee);
-
-										// char num[]="0x3076";
-										long n = strtol(update_datetimeee, NULL, 16);
-										update_date_time = packed_bcd_to_decimal(n);
+										update_date_time = bcdArray_to_int(update_datetime, 5);
 
 										///////////////////////////////////////////////////////////////////
 										///////////////////  ACTUATE THE CHANGE... ////////////////////////
@@ -1738,8 +1735,69 @@ void parse_decode2(void)
 
 										///////////////////////////////////////////////////////////////////
 
-
 										resp2 = DATA_DATE_TIME_UPDATE;
+										ack_send2 = true;
+									}
+									else
+									{
+										resp2 = CRC_ERROR;
+									}
+									//=================== DONE, VALIDATING THE CRC =================//
+									//==============================================================//
+
+									break;
+								}
+
+								//##############################################################################//
+								//'50 38  69 04  01  20 04 00 46 f0 03 fa '   //Calibration Data Request
+								//'50 38  69 04  00  20 04 05 87 0f 03 fa '   //In-bound Calibration-Set Command
+								//==============================================================================//
+								//=====================   SET/REQUEST CALIBRATION DETAILS   ====================//
+								//==============================================================================//
+								else if( (r_raw_data2[i] == 0x69) && (r_raw_data2[i+1] == 0x04) ) //4 Data Bytes
+								{
+									crc_original = r_raw_data2[i+7];
+									crc_original = (crc_original << 8);
+									crc_original = (crc_original + r_raw_data2[i+6]);
+
+									//==============================================================//
+									//==================== VALIDATING THE CRC ======================//
+
+									data_[0] = r_addr2;
+									data_[1] = r_ctrl2;
+
+									////////////////////////////////////////////
+									//'50 38  69 04  01  20 04 00 46 f0 03 fa '   //Calibration Data Request
+									//'50 38  69 04  00  20 04 05 87 0f 03 fa '   //In-bound Calibration-Set Command
+									////////////////////////////////////////////
+									//=== the read buffer contains only data from the transaction byte to the SF byte ===//
+									//================== Data contains a cumulative of 4 raw Bytes ================//
+									for(uint8_t ii = 0, j = 2; ii < 6; ii++, j++)  //4 + Trans No. + Data Len
+									{
+										data_[j] = r_raw_data2[ii];
+									}
+
+
+									crc_check = crc_16(data_, 8);
+
+									if(crc_check == crc_original)
+									{
+										if(data_[4] == 0x00)                       //Controller commands to set new Calibration Parameters
+										{
+											for (uint8_t j = 0; j < 3; j++)
+											{
+												set_calib2[j] = bcd_to_int(r_raw_data2[i+3+j]);
+											}
+
+											resp2 = DATA_SET_CALIBRATION_PARAM;
+										}
+										else if(data_[4] == 0x01)  				   //Controller requests Calibration Info
+										{
+											command_2 = REQUEST_CALIBRATION_PARAM;
+
+											resp2 = DATA_REQUEST_CALIBRATION_PARAM;
+										}
+
 										ack_send2 = true;
 									}
 									else
@@ -1895,10 +1953,10 @@ void process_response1(response_enum response)
 
 									status_change_pump1 = 0;
 								}
-								///////////////////////////////////////  DC2  ///////////////////////////////////////
-								//=================================================================================//
-								//==========  This transaction is sent by the pump at change of a value  ==========//
-								//=================================================================================//
+								/////////////////////////////////////////// DC2  ///////////////////////////////////////////
+								//========================================================================================//
+								//==========  This transaction is sent by the pump at change of filling values  ==========//
+								//========================================================================================//
 								if(pump_status_1 == STATUS_FILLING)
 								{
 									static float old_value = 0;
@@ -1940,9 +1998,6 @@ void process_response1(response_enum response)
 							else if( (command_ == GETSTATUS) || (command_ == REQUEST_FILLING_INFO)
 									|| (command_ == RETURN_PUMP_PARAM) || (command_ == RETURN_PUMP_IDENTITY)  )
 							{
-//								t_exec2 = DWT->CYCCNT;
-//								t_exec3 = t_exec2 - t_exec1;
-
 								_process_response1(DATA_COMMAND);
 
 								t_exec2 = DWT->CYCCNT;
@@ -1972,6 +2027,7 @@ void process_response1(response_enum response)
 								go_write1();
 							}
 							break;
+
 			case r_ACK:   //C0H -> CFH
 
 //							ctrl = 0xC0 | r_TX;	//reply with the previous msg tx
@@ -2014,13 +2070,6 @@ void process_response1(response_enum response)
 							break;
 		}
 
-//		if (response != r_NACK)
-//		{
-//			DART_BUFF1[1] = ctrl;
-//			DART_BUFF1[2] = SF;
-//
-//			array_len = 3;
-//		}
 	}
 	else
 	{
@@ -2167,9 +2216,30 @@ void process_response2(response_enum response)
 							break;
 
 			case r_NACK:   //50H -> 5FH
-							ctrl2 = 0x50 | TX2;
-							_process_response2(DATA_COMMAND);
+//							ctrl2 = 0x50 | TX2;
+//							_process_response2(DATA_COMMAND);
+//							go_write2();
+
+							if( (command_2 == GETSTATUS) || (command_2 == REQUEST_FILLING_INFO)
+									|| (command_2 == RETURN_PUMP_PARAM) || (command_2 == RETURN_PUMP_IDENTITY)  )
+							{
+								_process_response2(DATA_COMMAND);
+							}
+							else if(command_2 == REQUEST_VOL_TOTAL_COUNT)
+							{
+								_process_response2(DATA_REQUEST_VOL_TOTAL_COUNT);
+							}
+							else if(command_2 == REQUEST_CONFIG_CHANGE_INFO)
+							{
+								_process_response2(DATA_REQUEST_CONFIG_CHANGE_INFO);
+							}
+							else if(command_2 == DATA_REQUEST_CALIBRATION_PARAM)
+							{
+								_process_response2(DATA_REQUEST_CALIBRATION_PARAM);
+							}
+
 							go_write2();
+
 							break;
 
 			case r_ACKPOLL:    //E0H -> EFH
@@ -3014,7 +3084,7 @@ void _process_response1(response_enum response)
 			}
 
 			retrieve_configChange_trackNum_fram(side_a);
-			uint8_t configCheck = configChange_notify_build(track_num1);
+			uint8_t configCheck = configChange_notify_build1(track_num1);
 			save_configChange_trackNum_fram(side_a);
 
 			if(configCheck == 2)
@@ -3116,12 +3186,11 @@ void _process_response1(response_enum response)
 			//
 			//YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
 
-			//'50 38  69 04  01  20 04 00 ab 3e 03 fa '   //Calibration Data Request
+			//'50 38  69 04  01  20 04 00 46 f0 03 fa '   //Calibration Data Request
 
-			//'50 38  69 04  00  20 04 05 ab 3e 03 fa '   //In-bound Calibration Set Command
+			//'50 38  69 04  00  20 04 05 47 0c 03 fa '   //In-bound Calibration-Set Command
 
 			//####################################################################################################################################################################
-
 
 
 			//=============================================================================//
@@ -3201,8 +3270,8 @@ void _process_response1(response_enum response)
 		if (settings_stream1[0].mode == AUTO_MODE)
 		{
 			vol_real1 = set_calib1[0];
-			vol_calibrated1 = ((set_calib1[1] + set_calib1[0]) * 0.1);
-			vol_effective1 = ((set_calib1[2] + set_calib1[0]) * 0.1);
+			vol_calibrated1 = ((set_calib1[1] * 0.1) + set_calib1[0]);
+			vol_effective1 = ((set_calib1[2] * 0.1) + set_calib1[0]);
 
 			save_ctSettings_fram(side_a);
 
@@ -3905,7 +3974,147 @@ void _process_response2(response_enum response)
 			}
 		}
 	}
-	else if(response == DATA_DATE_TIME_UPDATE)   //This transaction is sent by the pump if the status is changed or if the pump receives the command 'RETURN STATUS’.
+
+	else if(response == DATA_REQUEST_CONFIG_CHANGE_INFO)
+	{
+		if(ack_send2 == true)
+		{
+			//==> send ack
+			send_acknowledgement2(ACK);
+			ack_send2 = false;
+		}
+		else
+		{
+
+			//TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+			//  _________________________________________________________________________________________________________________________________________________________________
+			// | NOZ-NUM | TX-NUM | TX-CODE | TX-LEN | OTP-SEED [2 Bytes] | TIMESTAMP [5 Bytes] | CONFIG-1 PARTICULAR [1 Byte] | OLD-VALUE 1 [3 Bytes] | NEW-VALUE 1 [3 Bytes]|
+			// |_________|________|_________|________|____________________|_____________________|______________________________|_______________________|______________________|__
+			// ________________________________________________________________________________________________________
+			//   |CONFIG-2 PARTICULAR [1 Byte] | OLD-VALUE 2 [3 Bytes] | NEW-VALUE 2 [3 Bytes] | CRC1 |CRC2 | ETX | SF |
+			// __|_____________________________|_______________________|_______________________|______|_____|_____|____|
+			//
+			//YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+
+			//'50 38  67 15  12 34  12 34 56 78 90   00 00 18 03 67 00 00   00 00 00 59 57 83 27   ab 03 fa '
+
+			//####################################################################################################################################################################
+
+
+
+			//=============================================================================//
+			//       	 This transaction is sent by the pump at a Request of              //
+			//        				 "REQUEST CONFIG CHANGE INFO"                          //
+			//=============================================================================//
+
+			uint16_t otp_seed;
+			uint32_t time_stamp;
+
+			unsigned char bcd_[6] = {0};  // Array to hold the BCD result
+
+			uint16_t crc;
+
+
+			retrieve_configFlag_fram(side_b);
+
+			//=================================================================//
+			// Checks for whether Config Mode has even been accessed @all
+			//=================================================================//
+			if(configMode2 == CONFIGUNMODIFIED)
+			{
+				send_acknowledgement2(EOT);
+				return;
+			}
+
+
+			retrieve_config_otpSeed_time_fram(side_b);
+			retrieve_settings_original_fram(side_b);
+
+			otp_seed = configChange[1].otp_seed;
+			time_stamp = configChange[1].time_stamp;
+
+			ctrl2 |= 0x30;
+			trans = 0x67;
+
+			memset(DART_BUFF2, 0, sizeof(DART_BUFF2));
+
+			DART_BUFF2[0] = addr2;
+			DART_BUFF2[1] = ctrl2;
+			DART_BUFF2[2] = trans;
+
+			//'50 38  67 15   12 34  12 34 56 78 90   00 00 18 03 67 00 00   00 00 00 59 57 83 27   ab 03 fa '
+
+			int_to_bcd(otp_seed, bcd_);
+
+			for (uint8_t ii = 0, j = 1; ii < 2; ii++, j--)   //j=>1 : MSB in it, LSB is in j=>0
+			{
+				DART_BUFF2[ii + 4] = bcd_[j];
+			}
+
+			memset(bcd_, 0, sizeof(bcd_));
+
+			//'50 38  67 15   12 34  12 34 56 78 90   00 00 18 03 67 00 00   00 00 00 59 57 83 27   ab 03 fa '
+
+			int_to_bcd(time_stamp, bcd_);
+
+			for (uint8_t ii = 0, j = 4; ii < 5; ii++, j--)   //j=>4 : MSB in it, LSB is in j=>0
+			{
+				DART_BUFF2[ii + 6] = bcd_[j];
+			}
+
+			retrieve_configChange_trackNum_fram(side_b);
+			uint8_t configCheck = configChange_notify_build2(track_num2);
+			save_configChange_trackNum_fram(side_b);
+
+			if(configCheck == 2)
+			{
+				DART_BUFF2[3] = 21;  //Data-Length;
+
+				crc = crc_16(DART_BUFF2, 25);
+
+				DART_BUFF2[25] = crc & 0x00FF;
+				DART_BUFF2[26] = crc >> 8;
+				DART_BUFF2[27] = ETX;
+				DART_BUFF2[28] = SF;
+
+				array_len2 = 29;
+			}
+			else if (configCheck == 1)
+			{
+				DART_BUFF2[3] = 14;  //Data-Length;
+
+				crc = crc_16(DART_BUFF2, (25 - 7));
+
+				DART_BUFF2[25 - 7] = crc & 0x00FF;
+				DART_BUFF2[26 - 7] = crc >> 8;
+				DART_BUFF2[27 - 7] = ETX;
+				DART_BUFF2[28 - 7] = SF;
+
+				array_len2 = (29 - 7);
+			}
+
+			//================================================================================//
+			// If Config Mode is been accessed, but :
+			// (i)  No changes effected,
+			// (ii) Or all the possible changes info have been effectively passed on to GO
+			//===============================================================================//
+			else if (configCheck == 0)
+			{
+				send_acknowledgement2(EOT);
+
+				clear_configFlag_fram(side_b);
+				clear_configChange_trackNum_fram(side_b);
+			}
+
+
+
+			//'50 38 67 0E   12 34 12 34 56 78    00 00 18 03 67 00 00   00 00 00 59 57 83 27   ab 03 fa '
+
+			resp2 = NOREPLY;
+
+		}
+	}
+	else if(response == DATA_DATE_TIME_UPDATE)
 	{
 		send_acknowledgement2(ACK);
 		ack_send2 = false;
@@ -3914,11 +4123,131 @@ void _process_response2(response_enum response)
 		///////////////////  ACTUATE THE CHANGE... ////////////////////////
 
 
-//			if( (priceChange_check > 0.1) || (priceChange_check < -0.1) )
-//			{
-//				   ttostr(serverTime, 1);
-//				   ttostr(serverTime, 2);
-//			}
+		///////////////////////////////////////////////////////////////////
+	}
+	else if(response == DATA_CLEAR_OTP_SESSION)
+	{
+		send_acknowledgement2(ACK);
+		ack_send2 = false;
+
+		///////////////////////////////////////////////////////////////////
+		///////////////////  ACTUATE THE CHANGE... ////////////////////////
+
+		clear_otpSeed_session_fram(side_b);
+
+		///////////////////////////////////////////////////////////////////
+	}
+	else if(response == DATA_REQUEST_CALIBRATION_PARAM)
+	{
+		if(ack_send == true)
+		{
+			//==> send ack
+			send_acknowledgement2(ACK);
+			ack_send2 = false;
+		}
+		else
+		{
+
+			//TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+			//  _________________________________________________________________________________________________________________________________________________________________
+			// | NOZ-NUM | TX-NUM | TX-CODE | TX-LEN | DIRECTION [1 Byte] | ACTUAL CALIBRATION [1 Byte] | APPARENT CALIBRATION [1 Byte] | NEW APPARENT-CALIBRATION [1 Byte] |
+			// |         |        |         |        | (ie. SET/REQUEST)  |                             |            (1 DP)             |      			(1 DP)              |
+			// |_________|________|_________|________|____________________|_____________________________|_______________________________|___________________________________|____
+			// _________________________
+			//  | CRC1 |CRC2 | ETX | SF |
+			// _|______|_____|_____|____|
+			//
+			//YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+
+			//'50 38  69 04  01  20 04 00 46 f0 03 fa '   //Calibration Data Request
+
+			//'50 38  69 04  00  20 04 05 47 0c 03 fa '   //In-bound Calibration-Set Command
+
+			//####################################################################################################################################################################
+
+
+			//=============================================================================//
+			//       	 This transaction is sent by the pump at a Request of              //
+			//        				 "REQUEST CALIBRATION INFO"                            //
+			//=============================================================================//
+
+			unsigned char bcd_[6] = {0};  // Array to hold the BCD result
+
+			uint16_t crc;
+
+
+			retrieve_ctSettings_fram(side_b);
+
+			ctrl2 |= 0x30;
+			trans = 0x69;
+			lng	  = 0x04;
+
+			memset(DART_BUFF2, 0, sizeof(DART_BUFF2));
+
+			DART_BUFF2[0] = addr2;
+			DART_BUFF2[1] = ctrl2;
+			DART_BUFF2[2] = trans;
+			DART_BUFF2[3] = lng;
+			DART_BUFF2[4] = 0x01;       //Signals sending out Calib Details to the Controller
+
+			int_to_bcd(vol_real2, bcd_);
+
+			for (uint8_t ii = 0, j = 1; ii < 1; ii++, j--)
+			{
+				DART_BUFF2[ii + 5] = bcd_[j];
+			}
+
+			memset(bcd_, 0, sizeof(bcd_));
+
+			int_to_bcd(vol_calibrated2, bcd_);
+
+			for (uint8_t ii = 0, j = 4; ii < 5; ii++, j--)
+			{
+				DART_BUFF2[ii + 6] = bcd_[j];
+			}
+
+			memset(bcd_, 0, sizeof(bcd_));
+
+			int_to_bcd(vol_effective2, bcd_);
+
+			for (uint8_t ii = 0, j = 4; ii < 5; ii++, j--)
+			{
+				DART_BUFF2[ii + 7] = bcd_[j];
+			}
+
+
+			crc = crc_16(DART_BUFF2, 8);
+
+			DART_BUFF2[8] = crc & 0x00FF;
+			DART_BUFF2[9] = crc >> 8;
+			DART_BUFF2[10] = ETX;
+			DART_BUFF2[11] = SF;
+
+			array_len2 = 12;
+
+			resp2 = NOREPLY;
+		}
+	}
+	else if(response == DATA_SET_CALIBRATION_PARAM)
+	{
+		send_acknowledgement2(ACK);
+		ack_send2 = false;
+
+		///////////////////////////////////////////////////////////////////
+		///////////////////  ACTUATE THE CHANGE... ////////////////////////
+
+
+		if (settings_stream1[1].mode == AUTO_MODE)
+		{
+			vol_real2 = set_calib2[0];
+			vol_calibrated2 = ((set_calib2[1] * 0.1) + set_calib2[0]);
+			vol_effective2 = ((set_calib2[2] * 0.1) + set_calib2[0]);
+
+			save_ctSettings_fram(side_b);
+
+			online_calibFlag2 = 1;
+			save_online_calibFlag_fram(side_b);
+		}
 
 		///////////////////////////////////////////////////////////////////
 	}
@@ -4672,6 +5001,26 @@ void int_to_bcd(int num, unsigned char *bcd)
     }
 }
 
+// Function to convert BCD to integer
+uint8_t bcd_to_int(unsigned char bcd)
+{
+    // Extract the tens and ones place digits
+	uint8_t tens = (bcd >> 4) & 0xF;  // Get the upper 4 bits (tens place)
+	uint8_t ones = bcd & 0xF;         // Get the lower 4 bits (ones place)
+
+    // Combine the digits into an integer
+    return (tens * 10 + ones);
+}
+
+// Function to convert multiple BCD bytes to a larger integer
+uint32_t bcdArray_to_int(unsigned char bcd[], uint8_t length)
+{
+	uint32_t result = 0;
+    for (uint8_t i = 0; i < length; i++) {
+        result = result * 100 + bcd_to_int(bcd[i]);  // Shift and add the next BCD byte
+    }
+    return result;
+}
 
 //parse_message : separate the received message into its different constituent
 //void parse_message0(unsigned char* arr, int size)
@@ -4717,7 +5066,7 @@ uint32_t packed_bcd_to_decimal(uint32_t bcd)
      uint32_t decimal = 0;
      uint32_t multiplier = 1;
 
-    for (int i = 0; i < 8; ++i)
+    for (uint8_t i = 0; i < 8; ++i)
     {
         // Extract the rightmost BCD digit (4 bits)
         uint8_t digit = bcd & 0xF;
@@ -5607,7 +5956,7 @@ void send_fillingInfo2(uint8_t buff_index)
 }
 
 
-uint8_t configChange_notify_build(uint8_t track_num1_)
+uint8_t configChange_notify_build1(uint8_t track_num)
 {
 		//TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
 		//  _________________________________________________________________________________________________________________________________________________________________
@@ -5625,7 +5974,7 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 
 	unsigned char bcd_[6] = {0};  // Array to hold the BCD result
 
-	switch(track_num1_)
+	switch(track_num)
 	{
 			case MO1 :  // Mode => Manual/Auto                      					// index ==> 0x00
 						track_num1++;
@@ -7031,6 +7380,1416 @@ uint8_t configChange_notify_build(uint8_t track_num1_)
 //'50 38 67 14 12 34 12 34 56 78    00 00 18 03 67 00 00   00 00 00 59 57 83 27   ab 03 fa '
 
 //####################################################################################################################################################################
+
+
+uint8_t configChange_notify_build2(uint8_t track_num)
+{
+		//TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+		//  _________________________________________________________________________________________________________________________________________________________________
+		// | NOZ-NUM | TX-NUM | TX-CODE | TX-LEN | OTP-SEED [2 Bytes] | TIMESTAMP [5 Bytes] | CONFIG-1 PARTICULAR [1 Byte] | OLD-VALUE 1 [3 Bytes] | NEW-VALUE 1 [3 Bytes]|
+		// |_________|________|_________|________|____________________|_____________________|______________________________|_______________________|______________________|__
+		// ________________________________________________________________________________________________________
+		//   |CONFIG-2 PARTICULAR [1 Byte] | OLD-VALUE 2 [3 Bytes] | NEW-VALUE 2 [3 Bytes] | CRC1 |CRC2 | ETX | SF |
+		// __|_____________________________|_______________________|_______________________|______|_____|_____|____|
+		//
+		//YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+
+		//'50 38   67 15   12 34  12 34 56 78 90   00  00 18 03  67 00 00   00  00 00 59  57 83 27   ab 03 fa '
+
+		//####################################################################################################################################################################
+
+	unsigned char bcd_[6] = {0};  // Array to hold the BCD result
+
+	switch(track_num)
+	{
+			case MO1 :  // Mode => Manual/Auto                      					// index ==> 0x00
+						track_num2++;
+						if(settings_original_stream1[1].mode != settings_stream1[1].mode)
+						{
+							DART_BUFF2[11] = MO1;
+
+							memset(bcd_, 0, sizeof(bcd_));
+
+							int_to_bcd(settings_original_stream1[1].mode, bcd_);
+
+							for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+							{
+								DART_BUFF2[ii + 12] = bcd_[j];
+							}
+
+							memset(bcd_, 0, sizeof(bcd_));
+
+							int_to_bcd(settings_stream1[1].mode, bcd_);
+
+							for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+							{
+								DART_BUFF2[ii + 15] = bcd_[j];
+							}
+
+							valid_pair2++;
+						}
+
+			case NA1 :  // Nozzle Address												// index ==> 0x01
+						track_num2++;
+						if(settings_original_stream1[1].noz_addr != settings_stream1[1].noz_addr)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = NA1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].noz_addr, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].noz_addr, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = NA1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].noz_addr, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].noz_addr, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 22] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+			case NO1 :	// Nozzle Override												// index ==> 0x02
+						track_num2++;
+						if(settings_original_stream1[1].noz_override != settings_stream1[1].noz_override)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = NO1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].noz_override, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].noz_override, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = NO1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].noz_override, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].noz_override, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 22] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+			case NC1 :  // Nozzle Count													// index ==> 0x03
+						track_num2++;
+						if(settings_original_stream2[1].noz_count != settings_stream2[1].noz_count)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = NC1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[1].noz_count, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[1].noz_count, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = NC1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[1].noz_count, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[1].noz_count, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 22] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+			case UN1 :  // Unit Price													// index ==> 0x04
+						track_num2++;
+						if(settings_original_stream1[1].dp_unitprice != settings_stream1[1].dp_unitprice)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = UN1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].dp_unitprice, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].dp_unitprice, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = UN1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].dp_unitprice, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].dp_unitprice, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 22] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+			case TO1 :  // Timeout => No-Flow											// index ==> 0x06
+						track_num2++;
+						if(settings_original_stream1[1].timeOut_noFlow != settings_stream1[1].timeOut_noFlow)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = TO1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].timeOut_noFlow, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].timeOut_noFlow, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = TO1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].timeOut_noFlow, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].timeOut_noFlow, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 22] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+			case ML1 :  // Maximum Litre												// index ==> 0x07
+						track_num2++;
+						if(settings_original_stream1[1].max_amt_ != settings_stream1[1].max_amt_)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = ML1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].max_amt_, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].max_amt_, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = ML1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].max_amt_, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].max_amt_, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 22] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+			case PW1 :  // Password-1 Change											// index ==> 0x08
+						track_num2++;
+						if(strcmp(settings_original_stream3[1].passwd1, settings_stream3[1].passwd1) != 0)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = PW1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream3[1].passwd1, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream3[1].passwd1, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = PW1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream3[1].passwd1, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream3[1].passwd1, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 22] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+			case PW2 :  // Password-2 Change											// index ==> 0x09
+						track_num2++;
+						if(strcmp(settings_original_stream3[1].passwd2, settings_stream3[1].passwd2) != 0)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = PW2;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream3[1].passwd2, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream3[1].passwd2, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = PW2;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream3[1].passwd2, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream3[1].passwd2, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 22] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+			case PW3 :  // Password-3 Change											// index ==> 0x0A
+						track_num2++;
+						if(strcmp(settings_original_stream3[1].passwd3, settings_stream3[1].passwd3) != 0)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = PW3;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream3[1].passwd3, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream3[1].passwd3, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = PW3;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream3[1].passwd3, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream3[1].passwd3, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 22] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+			case CV1 :  // Calibration Value-1 => Apparent Pulser-index					// index ==> 0x0B
+						track_num2++;
+						if(settings_original_stream1[1].pi_real != settings_stream1[1].pi_real)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = NO1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].pi_real, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].pi_real, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = NO1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].pi_real, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].pi_real, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 22] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+			case CV2 :  // Calibration Value-2 => Apparent Pulser-index					// index ==> 0x0C
+						track_num2++;
+						if(settings_original_stream1[1].pi_cal != settings_stream1[1].pi_cal)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = CV2;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].pi_cal, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].pi_cal, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = CV2;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].pi_cal, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].pi_cal, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 22] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+			case CS1 :  // Calibration Can-size											// index ==> 0x0D
+						track_num2++;
+						if(settings_original_stream2[1].calibration_measureCan != settings_stream2[1].calibration_measureCan)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = CS1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[1].calibration_measureCan, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[1].calibration_measureCan, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = CS1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[1].calibration_measureCan, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[1].calibration_measureCan, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 22] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+			case DP1 :  // Display Decimal Point-1	=> 	Amount						// index ==> 0x0E
+						track_num2++;
+						if(settings_original_stream1[1].dp_amount != settings_stream1[1].dp_amount)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = DP1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].dp_amount, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].dp_amount, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = DP1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].dp_amount, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].dp_amount, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 22] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+			case DP2 :  // Display Decimal Point-2	=> 	Volume						// index ==> 0x0F
+						track_num2++;if(settings_original_stream1[1].dp_vol != settings_stream1[1].dp_vol)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = DP2;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].dp_vol, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].dp_vol, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = DP2;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].dp_vol, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].dp_vol, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 22] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+			case DP3 :  // Display Decimal Point-3	=> 	Unit Price						// index ==> 0x10
+						track_num2++;
+						if(settings_original_stream1[1].dp_unitprice != settings_stream1[1].dp_unitprice)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = DP3;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].dp_unitprice, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].dp_unitprice, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = DP3;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].dp_unitprice, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].dp_unitprice, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 22] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+			case DS1 :   // Display Format => L/P or P/L									// index ==> 0x11
+						track_num2++;
+						if(settings_original_stream1[1].display_format != settings_stream1[1].display_format)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = DS1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].display_format, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].display_format, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = DS1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].display_format, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].display_format, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 22] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+			case DT1 :    // Volume Display Threshold										// index ==> 0x12
+						track_num2++;
+						if(settings_original_stream2[1].startUp_suppressVol != settings_stream2[1].startUp_suppressVol)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = DT1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[1].startUp_suppressVol, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[1].startUp_suppressVol, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = DT1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[1].startUp_suppressVol, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[1].startUp_suppressVol, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 22] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+			case SL1 :	// Shift Login Type												// index ==> 0x13
+						track_num2++;
+						if(settings_original_stream2[1].shift_login_type != settings_stream2[1].shift_login_type)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = SL1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[1].shift_login_type, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[1].shift_login_type, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = SL1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[1].shift_login_type, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[1].shift_login_type, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 22] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+			case SC1 :	// Shift-Count per day											// index ==> 0x14
+						track_num2++;
+						if(settings_original_stream2[1].number_of_shifts != settings_stream2[1].number_of_shifts)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = SC1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[1].number_of_shifts, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[1].number_of_shifts, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = SC1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[1].number_of_shifts, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[1].number_of_shifts, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 22] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+			case TN1 :	// Tone															// index ==> 0x15
+						track_num2++;
+						if(settings_original_stream2[1].keypress_tone != settings_stream2[1].keypress_tone)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = TN1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[1].keypress_tone, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[1].keypress_tone, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = TN1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[1].keypress_tone, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[1].keypress_tone, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 22] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+			case PT1 :	// Pulser Type => Quadrature/Non-Quadrature						// index ==> 0x16
+						track_num2++;
+						if(settings_original_stream2[1].pulser_type_ != settings_stream2[1].pulser_type_)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = PT1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[1].pulser_type_, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[1].pulser_type_, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = PT1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[1].pulser_type_, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[1].pulser_type_, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 22] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+			case PO1 :	// Pulser Offset Value											// index ==> 0x17
+						track_num2++;if(settings_original_stream2[1].pulser_offset != settings_stream2[1].pulser_offset)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = PO1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].noz_override, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].noz_override, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = PO1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream1[1].noz_override, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream1[1].noz_override, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 22] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+			case SF1 :	// Start Slow-Flow Width										// index ==> 0x18
+						track_num2++;
+						if(settings_original_stream2[1].valve_salesStart != settings_stream2[1].valve_salesStart)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = SF1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[1].valve_salesStart, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[1].valve_salesStart, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = SF1;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[1].valve_salesStart, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[1].valve_salesStart, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+			case SF2 :  		// Closing Slow-Flow Width                       				// index ==> 0x19  ==>0d25
+						track_num2++;
+						if(settings_original_stream2[1].valve_salesEnd != settings_stream2[1].valve_salesEnd)
+						{
+							if(valid_pair2 == 0)
+							{
+								DART_BUFF2[11] = SF2;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[1].valve_salesEnd, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 12] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[1].valve_salesEnd, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 15] = bcd_[j];
+								}
+
+								valid_pair2++;
+							}
+							else
+							{
+								DART_BUFF2[18] = SF2;
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_original_stream2[1].valve_salesEnd, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 19] = bcd_[j];
+								}
+
+								memset(bcd_, 0, sizeof(bcd_));
+
+								int_to_bcd(settings_stream2[1].valve_salesEnd, bcd_);
+
+								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
+								{
+									DART_BUFF2[ii + 22] = bcd_[j];
+								}
+
+								valid_pair2 = 0;
+
+								return 2;
+							}
+						}
+
+						//=====================================================================//
+						// If only one modification is made on the config
+						// valid_pair2 => 1  : @ this very stage
+						//=====================================================================//
+						if(valid_pair2 == 1)
+						{
+							return 1;
+						}
+						//=====================================================================//
+						// If no modification is made on the config
+						// valid_pair2 => 0  : @ this very stage
+						//=====================================================================//
+						else if(valid_pair2 == 0)
+						{
+							return 0;
+						}
+
+		}
+}
 
 
 //void parse_decode2(void)

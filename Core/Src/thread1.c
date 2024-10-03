@@ -1815,6 +1815,11 @@ tmmm:
 //		 save_calibrationFlag(side_b);
 		 save_calibrationFlag_fram(side_b);
 
+//		 calib_pulser1 = 0;
+//		 calib_pulser2 = 0;
+//		 retrieve_calibrationPulser_fram(side_a);
+//		 retrieve_calibrationPulser_fram(side_b);
+
 	//	 save_volumeTotaliser(side_a); //side_a
 	//	 save_volumeTotaliser(side_b);
 	//	 flash_infoA.current_loc = 0;
@@ -2213,6 +2218,8 @@ skip_test:
 //    settings_stream1[0].noz_addr = 0x01;
 //    settings_stream1[1].noz_addr = 0x02;
 
+    settings_stream2[0].keypress_tone = Yes;
+
 
     // ===========================================================================
 
@@ -2328,8 +2335,8 @@ skip_test:
 //    retrieve_calibrationData(side_a);
 //    retrieve_calibrationData(side_b);
 
-    retrieve_calibrationData_fram(side_a);
-    retrieve_calibrationData_fram(side_b);
+//    retrieve_calibrationData_fram(side_a);
+//    retrieve_calibrationData_fram(side_b);
 
 //    retrieve_configFlag(side_a);
 //    retrieve_configFlag(side_b);

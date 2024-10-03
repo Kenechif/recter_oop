@@ -313,6 +313,8 @@ extern uint8_t mamo_reached_flag1,
 			   hardwareError_flag1,
 			   hardwareErrorFlag_source1;
 
+uint8_t go_timeOut1;
+
 // state Handlers definition...
 eSystemState progState_Handler(void);
 eSystemState idleState_Handler(void);
