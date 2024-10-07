@@ -78,12 +78,12 @@ void keypad_ini2(void)
 /*
  *
  */
-int checkkey(void)
+uint8_t checkkey(void)
 {
 	 return(  (HAL_GPIO_ReadPin(com12k1_GPIO_Port, com12k1_Pin ) == 1)? 0:1  );   // return 1 if keypressed
 }
 
-int checkkey2(void)
+uint8_t checkkey2(void)
 {
 	 return(  (HAL_GPIO_ReadPin(com12k2_GPIO_Port, com12k2_Pin ) == 1)? 0:1  );   // return 1 if keypressed
 }
@@ -109,10 +109,10 @@ int scankey(void)
 	  if( checkkey() == 1) {
 		  keynumber = 1;
 
-		  if(settings_stream2[0].keypress_tone == Yes)
-		  {
-			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);_Delay(100);
-		  }
+//		  if(settings_stream2[0].keypress_tone == Yes)
+//		  {
+//			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);_Delay(100);
+//		  }
 
 		  goto keyfound;    //return i;
 	  }
@@ -295,7 +295,7 @@ uint8_t To_pattern(int Input)
  *  This routine writes to the KEYPAD LCD.
  *  * @param[in]  num  int contains the numeric value to be displayed on the KEYPAD LCD
  */
-int write_keypad_lcd(int fxn,char* num)
+uint8_t write_keypad_lcd(uint8_t fxn, char* num)
 {
 	extern uint8_t keyEntry_len;
 
@@ -545,9 +545,9 @@ int write_keypad_lcd(int fxn,char* num)
 
 	refresh:
 	// move the buf[] array into the shift register.
-	for(int i = 0; i < 7 ; i++)
+	for(uint8_t i = 0; i < 7 ; i++)
 	{
-		shift(buf[i],0);
+		shift(buf[i], 0);
 	}
 
 	// push "0" into the keyboards memory first.
@@ -563,7 +563,7 @@ int write_keypad_lcd(int fxn,char* num)
 	//push in "1"s past the keyboard registers memory of 24-1 places
 	HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
 
-	for(int i=0;i<22;i++)
+	for(uint8_t i = 0; i < 22; i++)
 	{
 		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
 		_Delay(1);
@@ -597,7 +597,7 @@ int write_keypad_lcd(int fxn,char* num)
 	   //flush registers with 1
 	HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
 
-	 for(int pmp = 0;pmp<25;pmp++)
+	 for(uint8_t pmp = 0; pmp < 25; pmp++)
 	 {
 			HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
 		 _Delay(1);
@@ -606,8 +606,8 @@ int write_keypad_lcd(int fxn,char* num)
 	 }
 	   //=======================================================================
 
-	 int keynumber = 0;
-	 int fill = 22;
+	 uint8_t keynumber = 0;
+	 uint8_t fill = 22;
 	   // push "0" into the keyboards memory first.
 
 	   	HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_RESET);
@@ -621,8 +621,16 @@ int write_keypad_lcd(int fxn,char* num)
 	   	   {
 	   	        keynumber = 1;
          #if delay_keypad == 1
+
+	   	       if(settings_stream2[0].keypress_tone == Yes)
+			   {
+				  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+			   }
+
 	   	       HAL_Delay(keypad_delay);
          #endif
+
+			    HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 	   	        return keynumber;
 	   	   }
 
@@ -631,20 +639,28 @@ int write_keypad_lcd(int fxn,char* num)
 
 	    HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
 
-	      for(int i=2;i<fill;i++)
+	    for(uint8_t i = 2; i < fill; i++)
 	   	{
 	   		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
 	   		//_Delay(1);
 	   		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
 	   		//_Delay(1);
 	   		if( checkkey() == 1)
-	   			{
-	   				keynumber = i;
-             #if delay_keypad == 1
-	   			 HAL_Delay(keypad_delay);
-             #endif
-	   				return keynumber;
-	   			}
+			{
+				keynumber = i;
+			 #if delay_keypad == 1
+
+				   if(settings_stream2[0].keypress_tone == Yes)
+				   {
+					  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+				   }
+
+				   HAL_Delay(keypad_delay);
+			 #endif
+
+				   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+				   return keynumber;
+			}
 	   	}
 
 	   	//pushout the remaining zero from the keyboard registers.
@@ -740,15 +756,15 @@ void shift(uint8_t data_byte,uint8_t lat)
  *  * @param[in]  num  int contains the numeric value to be displayed on the KEYPAD LCD
  *  * @param[out] int  outputs 0 for no keypressed or greater than 0 for the keyposition.
  */
-int keypad_lcd(int fxn,char* num)
+uint8_t keypad_lcd(uint8_t fxn, char* num)
 {
 
 //	if(pump_type != lafeng)
 //	if(pump_type != DN_LAFNG17K)
 	if( (settings_stream1[0].keypad__ != LAFNG17_K) && (settings_stream1[0].keypad__ != LAFNG18_K) )
 	{
-	  int rr =	write_keypad_lcd(fxn,num);
-	  return rr;
+		uint8_t rr =	write_keypad_lcd(fxn, num);
+	    return rr;
 	}
 
 
@@ -756,7 +772,7 @@ int keypad_lcd(int fxn,char* num)
 
 	if(fxn == 1) goto refresh;
 
-	int8_t keynumber = 0;
+	uint8_t keynumber = 0;
 	int8_t count = 0;
 	int8_t scan_code = 0;
 	int8_t inv = 0;
@@ -863,7 +879,7 @@ int keypad_lcd(int fxn,char* num)
     	disp_len_pad = 7;
     }
 
-	for(int i = 0; i < disp_len_pad; i++)  //7 bytes for bluesky 5 bytes for lafeng
+	for(uint8_t i = 0; i < disp_len_pad; i++)  //7 bytes for bluesky 5 bytes for lafeng
 	{
 		shift_(buf[i], 0);
 	}
@@ -873,19 +889,19 @@ int keypad_lcd(int fxn,char* num)
 
 	HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
 
-    int fill = 24;
+	uint8_t fill = 24;
 //if(pump_type == lafeng) fill = 16;
 //if(pump_type == DN_LAFNG17K)
 	if ( (settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) )
 		fill = 16;
 
-	for(int i = 1; i < fill; i++)
-		{
-			HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
-			//	_Delay(1);
-			HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
-			//	_Delay(1);
-		}
+	for(uint8_t i = 1; i < fill; i++)
+	{
+		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
+		//	_Delay(1);
+		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
+		//	_Delay(1);
+	}
 	//then latch the shifted data...
 	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_SET);  //latch pin high
     //	_Delay(1);
@@ -900,7 +916,7 @@ int keypad_lcd(int fxn,char* num)
 //==========================================================================
 
     HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
-    for(int i=0;i<5;i++)
+    for(uint8_t i = 0; i < 5; i++)
    	{
    		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
    		//_Delay(1);
@@ -921,11 +937,11 @@ int keypad_lcd(int fxn,char* num)
 
 	//check keypress..
    if( checkkey() == 1)
-	   {
-	        keynumber = 1;
-	        HAL_Delay(1);
-	        return keynumber;
-	   }
+   {
+		keynumber = 1;
+		HAL_Delay(1);
+		return keynumber;
+   }
 
    fill = 22;
 //   if(pump_type == lafeng) fill = 17;
@@ -935,18 +951,18 @@ int keypad_lcd(int fxn,char* num)
 
    HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
 
-   for(int i = 2; i < fill; i++)
+   for(uint8_t i = 2; i < fill; i++)
 	{
 		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
 		//_Delay(1);
 		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
 		//_Delay(1);
 		if( checkkey() == 1)
-			{
-				keynumber = i;
-				HAL_Delay(1);
-				return keynumber;
-			}
+		{
+			keynumber = i;
+			HAL_Delay(1);
+			return keynumber;
+		}
 	}
 
 	//pushout the remaining zero from the keyboard registers.
@@ -965,7 +981,7 @@ int keypad_lcd(int fxn,char* num)
  *  This routine writes to the KEYPAD LCD.
  *  * @param[in]  num  int contains the numeric value to be displayed on the KEYPAD LCD
  */
-int write_keypad_lcd2(int fxn,char* num)
+uint8_t write_keypad_lcd2(uint8_t fxn, char* num)
 {
 	extern uint8_t keyEntry2_len;
 	int8_t count2 = 0,
@@ -1097,9 +1113,9 @@ int write_keypad_lcd2(int fxn,char* num)
 
 	refresh:
 	// move the buf[] array into the shift register.
-	for(int i = 0; i < 7 ; i++)
+	for(uint8_t i = 0; i < 7 ; i++)
 	{
-		shift2(buf2[i],0);
+		shift2(buf2[i], 0);
 	}
 
 	// push "0" into the keyboards memory first.
@@ -1115,7 +1131,7 @@ int write_keypad_lcd2(int fxn,char* num)
 	//push in "1"s past the keyboard registers memory of 24-1 places
 	HAL_GPIO_WritePin(datak2_GPIO_Port, datak2_Pin, GPIO_PIN_SET);
 
-	for(int i=0;i<22;i++)
+	for(uint8_t i = 0; i < 22; i++)
 	{
 		HAL_GPIO_WritePin(clkk2_GPIO_Port, clkk2_Pin, GPIO_PIN_RESET);
 		_Delay2(1);
@@ -1149,7 +1165,7 @@ int write_keypad_lcd2(int fxn,char* num)
 	   //flush registers with 1
 	HAL_GPIO_WritePin(datak2_GPIO_Port, datak2_Pin, GPIO_PIN_SET);
 
-	 for(int pmp = 0;pmp<25;pmp++)
+	 for(uint8_t pmp = 0; pmp < 25; pmp++)
 	 {
 			HAL_GPIO_WritePin(clkk2_GPIO_Port, clkk2_Pin, GPIO_PIN_RESET);
 		 _Delay2(1);
@@ -1158,8 +1174,8 @@ int write_keypad_lcd2(int fxn,char* num)
 	 }
 	   //=======================================================================
 
-	 int keynumber = 0;
-	 int fill = 22;
+	 uint8_t keynumber = 0;
+	 uint8_t fill = 22;
 	   // push "0" into the keyboards memory first.
 
 	   	HAL_GPIO_WritePin(datak2_GPIO_Port, datak2_Pin, GPIO_PIN_RESET);
@@ -1173,9 +1189,17 @@ int write_keypad_lcd2(int fxn,char* num)
 	   	   {
 	   	        keynumber = 1;
          #if delay_keypad == 1
+
+	   	       if(settings_stream2[1].keypress_tone == Yes)
+			   {
+				  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+			   }
+
 	   	       HAL_Delay(keypad_delay);
          #endif
-	   	        return keynumber;
+
+	   	       HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+	   	       return keynumber;
 	   	   }
 
 	    //  fill = 22;
@@ -1183,21 +1207,29 @@ int write_keypad_lcd2(int fxn,char* num)
 
 	    HAL_GPIO_WritePin(datak2_GPIO_Port, datak2_Pin, GPIO_PIN_SET);
 
-	  for(int i = 2; i < fill; i++)
-	   	{
+	  for(uint8_t i = 2; i < fill; i++)
+	  {
 	   		HAL_GPIO_WritePin(clkk2_GPIO_Port, clkk2_Pin, GPIO_PIN_RESET);
 	   		//_Delay(1);
 	   		HAL_GPIO_WritePin(clkk2_GPIO_Port, clkk2_Pin, GPIO_PIN_SET);
 	   		//_Delay(1);
 	   		if( checkkey2() == 1)
-	   			{
+	   		{
 	   				keynumber = i;
              #if delay_keypad == 1
+
+	   			 if(settings_stream2[1].keypress_tone == Yes)
+				 {
+					  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+				 }
+
 	   			 HAL_Delay(keypad_delay);
              #endif
-	   				return keynumber;
-	   			}
-	   	}
+
+	   			 HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+	   			 return keynumber;
+	   		}
+	 }
 
 	   //pushout the remaining zero from the keyboard registers.
 	   //	HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_RESET);
@@ -1384,7 +1416,7 @@ void shift_2(uint8_t data_byte, uint8_t lat)
 	//Latch pin low
 	HAL_GPIO_WritePin(lthk2_GPIO_Port, lthk2_Pin, GPIO_PIN_RESET);
 
-	for (int i = 0; i < 8; i++)
+	for (uint8_t i = 0; i < 8; i++)
 	{
 		//clock pin low
 		HAL_GPIO_WritePin(clkk2_GPIO_Port, clkk2_Pin, GPIO_PIN_RESET);
@@ -1419,7 +1451,7 @@ void shift2(uint8_t data_byte,uint8_t lat)
 	//Latch pin low
 	HAL_GPIO_WritePin(lthk2_GPIO_Port, lthk2_Pin, GPIO_PIN_RESET);
 
-	for (int i = 0; i < 8; i++)
+	for (uint8_t i = 0; i < 8; i++)
 	{
 		//clock pin low
 		HAL_GPIO_WritePin(clkk2_GPIO_Port, clkk2_Pin, GPIO_PIN_RESET);
@@ -1461,15 +1493,15 @@ void shift2(uint8_t data_byte,uint8_t lat)
  *  * @param[in]  num  int contains the numeric value to be displayed on the KEYPAD LCD
  *  * @param[out] int  outputs 0 for no keypressed or greater than 0 for the keyposition.
  */
-int keypad_lcd2(int fxn, char* num)
+uint8_t keypad_lcd2(int fxn, char* num)
 {
 
 //	if(pump_type2 != lafeng)
 //	if(pump_type != DN_LAFNG17K)
 	if( (settings_stream1[1].keypad__ != LAFNG17_K) && (settings_stream1[1].keypad__ != LAFNG18_K) )
 	{
-	  int rr =	write_keypad_lcd2(fxn, num);
-	  return rr;
+		uint8_t rr =	write_keypad_lcd2(fxn, num);
+	    return rr;
 	}
 
 
@@ -1478,7 +1510,7 @@ int keypad_lcd2(int fxn, char* num)
 	if(fxn == 1)
 		goto refresh;
 
-	int8_t keynumber = 0;
+	uint8_t keynumber = 0;
 	int8_t count = 0;
 	int8_t scan_code = 0;
 	int8_t inv = 0;
@@ -1599,7 +1631,7 @@ int keypad_lcd2(int fxn, char* num)
     	disp_len_pad2 = 7;
     }
 
-	for(int i = 0; i < disp_len_pad2; i++)  //7 bytes for bluesky 5 bytes for lafeng
+	for(uint8_t i = 0; i < disp_len_pad2; i++)  //7 bytes for bluesky 5 bytes for lafeng
 	{
 		shift_2(buf2[i], 0);
 	}
@@ -1609,13 +1641,13 @@ int keypad_lcd2(int fxn, char* num)
 
 	HAL_GPIO_WritePin(clkk2_GPIO_Port, clkk2_Pin, GPIO_PIN_RESET);
 
-	int8_t fill = 24;
+	uint8_t fill = 24;
 //if(pump_type == lafeng) fill = 16;
 //if(pump_type == DN_LAFNG17K)
 	if ( (settings_stream1[1].keypad__ == LAFNG17_K) || (settings_stream1[1].keypad__ == LAFNG18_K) )
 		fill = 16;
 
-	for(int i = 1; i < fill; i++)
+	for(uint8_t i = 1; i < fill; i++)
 	{
 		HAL_GPIO_WritePin(clkk2_GPIO_Port, clkk2_Pin, GPIO_PIN_SET);
 		//	_Delay(1);
@@ -1636,7 +1668,7 @@ int keypad_lcd2(int fxn, char* num)
 //==========================================================================
 
     HAL_GPIO_WritePin(datak2_GPIO_Port, datak2_Pin, GPIO_PIN_SET);
-    for(int i = 0; i < 5; i++)
+    for(uint8_t i = 0; i < 5; i++)
    	{
    		HAL_GPIO_WritePin(clkk2_GPIO_Port, clkk2_Pin, GPIO_PIN_SET);
    		//_Delay(1);
@@ -1671,7 +1703,7 @@ int keypad_lcd2(int fxn, char* num)
 
    HAL_GPIO_WritePin(datak2_GPIO_Port, datak2_Pin, GPIO_PIN_SET);
 
-   for(int i = 2; i < fill; i++)
+   for(uint8_t i = 2; i < fill; i++)
 	{
 		HAL_GPIO_WritePin(clkk2_GPIO_Port, clkk2_Pin, GPIO_PIN_SET);
 		//_Delay(1);

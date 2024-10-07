@@ -313,6 +313,7 @@ extern uint8_t mamo_reached_flag1,
 			   hardwareError_flag1,
 			   hardwareErrorFlag_source1;
 
+extern uint16_t timer_go;
 uint8_t go_timeOut1;
 
 // state Handlers definition...
@@ -414,6 +415,8 @@ void save_date(int8_t _entri);
 uint16_t get_ctTime1(void);
 
 void keypad_zerorize(void);
+
+void keypad_fillingUpdate1(void);
 
 #ifdef __cplusplus
 }

@@ -558,18 +558,20 @@ void parse_decode(void)
 											//pick the next byte as the first byte of filling price
 										}
 
-										preset_voll = (preset_vol[0] * 1000000) + (preset_vol[1] * 10000) + (preset_vol[2] * 100) + (preset_vol[3] * 1);
-										sprintf(preset_volll, "0x%ld", preset_voll);
+//										preset_voll = (preset_vol[0] * 1000000) + (preset_vol[1] * 10000) + (preset_vol[2] * 100) + (preset_vol[3] * 1);
+//										sprintf(preset_volll, "0x%ld", preset_voll);
+//
+//										// char num[]="0x3076";
+//										long n = strtol(preset_volll, NULL, 16);
+//										// printf("n=%ld\n", n);  // prints 12406
+//
+//										   // uint32_t bcd = 0x12345678; // Example BCD value
+//
+//										// uint32_t bcd = 305419896; // Example BCD value
+//										// uint32_t decimal = packed_bcd_to_decimal(bcd);
+//										uint32_t preset_vol0 = packed_bcd_to_decimal(n);
 
-										// char num[]="0x3076";
-										long n = strtol(preset_volll, NULL, 16);
-										// printf("n=%ld\n", n);  // prints 12406
-
-										   // uint32_t bcd = 0x12345678; // Example BCD value
-
-										// uint32_t bcd = 305419896; // Example BCD value
-										// uint32_t decimal = packed_bcd_to_decimal(bcd);
-										uint32_t preset_vol0 = packed_bcd_to_decimal(n);
+										preset_voll = bcdArray_to_int(preset_vol, 4);
 
 										switch(dp_vol1)
 										{
@@ -632,12 +634,14 @@ void parse_decode(void)
 											preset_amt[j] = r_raw_data1[i+2+j];
 										}
 
-										preset_amtt = (preset_amt[0] * 1000000) + (preset_amt[1] * 10000) + (preset_amt[2] * 100) + (preset_amt[3] * 1);
-										sprintf(preset_amttt, "0x%ld", preset_amtt);
+//										preset_amtt = (preset_amt[0] * 1000000) + (preset_amt[1] * 10000) + (preset_amt[2] * 100) + (preset_amt[3] * 1);
+//										sprintf(preset_amttt, "0x%ld", preset_amtt);
+//
+//										long n = strtol(preset_amttt, NULL, 16);
+//
+//										uint32_t preset_amt0 = packed_bcd_to_decimal(n);
 
-										long n = strtol(preset_amttt, NULL, 16);
-
-										uint32_t preset_amt0 = packed_bcd_to_decimal(n);
+										preset_amtt = bcdArray_to_int(preset_amt, 4);
 
 										switch(dp_amount1)
 										{
@@ -704,12 +708,14 @@ void parse_decode(void)
 											price_update[j] = r_raw_data1[i+2+j];
 										}
 
-										price_updatee = ( (price_update[0] * 10000) + (price_update[1] * 100) + (price_update[2] * 1) );
-										sprintf(price_updateee, "0x%ld", price_updatee);
+//										price_updatee = ( (price_update[0] * 10000) + (price_update[1] * 100) + (price_update[2] * 1) );
+//										sprintf(price_updateee, "0x%ld", price_updatee);
+//
+//										// char num[]="0x3076";
+//										long n = strtol(price_updateee, NULL, 16);
+//										uint32_t price_update0 = packed_bcd_to_decimal(n);
 
-										// char num[]="0x3076";
-										long n = strtol(price_updateee, NULL, 16);
-										uint32_t price_update0 = packed_bcd_to_decimal(n);
+										price_updatee = bcdArray_to_int(price_update, 3);
 
 										price_update1 = (price_updatee * 0.1);
 
@@ -1284,11 +1290,13 @@ void parse_decode2(void)
 											preset_vol[j] = r_raw_data2[i+2+j];
 										}
 
-										preset_voll = (preset_vol[0] * 1000000) + (preset_vol[1] * 10000) + (preset_vol[2] * 100) + (preset_vol[3] * 1);
-										sprintf(preset_volll, "0x%ld", preset_voll);
+//										preset_voll = (preset_vol[0] * 1000000) + (preset_vol[1] * 10000) + (preset_vol[2] * 100) + (preset_vol[3] * 1);
+//										sprintf(preset_volll, "0x%ld", preset_voll);
+//
+//										long n = strtol(preset_volll, NULL, 16);
+//										uint32_t preset_vol0 = packed_bcd_to_decimal(n);
 
-										long n = strtol(preset_volll, NULL, 16);
-										uint32_t preset_vol0 = packed_bcd_to_decimal(n);
+										preset_voll = bcdArray_to_int(preset_vol, 4);
 
 										switch(dp_vol2)
 										{
@@ -1347,12 +1355,14 @@ void parse_decode2(void)
 											preset_amt[j] = r_raw_data2[i+2+j];
 										}
 
-										preset_amtt = (preset_amt[0] * 1000000) + (preset_amt[1] * 10000) + (preset_amt[2] * 100) + (preset_amt[3] * 1);
-										sprintf(preset_amttt, "0x%ld", preset_amtt);
+//										preset_amtt = (preset_amt[0] * 1000000) + (preset_amt[1] * 10000) + (preset_amt[2] * 100) + (preset_amt[3] * 1);
+//										sprintf(preset_amttt, "0x%ld", preset_amtt);
+//
+//										long n = strtol(preset_amttt, NULL, 16);
+//
+//										uint32_t preset_amt0 = packed_bcd_to_decimal(n);
 
-										long n = strtol(preset_amttt, NULL, 16);
-
-										uint32_t preset_amt0 = packed_bcd_to_decimal(n);
+										preset_amtt = bcdArray_to_int(preset_amt, 4);
 
 										switch(dp_amount2)
 										{
@@ -1417,11 +1427,13 @@ void parse_decode2(void)
 											price_update[j] = r_raw_data2[i+2+j];
 										}
 
-										price_updatee = ( (price_update[0] * 10000) + (price_update[1] * 100) + (price_update[2] * 1) );
-										sprintf(price_updateee, "0x%ld", price_updatee);
+//										price_updatee = ( (price_update[0] * 10000) + (price_update[1] * 100) + (price_update[2] * 1) );
+//										sprintf(price_updateee, "0x%ld", price_updatee);
+//
+//										long n = strtol(price_updateee, NULL, 16);
+//										uint32_t price_update0 = packed_bcd_to_decimal(n);
 
-										long n = strtol(price_updateee, NULL, 16);
-										uint32_t price_update0 = packed_bcd_to_decimal(n);
+										price_updatee = bcdArray_to_int(price_update, 3);
 
 										price_update2 = (price_updatee * 0.1);
 
@@ -4672,7 +4684,7 @@ void go_setUnitPrice1(float price_update)
 {
 	settings_stream1[0].price_ = price_update1;
 
-	save_settings();   //save to eeprom
+	save_settings_fram();   //save to eeprom
 	load_settings(side_a); //load the settings into the internal variables
 }
 
@@ -4680,7 +4692,7 @@ void go_setUnitPrice2(float price_update)
 {
 	settings_stream1[1].price_ = price_update2;
 
-	save_settings();   //save to eeprom
+	save_settings_fram();   //save to eeprom
 	load_settings(side_b); //load the settings into the internal variables
 }
 
@@ -6229,7 +6241,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 			case TO1 :  // Timeout => No-Flow											// index ==> 0x06
 						track_num1++;
-						if(settings_original_stream1[0].timeOut_noFlow != settings_stream1[0].timeOut_noFlow)
+						if(settings_original_stream2[0].timeOut_noFlow != settings_stream2[0].timeOut_noFlow)
 						{
 							if(valid_pair1 == 0)
 							{
@@ -6237,7 +6249,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream1[0].timeOut_noFlow, bcd_);
+								int_to_bcd(settings_original_stream2[0].timeOut_noFlow, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -6246,7 +6258,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream1[0].timeOut_noFlow, bcd_);
+								int_to_bcd(settings_stream2[0].timeOut_noFlow, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -6261,7 +6273,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream1[0].timeOut_noFlow, bcd_);
+								int_to_bcd(settings_original_stream2[0].timeOut_noFlow, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -6270,7 +6282,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream1[0].timeOut_noFlow, bcd_);
+								int_to_bcd(settings_stream2[0].timeOut_noFlow, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -7655,7 +7667,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 			case TO1 :  // Timeout => No-Flow											// index ==> 0x06
 						track_num2++;
-						if(settings_original_stream1[1].timeOut_noFlow != settings_stream1[1].timeOut_noFlow)
+						if(settings_original_stream2[1].timeOut_noFlow != settings_stream2[1].timeOut_noFlow)
 						{
 							if(valid_pair2 == 0)
 							{
@@ -7663,7 +7675,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream1[1].timeOut_noFlow, bcd_);
+								int_to_bcd(settings_original_stream2[1].timeOut_noFlow, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -7672,7 +7684,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream1[1].timeOut_noFlow, bcd_);
+								int_to_bcd(settings_stream2[1].timeOut_noFlow, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -7687,7 +7699,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream1[1].timeOut_noFlow, bcd_);
+								int_to_bcd(settings_original_stream2[1].timeOut_noFlow, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -7696,7 +7708,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream1[1].timeOut_noFlow, bcd_);
+								int_to_bcd(settings_stream2[1].timeOut_noFlow, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{

@@ -563,7 +563,7 @@ const uint32_t flash_endB   = 0x7fffff;
  */
 void load_settings(pump_sid side)
 {
-  int sdd = 0;
+     uint8_t sdd = 0;
 //   if(side == side_b)
 //   {
 //	   sdd = 1;
@@ -592,7 +592,7 @@ void load_settings(pump_sid side)
 
 	    timeout_picknozzle = 60;     //30;
 	    timeout_dispense   = 250;    //60;
-	    timeout_noflow = settings_stream1[sdd].timeOut_noFlow;
+	    timeout_noflow = settings_stream2[sdd].timeOut_noFlow;
 
 	    pump_type = settings_stream1[sdd].pump_type_;
 
@@ -649,7 +649,7 @@ void load_settings(pump_sid side)
 
 		timeout_picknozzle = 30;
 		timeout_dispense   = 60;
-		timeout_noflow = settings_stream1[sdd].timeOut_noFlow;
+		timeout_noflow = settings_stream2[sdd].timeOut_noFlow;
 
 		pump_type = settings_stream1[sdd].pump_type_;
 
@@ -687,8 +687,8 @@ void make_settings(pump_sid side)
    {
 	   sdd = 1;
    }
-   	settings_stream1[sdd].def_t = L;    //P/L  ==> default : P
-   	settings_stream1[sdd].display_format = LP;  // PL/LP   ==> default : PL  // Level 2
+   	settings_stream1[sdd].def_t = P;    //P/L  ==> default : P
+   	settings_stream1[sdd].display_format = PL;  // PL/LP   ==> default : PL  // Level 2
 
    	settings_stream1[sdd].pi_real = 407.3;   //399.25;   //798.35;
    	settings_stream1[sdd].pi_cal = 391.64;   //383.89;  //760.33;
@@ -703,7 +703,7 @@ void make_settings(pump_sid side)
 	    timeout_picknozzle = 60;
 	    timeout_dispense   = 250;
 
-	    settings_stream1[sdd].timeOut_noFlow = 300;
+	    settings_stream2[sdd].timeOut_noFlow = 300;
 
 //	    settings[sdd].pump_type_ = bluesky;    // lafeng;
 //	    settings[sdd].pump_type_ = pump_type;
@@ -717,14 +717,15 @@ void make_settings(pump_sid side)
 	    settings_stream1[sdd].dp_unitprice = 2;
 
 	    settings_stream1[sdd].noz_override = override;  //nooveride;
-	    settings_stream1[sdd].max_amt_ = 99999999;   //Maximum pump litres
+	    settings_stream1[sdd].max_amt_ = 999999999;   //Maximum pump litres
 
 	    settings_stream2[sdd].noz_count = 2;   // 1/2    ==> default : 2   // Level 2
-	    settings_stream2[sdd].keypress_tone = No;  // Yes/No   ==> default : No   // Level 2
+	    settings_stream2[sdd].keypress_tone = Yes;  // Yes/No   ==> default : No   // Level 2
 
 	    settings_stream2[sdd].startUp_suppressVol = 0.04;  // (0 - 10) cL   ==> default : 4cL  // Level 2
 	    settings_stream2[sdd].calibration_measureCan = 20;  // 10L/20L   ==> default : 20L  // Level 2
 	    settings_stream2[sdd].shift_login_type = None_; // None_/Code_/Card_   ==> default : None_  // Level 2
+	    settings_stream2[sdd].number_of_shifts = 1;
 
 	    settings_stream2[sdd].commCard_enforced = true;  // Yes/No   ==> default : Yes   // Level 3
 	    settings_stream2[sdd].calibration_type = Wizard; // Wizard/Manual_calib   ==> default : Wizard   // Level 3
@@ -3170,7 +3171,7 @@ void copy_settings(copy_dir dir)
 	uint8_t *sett1, *sett2, *sett3;
 	uint8_t *sett01, *sett02, *sett03;
 
-	 for(int sd = 0; sd < 2; sd++ )
+	 for(uint8_t sd = 0; sd < 2; sd++ )
 	 {
 		cpy1 = &copy_stream1[sd];
 		sett1 = &settings_stream1[sd];
@@ -3186,7 +3187,7 @@ void copy_settings(copy_dir dir)
 
 		sz = sizeof(copy_stream1[0]);
 
-		   for (int8_t i = 0; i < sz; i++)
+		   for (uint8_t i = 0; i < sz; i++)
 		   {
 			   if (dir == move_to_copy)
 			   {
@@ -3203,7 +3204,7 @@ void copy_settings(copy_dir dir)
 		   }
 
 		   sz = sizeof(copy_stream2[0]);
-		   for (int8_t i = 0; i < sz; i++)
+		   for (uint8_t i = 0; i < sz; i++)
 		   {
 			   if (dir == move_to_copy)
 			   {
@@ -3220,7 +3221,7 @@ void copy_settings(copy_dir dir)
 		   }
 
 		   sz = sizeof(copy_stream3[0]);
-		   for (int8_t i = 0; i < sz; i++)
+		   for (uint8_t i = 0; i < sz; i++)
 		   {
 			   if (dir == move_to_copy)
 			   {

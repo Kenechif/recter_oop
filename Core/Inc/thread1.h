@@ -29,7 +29,7 @@ uint8_t config_mode,
  	    config_found;
 
 extern uint32_t millis;
-extern uint8_t timer_go;
+extern uint16_t timer_go;
 
 extern uint8_t calibration_flag1,
 			   calibration_flag2;

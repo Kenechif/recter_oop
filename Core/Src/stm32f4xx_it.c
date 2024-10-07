@@ -456,8 +456,8 @@ void my_error_handler(void)
 	extern TIM_HandleTypeDef htim2;
 	extern TIM_HandleTypeDef htim5;
 
-	int32_t recovered_count1 = __HAL_TIM_GET_COUNTER(&htim2);
-	int32_t recovered_count2 = __HAL_TIM_GET_COUNTER(&htim5);
+	uint32_t recovered_count1 = __HAL_TIM_GET_COUNTER(&htim2);
+	uint32_t recovered_count2 = __HAL_TIM_GET_COUNTER(&htim5);
 	NVIC_SystemReset();
 }
 

@@ -51,7 +51,7 @@ extern uint32_t transaction_period,
 				transaction_period2;
 
 uint32_t millis = 0;
-uint8_t timer_go = 0;
+uint16_t timer_go = 0;
 
 
 //=====================================================

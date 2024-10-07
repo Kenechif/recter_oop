@@ -31,7 +31,7 @@ extern "C" {
 #define _AGO      					2
 #define _DPK      					3
 
-#define TIMEOUT_GO					5       //5sec
+#define TIMEOUT_GO					5000       //5 sec
 
 //:::::::::::::::::::::::::::::::::::::::::::://
 
@@ -47,8 +47,8 @@ extern "C" {
 //============================================
 
 #ifdef DEV_MODE
-//	#define _USE_SOFT_PULSER            1
-	#define _USE_SOFT_PULSER            0
+	#define _USE_SOFT_PULSER            1
+//	#define _USE_SOFT_PULSER            0
 	#define sense_battery 				0
 //	#define sense_power  				0
 //	#define sense_battery 				1
@@ -559,8 +559,7 @@ typedef enum
 
  	 char product_[4];
 
- 	 uint16_t max_amt_;
- 	 uint16_t timeOut_noFlow;             //<== 32 Bytes
+ 	 uint32_t max_amt_;				//<== 32 Bytes
 
  }pump_settings_stream1;
 
@@ -631,7 +630,9 @@ typedef enum
  	 bool commCard_enforced;
  	 shiftlogintype shift_login_type;
 
- 	 uint16_t non_calibration_seed;       //<== 26 Bytes + 2 byte-padding  ==> 28 Bytes
+ 	 uint16_t non_calibration_seed;
+
+ 	 uint16_t timeOut_noFlow; 			// ==> 28 Bytes
 
  }pump_settings_stream2;
 

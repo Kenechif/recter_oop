@@ -225,6 +225,7 @@ eSystemState mamo_Handler2(void);
 //	nothing
 //};
 
+extern uint16_t timer_go;
 uint8_t go_timeOut2;
 
 static bool mth_success2 = false,
@@ -277,6 +278,8 @@ float dp2(float flt,int n);
 float amt2price2(float amt_);
 
 void keypad_zerorize2(void);
+
+void keypad_fillingUpdate2(void);
 
 
 #ifdef __cplusplus

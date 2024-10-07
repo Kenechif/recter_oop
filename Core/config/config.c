@@ -692,9 +692,9 @@ void epSend_interval(void)
 				sprintf(str, ",\"pr\":\"%0.2f|%0.2f\"", settings_original_stream1[0].price_, settings_stream1[0].price_);
 				strcat(ep200, str);
 			}
-			if(settings_original_stream1[0].timeOut_noFlow != settings_stream1[0].timeOut_noFlow)
+			if(settings_original_stream2[0].timeOut_noFlow != settings_stream2[0].timeOut_noFlow)
 			{
-				sprintf(str, ",\"nfl\":\"%d|%d\"", settings_original_stream1[0].timeOut_noFlow, settings_stream1[0].timeOut_noFlow);
+				sprintf(str, ",\"nfl\":\"%d|%d\"", settings_original_stream2[0].timeOut_noFlow, settings_stream2[0].timeOut_noFlow);
 				strcat(ep200, str);
 			}
 			if(settings_original_stream1[0].max_amt_ != settings_stream1[0].max_amt_)

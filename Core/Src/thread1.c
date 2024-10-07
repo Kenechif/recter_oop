@@ -2194,7 +2194,7 @@ skip_test:
 //	settings[0].noz_id;
 
 
-    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
+//    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
 //    settings_stream1[0].mode = AUTO_MODE;    //AUTO_MODE;
 //
 //    settings_stream1[0].noz = nooverride;  //nooveride
@@ -2218,7 +2218,12 @@ skip_test:
 //    settings_stream1[0].noz_addr = 0x01;
 //    settings_stream1[1].noz_addr = 0x02;
 
-    settings_stream2[0].keypress_tone = Yes;
+//    settings_stream2[0].keypress_tone = Yes;
+//    settings_stream1[0].display_format = PL;
+//    settings_stream1[1].display_format = PL;
+//    settings_stream1[0].def_t = P;
+//    settings_stream1[1].def_t = P;
+
 
 
     // ===========================================================================
@@ -2960,7 +2965,7 @@ uint8_t  read_event1()
 			}
 
 	   // nozzle up  event capture...
-			if( (nozzle_flag_old == 0)&&(nozzle_flag == 1) )
+			if( (nozzle_flag_old == 0) && (nozzle_flag == 1) )
 			{
 					nozzle_flag_old = 1;
 //					if (override_ != override)
@@ -3896,7 +3901,7 @@ uint8_t read_event1_1(void)
 	   }
 
 	   // nozzle up  event capture...
-	    if( (nozzle_flag_old == 0)&&(nozzle_flag == 1) )
+	    if( (nozzle_flag_old == 0) && (nozzle_flag == 1) )
 		{
 			nozzle_flag_old = 1;
 //			if (override_ != override)

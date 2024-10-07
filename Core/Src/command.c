@@ -85,22 +85,22 @@ extern uint32_t pulser2;
 
 
 /////////////////////////////////////////////////
-void send_line1(char lcd_[10])
+void lcd_print_line1(char lcd_[10])
 {
 	 printDisp_c(lcd_,1,0,8,RT,CLEAR);
 }
 
-void send_line2(char lcd_[10])
+void lcd_print_line2(char lcd_[10])
 {
 	 printDisp_c(lcd_,2,0,8,RT,CLEAR);
 }
 
-void send_line3(char lcd_[10])
+void lcd_print_line3(char lcd_[10])
 {
 	 printDisp_c(lcd_,3,0,7,RT,CLEAR);
 }
 
-void send_keypad(char lcd_[8])
+void keypad_print(char lcd_[8])
 {
 	 for (int i = 0; i < 8; i++)
 	 {
@@ -145,22 +145,22 @@ void clr_keypad()
 ////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-void send_line12(char lcd_[10])
+void lcd_print_line1_2(char lcd_[10])
 {
 	 printDisp_c2(lcd_,1,0,8,RT,CLEAR);
 }
 
-void send_line22(char lcd_[10])
+void lcd_print_line2_2(char lcd_[10])
 {
 	 printDisp_c2(lcd_,2,0,8,RT,CLEAR);
 }
 
-void send_line32(char lcd_[10])
+void lcd_print_line3_2(char lcd_[10])
 {
 	 printDisp_c2(lcd_,3,0,7,RT,CLEAR);
 }
 
-void send_keypad2(char lcd_[8])
+void keypad_print2(char lcd_[8])
 {
 	for (int i = 0; i < 8; i++)
 	 {
