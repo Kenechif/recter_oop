@@ -282,8 +282,8 @@ enum
 float price_real1, amt_real1;
 float amt_, price_;
 
-static bool mth_success = false,
-			clock_save = false;
+//static bool mth_success = false,
+//			clock_save = false;
 
 //int8_t pump_LitreOverflow = 0;
 //static int8_t idleState_flag = 1;
@@ -311,7 +311,12 @@ extern uint8_t mamo_reached_flag1,
 			   mamo_reached_flag1_1,
 			   stopFlag_source1,
 			   hardwareError_flag1,
-			   hardwareErrorFlag_source1;
+			   hardwareErrorFlag_source1,
+			   nozzlezUp1;
+
+extern uint8_t nozzle_flag,
+			   nozzle_flag_key1,
+			   nozzle_flag_key_old1;
 
 extern uint16_t timer_go;
 uint8_t go_timeOut1;

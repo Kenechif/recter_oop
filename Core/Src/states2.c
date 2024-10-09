@@ -143,6 +143,9 @@ uint8_t fastFlow2 = 0;
 extern int timeout_picknozzle;
 extern int timeout_dispense;
 
+static bool mth_success2 = false,
+			clock_save2 = false;
+
 static int time2 ;
 static int st2 = 0;
 int timer_flag2 = 0;
@@ -4283,7 +4286,7 @@ eSystemState progState_Handler2(void)
       					 ttime2[1] = tm;
       					 clear_buffer2();
       					 hh_success = false;
-      					 clock_save = true;
+      					 clock_save2 = true;
       				 }
       				 else
       				 {
@@ -5767,6 +5770,8 @@ eSystemState idleState_Handler2(void)
 	pump2_status_4G = STATUS_IDLE;
 
 	stop_fueling_bit2 = 1;
+
+	stop_flag2 = 0;
 
 	lock_clr2 = 0;
 	progg2 = 0;
@@ -8522,20 +8527,34 @@ if(
 		  	 }
 
       if ( (kkey2 == 'D')&&(progg2 == 0) ) //fueling key.
-	 	{
+	  {
        	   //ePrevState = eLastState1;
-           auth_cmd_flag2 = 1;  //activate auth2 cmd.
 
-           return keypad_entry_State;
-	 	}
+          if(settings_stream1[1].mode == MANUAL_MODE)
+     	  {
+ 			   auth_cmd_flag2 = 1;  //activate auth2 cmd.
 
-      if ( (kkey2 == 'A')&&(progg2 == 0)&&( (eNextState2 == filling_State) || (eNextState2 == authorised_nozzleup_State)) ) //stop sales.
-		{
-		   stop_flag2 = 1;  //activate auth2 cmd.
+ 			   return keypad_entry_State;
+     	  }
+     	  else if(settings_stream1[1].mode == AUTO_MODE)
+     	  {
+     		  nozzle_flag_key2 = 1;
+
+     		  return keypad_entry_State;
+     	  }
+	 }
+
+//      if ( (kkey2 == 'A') && (progg2 == 0)&&( (eNextState2 == filling_State) || (eNextState2 == authorised_nozzleup_State)) ) //stop sales.
+	  if ( (kkey2 == 'A') && (progg2 == 0) )
+	  {
+		   stop_flag2 = 1;  //deactivate auth2 cmd.
+
+		   nozzle_flag_key2 = 0;
+		   nozzle_flag_key_old2 = 1;
 		}
 
 //====================================================
- if ( (kkey2 == 'C')&&(progg2 == 0) )  //if change sales mode
+	if ( (kkey2 == 'C') && (progg2 == 0) )  //if change sales mode
 	{
 	   if(sellmode2 == L)
 	   {

@@ -69,6 +69,9 @@ int8_t index_menu = 0;
 
 uint8_t dummyValue = 0;
 
+static bool mth_success = false,
+			clock_save = false;
+
 uint8_t  prog_revisit1 = 1,
 		 prog_revisitt1 = 1,
 		 firstTime_key19 = 1;
@@ -1552,7 +1555,7 @@ if(
 		  	 }
 
 
-      if ( (kkey == 'D')&&(progg == 0) ) //fueling key.
+      if ( (kkey == 'D') && (progg == 0) ) //fueling key.
 	 	{
        	   //ePrevState = eLastState1;
 
@@ -1564,17 +1567,23 @@ if(
     	  }
     	  else if(settings_stream1[0].mode == AUTO_MODE)
     	  {
-			   return _nozzleup_Event;
+    		  nozzle_flag_key1 = 1;
+
+    		  return keypad_entry_State;
     	  }
 	 	}
 
-      if ( (kkey == 'A')&&(progg == 0)&&( (eNextState1 == filling_State) || (eNextState1 == authorised_nozzleup_State)) ) //stop sales.
-		{
+//      if ( (kkey == 'A') && (progg == 0) && ( (eNextState1 == filling_State) || (eNextState1 == authorised_nozzleup_State)) ) //stop sales.
+      if ( (kkey == 'A') && (progg == 0) )
+	  {
 		   stop_flag = 1;  //deactivate auth cmd.
-		}
+
+		   nozzle_flag_key1 = 0;
+		   nozzle_flag_key_old1 = 1;
+	  }
 
 //====================================================
- if ( (kkey == 'C')&&(progg == 0) )  //if change sales mode
+ if ( (kkey == 'C') && (progg == 0) )  //if change sales mode
 	{
 	   if(sellmode == L)
 	   {
@@ -7210,6 +7219,8 @@ eSystemState idleState_Handler(void)
 
 	stop_fueling_bit = 1;
 
+	stop_flag = 0;
+
 	lock_clr = 0;
 
 	progg = 0;
@@ -7907,13 +7918,13 @@ eSystemState authorised_nozzleup_State_Handler(void)
 		error_clr_flag = 1;
 		 index_ = 0;
 		 _index = 0;
-		 for(int i = 0; i < 9; i++)
+		 for(uint8_t i = 0; i < 9; i++)
 		 {
 		   keypad_pw_xter1[i] = 0;
 		   keyboard_entry[i] = 0;   //clear the buffer
 		 }
 
-		 for(int i = 0; i <= 8; i++)
+		 for(uint8_t i = 0; i <= 8; i++)
 		 {
 			 keyboard[i] = 0;
 		 }

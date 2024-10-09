@@ -281,8 +281,20 @@ int retn;
  uint8_t error_clr_flag,
  	 	 error_clr_flag2 = 0;
 
- int key_flag, key_flag_old , key_flag2, key_flag_old2 = 0;
- int nozzle_flag, nozzle_flag_old , nozzle_flag2, nozzle_flag_old2 = 0;
+ uint8_t key_flag,
+ 	 	 key_flag_old,
+		 key_flag2,
+		 key_flag_old2 = 0;
+
+ uint8_t nozzle_flag,
+ 	 	 nozzle_flag_old,
+		 nozzle_flag2,
+		 nozzle_flag_old2 = 0,
+		 nozzle_flag_key1 = 0,
+		 nozzle_flag_key2 = 0,
+		 nozzle_flag_key_old1 = 0,
+		 nozzle_flag_key_old2 = 0;
+
  uint32_t pulser_count_old , pulser_new ,pulser_count_old2 , pulser_new2 = 0;
  extern int timer_flag_old , timer_flag , timer_flag_old2 , timer_flag2 ;
 
@@ -291,7 +303,7 @@ int retn;
  extern uint8_t filling1 , filling2;
 
  extern int auth_flag , auth_flag2;
- extern int lat_cnt , lat_cnt2;
+ extern int lat_cnt, lat_cnt2;
 
  uint8_t keypress_flag,
  	 	 keypress_flag2 = 0;
@@ -2194,7 +2206,7 @@ skip_test:
 //	settings[0].noz_id;
 
 
-//    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
+    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
 //    settings_stream1[0].mode = AUTO_MODE;    //AUTO_MODE;
 //
 //    settings_stream1[0].noz = nooverride;  //nooveride
@@ -2980,7 +2992,7 @@ uint8_t  read_event1()
 			}
 	  //-----------------------
 	  // nozzle down  event capture...
-			if( (nozzle_flag_old == 1)&&(nozzle_flag == 0) )
+			if( (nozzle_flag_old == 1) && (nozzle_flag == 0) )
 			{
 					nozzle_flag_old = 0;
 //					if (override_ != override)
@@ -3271,35 +3283,103 @@ int  read_event2()
 		   }
 
 	   // nozzle up  event capture...
-			if( (nozzle_flag_old2 == 0)&&(nozzle_flag2 == 1) )
-			{
-					nozzle_flag_old2 = 1;
+		   if( ((nozzle_flag_old2 == 0) && (nozzle_flag2 == 1)) ||
+			 ((nozzle_flag_key_old2 == 0) && (nozzle_flag_key2 == 1)) )
+		   {
+			   if((nozzle_flag_old2 == 0) && (nozzle_flag2 == 1))
+			   {
+				   if((nozzle_flag_key_old2 == 0) && (nozzle_flag_key2 == 0))
+				   {
+					   nozzle_flag_old2 = 1;
+				   }
+				   else if((nozzle_flag_key_old2 == 1) && (nozzle_flag_key2 == 1))
+				   {
+					   nozzle_flag_old2 = 1;
+					   return _no_Event;
+				   }
+			   }
+			   else if((nozzle_flag_key_old2 == 0) && (nozzle_flag_key2 == 1))
+			   {
+				   if((nozzle_flag_old2 == 1) && (nozzle_flag2 == 1))
+				   {
+					   nozzle_flag_key_old2 = 1;
+					   return _no_Event; //
+				   }
+				   else if((nozzle_flag_old2 == 0) && (nozzle_flag2 == 0))
+				   {
+					   nozzle_flag_key_old2 = 1;
+				   }
+			   }
 //					if (override_2 != override)
 //					{
 						//send nozzleup command only in MANUAL mode
 
-						if(settings_stream1[1].mode == AUTO_MODE)
-						{
-							nozzlezUp2 = 1;
-						}
+				if(settings_stream1[1].mode == AUTO_MODE)
+				{
+					nozzlezUp2 = 1;
+				}
 
-						return _nozzleup_Event;
-//					}
-//					else 		// NozzlezUp, awaiting authorisation
-//					{
+				nozzle_out2 = true;
+
+				return _nozzleup_Event;
+
+//				}
+//				else 		// NozzlezUp, awaiting authorisation
+//				{
 //
-//					}
-			}
-	  //-----------------------
+//				}
+		   }
+
+	  //---------------------------------------------------------------------------
 	  // nozzle down  event capture...
-			if( (nozzle_flag_old2 == 1)&&(nozzle_flag2 == 0) )
-			{
-					nozzle_flag_old2 = 0;
-//					if (override_2 != override)
-						return _nozzledown_Event;
-			}
+		   else if( ((nozzle_flag_old2 == 1) && (nozzle_flag2 == 0))  ||
+				   ((nozzle_flag_key_old2 == 1) && (nozzle_flag_key2 == 0)) )
+		   {
+			   if((nozzle_flag_old2 == 1) && (nozzle_flag2 == 0))
+			   {
+				   if((nozzle_flag_key_old2 == 0) && (nozzle_flag_key2 == 0))
+				   {
+					   nozzle_flag_old2 = 0;  //
+					   nozzle_flag_key_old2 = 0;
+					   nozzle_flag_key2 = 0;
+
+					   status_change_noz2 = 1;
+					   nozzle_out2 = false;
+				   }
+				   else if((nozzle_flag_key_old2 == 1) && (nozzle_flag_key2 == 1))
+				   {
+					   nozzle_flag_old2 = 0; //
+					   nozzle_flag_key_old2 = 0;
+					   nozzle_flag_key2 = 0;
+
+					   status_change_noz2 = 1;
+					   nozzle_out2 = false;
+				   }
+			   }
+			   else if((nozzle_flag_key_old2 == 1) && (nozzle_flag_key2 == 0))
+			   {
+				   if((nozzle_flag_old2 == 1) && (nozzle_flag2 == 1))
+				   {
+					   nozzle_flag_key_old2 = 0;
+
+					   status_change_noz2 = 1;
+					   nozzle_out2 = false;
+				   }
+				   else if((nozzle_flag_old2 == 0) && (nozzle_flag2 == 0))
+				   {
+					   nozzle_flag_key_old2 = 0;  //
+
+					   status_change_noz2 = 1;
+					   nozzle_out2 = false;
+				   }
+			   }
+
+   //		 if (override_ != override)
+			  return _nozzledown_Event;
+		   }
 		//	nozzle_flag_old = nozzle_flag;
 	  //--------------------------------------------------
+
 	  //--------------------------------------------------
 		// key up  event capture...
 		if( (key_flag_old2 == 0)&&(key_flag2 == 1) )
@@ -3901,33 +3981,141 @@ uint8_t read_event1_1(void)
 	   }
 
 	   // nozzle up  event capture...
-	    if( (nozzle_flag_old == 0) && (nozzle_flag == 1) )
-		{
-			nozzle_flag_old = 1;
-//			if (override_ != override)
+////	    if( ((nozzle_flag_old == 0) && (nozzle_flag == 1)) ||
+////			((nozzle_flag_key_old1 == 0) && (nozzle_flag_key1 == 1)) )
+//		if((nozzle_flag_old == 0) && (nozzle_flag == 1))
+//		{
+//			if(nozzle_flag == 1)
 //			{
-				//send nozzleup command only in MANUAL mode
-
-				if(settings_stream1[0].mode == AUTO_MODE)
-				{
-					nozzlezUp1 = 1;
-				}
-
-				return _nozzleup_Event;
+//				nozzle_flag_old = 1;
 //			}
-//			else 		// NozzlezUp, awaiting authorisation
+//			else if (nozzle_flag_key1 == 1)
 //			{
+//				nozzle_flag_key_old1 = 1;
+//			}
 //
-//			}
-		}
-	  //-----------------------
-	  // nozzle down  event capture...
-	   else if( (nozzle_flag_old == 1) && (nozzle_flag == 0) )
-		{
-			nozzle_flag_old = 0;
-//			if (override_ != override)
-				return _nozzledown_Event;
-		}
+////			if (override_ != override)
+////			{
+//				//send nozzleup command only in MANUAL mode
+//
+//				if(settings_stream1[0].mode == AUTO_MODE)
+//				{
+//					nozzlezUp1 = 1;
+//				}
+//
+//				return _nozzleup_Event;
+////			}
+////			else 		// NozzlezUp, awaiting authorisation
+////			{
+////
+////			}
+//		}
+//	  //-----------------------
+//	  // nozzle down  event capture...
+////	   else if( ((nozzle_flag_old == 1) && (nozzle_flag == 0))  ||
+////			   ((nozzle_flag_key_old1 == 1) && (nozzle_flag_key1 == 0)) )
+//	   else if((nozzle_flag_old == 1) && (nozzle_flag == 0) )
+//	   {
+//			nozzle_flag_old = 0;
+////			nozzle_flag_key_old1 = 0;
+//
+////			if (override_ != override)
+//				return _nozzledown_Event;
+//	   }
+
+	   if( ((nozzle_flag_old == 0) && (nozzle_flag == 1)) ||
+	   	 ((nozzle_flag_key_old1 == 0) && (nozzle_flag_key1 == 1)) )
+	   {
+ 		   if((nozzle_flag_old == 0) && (nozzle_flag == 1))
+		   {
+			   if((nozzle_flag_key_old1 == 0) && (nozzle_flag_key1 == 0))
+			   {
+				   nozzle_flag_old = 1;
+			   }
+			   else if((nozzle_flag_key_old1 == 1) && (nozzle_flag_key1 == 1))
+			   {
+				   nozzle_flag_old = 1;
+				   return _no_Event;
+			   }
+		   }
+		   else if((nozzle_flag_key_old1 == 0) && (nozzle_flag_key1 == 1))
+		   {
+			   if((nozzle_flag_old == 1) && (nozzle_flag == 1))
+			   {
+				   nozzle_flag_key_old1 = 1;
+				   return _no_Event; //
+			   }
+			   else if((nozzle_flag_old == 0) && (nozzle_flag == 0))
+			   {
+				   nozzle_flag_key_old1 = 1;
+			   }
+		   }
+
+	   //			if (override_ != override)
+	   //			{
+	   				//send nozzleup command only in MANUAL mode
+
+	   				if(settings_stream1[0].mode == AUTO_MODE)
+	   				{
+	   					nozzlezUp1 = 1;
+	   				}
+
+	   				nozzle_out1 = true;
+
+	   				return _nozzleup_Event;
+	   //			}
+	   //			else 		// NozzlezUp, awaiting authorisation
+	   //			{
+	   //
+	   //			}
+	   		}
+	   	  //-----------------------
+	   	  // nozzle down  event capture...
+	   	   else if( ((nozzle_flag_old == 1) && (nozzle_flag == 0))  ||
+	   			   ((nozzle_flag_key_old1 == 1) && (nozzle_flag_key1 == 0)) )
+	   	   {
+	   		   if((nozzle_flag_old == 1) && (nozzle_flag == 0))
+			   {
+	   			   if((nozzle_flag_key_old1 == 0) && (nozzle_flag_key1 == 0))
+				   {
+					   nozzle_flag_old = 0;  //
+					   nozzle_flag_key_old1 = 0;
+					   nozzle_flag_key1 = 0;
+
+					   status_change_noz1 = 1;
+					   nozzle_out1 = false;
+				   }
+	   			   else if((nozzle_flag_key_old1 == 1) && (nozzle_flag_key1 == 1))
+				   {
+					   nozzle_flag_old = 0; //
+					   nozzle_flag_key_old1 = 0;
+					   nozzle_flag_key1 = 0;
+
+					   status_change_noz1 = 1;
+					   nozzle_out1 = false;
+				   }
+			   }
+	   		   else if((nozzle_flag_key_old1 == 1) && (nozzle_flag_key1 == 0))
+			   {
+				   if((nozzle_flag_old == 1) && (nozzle_flag == 1))
+				   {
+					   nozzle_flag_key_old1 = 0;
+
+					   status_change_noz1 = 1;
+					   nozzle_out1 = false;
+				   }
+				   else if((nozzle_flag_old == 0) && (nozzle_flag == 0))
+				   {
+					   nozzle_flag_key_old1 = 0;  //
+
+					   status_change_noz1 = 1;
+					   nozzle_out1 = false;
+				   }
+			   }
+
+	   //			if (override_ != override)
+	   				return _nozzledown_Event;
+	   	   }
 		//	nozzle_flag_old = nozzle_flag;
 	  //--------------------------------------------------
 	  //--------------------------------------------------
