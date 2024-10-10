@@ -318,16 +318,18 @@ typedef struct   //structure for log.
 //}log_new;
 
 
-typedef struct   //structure for log.
-{
-	float totaliserAmount_real; //4
-	float totaliserAmount_cal;	//4  -->8
-}log_new1;
+//typedef struct   //structure for log.
+//{
+//	float totaliserAmount_real; //4
+//	float totaliserAmount_cal;	//4  -->8
+//}totaliserAmount_store;
 
  typedef struct
  {
-	  float totaliserVol_real; //4
-	  float totaliserVol_cal;	//4  -->8
+	  float totaliserVol_real;      //4
+	  float totaliserVol_cal;	    //4
+	  float totaliserAmount_real;   //4
+	  float totaliserAmount_cal;	//4  -->16
  }totaliser_store;
 
 typedef struct
@@ -388,8 +390,7 @@ typedef struct
 typedef struct
 {
 	uint32_t current_loc;
-	uint32_t number_logs;
-
+	uint32_t number_logs;   // 8 Bytes
 }flash_store_info;
 
 typedef struct
@@ -1082,9 +1083,13 @@ void save_volumeTotaliser(pump_sid side);
 void retrieve_volumeTotaliser(pump_sid side);
 void clear_volumeTotaliser(pump_sid side);
 
-void save_volumeTotaliser_fram(pump_sid side);
-void retrieve_volumeTotaliser_fram(pump_sid side);
-void clear_volumeTotaliser_fram(pump_sid side);
+void save_totaliser_fram(pump_sid side);
+void retrieve_totaliser_fram(pump_sid side);
+void clear_totaliser_fram(pump_sid side);
+
+void saver_Totaliser_startShift_fram(pump_sid side);
+void retrieve_Totaliser_startShift_fram(pump_sid side);
+void clear_Totaliser_startShift_fram(pump_sid side);
 
 void save_amountTotaliser(pump_sid side);
 void retrieve_amountTotaliser(pump_sid side);

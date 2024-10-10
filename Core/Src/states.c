@@ -50,7 +50,7 @@ extern log_new log_a_new,
 			   synchedLog_a_new,
 			   synchedLog_b_new;
 
-extern log_new1 log_a_new1 , log_b_new1;
+//extern log_new1 log_a_new1 , log_b_new1;
 
 extern uint32_t flash_read_idA;
 extern uint32_t flash_read_idB;
@@ -744,7 +744,7 @@ sStateEventMachine asStateEventMachine_1 [] =
 	{read_flash_State, read_flash_State_Handler, {}},
 	{write_flash_State, write_flash_State_Handler, {}},
 	{switchedoff_State, switchedoffState_Handler, {_stopcommand_Event, _resetcommand_Event}},
-    {pnp_State, pnpState_Handler, {_fillingcomplete_Event}},
+    {pnp_State, pnpState_Handler, {_keyup_Event, _fillingcomplete_Event}},
 	{filledmamo_State, filledmamo_State_Handler, {_nozzledown_Event, _resetcommand_Event, _stopcommand_Event, _switchoffcommand_Event}},
     {last_State, 0, {}}
 };
@@ -1119,8 +1119,8 @@ eSystemState nozzledown_Handler(void)
 		  update_info();
 //		  save_volumeTotaliser(operating_side);
 //		  save_amountTotaliser(operating_side);
-		  save_volumeTotaliser_fram(side_a);
-		  save_amountTotaliser_fram(side_a);
+		  save_totaliser_fram(side_a);
+//		  save_amountTotaliser_fram(side_a);
 		  save_lastSale_fram(side_a);
 		  nozzle_bit = 0;
 	 }
@@ -2091,9 +2091,9 @@ uint8_t long_press_key()
 
 uint8_t long_press_progExit()
 {
-	static int pressed_ = 0;
+	static uint8_t pressed_ = 0;
 		//static int pressed_old = 0;
-		int ky;
+	uint8_t ky;
 
 //		if(pump_type == bluesky)
 //		if( (pump_type == DN_BLSKY18K) || (pump_type == DN_BLSKY22) ||
@@ -2126,48 +2126,49 @@ uint8_t long_press_progExit()
 
 uint8_t long_press_log()
 {
-	static int pressed_ = 0;
+	static uint8_t pressed_ = 0;
 	//static int pressed_old = 0;
-	int ky = 0;
+	uint8_t ky = 0;
 	ky = readkey19_state();
 	//	if (readkey19_state() != 1)
 	if (ky != 1)
 	{
         pressed_ = 0;
         log_buttonpress_tmr = 0;   //clr timer.
+        HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 	}
 	else if (ky == 1)
-		ky = 2;
+	{
+		HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+	}
 
-	 if ( (log_buttonpress_tmr >= 3)&&(pressed_ == 0 ) )
-		 {
-		   log_buttonpress_tmr = 3;
-		    pressed_ = 1;
-		    return 1;
-		 }
+	 if ( (log_buttonpress_tmr >= 3) && (pressed_ == 0 ) )
+	 {
+	   log_buttonpress_tmr = 3;
+		pressed_ = 1;
+
+		HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+		return 1;
+	 }
+
+	 HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 	 return 0;
 }
 /////////////////////////////////////////////////////////////////
 uint8_t long_press_tot()
 {
 	static uint8_t pressed_ = 0;
-	//static int pressed_old = 0;
 	uint8_t ky;
 
 	static uint8_t	key19StateCount = 0;
 
-//	static uint8_t lastKey19State = 0;
-//				   firstTime_key19 = 1;
-
-    dummyValue = 0;
-
-	static bool doublePressDetected = false,
+   	static bool doublePressDetected = false,
 				click_in_progress = false;
 
 	int doublePressThreshold = 2000;
 
-//	if(pump_type == lafeng) ky = 11;  //keypad type mapping...
-//	if(pump_type == DN_LAFNG17K) ky = 11;  //keypad type mapping...
+	 dummyValue = 0;
+
 	if( (settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) )
 	{
 //		ky = 11;  //keypad type mapping...
@@ -2178,43 +2179,6 @@ uint8_t long_press_tot()
 			key19Timer1 = 0;
 			firstTime_key19 = 2;
 		}
-//	}
-//	else
-//	  ky = 21;                      //mapped to print key...
-
-//	 unsigned long currentTime = millis();
-//	  buttonState = digitalRead(buttonPin);
-
-//	  if (key19State != lastKey19State)
-//	  {
-//	    if (key19State == 1)   // Key19 is pressed
-//	    {
-//
-////	    	  if ( (key19Timer1 > 0) && (key19Timer1 <= doublePressThreshold) )
-////			  {
-////				doublePressDetected = true;
-////			  }
-////			  else if (key19Timer1 > doublePressThreshold)
-////			  {
-////				  firstTime_key19 = 1;
-////				  key19Timer1 = 0;
-////			  }
-//
-//	    	key19State1++;
-//	    	if(key19Timer1 > doublePressThreshold)
-//	    	{
-//	    		if(key19State1 >= 2)
-//	    		{
-//	    			doublePressDetected = true;
-//	    		}
-//
-//	    		 firstTime_key19 = 1;
-//				 key19Timer1 = 0;
-//	    	}
-////	      lastPressTime = currentTime;
-//	    }
-////	    delay(debounceDelay);  // Debounce
-//	  }
 
 	  if (key19State != lastKey19State)
 	  {
@@ -2225,6 +2189,7 @@ uint8_t long_press_tot()
 				 {
 					 key19Timer1 = 0; //reset the timer only on the first click
 					 click_in_progress = true; //we are in the clicking phase
+//					 HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 				 }
 				 key19StateCount++ ; // it will start as 1 and will keep incrementing
 		  }
@@ -2290,21 +2255,22 @@ uint8_t long_press_tot()
 /////////////////////////////////////////////////////////////////
 eSystemState operator_State_Handler(void)
 {
-	    static int fxn = 0;
-        static int indx1 = 0,
-        		   indxx1 = 0;
+	    static int8_t fxn = 0;
+        static int8_t indx1 = 0,
+        		   	  indxx1 = 0;
 
-	    static int pump_indx = 1;
+	    static int8_t pump_indx = 1;
 	    static int8_t pump_indxx = 0;
 
 	    extern  log_max;
-	    static int8_t key19_sto_ = 0, keyy19_sto_ = 0;
+	    static int8_t key19_sto_ = 0,
+	    			  keyy19_sto_ = 0;
 
-	    int pkey = 0;
+	    int8_t pkey = 0;
 	    int8_t keyy19 = 0;
 	    extern int  printer_status;
 
-	    uint8_t rd19 =0;
+	    uint8_t rd19 = 0;
 
    //===========================================================
 	    // POWER FAILURE SENSE
@@ -2356,12 +2322,12 @@ eSystemState operator_State_Handler(void)
     //===========================================================
   	    rd19 = readkey19_state();
 
-		if ( (rd19 == 1)&&( key19_sto_ == 0) )
+		if ( (rd19 == 1) && ( key19_sto_ == 0) )
 		 {
 			 if (indx1 == 1)
-					indx1 = 2;
+				indx1 = 2;
 			else
-					indx1 = 1;
+				indx1 = 1;
 			key19_sto_ = rd19;
 		 }
 		 key19_sto_ = rd19;
@@ -2425,33 +2391,38 @@ eSystemState operator_State_Handler(void)
 					   	   	  jj = 0,
 							  k = 0;
 
-	                   int i,res = 0;
+	                   int i,
+					   	   res = 0;
 
 	               //===============================================
 		  	    	  if (indx1 == 1)
 		  	    	  {
 		  	    		  if(indxx1 == 1)
 		  	    		  {
-							  res =  snprintf(scc, sizeof(scc), "%.2f", totaliser_vol1c);
-							  if( res > 8)  //if lenght of the number > 8
-								 {
+							  res = snprintf(scc, sizeof(scc), "%.2f", totaliser_vol1c);
+							  if(res > 8)  //if lenght of the number > 8
+							  {
 								  i = res;
 								  j = 0;
 								  jj = 0;
+
 								   while(i > 8)
 								   {
 									   line1[j] = scc[j];
-									   j++; i--;
+									   j++;
+									   i--;
 									   jj++;
 								   }
-									  i = 0;
+
+								   i = 0;
 								   while(i < 8)
 								   {
-										 line2[i] = scc[j];
-										 j++; i++;
+									 line2[i] = scc[j];
+									 j++;
+									 i++;
 								   }
 								   clear_screen1();
-								   printDisp_c("l",1,0,8,LT,CLEAR);
+								   printDisp_c("l", 1, 0, 8, LT, CLEAR);
 								   printDisp_c(line1, 1, (8-jj), 5, LT, NOCLEAR);  //display price
 //								   printDisp_c(line1, 1, 0,5,RT,CLEAR );
 								   lcd_print_line2(line2);
@@ -2460,7 +2431,7 @@ eSystemState operator_State_Handler(void)
 								 {
 									 lcd_print_line1("l        ");
 									 lcd_print_line2("        ");
-									 printDisp_f(totaliser_vol1c, 2, 0,5,RT,CLEAR ); //lcd_print_line2(scc);
+									 printDisp_f(totaliser_vol1c, 2, 0, 5, RT, CLEAR ); //lcd_print_line2(scc);
 								 }
 							  lcd_print_line3("tot A");
 						   }  //  if (indx1 == 1)
@@ -2486,8 +2457,8 @@ eSystemState operator_State_Handler(void)
 										 j++; i++;
 								   }
 								   clear_screen1();
-								   printDisp_c("p",1,0,8,LT,CLEAR);
-								   printDisp_c(line1,1,(8-jj),5,LT,NOCLEAR);
+								   printDisp_c("p", 1, 0, 8, LT,CLEAR);
+								   printDisp_c(line1, 1, (8-jj), 5, LT, NOCLEAR);
 //								   printDisp_c(line1, 1, 0,5,RT,CLEAR );
 								   lcd_print_line2(line2);
 								 }
@@ -2495,7 +2466,7 @@ eSystemState operator_State_Handler(void)
 								 {
 									 lcd_print_line1("p        ");
 									 lcd_print_line2("        ");
-									 printDisp_f(totaliser_amt1c, 2, 0,5,RT,CLEAR ); //lcd_print_line2(scc);
+									 printDisp_f(totaliser_amt1c, 2, 0, 5, RT, CLEAR ); //lcd_print_line2(scc);
 								 }
 							  lcd_print_line3("tot A");
 						   }  //  if (indx1 == 1)
@@ -2602,28 +2573,28 @@ eSystemState operator_State_Handler(void)
 					char *tm_  =  "---------";
 
 	            	if(loop_ == 0)    //do this only the first time
-						{
-	            	    	// data_size = sizeof(log_a_new);
-						  if (operating_side == side_a)
-						  {
-								 flash_loc = flash_infoA.current_loc; // - 256;
-								 log_no = flash_infoA.number_logs;
-								 if(log_no == 0)
-									 {
-										  pr_  =  0.00; //price_real1;
-										  vl_  =  0.00; //amt_real1;
-										  tm_  =  "--------";
-									 }
-								    else
-								    {
-								      //calculate the previous save id from the current
-								    	if (flash_loc <= flash_beginA) //at begining of storage
-								    	{
-								    		flash_loc = flash_endA;    // - data_size; //wrap
-								    	}
-								    	else
-								    	{
-								    	   flash_loc = flash_loc - data_size;
+					{
+						// data_size = sizeof(log_a_new);
+					  if (operating_side == side_a)
+					  {
+							 flash_loc = flash_infoA.current_loc; // - 256;
+							 log_no = flash_infoA.number_logs;
+							 if(log_no == 0)
+							 {
+								  pr_  =  0.00; //price_real1;
+								  vl_  =  0.00; //amt_real1;
+								  tm_  =  "--------";
+							 }
+							else
+							{
+							  //calculate the previous save id from the current
+								if (flash_loc <= flash_beginA) //at begining of storage
+								{
+									flash_loc = flash_endA;    // - data_size; //wrap
+								}
+								else
+								{
+								   flash_loc = flash_loc - data_size;
 //								    	   if (flash_loc == 0 )  // flash_beginA) //at begining of storage
 //											{
 //								    			// this shouldnt occur ,  just in case !
@@ -2634,10 +2605,10 @@ eSystemState operator_State_Handler(void)
 //											 flash_infoA.current_loc  =  next_loc;
 //											 flash_infoA.number_logs  =  flash_infoA.number_logs + 1;
 //											 EEPROM_Write(flash_info_sto, flash_stoA, &flash_infoA, sizeof(flash_infoA));
-								    	}
-								    }
-								   flash_locc = flash_loc;
-						  	}
+								}
+							}
+							   flash_locc = flash_loc;
+						}
 //						  if (operating_side == side_b)
 //							   {
 //								 flash_loc = flash_infoB.current_loc;
@@ -5076,8 +5047,8 @@ eSystemState progState_Handler(void)
 					  totaliser_amt1c += price_real1;
 					  totaliser_amt1 += price_real1;
 
-					  save_volumeTotaliser_fram(operating_side);
-					  save_amountTotaliser_fram(operating_side);
+					  save_totaliser_fram(operating_side);
+//					  save_amountTotaliser_fram(operating_side);
 					  save_lastSale_fram(operating_side);
 
 //					  pwr1 = POWERINTERRUPTION;
@@ -5101,8 +5072,8 @@ eSystemState progState_Handler(void)
 					  totaliser_amt1c += price_real1;
 					  totaliser_amt1 += price_real1;
 
-					  save_volumeTotaliser_fram(operating_side);
-					  save_amountTotaliser_fram(operating_side);
+					  save_totaliser_fram(operating_side);
+//					  save_amountTotaliser_fram(operating_side);
 					  save_lastSale_fram(operating_side);
 				  }
 
@@ -5136,8 +5107,8 @@ eSystemState progState_Handler(void)
 						  totaliser_amt1c += price_real1;
 						  totaliser_amt1 += price_real1;
 
-						  save_volumeTotaliser_fram(operating_side);
-						  save_amountTotaliser_fram(operating_side);
+						  save_totaliser_fram(operating_side);
+//						  save_amountTotaliser_fram(operating_side);
 						  save_lastSale_fram(operating_side);
 
 					}
@@ -5153,8 +5124,8 @@ eSystemState progState_Handler(void)
 						  totaliser_amt1c += price_real1;
 						  totaliser_amt1 += price_real1;
 
-						  save_volumeTotaliser_fram(operating_side);
-						  save_amountTotaliser_fram(operating_side);
+						  save_totaliser_fram(operating_side);
+//						  save_amountTotaliser_fram(operating_side);
 						  save_lastSale_fram(operating_side);
 					}
 
@@ -5191,8 +5162,8 @@ eSystemState progState_Handler(void)
 				  totaliser_amt1c += price_real1;
 				  totaliser_amt1 += price_real1;
 
-				  save_volumeTotaliser_fram(operating_side);
-				  save_amountTotaliser_fram(operating_side);
+				  save_totaliser_fram(operating_side);
+//				  save_amountTotaliser_fram(operating_side);
 				  save_lastSale_fram(operating_side);
 				  save_calibrationData_fram(side_a);
 
@@ -8796,8 +8767,8 @@ eSystemState filling_State_Handler(void)
 //		  save_amountTotaliser(operating_side);
 //		  save_lastSale(operating_side);
 
-		  save_volumeTotaliser_fram(side_a);
-		  save_amountTotaliser_fram(side_a);
+		  save_totaliser_fram(side_a);
+//		  save_amountTotaliser_fram(side_a);
 		  save_lastSale_fram(side_a);
 
 		  if(settings_stream1[0].mode == AUTO_MODE)
@@ -8857,8 +8828,8 @@ eSystemState filling_State_Handler(void)
 			do_calcs();
 			update_info();
 
-			save_volumeTotaliser_fram(side_a);
-			save_amountTotaliser_fram(side_a);
+			save_totaliser_fram(side_a);
+//			save_amountTotaliser_fram(side_a);
 			save_lastSale_fram(side_a);
 
 			return write_flash_State;
@@ -8878,8 +8849,8 @@ eSystemState filling_State_Handler(void)
 //        save_amountTotaliser(operating_side);
 //        save_lastSale(operating_side);
 
-        save_volumeTotaliser_fram(side_a);
-        save_amountTotaliser_fram(side_a);
+        save_totaliser_fram(side_a);
+//        save_amountTotaliser_fram(side_a);
         save_lastSale_fram(side_a);
 
         //--------------------------------------------------------
@@ -8943,8 +8914,8 @@ eSystemState filling_State_Handler(void)
 //		save_amountTotaliser(operating_side);
 //		save_lastSale(operating_side);
 
-		save_volumeTotaliser_fram(side_a);
-		save_amountTotaliser_fram(side_a);
+		save_totaliser_fram(side_a);
+//		save_amountTotaliser_fram(side_a);
 		save_lastSale_fram(side_a);
 		_litre_price1 = 1;
 
@@ -8970,8 +8941,8 @@ eSystemState filling_State_Handler(void)
 //		save_amountTotaliser(operating_side);
 //		save_lastSale(operating_side);
 
-		save_volumeTotaliser_fram(side_a);
-		save_amountTotaliser_fram(side_a);
+		save_totaliser_fram(side_a);
+//		save_amountTotaliser_fram(side_a);
 		save_lastSale_fram(side_a);
 		_pump_max_litres1 = 1;
 
@@ -9109,8 +9080,8 @@ eSystemState filling_State_Handler(void)
 //		        save_amountTotaliser(operating_side);
 //		        save_lastSale(operating_side);
 
-		        save_volumeTotaliser_fram(side_a);
-				save_amountTotaliser_fram(side_a);
+		        save_totaliser_fram(side_a);
+//				save_amountTotaliser_fram(side_a);
 				save_lastSale_fram(side_a);
 
 		        pump_status_1 = STATUS_MAMO_REACHED;
@@ -9180,8 +9151,8 @@ eSystemState filling_State_Handler(void)
 //				save_lastSale(operating_side);
 //				save_lastSale_fram(operating_side);
 
-				save_volumeTotaliser_fram(side_a);
-				save_amountTotaliser_fram(side_a);
+				save_totaliser_fram(side_a);
+//				save_amountTotaliser_fram(side_a);
 				save_lastSale_fram(side_a);
 
 				keypad_zerorize();

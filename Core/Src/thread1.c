@@ -1242,8 +1242,8 @@ void compose_printer()
 
 //	srand(time(NULL));
 
-    keypad_lcd(2,"0");                      //keypad_lcd(0,"0");
-    keypad_lcd2(2,"0");
+    keypad_lcd(2, "0");                      //keypad_lcd(0,"0");
+    keypad_lcd2(2, "0");
 
 	buffer_init(&dat_str,buffer_length);    //initialise the buffer
 
@@ -1706,8 +1706,8 @@ tmmm:
 //	  clear_volumeTotaliser(side_a);
 //	  clear_volumeTotaliser(side_b);
 
-	  clear_volumeTotaliser_fram(side_a);
-	  clear_volumeTotaliser_fram(side_b);
+	  clear_totaliser_fram(side_a);
+	  clear_totaliser_fram(side_b);
 
 //	  clear_amountTotaliser(side_a);
 //	  clear_amountTotaliser(side_b);
@@ -2270,8 +2270,8 @@ skip_test:
 //    retrieve_lastSale(side_a);
 //    retrieve_lastSale(side_b);
 
-    retrieve_volumeTotaliser_fram(side_a);
-    retrieve_volumeTotaliser_fram(side_b);
+    retrieve_totaliser_fram(side_a);
+    retrieve_totaliser_fram(side_b);
 
     retrieve_amountTotaliser_fram(side_a);
     retrieve_amountTotaliser_fram(side_b);
@@ -2500,7 +2500,8 @@ skip_test:
   // EEPROM_Read(flash_info_sto,flash_stoA, datar1, 50);
   // EEPROM_Read(flash_info_sto, flash_stoA, &flash_infoA, sizeof(flash_infoA));
 
-   flash_info_read();
+//   flash_info_read();
+   flash_info_read_fram();
    //--------------------------------------------------------------------------
     //W25qxx_EraseChip();
  //   W25qxx_WritePage(dataw1,0, 0, sizeof(dataw1));
@@ -2551,27 +2552,28 @@ skip_test:
 //============================================================
  void house_keeping()
  {
- 	          Multiplex(0,0);
+ 	          Multiplex(0, 0);
 
- 	    	  keynew = keypad_lcd(0,key_lcd);  //write lcd and read keypad.
- 			  if ( (keyold == 0) &&  (keyold != keynew) )  //send key only if new key is pressed
- 				  {
- 					 //send_keyboard();
- 				     keypress_flag = 1;  //indicate that a new press was detected.
- 				  }
+ 	    	  keynew = keypad_lcd(0, key_lcd);  //write lcd and read keypad.
+ 			  if ( (keyold == 0) && (keyold != keynew) )  //send key only if new key is pressed
+			  {
+				 //send_keyboard();
+				 keypress_flag = 1;  //indicate that a new press was detected.
+			  }
  			  keyold = keynew;
  }
 
 void house_keeping2()
 {
-    	Multiplex2(0,0);
+    	Multiplex2(0, 0);
 
-			  keynew2 = keypad_lcd2(0,key_lcd2);  //write lcd and read keypad.
+			  keynew2 = keypad_lcd2(0, key_lcd2);  //write lcd and read keypad.
 			  if ( (keyold2 == 0)&&(keyold2 != keynew2) )  //send key only if new key is pressed
-				  {
-					 //send_keyboard();
-					 keypress_flag2 = 1;  //indicate that a new press was detected.
-				  }
+			  {
+				 //send_keyboard();
+				 keypress_flag2 = 1;  //indicate that a new press was detected.
+			  }
+
 			  keyold2 = keynew2;
 }
 //==============================================================

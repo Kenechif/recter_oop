@@ -86,8 +86,8 @@ extern log_new log_a_new,
 			   synchedLog_a_new,
 			   synchedLog_b_new;
 
-extern log_new1 log_a_new1,
-				log_b_new1;
+//extern log_new1 log_a_new1,
+//				log_b_new1;
 
 //=== screen Arrays ====
 extern char upper1[10],
