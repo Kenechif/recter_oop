@@ -42,6 +42,7 @@ extern uint8_t firstTime_filling1,
 
 extern uint8_t mamo_reached_flag1,
 			   mamo_reached_flag1_1,
+			   filling_mamo_flag1 = 0,
 			   stopFlag_source1 = 0,
 			   nozzleDown_source1 = 0,
 			   reset_flag1 = 0,
@@ -50,6 +51,7 @@ extern uint8_t mamo_reached_flag1,
 
 extern uint8_t mamo_reached_flag2,
 			   mamo_reached_flag2_1,
+			   filling_mamo_flag2 = 0,
 			   stopFlag_source2 = 0,
 			   nozzleDown_source2 = 0,
 			   reset_flag2 = 0,
@@ -360,6 +362,8 @@ eSystemState write_flash_State_Handler(void)
 		log_a_new.transaction_period = transaction_period;
 	    firstTime_filling1 = 1;
 
+	    keypad_fillingUpdate1();
+
 		if(opmode == AUTO_MODE)
 		{
 			log_a_new.autoTranxFlag = 1;
@@ -390,6 +394,8 @@ eSystemState write_flash_State_Handler(void)
 	{
 		log_b_new.transaction_period = transaction_period2;
 		firstTime_filling2 = 1;
+
+		keypad_fillingUpdate2();
 
 		if(opmode2 == AUTO_MODE)
 		{
@@ -454,7 +460,8 @@ eSystemState write_flash_State_Handler(void)
 //				connected = 0;
 //			}
 
-			 keypad_zerorize();
+			 if(pump_status_1 != STATUS_MAMO_REACHED)
+				 keypad_zerorize();
 
 			//============================================//
 
@@ -489,8 +496,8 @@ eSystemState write_flash_State_Handler(void)
 //				connected = 0;
 //			}
 
-
-			 keypad_zerorize2();
+			 if(pump_status_2 != STATUS_MAMO_REACHED)
+				 keypad_zerorize2();
 
 			//============================================//
 
@@ -526,6 +533,7 @@ eSystemState write_flash_State_Handler(void)
 			{
 				mamo_reached_flag1_1 = 0;
 				mamo_reached_flag1 = 1;
+				filling_mamo_flag1 = 1;  //Ensures Routine in the filling state is not on repeat
 
 				return filling_State;
 			}

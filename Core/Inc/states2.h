@@ -95,7 +95,7 @@ typedef struct
 {
   eSystemState   eStateMachine2;
   pfStateHandler2 pfStateMachineHandler2;
-  eSystemEvent  states2[8];
+  eSystemEvent  states2[12];
 } sStateEventMachine2;
 //-----------------------------------------------
 eSystemEvent eNewEvent2;

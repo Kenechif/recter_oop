@@ -199,7 +199,7 @@ typedef struct
 {
   eSystemState   eStateMachine;
   pfStateHandler pfStateMachineHandler;
-  eSystemEvent  states[8];
+  eSystemEvent  states[12];
 } sStateEventMachine;
 //-----------------------------------------------
 eSystemEvent eNewEvent1;
@@ -309,6 +309,7 @@ extern uint8_t batteryStatus;
 
 extern uint8_t mamo_reached_flag1,
 			   mamo_reached_flag1_1,
+			   filling_mamo_flag1,
 			   stopFlag_source1,
 			   hardwareError_flag1,
 			   hardwareErrorFlag_source1,

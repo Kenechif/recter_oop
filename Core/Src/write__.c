@@ -7,10 +7,10 @@
 
 #include "write__.h"
 
-int _write(int file,char *ptr, int len)
+int _write(int file, char *ptr, int len)
 {
    int i = 0;
-   for (i=0;i<len ;i++)
+   for (i = 0; i < len; i++)
    {
 
    }

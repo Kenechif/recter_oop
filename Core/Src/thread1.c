@@ -3880,7 +3880,7 @@ uint8_t read_event1_1(void)
 
        //--------------------------------------------------
 	   //          error clear flag...
-	   if( error_clr_flag == 1)
+	   if(error_clr_flag == 1)
 		 {
 			error_clr_flag = 0;
 
@@ -3890,7 +3890,7 @@ uint8_t read_event1_1(void)
 		 }
 	  //--------------------------------------------------
 			 // authorise  event capture.
-	   else if ( auth_flag  == 1 )
+	   else if (auth_flag  == 1)
 		{
 			auth_flag = 0;
 			return _authorise_Event;
@@ -3898,7 +3898,7 @@ uint8_t read_event1_1(void)
 
 		//--------------------------------------------------
 				// authorise  command event.
-	   else if ( auth_cmd_flag  == 1 )
+	   else if (auth_cmd_flag  == 1)
 		{
 		  //if(settings[operating_side-1].mode == offline_)
 		  //{
