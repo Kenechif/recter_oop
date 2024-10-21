@@ -215,7 +215,12 @@ int kkey = 0;
 int  keypress_ = 0;
 int8_t index_ = 0;
 //uint32_t key_value = 0;
-float key_value = 0.0;
+float key_value = 0.0,
+	  key_value_original1 = 0.00;
+
+uint8_t key_value_sellmodeP1 = 0,
+		key_value_sellmodeL1 = 0;
+
 //=====================================================
 int flow_coeff = 0;
 int pulser_rem1 = 0;
@@ -254,7 +259,8 @@ extern char* login_type[4]; //= {"[ None ]", "[ PIN ] ", "[ Card ]"};
 //=====================================================
 
 extern char lafeng_keypad[17],
-			lafeng_keypad_18K[17];
+			lafeng_keypad_18K[18],
+			lafeng_keypad_18K_V2[18];
 
 extern char bluesky_keypad[22];
 
@@ -1447,6 +1453,11 @@ eSystemState keypress_Handler(void)
 	   kkey =  lafeng_keypad_18K[keypress_];
 	   allowed_xters = 7;
 	 }
+	 else if (settings_stream1[0].keypad__ == LAFNG18_K_V2)
+	 {
+	   kkey =  lafeng_keypad_18K_V2[keypress_];
+	   allowed_xters = 7;
+	 }
 //	 else if(pump_type == bluesky)
 //	 else if( (pump_type == DN_BLSKY18K) || (pump_type == DN_BLSKY22) ||
 //			  (pump_type == DIN_BLSKY18K) || (pump_type == DIN_BLSKY22)  )
@@ -1555,7 +1566,7 @@ if(
 		  	 }
 
 
-      if ( (kkey == 'D') && (progg == 0) ) //fueling key.
+      if ( ((kkey == 'D') && (progg == 0)) && (eNextState1 != filling_State) ) //fueling key.
 	 	{
        	   //ePrevState = eLastState1;
 
@@ -1764,13 +1775,13 @@ if(
 //----------------------------------------------------------------
 //                            write to the keypad
 
- 	   static int lcd_size = 5;
+ 	   static uint8_t lcd_size = 5;
 
  	   if(settings_stream1[0].keypad__  == LAFNG17_K)
  	   {
  		    lcd_size = 5; //change this latter to accomodate other lcds.
  	   }
- 	   else if(settings_stream1[0].keypad__  == LAFNG18_K)
+ 	   else if( (settings_stream1[0].keypad__  == LAFNG18_K) || (settings_stream1[0].keypad__ == LAFNG18_K_V2) )
  	   {
  		    lcd_size = 7; //change this latter to accomodate other lcds.
  	   }
@@ -2066,7 +2077,8 @@ uint8_t long_press_key()
 //			(pump_type == DN_LAFNG17K) )
 
 		if( (settings_stream1[0].keypad__ == BLSKY18_K) || (settings_stream1[0].keypad__ == BLSKY22) ||
-			(settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) )
+			(settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) ||
+			(settings_stream1[0].keypad__ == LAFNG18_K_V2) )
 		{
 //		   ky = 19;  //F4 key
 		   ky = 15;  //clear key
@@ -2102,7 +2114,8 @@ uint8_t long_press_progExit()
 //			(pump_type == DIN_BLSKY18K) || (pump_type == DIN_BLSKY22) ||
 //			(pump_type == DN_LAFNG17K) )
 		if( (settings_stream1[0].keypad__ == BLSKY18_K) || (settings_stream1[0].keypad__ == BLSKY22) ||
-			(settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) )
+			(settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) ||
+			(settings_stream1[0].keypad__ == LAFNG18_K_V2) )
 		{
 		   ky = 14;  //'.' key
 		}
@@ -2115,7 +2128,7 @@ uint8_t long_press_progExit()
 	        pressed_ = 0;
 	        progExit_buttonpress_tmr1 = 0;  //clr timer.
 		}
-		 if((progExit_buttonpress_tmr1 >= 3)&&(pressed_ == 0) )
+		 if((progExit_buttonpress_tmr1 >= 3) && (pressed_ == 0) )
 		 {
 			 progExit_buttonpress_tmr1 = 3;
 			pressed_ = 1;
@@ -2171,7 +2184,7 @@ uint8_t long_press_tot()
 
 	 dummyValue = 0;
 
-	if( (settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) )
+	if( (settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) || (settings_stream1[0].keypad__ == LAFNG18_K_V2))
 	{
 //		ky = 11;  //keypad type mapping...
 		key19State = readkey19_state();
@@ -8107,8 +8120,12 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 				  	if (sellmode == L)
 					{
-						  //======== Convert to Volume =======//
-						  key_value = (key_value * litre_price1);
+				  		key_value_sellmodeL1 = 1;
+				  		key_value_original1 = key_value;
+
+
+				  		//======== Convert to Volume =======//
+				  		key_value = (key_value * litre_price1);
 					}
 
 					if(key_value > auth_p1)
@@ -8176,8 +8193,11 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 				  	if (sellmode == P)
 					{
-						  //======== Convert to Volume Equivalent =======//
-						  key_value = (key_value / litre_price1);
+				  		key_value_sellmodeP1 = 1;
+				  		key_value_original1 = key_value;
+
+				  		//======== Convert to Volume Equivalent =======//
+						key_value = (key_value / litre_price1);
 					}
 
 					if(key_value > auth_v1)
@@ -8270,7 +8290,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 		  {
 				drive_motor1(ACTIVATE);
 
-				if( (settings_stream1[0].keypad__ != LAFNG17_K) && (settings_stream1[0].keypad__ != LAFNG18_K) )
+				if(settings_stream1[0].pump_type_ != LAFENG)
 				{
 					 drive_slow_sole1(ACTIVATE);
 					 drive_fast_sole1(DEACTIVATE);
@@ -8344,8 +8364,8 @@ eSystemState authorised_nozzleup_State_Handler(void)
 		 //snprintf(temp , sizeof(temp), "%.2f", price);  //lcd_print_line1(upper1);
          //snprintf(middle1, sizeof(middle1), "%.2f", amt);   //lcd_print_line2(lower);
 
-	  	  make_string(P,price);
-		  make_string(L,amt);
+	  	  make_string(P, price);
+		  make_string(L, amt);
 
 //		 if (t > 300)
 		 if (t > 100)
@@ -8577,13 +8597,13 @@ void make_string(sellmode_ sll, float pr)
 //	 temppp_ = roundf(temppp_ * 100) / 100;
 
 
-	int index__ = 0;
+	 uint8_t index__ = 0;
 	while (tmp != 0)
 	{
 		tmp = temp[index__++];
 	}
 
-	int space = 9 - index__;
+	int8_t space = 9 - index__;
 
 	if(eNextState1 == filling_State)
 	{
@@ -8592,6 +8612,7 @@ void make_string(sellmode_ sll, float pr)
 	}
 	else
 		ind = 1;
+
 	 //--------------------------
 		  if (sll == L)
 				ttmp[0] = 'l';
@@ -8631,7 +8652,7 @@ void make_string(sellmode_ sll, float pr)
 //						upper1[i] = ttmp[i];
 				}
 		   }
-     int t = 0;
+//     int t = 0;
 }
 
 //---------------------------------------------------
@@ -8999,7 +9020,7 @@ eSystemState filling_State_Handler(void)
 	   price = dp(temp,dp_amount1);
 
 	    make_string(P, dp(price, dp_amount1));
-	    make_string(L,dp(amt, dp_vol1));
+	    make_string(L, dp(amt, dp_vol1));
 	    //lcd_print_line1(upper1);
 	    //lcd_print_line2(middle1);
 
@@ -9118,6 +9139,8 @@ eSystemState filling_State_Handler(void)
 
 				pump_status_1 = STATUS_MAMO_REACHED;
 
+//				target_pulser1 = 0;
+
 				if(settings_stream1[0].mode == AUTO_MODE)
 				{
 					mamo_reached_flag1_1 = 1;
@@ -9212,7 +9235,7 @@ eSystemState filling_State_Handler(void)
 void do_calcs ()
 {
 
-float temp;
+	float temp;
  if(target_pulser1 > 0)  // if price or volume is programmed
  {
    if (pulser_rem1 <= 0 || pulser_complete1 == 1 )  //sales complete...
@@ -9227,15 +9250,25 @@ float temp;
 	    	//amt   = dp( price_/litre_price ,dp_amount);
 
 	    	 temp = pulser2amt(current_pulser1);
-	    		    	 amt = dp(temp,dp_vol1);
+	    		    	 amt = dp(temp, dp_vol1);
 
 			 temp = amt2price(amt);
-						 price = dp(temp,dp_amount1);
+						 price = dp(temp, dp_amount1);
 
-	   			///show what the user needs...
+			if(key_value_sellmodeP1 == 1)
+			{
+				key_value_sellmodeP1 = 0;
+				key_value = key_value_original1;
+			}
+
+	   		/********************************************
+	   		 *
+	   		 * SHOW WHAT THE USER NEEDS...
+	   		 *
+	   		 * ******************************************/
 	   		 price_ = dp(key_value, dp_amount1);
 	   		 	 temp = price_/litre_price;
-	   		 amt_   = dp(temp,dp_vol1); //calculate vol frm price.
+	   		 amt_   = dp(temp, dp_vol1); //calculate vol frm price.
 
 	 		//=========================================================
 	 		//    Also calculate the values based on the real P.Indx
@@ -9252,7 +9285,18 @@ float temp;
 	   		    amt  = dp(temp,dp_vol1);
 
 	   			price  = amt2price(amt);
-	   			///show what the user needs to see...
+
+	   			if(key_value_sellmodeL1 == 1)
+				{
+					key_value_sellmodeL1 = 0;
+					key_value = key_value_original1;
+				}
+
+				/********************************************
+				 *
+				 * SHOW WHAT THE USER NEEDS TO SEE...
+				 *
+				 * ******************************************/
 	   			amt_   = key_value;
 	   			price_ = amt_ * litre_price; //calculate price from price.amt
 		 		//=========================================================
@@ -9911,8 +9955,8 @@ void states_1(void)
 //----------------------------------------
 eSystemState filledmamo_State_Handler(void)
 {
-	filling1 = 0,
-	nozzle_bit = 0;
+//	filling1 = 0,
+//	nozzle_bit = 0;
 
 	filling_mamo_flag1 = 0;
 
@@ -10137,7 +10181,7 @@ void keypad_fillingUpdate1(void)
 	{
 		lcd_size = 5; //change this latter to accomodate other lcds.
 	}
-	else if(settings_stream1[0].keypad__  == LAFNG18_K)
+	else if( (settings_stream1[0].keypad__  == LAFNG18_K) || (settings_stream1[0].keypad__ == LAFNG18_K_V2) )
 	{
 		lcd_size = 7; //change this latter to accomodate other lcds.
 	}
@@ -10214,7 +10258,7 @@ void keypad_fillingUpdate1(void)
 		space = size;
 	}
 
-	if( (strchr(middle1, '.')) && (indexx_ > 6) ) space = 7;
+	if( (strchr(middle1, '.')) && (indexx_ > 6) ) space = 8;
 	while(space > 0)
 	{
 	   keyboard[ind++] = middle1[indexx_ - space];

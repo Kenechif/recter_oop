@@ -819,7 +819,7 @@ void process(int isflt,char* str,int8_t cnv, int row, int col,int n ,int justify
 		   }
          //---------------------------------------------------------------------------
          //clear the extra character   ---- when in left justify and clear = 0
-          if ( (justify == 1)&&(clear == 0)&&(n>0)  )
+          if ( (justify == 1) && (clear == 0)&&(n>0)  )
           {
         	 int n_count = n - cnv;
              while(n_count > 0){
@@ -830,7 +830,7 @@ void process(int isflt,char* str,int8_t cnv, int row, int col,int n ,int justify
           }
           ///////////////////////////////////////////
 
-          if (  (justify == 1)&&(clear == 1)  )
+          if (  (justify == 1) && (clear == 1)  )
 			  {
         	     temp1 = diff;
 					 while(temp1 > 0)
@@ -854,7 +854,7 @@ end:
 }
 //============================================================================================================
 
-void process2(int isflt,char* str,int8_t cnv, int row, int col,int n ,int justify,int clear)
+void process2(int isflt, char* str, int8_t cnv, int row, int col, int n, int justify, int clear)
 {
    //	char str_[10]= {0};
    //	int cnv = snprintf(str_, sizeof(str), "%ld", num);
@@ -970,7 +970,7 @@ void process2(int isflt,char* str,int8_t cnv, int row, int col,int n ,int justif
 		   }
          //---------------------------------------------------------------------------
          //clear the extra character   ---- when in left justify and clear = 0
-          if ( (justify == 1)&&(clear == 0)&&(n>0)  )
+          if ( (justify == 1) && (clear == 0)&&(n>0)  )
           {
         	 int n_count = n - cnv;
              while(n_count > 0){
@@ -981,7 +981,7 @@ void process2(int isflt,char* str,int8_t cnv, int row, int col,int n ,int justif
           }
           ///////////////////////////////////////////
 
-          if (  (justify == 1)&&(clear == 1)  )
+          if (  (justify == 1) && (clear == 1)  )
 			  {
         	     temp1 = diff;
 					 while(temp1 > 0)
@@ -994,7 +994,7 @@ void process2(int isflt,char* str,int8_t cnv, int row, int col,int n ,int justif
 			  }
 
 end:
-     Multiplex2( row, col);   return;   //vbuf,
+     Multiplex2(row, col);   return;   //vbuf,
 
 	//Multiplex("101213", row, col); return;
 

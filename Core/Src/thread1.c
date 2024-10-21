@@ -1104,16 +1104,16 @@ void compose_printer()
 //	 settings_stream1[1].keypad__ = LAFNG18_K;
 
 	 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
-	 // 				LAFENG Valve Signal is inverted for this version of PCB                        //
+	 // 				LAFENG Valve's Signal is inverted for this version of PCB                      //
 	 //											PCB V5.0											   //
 	 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
 
-	 if ( (settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) )
+	 if (settings_stream1[0].pump_type_ == LAFENG)
 	 {
 		 drive_slow_sole1(ACTIVATE);     // ACTIVATE here actually means DEACTIVATE
 		 drive_fast_sole1(ACTIVATE);
 	 }
-	 if ( (settings_stream1[1].keypad__ == LAFNG17_K) || (settings_stream1[1].keypad__ == LAFNG18_K) )
+	 if (settings_stream1[1].pump_type_ == LAFENG)
 	 {
 		 drive_slow_sole2(ACTIVATE);
 		 drive_fast_sole2(ACTIVATE);
@@ -1299,13 +1299,13 @@ void compose_printer()
 
 //	pump_ini();    // activate the pump communication I/O
 
-	HAL_UART_Receive_IT(&huart1, uart1_rx_buf, pump_rx_bufsize);
+	HAL_UART_Receive_IT(&huart1, uart1_rx_buf, pump_rx_bufsize);    //config
 
-//	HAL_UART_Receive_IT(&huart2, uart2_rx_buf, pump_rx_bufsize);
+//	HAL_UART_Receive_IT(&huart2, uart2_rx_buf, pump_rx_bufsize);    //server-communication
 
-	HAL_UART_Receive_IT(&huart3, uart3_rx_buf, pump_rx_bufsize);
+	HAL_UART_Receive_IT(&huart3, uart3_rx_buf, pump_rx_bufsize);    //printer1
 
-	HAL_UART_Receive_IT(&huart5, uart5_rx_buf, pump_rx_bufsize);
+	HAL_UART_Receive_IT(&huart5, uart5_rx_buf, pump_rx_bufsize);    //printer2
 
 	otp(hmacKey, 10, pump_SN);
 //	otp2(hmacKey, 10);
@@ -2206,7 +2206,10 @@ skip_test:
 //	settings[0].noz_id;
 
 
-//    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
+    settings_stream1[0].noz_addr = 0x01;
+	settings_stream1[1].noz_addr = 0x02;
+
+    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
 //    settings_stream1[0].mode = AUTO_MODE;    //AUTO_MODE;
 //
 //    settings_stream1[0].noz = nooverride;  //nooveride
@@ -2215,22 +2218,23 @@ skip_test:
 //    settings_stream2[0].calibration_measureCan = 2;
 
 //    settings_stream1[0].keypad__ = BLSKY22;   //BLSKY22
-//    settings_stream1[0].keypad__ = LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
+    settings_stream1[0].keypad__ = LAFNG18_K_V2;  //LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
+
 //
-//    settings_stream1[1].mode = MANUAL_MODE;  //AUTO;   //MANUAL;
-////    settings_stream1[1].mode = AUTO_MODE;    //AUTO_MODE;
+    settings_stream1[1].mode = MANUAL_MODE;  //AUTO;   //MANUAL;
+//    settings_stream1[1].mode = AUTO_MODE;    //AUTO_MODE;
 //
 //    settings_stream1[1].noz = nooverride;  //nooveride
 ////	settings_stream1[1].noz = override;  //nooveride
 ////	settings_stream1[1].keypad__ = BLSKY22;   //BLSKY22
-//    settings_stream1[1].keypad__ = LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
+    settings_stream1[1].keypad__ = LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
 
 //    settings_stream1[0].pi_cal = 797.150024;
 
 //    settings_stream1[0].noz_addr = 0x01;
 //    settings_stream1[1].noz_addr = 0x02;
 
-//    settings_stream2[0].keypress_tone = Yes;
+//    settings_stream2[0].keypress_tone = No;   //Yes;
 //    settings_stream1[0].display_format = PL;
 //    settings_stream1[1].display_format = PL;
 //    settings_stream1[0].def_t = P;
@@ -3297,7 +3301,9 @@ int  read_event2()
 				   else if((nozzle_flag_key_old2 == 1) && (nozzle_flag_key2 == 1))
 				   {
 					   nozzle_flag_old2 = 1;
-					   return _no_Event;
+
+					   if(eNextState2 == filling_State)
+						   return _no_Event; //
 				   }
 			   }
 			   else if((nozzle_flag_key_old2 == 0) && (nozzle_flag_key2 == 1))
@@ -3575,41 +3581,41 @@ void pumpType_configure_fram(void)
 
 void pumpType_parse(void)
 {
-	  if(settings_stream1[0].pump_type_ == DN_LAFNG17K)
-	  {
-		  settings_stream1[0].display__ = LAFNG885;
-		  settings_stream1[0].keypad__ = LAFNG17_K;
-	  }
-	  else if(settings_stream1[0].pump_type_ == DN_LAFNG18K)
-	  {
-		  settings_stream1[0].display__ = LAFNG885;
-		  settings_stream1[0].keypad__ = LAFNG18_K;
-	  }
-	  else if(settings_stream1[0].pump_type_ == DN_BLSKY18K)
-	  {
-		  settings_stream1[0].display__ = BLSKY886_N;
-		  settings_stream1[0].keypad__ = BLSKY18_K;
-	  }
-	  else if(settings_stream1[0].pump_type_ == BLSKY886_N_LAFNG18_K)
-	  {
-		  settings_stream1[0].display__ = BLSKY886_N;
-		  settings_stream1[0].keypad__ = LAFNG18_K;
-	  }
-	  else if(settings_stream1[0].pump_type_ == DN_BLSKY22)
-	  {
-		  settings_stream1[0].display__ = BLSKY886_N;
-		  settings_stream1[0].keypad__ = BLSKY22;
-	  }
-	  else if(settings_stream1[0].pump_type_ == DIN_BLSKY18K)
-	  {
-		  settings_stream1[0].display__ = BLSKY886_IN;
-		  settings_stream1[0].keypad__ = BLSKY18_K;
-	  }
-	  else if(settings_stream1[0].pump_type_ == DIN_BLSKY22)
-	  {
-		  settings_stream1[0].display__ = BLSKY886_IN;
-		  settings_stream1[0].keypad__ = BLSKY22;
-	  }
+//	  if(settings_stream1[0].pump_type_ == DN_LAFNG17K)
+//	  {
+//		  settings_stream1[0].display__ = LAFNG885;
+//		  settings_stream1[0].keypad__ = LAFNG17_K;
+//	  }
+//	  else if(settings_stream1[0].pump_type_ == DN_LAFNG18K)
+//	  {
+//		  settings_stream1[0].display__ = LAFNG885;
+//		  settings_stream1[0].keypad__ = LAFNG18_K;
+//	  }
+//	  else if(settings_stream1[0].pump_type_ == DN_BLSKY18K)
+//	  {
+//		  settings_stream1[0].display__ = BLSKY886_N;
+//		  settings_stream1[0].keypad__ = BLSKY18_K;
+//	  }
+//	  else if(settings_stream1[0].pump_type_ == BLSKY886_N_LAFNG18_K)
+//	  {
+//		  settings_stream1[0].display__ = BLSKY886_N;
+//		  settings_stream1[0].keypad__ = LAFNG18_K;
+//	  }
+//	  else if(settings_stream1[0].pump_type_ == DN_BLSKY22)
+//	  {
+//		  settings_stream1[0].display__ = BLSKY886_N;
+//		  settings_stream1[0].keypad__ = BLSKY22;
+//	  }
+//	  else if(settings_stream1[0].pump_type_ == DIN_BLSKY18K)
+//	  {
+//		  settings_stream1[0].display__ = BLSKY886_IN;
+//		  settings_stream1[0].keypad__ = BLSKY18_K;
+//	  }
+//	  else if(settings_stream1[0].pump_type_ == DIN_BLSKY22)
+//	  {
+//		  settings_stream1[0].display__ = BLSKY886_IN;
+//		  settings_stream1[0].keypad__ = BLSKY22;
+//	  }
 
 }
 
@@ -4045,7 +4051,9 @@ uint8_t read_event1_1(void)
 			   if((nozzle_flag_old == 1) && (nozzle_flag == 1))
 			   {
 				   nozzle_flag_key_old1 = 1;
-				   return _no_Event; //
+
+				   if(eNextState1 == filling_State)
+					   return _no_Event; //
 			   }
 			   else if((nozzle_flag_old == 0) && (nozzle_flag == 0))
 			   {

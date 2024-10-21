@@ -761,7 +761,7 @@ uint8_t keypad_lcd(uint8_t fxn, char* num)
 
 //	if(pump_type != lafeng)
 //	if(pump_type != DN_LAFNG17K)
-	if( (settings_stream1[0].keypad__ != LAFNG17_K) && (settings_stream1[0].keypad__ != LAFNG18_K) )
+	if( (settings_stream1[0].keypad__ != LAFNG17_K) && (settings_stream1[0].keypad__ != LAFNG18_K) && (settings_stream1[0].keypad__ != LAFNG18_K_V2))
 	{
 		uint8_t rr =	write_keypad_lcd(fxn, num);
 	    return rr;
@@ -804,7 +804,7 @@ uint8_t keypad_lcd(uint8_t fxn, char* num)
 //				buf2[postn2] = 0x7E + 0X80;
 			scan_code = To_pattern( ToInt( num[(count - postn) + 1] ) );
 
-			if(settings_stream1[0].keypad__  == LAFNG18_K)
+			if( (settings_stream1[0].keypad__  == LAFNG18_K) || (settings_stream1[0].keypad__ == LAFNG18_K_V2))
 			{
 				scan_code += 0x80;
 //				buf[postn] = (scan_code ^ 0xFF);
@@ -823,7 +823,7 @@ uint8_t keypad_lcd(uint8_t fxn, char* num)
 		{
 				scan_code = To_pattern( ToInt( num[count - postn] ) );
 
-				if(settings_stream1[0].keypad__  == LAFNG18_K)
+				if( (settings_stream1[0].keypad__  == LAFNG18_K) || (settings_stream1[0].keypad__ == LAFNG18_K_V2) )
 				{
 //					buf[postn] = (scan_code ^ 0xFF);
 					buf[postn] = scan_code;
@@ -874,7 +874,7 @@ uint8_t keypad_lcd(uint8_t fxn, char* num)
 	{
 	    	disp_len_pad = 5;
 	}
-    else if(settings_stream1[0].keypad__  == LAFNG18_K)
+    else if( (settings_stream1[0].keypad__  == LAFNG18_K) || (settings_stream1[0].keypad__ == LAFNG18_K_V2) )
     {
     	disp_len_pad = 7;
     }
@@ -892,7 +892,7 @@ uint8_t keypad_lcd(uint8_t fxn, char* num)
 	uint8_t fill = 24;
 //if(pump_type == lafeng) fill = 16;
 //if(pump_type == DN_LAFNG17K)
-	if ( (settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) )
+	if ( (settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) || (settings_stream1[0].keypad__ == LAFNG18_K_V2))
 		fill = 16;
 
 	for(uint8_t i = 1; i < fill; i++)
@@ -909,7 +909,7 @@ uint8_t keypad_lcd(uint8_t fxn, char* num)
     //	_Delay(1);
     //--------------------	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_SET);  //latch pin high
 
-    HAL_GPIO_TogglePin(refresh_GPIO_Port,refresh_Pin);
+    HAL_GPIO_TogglePin(refresh_GPIO_Port, refresh_Pin);
 
 //==========================================================================
         if(fxn == 2) return;     // return if fxn 2 selected (screen only..)
@@ -939,14 +939,23 @@ uint8_t keypad_lcd(uint8_t fxn, char* num)
    if( checkkey() == 1)
    {
 		keynumber = 1;
+
+		if(settings_stream2[0].keypress_tone == Yes)
+		{
+		  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+		}
+
 		HAL_Delay(1);
+
+		HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+
 		return keynumber;
    }
 
    fill = 22;
 //   if(pump_type == lafeng) fill = 17;
 //   if(pump_type == DN_LAFNG17K)
-   if ( (settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) )
+   if ( (settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) || (settings_stream1[0].keypad__ == LAFNG18_K_V2))
 	   fill = 17;
 
    HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
@@ -960,7 +969,15 @@ uint8_t keypad_lcd(uint8_t fxn, char* num)
 		if( checkkey() == 1)
 		{
 			keynumber = i;
+
+			if(settings_stream2[0].keypress_tone == Yes)
+		    {
+			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+		    }
+
 			HAL_Delay(1);
+
+			HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 			return keynumber;
 		}
 	}
@@ -1498,7 +1515,7 @@ uint8_t keypad_lcd2(int fxn, char* num)
 
 //	if(pump_type2 != lafeng)
 //	if(pump_type != DN_LAFNG17K)
-	if( (settings_stream1[1].keypad__ != LAFNG17_K) && (settings_stream1[1].keypad__ != LAFNG18_K) )
+	if( (settings_stream1[1].keypad__ != LAFNG17_K) && (settings_stream1[1].keypad__ != LAFNG18_K) && (settings_stream1[1].keypad__ != LAFNG18_K_V2) )
 	{
 		uint8_t rr =	write_keypad_lcd2(fxn, num);
 	    return rr;
@@ -1626,7 +1643,7 @@ uint8_t keypad_lcd2(int fxn, char* num)
 	{
 	    	disp_len_pad2 = 5;
 	}
-    else if(settings_stream1[1].keypad__  == LAFNG18_K)
+    else if( (settings_stream1[1].keypad__  == LAFNG18_K) || (settings_stream1[1].keypad__ == LAFNG18_K_V2) )
     {
     	disp_len_pad2 = 7;
     }
@@ -1644,7 +1661,7 @@ uint8_t keypad_lcd2(int fxn, char* num)
 	uint8_t fill = 24;
 //if(pump_type == lafeng) fill = 16;
 //if(pump_type == DN_LAFNG17K)
-	if ( (settings_stream1[1].keypad__ == LAFNG17_K) || (settings_stream1[1].keypad__ == LAFNG18_K) )
+	if ( (settings_stream1[1].keypad__ == LAFNG17_K) || (settings_stream1[1].keypad__ == LAFNG18_K) || (settings_stream1[1].keypad__ == LAFNG18_K_V2) )
 		fill = 16;
 
 	for(uint8_t i = 1; i < fill; i++)
@@ -1691,14 +1708,23 @@ uint8_t keypad_lcd2(int fxn, char* num)
    if( checkkey2() == 1)
 	   {
 	        keynumber = 1;
-	        HAL_Delay(1);
+
+	        if(settings_stream2[1].keypress_tone == Yes)
+			{
+			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+			}
+
+			HAL_Delay(1);
+
+			HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+
 	        return keynumber;
 	   }
 
    fill = 22;
 //   if(pump_type == lafeng) fill = 17;
 //   if(pump_type == DN_LAFNG17K)
-   if ( (settings_stream1[1].keypad__ == LAFNG17_K) || (settings_stream1[1].keypad__ == LAFNG18_K) )
+   if ( (settings_stream1[1].keypad__ == LAFNG17_K) || (settings_stream1[1].keypad__ == LAFNG18_K) || (settings_stream1[1].keypad__ == LAFNG18_K_V2))
 	   fill = 17;
 
    HAL_GPIO_WritePin(datak2_GPIO_Port, datak2_Pin, GPIO_PIN_SET);
@@ -1712,7 +1738,16 @@ uint8_t keypad_lcd2(int fxn, char* num)
 		if( checkkey2() == 1)
 			{
 				keynumber = i;
+
+				if(settings_stream2[1].keypress_tone == Yes)
+			    {
+				  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+			    }
+
 				HAL_Delay(1);
+
+				HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+
 				return keynumber;
 			}
 	}

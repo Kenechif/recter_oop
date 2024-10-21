@@ -72,7 +72,7 @@ extern "C" {
 #define test_totaliser				0
 
 #define LCD_UPDATE_RATE             100
-#define keypad_delay				100
+#define keypad_delay				70
 
 #define pump_rx_bufsize  			1000
 
@@ -105,11 +105,11 @@ extern "C" {
 //#define  fast_flow_threshold       ( 140 )
 //============================================
 
-//typedef enum
-// {
-//     lafeng,
-//     bluesky
-// }pump;
+typedef enum
+ {
+     LAFENG,
+     BLUESKY
+ }pumptype;
 
  typedef enum
   {
@@ -472,10 +472,11 @@ typedef enum
 
 typedef enum
 {
-  LAFNG17_K = 1,    //ie. 17 punch-keys + a turn-key
-  BLSKY18_K,		//ie. 18 punch-keys + a turn-key
-  BLSKY22,			//ie. 22 punch-keys + no turn-key
-  LAFNG18_K    		//ie. 18 punch-keys + a turn-key
+  LAFNG17_K = 1,    	//ie. 17 punch-keys + a turn-key
+  BLSKY18_K,			//ie. 18 punch-keys + a turn-key
+  BLSKY22,				//ie. 22 punch-keys + no turn-key
+  LAFNG18_K,    		//ie. 18 punch-keys + a turn-key
+  LAFNG18_K_V2    		//ie. 18 punch-keys + a turn-key + Variant II
 }keypadtype;
 
 typedef enum
@@ -543,7 +544,7 @@ typedef enum
  	 opmode_  mode;
  	 nozzle_override noz_override;
  	 sellmode_ def_t;
- 	 pump pump_type_;
+ 	 pumptype pump_type_;
  	 float price_;
  	 float pi_cal;
  	 float pi_real;

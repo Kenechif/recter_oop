@@ -553,7 +553,7 @@ eSystemState write_flash_State_Handler(void)
 			}
 		}
 
-		if(settings_stream1[1].mode == AUTO_MODE)
+		else if(settings_stream1[1].mode == AUTO_MODE)
 		{
 			if(stopFlag_source2 == 1)
 			{
@@ -580,6 +580,7 @@ eSystemState write_flash_State_Handler(void)
 			{
 				mamo_reached_flag2_1 = 0;
 				mamo_reached_flag2 = 1;
+				filling_mamo_flag2 = 1;  //Ensures Routine in the filling state is not on repeat
 
 				return filling_State;
 			}
@@ -671,7 +672,7 @@ eSystemState write_flash_State_Handler(void)
 			return write_flash_State;
 		}
 //-------------------------  set the address ----------------------
-	if(flshw == 5)
+		if(flshw == 5)
 		{
 			flash_write_id_ = flash_write_id;
 	    	HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_RESET);

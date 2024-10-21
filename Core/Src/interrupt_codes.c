@@ -320,8 +320,8 @@ void check_flow(void)
 			  //---------------------------------------------
 			 pulser_complete1 = 1;
 
-			 pump_status_1 = STATUS_MAMO_REACHED;
-			 mamo_reached_flag1 = 1;
+//			 pump_status_1 = STATUS_MAMO_REACHED;
+//			 mamo_reached_flag1 = 1;
 
 			 stop_flow1(); 			  //stop solenoid.
 		  }
@@ -461,8 +461,8 @@ void check_flow(void)
 						  //---------------------------------------------
 						 pulser_complete2 = 1;
 
-						 pump_status_2 = STATUS_MAMO_REACHED;
-						 mamo_reached_flag2 = 1;
+//						 pump_status_2 = STATUS_MAMO_REACHED;
+//						 mamo_reached_flag2 = 1;
 
 						 stop_flow2(); 			  //stop solenoid.
 					  }

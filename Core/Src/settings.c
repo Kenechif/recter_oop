@@ -707,7 +707,7 @@ void make_settings(pump_sid side)
 
 	    settings_stream2[sdd].timeOut_noFlow = 300;
 
-//	    settings[sdd].pump_type_ = bluesky;    // lafeng;
+	    settings_stream1[sdd].pump_type_ = BLUESKY;    // LAFENG;
 //	    settings[sdd].pump_type_ = pump_type;
 
 	    strncpy(settings_stream3[sdd].passwd1, "0000", 9);
@@ -3426,6 +3426,28 @@ char lafeng_keypad_18K[18] =
 	'9',	//10
 	'C',	//11   //Up-Key
 	'A',	//12   //Down-Key
+	'D',	//13	//Select-Key
+	'.',	//14
+	'F',    //15    //clear
+	'0',    //16
+	'J'     //17   //Totalizer
+};
+
+char lafeng_keypad_18K_V2[18] =
+{
+	'-',	//0
+	'C',	//1   //Down-Key
+	'1',	//2
+	'5',	//3
+	'3',	//4
+	'8',	//5
+	'2',	//6
+	'4',	//7
+	'7',	//8
+	'6',	//9
+	'9',	//10
+	'B',	//11   //Up-Key
+	'A',	//12   //Back-Key
 	'D',	//13	//Select-Key
 	'.',	//14
 	'F',    //15    //clear

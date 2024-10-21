@@ -162,12 +162,12 @@ void lcd_print_line3_2(char lcd_[10])
 
 void keypad_print2(char lcd_[8])
 {
-	for (int i = 0; i < 8; i++)
+	for (uint8_t i = 0; i < 8; i++)
 	 {
 		 key_lcd2[i] = lcd_[i];
 	 }
 
-	  keypad_lcd2(0,key_lcd2);
+	  keypad_lcd2(0, key_lcd2);
 }
 
 //void send_solenoid2(int v_)
