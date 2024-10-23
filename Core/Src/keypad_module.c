@@ -874,9 +874,13 @@ uint8_t keypad_lcd(uint8_t fxn, char* num)
 	{
 	    	disp_len_pad = 5;
 	}
-    else if( (settings_stream1[0].keypad__  == LAFNG18_K) || (settings_stream1[0].keypad__ == LAFNG18_K_V2) )
+    else if(settings_stream1[0].keypad__  == LAFNG18_K)
     {
     	disp_len_pad = 7;
+    }
+    else if(settings_stream1[0].keypad__ == LAFNG18_K_V2)
+    {
+    	disp_len_pad = 8;
     }
 
 	for(uint8_t i = 0; i < disp_len_pad; i++)  //7 bytes for bluesky 5 bytes for lafeng
@@ -1643,9 +1647,13 @@ uint8_t keypad_lcd2(int fxn, char* num)
 	{
 	    	disp_len_pad2 = 5;
 	}
-    else if( (settings_stream1[1].keypad__  == LAFNG18_K) || (settings_stream1[1].keypad__ == LAFNG18_K_V2) )
+    else if(settings_stream1[1].keypad__  == LAFNG18_K)
     {
     	disp_len_pad2 = 7;
+    }
+    else if(settings_stream1[1].keypad__ == LAFNG18_K_V2)
+    {
+    	disp_len_pad2 = 8;
     }
 
 	for(uint8_t i = 0; i < disp_len_pad2; i++)  //7 bytes for bluesky 5 bytes for lafeng

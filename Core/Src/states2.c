@@ -973,10 +973,14 @@ uint8_t long_press_log2()
 	}
 	else if (ky == 1)
 	{
-		HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+		if(settings_stream2[1].keypress_tone == Yes)
+		{
+			HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+			HAL_Delay(10);
+		}
 	}
 
-	 if ( (log_buttonpress_tmr2 >= 3)&&(pressed_ == 0 ) )
+	 if ( (log_buttonpress_tmr2 >= 3) && (pressed_ == 0 ) )
 	 {
 	   log_buttonpress_tmr2 = 3;
 		pressed_ = 1;
@@ -1025,6 +1029,17 @@ uint8_t long_press_tot2()
 		{
 			key19Timer2 = 0;
 			firstTime_key192 = 2;
+
+			if(settings_stream2[1].keypress_tone == Yes)
+			{
+				  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+				  HAL_Delay(10);
+			}
+		}
+
+		else if (key19State == 0)   // Key19 is released
+		{
+			HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 		}
 
 		if (key19State != lastKey19State)
@@ -1038,6 +1053,12 @@ uint8_t long_press_tot2()
 						 click_in_progress = true; //we are in the clicking phase
 					 }
 					 key19StateCount++ ; // it will start as 1 and will keep incrementing
+
+					 if(settings_stream2[1].keypress_tone == Yes)
+					 {
+						  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+						  HAL_Delay(10);
+					 }
 			  }
 
 				 if(click_in_progress == true)
@@ -1046,32 +1067,24 @@ uint8_t long_press_tot2()
 					 {
 						 if(key19StateCount > 1)
 						 {
-
 							//it's a double or multiple click
 							 doublePressDetected = true;
-
-		//	            	 key19StateCount = 0;
-
 						 }
 						 else
 						 {
-
 							 //has to be at least 1 so it's a single click, it can never be zero
 						 }
 
-						 //reset everything
 						 key19StateCount = 0;
 						 click_in_progress = false;
-						 //no need to waste processor time resetting lastClickTime as it won't be checked until the next click_in_progress = 1 and it will be reset before that anyway
-
 					 }
 				 }
 			  }
 
 			  lastKey19State = key19State;
 
-			  if (doublePressDetected) {
-		//	    Serial.println("Double press detected!");
+			  if (doublePressDetected)
+			  {
 				  doublePressDetected = false;
 				  tot_buttonpress_tmr2 = 3;
 				  pressed_ = 1;

@@ -274,7 +274,14 @@ void config_rx_parse(void)
 //	   }
 //}
 
-
+/*
+{"ni":"p17","pn":"pms","dt":"bluesky886n","kt":"bluesky22"}
+{"ni":"p17","pn":"pms","dt":"bluesky886n","kt":"bluesky18k"}
+{"ni":"p17","pn":"pms","dt":"bluesky886n","kt":"lafeng17k"}
+{"ni":"p17","pn":"pms","dt":"bluesky886n","kt":"lafeng18k"}
+{"ni":"p17","pn":"pms","dt":"bluesky886n","kt":"lafeng18k_v2"}
+{"ni":"p17","pn":"pms","dt":"bluesky886n","kt":"bluesky22"}
+*/
 
 void configure_pump(pumpCompPart _case)
 {
@@ -346,6 +353,11 @@ void configure_pump(pumpCompPart _case)
 						   {
 							   settings_stream1[0].keypad__ = LAFNG18_K;
 							   settings_stream1[1].keypad__ = LAFNG18_K;
+						   }
+						   else if(strstr(rx_buf, "lafeng18k_v2"))
+						   {
+							   settings_stream1[0].keypad__ = LAFNG18_K_V2;
+							   settings_stream1[1].keypad__ = LAFNG18_K_V2;
 						   }
 
 						#ifdef DEV_MODE
