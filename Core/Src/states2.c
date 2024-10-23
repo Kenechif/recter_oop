@@ -5810,14 +5810,14 @@ eSystemState idleState_Handler2(void)
 
 	firstTime_nozz2 = 1;
 
-	if(settings_stream1[1].mode == AUTO_MODE)
-		{
-			if(timer_go >= TIMEOUT_GO)   //if go's timeout is 5sec threshold
-			{
-				pump_status_2 = STATUS_PNP;
-				return pnp_State;
-			}
-		}
+//	if(settings_stream1[1].mode == AUTO_MODE)
+//		{
+//			if(timer_go >= TIMEOUT_GO)   //if go's timeout is 5sec threshold
+//			{
+////				pump_status_2 = STATUS_FILLING_COMP;
+////				return idle_State;
+//			}
+//		}
 
 		#if sense_power == 1
 		  if(readpwr() == 0)
@@ -6021,6 +6021,39 @@ eSystemState idleState_Handler2(void)
 			}
 
 		}
+	}
+
+	else if(settings_stream1[1].mode == AUTO_MODE)
+	{
+		if(timer_go >= TIMEOUT_GO)   //if go's timeout is 5sec threshold
+		{
+
+			if ( (t2 >= 300) && (t2 <= 700) )
+			{
+				lcd_print_line1_2("        ");
+				lcd_print_line2_2(" Offline");
+				lcd_print_line3_2("      ");
+			}
+			else if ( (t2 > 700) && (t2 <= 3000) )
+			{
+				  if(settings_stream1[1].display_format == PL)
+				  {
+					 lcd_print_line1_2(upper2);
+					 lcd_print_line2_2(middle2);
+				  }
+				  else if(settings_stream1[0].display_format == LP)
+				  {
+					  lcd_print_line1_2(middle2);
+					  lcd_print_line2_2(upper2);
+				  }
+				 lcd_print_line3_2("        ");
+				 char str__[8]= {0};
+				 snprintf(str__, sizeof(str__), "%.2f", litre_price2); lcd_print_line3_2(str__);
+			}
+
+		  if (t2 > 2000)
+				  t2 = 0;
+	   }
 	}
 
 	else if ( (t2 > 500) && (nozzleup_awaitingauth_state_not_timedOut2 == 0) && (pump_LitreOverflow2 == 0) && (_litre_price2 == 0)
@@ -7146,11 +7179,15 @@ eSystemState filling_State_Handler2(void)
 
 //======================== @ filling1 =============================
 	  // get_time2();
-	   temp = pulser2amt2(current_pulser2);
+
+	   	   temp = pulser2amt_R2(current_pulser2);
+	   amt_real2 = dp2(temp, dp_vol2);
+	   	   temp = pulser2amt2(current_pulser2);
 	   amt2 = dp2(temp, dp_vol2);
 
-	   temp = amt2price2(amt2);
+	   	   temp = amt2price2(amt2);
 	   price2 = dp2(temp, dp_amount2);
+
 
 	   //		temp = pulser2amt2_R(current_pulser2);
 //		amt_real2 = dp2(temp,dp_amount2);
@@ -7717,6 +7754,8 @@ void make_string2(sellmode_ sll, float pr)
 	int8_t tmp = 1,
 		   ind = 0;
 
+	char *end;
+
 	char temp[10] = {0};
 	char ttmp[10] = {0};
 
@@ -7729,8 +7768,10 @@ void make_string2(sellmode_ sll, float pr)
 		 else if (dp_vol2 == 3)
 		 	 snprintf(temp , sizeof(temp), "%.3f", pr);
 
-		 amt_middle2 = atof(temp);
-		 amt_middle2 += 0.00011;
+//		 amt_middle2 = atof(temp);
+//		 amt_middle2 += 0.00011;
+
+		 amt_middle2 = strtod(temp, NULL);
 
 		 if(pr < display_minimumCentilitre2)   // 9 centilitres
 		 {
@@ -7753,8 +7794,10 @@ void make_string2(sellmode_ sll, float pr)
 			 else if (dp_amount2 == 3)
 			 	 snprintf(temp , sizeof(temp), "%.3f", pr);
 
-			price_upper2 = atof(temp);
-			price_upper2 += 0.00011;
+//			price_upper2 = atof(temp);
+//			price_upper2 += 0.00011;
+
+			price_upper2 = strtod(temp, NULL);
 
 			if(pr < display_minimumCentilitrePrice2)   // 9 centilitres
 			{
@@ -9539,11 +9582,17 @@ eSystemState pnpState_Handler2(void)
 
 	 if  (t2 > 500)
 	 {
-		 lcd_print_line1_2("        ");
-		 lcd_print_line2_2(" Offline");
-		 if(settings_stream1[1].display_format == PL)
+//		 lcd_print_line1_2("        ");
+//		 lcd_print_line2_2(" Offline");
+//		 if(settings_stream1[1].display_format == PL)
 
-		 lcd_print_line3_2("      ");
+//		 lcd_print_line3_2("        ");
+
+		 char str__[8] = {0};
+		 snprintf(str__, sizeof(str__), "%.2f", litre_price2);
+		 lcd_print_line3_2(str__);
+
+//		 lcd_print_line3_2("      ");
 
 		 t2 = 0;
 	 }

@@ -279,7 +279,7 @@ int main(void)
 	// stop_flow1();
 
 
- 	config_mode = 0;
+  	config_mode = 0;
 
 	uint8_t MSG[35] = {'\0'};
 	uint16_t CounterTicks = 0;

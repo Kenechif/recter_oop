@@ -2295,8 +2295,8 @@ eSystemState operator_State_Handler(void)
 	{
 		if(timer_go >= TIMEOUT_GO)   //if go's timeout is 5sec threshold
 		{
-			pump_status_1 = STATUS_PNP;
-			return pnp_State;
+//			pump_status_1 = STATUS_PNP;
+//			return pnp_State;
 		}
 	}
 
@@ -7213,15 +7213,6 @@ eSystemState idleState_Handler(void)
 
 	firstTime_nozz1 = 1;
 
-	if(settings_stream1[0].mode == AUTO_MODE)
-	{
-		if(timer_go >= TIMEOUT_GO)   //if go's timeout is 5sec threshold
-		{
-			pump_status_1 = STATUS_PNP;
-			return pnp_State;
-		}
-	}
-
 	#if sense_power == 1
 	  if(readpwr() == 0)
 	  {
@@ -7429,6 +7420,39 @@ eSystemState idleState_Handler(void)
 				}
 			}
 		}
+	}
+
+	else if(settings_stream1[0].mode == AUTO_MODE)
+	{
+		if(timer_go >= TIMEOUT_GO)   //if go's timeout is 5sec threshold
+		{
+
+			if ( (t >= 300) && (t <= 700) )
+			{
+				lcd_print_line1("        ");
+				lcd_print_line2(" Offline");
+				lcd_print_line3("      ");
+			}
+			else if ( (t > 700) && (t <= 2000) )
+			{
+				  if(settings_stream1[0].display_format == PL)
+				  {
+					 lcd_print_line1(upper1);
+					 lcd_print_line2(middle1);
+				  }
+				  else if(settings_stream1[0].display_format == LP)
+				  {
+					  lcd_print_line1(middle1);
+					  lcd_print_line2(upper1);
+				  }
+				 lcd_print_line3("        ");
+				 char str__[8]= {0};
+				 snprintf(str__, sizeof(str__), "%.2f", litre_price); lcd_print_line3(str__);
+			}
+
+		  if (t > 2000)
+				  t = 0;
+	   }
 	}
 
 	else if ( (t > 500) && (nozzleup_awaitingauth_state_not_timedOut == 0) && (pump_LitreOverflow == 0) && (_litre_price1 == 0)
@@ -8892,7 +8916,9 @@ eSystemState filling_State_Handler(void)
 
 	if (stop_flag == 1)   //if stop key pressed
 	{
-		filling1 = 0,  nozzle_bit = 0;
+		filling1 = 0,
+		nozzle_bit = 0;
+
 		stop_flag = 0;
 		stop_flow1(); //send_solenoid(1);  //stop solenoid.
 		get_time();
@@ -9012,12 +9038,12 @@ eSystemState filling_State_Handler(void)
 	}
 //======================== @ filling1 =============================
 	  // get_time2();
-	   	   	   temp = pulser2amt(current_pulser1);
-	   amt = dp(temp, dp_vol1);
 			   temp = pulser2amt_R(current_pulser1);
 	   amt_real1 = dp(temp, dp_vol1);
+	   	   temp = pulser2amt(current_pulser1);
+	   amt = dp(temp, dp_vol1);
 	   	   	   temp = amt2price(amt);
-	   price = dp(temp,dp_amount1);
+	   price = dp(temp, dp_amount1);
 
 	    make_string(P, dp(price, dp_amount1));
 	    make_string(L, dp(amt, dp_vol1));
@@ -9236,294 +9262,294 @@ void do_calcs ()
 {
 
 	float temp;
- if(target_pulser1 > 0)  // if price or volume is programmed
- {
-   if (pulser_rem1 <= 0 || pulser_complete1 == 1 )  //sales complete...
-   {
-	   //get_time2();
+	 if(target_pulser1 > 0)  // if price or volume is programmed
+	 {
+	   if (pulser_rem1 <= 0 || pulser_complete1 == 1 )  //sales complete...
+	   {
+		   //get_time2();
 
-	    if (sellmode == P)
-	   	{
-
-	       //---------------------------------------------------------
-	    	//price = dp(key_value,dp_price);   // temp = amt2price(amt);
-	    	//amt   = dp( price_/litre_price ,dp_amount);
-
-	    	 temp = pulser2amt(current_pulser1);
-	    		    	 amt = dp(temp, dp_vol1);
-
-			 temp = amt2price(amt);
-						 price = dp(temp, dp_amount1);
-
-			if(key_value_sellmodeP1 == 1)
+			if (sellmode == P)
 			{
-				key_value_sellmodeP1 = 0;
-				key_value = key_value_original1;
-			}
 
-	   		/********************************************
-	   		 *
-	   		 * SHOW WHAT THE USER NEEDS...
-	   		 *
-	   		 * ******************************************/
-	   		 price_ = dp(key_value, dp_amount1);
-	   		 	 temp = price_/litre_price;
-	   		 amt_   = dp(temp, dp_vol1); //calculate vol frm price.
+			   //---------------------------------------------------------
+				//price = dp(key_value,dp_price);   // temp = amt2price(amt);
+				//amt   = dp( price_/litre_price ,dp_amount);
 
-	 		//=========================================================
-	 		//    Also calculate the values based on the real P.Indx
-	 		          temp  = pulser2amt_R(current_pulser1);
-	 		      amt_real1 = dp(temp,dp_vol1);
-	 		          temp = amt2price(amt_real1);
-	 		      price_real1 = dp(temp, dp_amount1);
-	 		//=========================================================
-	   	   }
+				 temp = pulser2amt(current_pulser1);
+							 amt = dp(temp, dp_vol1);
 
-	   	  if (sellmode == L)
-	   	  {
-	   		    temp = pulser2amt(target_pulser1);
-	   		    amt  = dp(temp,dp_vol1);
+				 temp = amt2price(amt);
+							 price = dp(temp, dp_amount1);
 
-	   			price  = amt2price(amt);
-
-	   			if(key_value_sellmodeL1 == 1)
+				if(key_value_sellmodeP1 == 1)
 				{
-					key_value_sellmodeL1 = 0;
+					key_value_sellmodeP1 = 0;
 					key_value = key_value_original1;
 				}
 
 				/********************************************
 				 *
-				 * SHOW WHAT THE USER NEEDS TO SEE...
+				 * SHOW WHAT THE USER NEEDS...
 				 *
 				 * ******************************************/
-	   			amt_   = key_value;
-	   			price_ = amt_ * litre_price; //calculate price from price.amt
-		 		//=========================================================
-		 		//    Also calculate the values based on the real P.Indx
-		 		          temp  = pulser2amt_R(current_pulser1);
-		 		      amt_real1 = dp(temp,dp_vol1);
-		 		          temp = amt2price(amt_real1);
-		 		      price_real1 = dp(temp, dp_amount1);
-		 		//=========================================================
-	   	   }
-	   	 //------------------------------------------------------------------
+				 price_ = dp(key_value, dp_amount1);
+					 temp = price_/litre_price;
+				 amt_   = dp(temp, dp_vol1); //calculate vol frm price.
 
-	   	  make_string(P, dp(price_, dp_amount1));
-	   	  make_string(L, dp(amt_, dp_vol1));
+				//=========================================================
+				//    Also calculate the values based on the real P.Indx
+						  temp  = pulser2amt_R(current_pulser1);
+					  amt_real1 = dp(temp, dp_vol1);
+						  temp = amt2price(amt_real1);
+					  price_real1 = dp(temp, dp_amount1);
+				//=========================================================
+			   }
 
-	  	  if(settings_stream1[0].display_format == PL)
-	  	  {
-	  		 lcd_print_line1(upper1);
-	  		 lcd_print_line2(middle1);
-	  	  }
-		  else if(settings_stream1[0].display_format == LP)
-		  {
-			  lcd_print_line1(middle1);
-			  lcd_print_line2(upper1);
-		  }
+			  if (sellmode == L)
+			  {
+					temp = pulser2amt(target_pulser1);
+					amt  = dp(temp, dp_vol1);
 
-	   	  running_volTotaliser1 = working_volTotaliser1 + amt_real1;
-//	   	  running_volTotaliser1c = working_volTotaliser1c + amt;
+					price  = amt2price(amt);
 
-		  running_volTotaliser1c = working_volTotaliser1c + amt_middle1;
+					if(key_value_sellmodeL1 == 1)
+					{
+						key_value_sellmodeL1 = 0;
+						key_value = key_value_original1;
+					}
 
-	   	  running_amtTotaliser1 = working_amtTotaliser1 + price_real1;
-//	   	  running_amtTotaliser1 = working_amtTotaliser1 + price;
+					/********************************************
+					 *
+					 * SHOW WHAT THE USER NEEDS TO SEE...
+					 *
+					 * ******************************************/
+					amt_   = key_value;
+					price_ = amt_ * litre_price; //calculate price from price.amt
+					//=========================================================
+					//    Also calculate the values based on the real P.Indx
+							  temp  = pulser2amt_R(current_pulser1);
+						  amt_real1 = dp(temp, dp_vol1);
+							  temp = amt2price(amt_real1);
+						  price_real1 = dp(temp, dp_amount1);
+					//=========================================================
+			   }
+			 //------------------------------------------------------------------
 
-	   	  running_amtTotaliser1c = working_amtTotaliser1c + price_upper1;
+			  make_string(P, dp(price_, dp_amount1));
+			  make_string(L, dp(amt_, dp_vol1));
 
-	   	  float pricecheck = running_amtTotaliser1c - priceOld1;
+			  if(settings_stream1[0].display_format == PL)
+			  {
+				 lcd_print_line1(upper1);
+				 lcd_print_line2(middle1);
+			  }
+			  else if(settings_stream1[0].display_format == LP)
+			  {
+				  lcd_print_line1(middle1);
+				  lcd_print_line2(upper1);
+			  }
 
-			if (pricecheck >= 1000.00)
-			{
-			   priceOld1 = running_amtTotaliser1c;
-			   save_amountSend(side_a);
+			  running_volTotaliser1 = working_volTotaliser1 + amt_real1;
+	//	   	  running_volTotaliser1c = working_volTotaliser1c + amt;
 
-			   char str[65];
-			   sprintf(str, "[Side-A]... #%0.2f intermittent worth of sales made now!", pricecheck);
-			   server_write(str);
-			}
+			  running_volTotaliser1c = working_volTotaliser1c + amt_middle1;
 
-		   totaliser_vol1 = running_volTotaliser1;    // update totaliser
-		   totaliser_vol1c = running_volTotaliser1c;  // update totaliser
-		   totaliser_amt1 = running_amtTotaliser1;    // update totaliser
-		   totaliser_amt1c = running_amtTotaliser1c;  // update totaliser
+			  running_amtTotaliser1 = working_amtTotaliser1 + price_real1;
+	//	   	  running_amtTotaliser1 = working_amtTotaliser1 + price;
 
-	   	//============================================================
+			  running_amtTotaliser1c = working_amtTotaliser1c + price_upper1;
 
-		   //         for totaliser toggle.
+			  float pricecheck = running_amtTotaliser1c - priceOld1;
 
-			r_volTotaliser1 	  = floor( running_volTotaliser1c );
-
-			if(r_volTotaliser1 != old_r_volTotaliser1)
-			{
-				totalizer1Timer = 0;
-
-		  //			then toggle the totaliser harware I/O.
-
-				drive_totaliser1(ACTIVATE);
-
-				countar++;
-			}
-			else
-			{
-				//deactivate totaliser output...
-
-				if(totalizer1Timer > 200)
+				if (pricecheck >= 1000.00)
 				{
-					drive_totaliser1(DEACTIVATE);
+				   priceOld1 = running_amtTotaliser1c;
+				   save_amountSend(side_a);
+
+				   char str[65];
+				   sprintf(str, "[Side-A]... #%0.2f intermittent worth of sales made now!", pricecheck);
+				   server_write(str);
 				}
 
-			}
-			  old_r_volTotaliser1 = r_volTotaliser1;   //update...
+			   totaliser_vol1 = running_volTotaliser1;    // update totaliser
+			   totaliser_vol1c = running_volTotaliser1c;  // update totaliser
+			   totaliser_amt1 = running_amtTotaliser1;    // update totaliser
+			   totaliser_amt1c = running_amtTotaliser1c;  // update totaliser
 
-	    //-------------------------------------------------------------------
+			//============================================================
 
-	   	   return;
+			   //         for totaliser toggle.
+
+				r_volTotaliser1 	  = floor( running_volTotaliser1c );
+
+				if(r_volTotaliser1 != old_r_volTotaliser1)
+				{
+					totalizer1Timer = 0;
+
+			  //			then toggle the totaliser harware I/O.
+
+					drive_totaliser1(ACTIVATE);
+
+					countar++;
+				}
+				else
+				{
+					//deactivate totaliser output...
+
+					if(totalizer1Timer > 200)
+					{
+						drive_totaliser1(DEACTIVATE);
+					}
+
+				}
+				  old_r_volTotaliser1 = r_volTotaliser1;   //update...
+
+			//-------------------------------------------------------------------
+
+			   return;
+		 }
+	   else
+	   {
+		  //programmed but still dispensing @ stop pt.
+			 temp = pulser2amt(current_pulser1);  amt   = dp(temp,dp_vol1);
+			 temp = amt2price(amt);   			price = dp(temp,dp_amount1);
+
+			  make_string(P, dp(price, dp_amount1));
+			  make_string(L, dp(amt, dp_vol1));
+
+			//=========================================================
+			//    Also calculate the values based on the real P.Indx
+						  temp  = pulser2amt_R(current_pulser1);
+					  amt_real1 = dp(temp,dp_vol1);
+						  temp = amt2price(amt_real1);
+					  price_real1 = dp(temp, dp_amount1);
+			//=========================================================
+
+	//		  lcd_print_line1(upper1);
+	//		  lcd_print_line2(middle1);
+			  if(settings_stream1[0].display_format == PL)
+			  {
+				 lcd_print_line1(upper1);
+				 lcd_print_line2(middle1);
+			  }
+			  else if(settings_stream1[0].display_format == LP)
+			  {
+				  lcd_print_line1(middle1);
+				  lcd_print_line2(upper1);
+			  }
+
+
+			  running_volTotaliser1 = working_volTotaliser1 + amt_real1;
+	//	   	  running_volTotaliser1c = working_volTotaliser1c + amt;
+
+			  running_volTotaliser1c = working_volTotaliser1c + amt_middle1;
+
+			  running_amtTotaliser1 = working_amtTotaliser1 + price_real1;
+	//	   	  running_amtTotaliser1 = working_amtTotaliser1 + price;
+
+			  running_amtTotaliser1c = working_amtTotaliser1c + price_upper1;
+
+			  float pricecheck = running_amtTotaliser1c - priceOld1;
+
+				if (pricecheck >= 1000.00)
+				{
+				   priceOld1 = running_amtTotaliser1c;
+				   save_amountSend(side_a);
+
+				   char str[65];
+				   sprintf(str, "[Side-A]... #%0.2f intermittent worth of sales made now!", pricecheck);
+				   server_write(str);
+				}
+
+			   totaliser_vol1 = running_volTotaliser1;    // update totaliser
+			   totaliser_vol1c = running_volTotaliser1c;  // update totaliser
+			   totaliser_amt1 = running_amtTotaliser1;    // update totaliser
+			   totaliser_amt1c = running_amtTotaliser1c;  // update totaliser
+
+			 //-------------------------------------------------------------------
+			   return;
+	   }
 	 }
-   else
-   {
-      //programmed but still dispensing @ stop pt.
-		 temp = pulser2amt(current_pulser1);  amt   = dp(temp,dp_vol1);
-		 temp = amt2price(amt);   			price = dp(temp,dp_amount1);
+	 else   // if target_pulser1 == 0
+	 {
+		 //if un programmed...
+		 //still dispensing @ stop pt.
 
-		  make_string(P, dp(price, dp_amount1));
-		  make_string(L, dp(amt, dp_vol1));
+			 temp = pulser2amt(current_pulser1);
+				  amt = dp(temp,dp_vol1);
 
-	    //=========================================================
-		//    Also calculate the values based on the real P.Indx
-			          temp  = pulser2amt_R(current_pulser1);
-			      amt_real1 = dp(temp,dp_vol1);
-			          temp = amt2price(amt_real1);
-			      price_real1 = dp(temp, dp_amount1);
-		//=========================================================
+			 temp = amt2price(amt);
+				 price = dp(temp,dp_amount1);
 
-//		  lcd_print_line1(upper1);
-//		  lcd_print_line2(middle1);
-		  if(settings_stream1[0].display_format == PL)
-	  	  {
-	  		 lcd_print_line1(upper1);
-	  		 lcd_print_line2(middle1);
-	  	  }
-		  else if(settings_stream1[0].display_format == LP)
-		  {
-			  lcd_print_line1(middle1);
-			  lcd_print_line2(upper1);
-		  }
+			//compare the final and initial prices...
+				 float ddp = 0;
+				 if      (dp_amount1 == 1) ddp =  0.1;
+				 else if (dp_amount1 == 2) ddp =  0.01;
+				 else if (dp_amount1 == 3) ddp =  0.001;
 
+				 if( (temp - price) > ( (ddp/10)*2) )  //result was rounded down.
+				 {
 
-	   	  running_volTotaliser1 = working_volTotaliser1 + amt_real1;
-//	   	  running_volTotaliser1c = working_volTotaliser1c + amt;
+					 //need to do a little fixing here...
+					 price = price + ddp;
+				 }
 
-		  running_volTotaliser1c = working_volTotaliser1c + amt_middle1;
+			  make_string(P, price); //,dp_price)
+			  make_string(L, amt);  //,dp_amount)
 
-	   	  running_amtTotaliser1 = working_amtTotaliser1 + price_real1;
-//	   	  running_amtTotaliser1 = working_amtTotaliser1 + price;
+			//=========================================================
+			//    Also calculate the values based on the real P.Indx
+					  temp  = pulser2amt_R(current_pulser1);
+				  amt_real1 = dp(temp,dp_vol1);
+					  temp = amt2price(amt_real1);
+				  price_real1 = dp(temp, dp_amount1);
+			//=========================================================
 
-	   	  running_amtTotaliser1c = working_amtTotaliser1c + price_upper1;
+	//		  lcd_print_line1(upper1);
+	//		  lcd_print_line2(middle1);
 
-	   	  float pricecheck = running_amtTotaliser1c - priceOld1;
+			  if(settings_stream1[0].display_format == PL)
+			  {
+				 lcd_print_line1(upper1);
+				 lcd_print_line2(middle1);
+			  }
+			  else if(settings_stream1[0].display_format == LP)
+			  {
+				  lcd_print_line1(middle1);
+				  lcd_print_line2(upper1);
+			  }
 
-			if (pricecheck >= 1000.00)
-			{
-			   priceOld1 = running_amtTotaliser1c;
-			   save_amountSend(side_a);
+			  running_volTotaliser1 = working_volTotaliser1 + amt_real1;
+	//	   	  running_volTotaliser1c = working_volTotaliser1c + amt;
 
-			   char str[65];
-			   sprintf(str, "[Side-A]... #%0.2f intermittent worth of sales made now!", pricecheck);
-			   server_write(str);
-			}
+			  running_volTotaliser1c = working_volTotaliser1c + amt_middle1;
 
-		   totaliser_vol1 = running_volTotaliser1;    // update totaliser
-		   totaliser_vol1c = running_volTotaliser1c;  // update totaliser
-		   totaliser_amt1 = running_amtTotaliser1;    // update totaliser
-		   totaliser_amt1c = running_amtTotaliser1c;  // update totaliser
+			  running_amtTotaliser1 = working_amtTotaliser1 + price_real1;
+	//	   	  running_amtTotaliser1 = working_amtTotaliser1 + price;
 
-		 //-------------------------------------------------------------------
-		   return;
-   }
- }
- else   // if target_pulser1 == 0
- {
-	 //if un programmed...
-     //still dispensing @ stop pt.
+			  running_amtTotaliser1c = working_amtTotaliser1c + price_upper1;
 
-		 temp = pulser2amt(current_pulser1);
-		      amt = dp(temp,dp_vol1);
+			  float pricecheck = running_amtTotaliser1c - priceOld1;
 
-		 temp = amt2price(amt);
-		 	 price = dp(temp,dp_amount1);
+				if (pricecheck >= 1000.00)
+				{
+				   priceOld1 = running_amtTotaliser1c;
+				   save_amountSend(side_a);
 
-		//compare the final and initial prices...
-		 	 float ddp = 0;
-		 	 if      (dp_amount1 == 1) ddp =  0.1;
-			 else if (dp_amount1 == 2) ddp =  0.01;
-			 else if (dp_amount1 == 3) ddp =  0.001;
+				   char str[65];
+				   sprintf(str, "[Side-A]... #%0.2f intermittent worth of sales made now!", pricecheck);
+				   server_write(str);
+				}
 
-		 	 if( (temp - price) > ( (ddp/10)*2) )  //result was rounded down.
-		 	 {
+			   totaliser_vol1 = running_volTotaliser1;    // update totaliser
+			   totaliser_vol1c = running_volTotaliser1c;  // update totaliser
+			   totaliser_amt1 = running_amtTotaliser1;    // update totaliser
+			   totaliser_amt1c = running_amtTotaliser1c;  // update totaliser
 
-		 		 //need to do a little fixing here...
-		 		 price = price + ddp;
-		 	 }
-
-		  make_string(P, price); //,dp_price)
-		  make_string(L, amt);  //,dp_amount)
-
-		//=========================================================
-		//    Also calculate the values based on the real P.Indx
-		          temp  = pulser2amt_R(current_pulser1);
-		      amt_real1 = dp(temp,dp_vol1);
-		          temp = amt2price(amt_real1);
-		      price_real1 = dp(temp, dp_amount1);
-		//=========================================================
-
-//		  lcd_print_line1(upper1);
-//		  lcd_print_line2(middle1);
-
-		  if(settings_stream1[0].display_format == PL)
-		  {
-			 lcd_print_line1(upper1);
-			 lcd_print_line2(middle1);
-		  }
-		  else if(settings_stream1[0].display_format == LP)
-		  {
-			  lcd_print_line1(middle1);
-			  lcd_print_line2(upper1);
-		  }
-
-	   	  running_volTotaliser1 = working_volTotaliser1 + amt_real1;
-//	   	  running_volTotaliser1c = working_volTotaliser1c + amt;
-
-		  running_volTotaliser1c = working_volTotaliser1c + amt_middle1;
-
-	   	  running_amtTotaliser1 = working_amtTotaliser1 + price_real1;
-//	   	  running_amtTotaliser1 = working_amtTotaliser1 + price;
-
-	   	  running_amtTotaliser1c = working_amtTotaliser1c + price_upper1;
-
-	   	  float pricecheck = running_amtTotaliser1c - priceOld1;
-
-			if (pricecheck >= 1000.00)
-			{
-			   priceOld1 = running_amtTotaliser1c;
-			   save_amountSend(side_a);
-
-			   char str[65];
-			   sprintf(str, "[Side-A]... #%0.2f intermittent worth of sales made now!", pricecheck);
-			   server_write(str);
-			}
-
-		   totaliser_vol1 = running_volTotaliser1;    // update totaliser
-		   totaliser_vol1c = running_volTotaliser1c;  // update totaliser
-		   totaliser_amt1 = running_amtTotaliser1;    // update totaliser
-		   totaliser_amt1c = running_amtTotaliser1c;  // update totaliser
-
-		 //-------------------------------------------------------------------
-		   return;
-     }
-  return;
+			 //-------------------------------------------------------------------
+			   return;
+		 }
+	  return;
 }
 
 //----------------------------------------
@@ -10091,10 +10117,14 @@ eSystemState pnpState_Handler(void)
 
 	 if  (t > 500)
 	 {
-		 lcd_print_line1("        ");
-		 lcd_print_line2(" Offline");
+//		 lcd_print_line1("        ");
+//		 lcd_print_line2(" Offline");
+//
+//		 lcd_print_line3("      ");
 
-		 lcd_print_line3("      ");
+		 char str__[8] = {0};
+		 snprintf(str__, sizeof(str__), "%.2f", litre_price1);
+		 lcd_print_line3(str__);
 
 		 t = 0;
 	 }

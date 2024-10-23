@@ -31,7 +31,7 @@ extern "C" {
 #define _AGO      					2
 #define _DPK      					3
 
-#define TIMEOUT_GO					5000       //5 sec
+#define TIMEOUT_GO					8000       //5 sec
 
 //:::::::::::::::::::::::::::::::::::::::::::://
 
