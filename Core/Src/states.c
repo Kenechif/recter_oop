@@ -7464,7 +7464,13 @@ eSystemState idleState_Handler(void)
 			}
 
 		  if (t > 2000)
-				  t = 0;
+		  {
+			  /* start the DMA again */
+			  HAL_UARTEx_ReceiveToIdle_DMA(&huart2, (uint8_t *) RxBuf, RxBuf_SIZE);
+			  __HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
+
+			  t = 0;
+		  }
 	   }
 	}
 

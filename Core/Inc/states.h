@@ -307,6 +307,13 @@ extern _calibrationData calibrationData[2];
 
 extern uint8_t batteryStatus;
 
+extern uint8_t RxBuf[RxBuf_SIZE],
+			   MainBuf[MainBuf_SIZE];
+
+extern UART_HandleTypeDef huart2;
+extern DMA_HandleTypeDef hdma_usart2_rx,
+						 hdma_usart2_tx;
+
 extern uint8_t mamo_reached_flag1,
 			   mamo_reached_flag1_1,
 			   filling_mamo_flag1,
