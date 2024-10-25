@@ -182,10 +182,12 @@ void update_info()       //save_log( )
 //	    strncpy(log_a_new.pr__ , upper1, sizeof(log_a_new.pr__) );
 //	    strncpy(log_a_new.vol__ , middle1, sizeof(log_a_new.vol__) );
 
-	    log_a_new.pr__ = atof(upper1);  //calibrated
-	    log_a_new.pr__  += 0.00011;  //make small correction for the inherent rounddown.
-	    log_a_new.vol__ = atof(middle1);
-	    log_a_new.vol__ += 0.00011;  //make small correction for the inherent rounddown.
+	   char *endPtr;
+
+	    log_a_new.pr__ = strtof(upper1, &endPtr);  //calibrated
+//	    log_a_new.pr__  += 0.00011;  //make small correction for the inherent rounddown.
+	    log_a_new.vol__ = strtof(middle1, &endPtr);
+//	    log_a_new.vol__ += 0.00011;  //make small correction for the inherent rounddown.
 
 	    log_a_new.pr_ = price_real1;  //real
         log_a_new.vol_ = amt_real1;
@@ -230,10 +232,12 @@ void update_info()       //save_log( )
 //           log_b_new.pr__ = price2;  //calibrated
 //           log_b_new.vol__ = amt2;
 
-           log_b_new.pr__ = atof(upper2);  //calibrated
-		   log_b_new.pr__  += 0.00011;  //make small correction for the inherent rounddown.
-		   log_b_new.vol__ = atof(middle2);
-		   log_b_new.vol__ += 0.00011;  //make small correction for the inherent rounddown.
+           char *endPtr;
+
+		   log_b_new.pr__ = strtof(upper2, &endPtr);  //calibrated
+//		   log_b_new.pr__  += 0.00011;  //make small correction for the inherent rounddown.
+		   log_b_new.vol__ = strtof(middle2, &endPtr);
+//		   log_b_new.vol__ += 0.00011;  //make small correction for the inherent rounddown.
 
 
           // log_a_new.pr_d = 0; //price_;

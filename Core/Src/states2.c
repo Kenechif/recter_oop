@@ -448,14 +448,18 @@ float dp2(float flt,int n)
   uint8_t chrr[10] = {0};
   uint8_t chrr_[10] = {0};
 
+  char *endPtr;
+
 
   if(n == 1) snprintf(chrr_, sizeof(chrr_), "%.1f", flt);
   else if(n == 2) snprintf(chrr_, sizeof(chrr_), "%.2f", flt);
   else if(n == 3) snprintf(chrr_, sizeof(chrr_), "%.3f", flt);
 
-	float f = atof(chrr_);
- 	f += 0.00011;  //make small correction for the inherent rounddown.
+//	float f = atof(chrr_);
+// 	f += 0.00011;  //make small correction for the inherent rounddown.
  //	f+= 0.000011;
+
+ 	float f = strtof(chrr_, &endPtr);
 
  	if(f < 1.0)
 	{
@@ -550,8 +554,8 @@ float dp2(float flt,int n)
 	//float temp_ = temp/pow(10,n);
 	//temp_ = (temp_);
 
- 	float temp_ = atof(chrrr);
- 	//double temp1_ = atoff(chrrr);
+ 	float temp_ = strtof(chrrr, &endPtr);
+
  	return temp_;
 }
 
@@ -1729,43 +1733,42 @@ eSystemState operator_State_Handler2(void)
 eSystemState error_clear_Handler2(void)
 {
 	if(irrecov_flag2 == 0)
+	{
+		clear_screen2();
+
+		if(settings_stream1[1].display_format == PL)
+		  {
+			 lcd_print_line1_2(upper2);
+			 lcd_print_line2_2(middle2);
+		  }
+		  else if(settings_stream1[1].display_format == LP)
+		  {
+			  lcd_print_line1_2(middle2);
+			  lcd_print_line2_2(upper2);
+		  }
+
+		char str__[10]= {0};
+		snprintf(str__, sizeof(str__), "%.2f", litre_price2);
+		lcd_print_line3_2(str__);
+		error_clr_flag2 = 0;  //clear flag..
+
+		if(changeLitrePrice2_2 == 1)
 		{
-//			lcd_print_line1_2(upper2);
-//			lcd_print_line2_2(middle2);
-
-			if(settings_stream1[1].display_format == PL)
-			  {
-				 lcd_print_line1_2(upper2);
-				 lcd_print_line2_2(middle2);
-			  }
-			  else if(settings_stream1[1].display_format == LP)
-			  {
-				  lcd_print_line1_2(middle2);
-				  lcd_print_line2_2(upper2);
-			  }
-
-			char str__[10]= {0};
-			snprintf(str__, sizeof(str__), "%.2f", litre_price2);
-			lcd_print_line3_2(str__);
-			error_clr_flag2 = 0;  //clear flag..
-
-			if(changeLitrePrice2_2 == 1)
-			{
-				changeLitrePrice2_2 = 0;
-			}
-
-			else if(totalizer2_error == 1)
-			{
-				totalizer2_error = 0;
-			}
-
-
-			return idle_State;
+			changeLitrePrice2_2 = 0;
 		}
-	    else
-	     {
-            return inactive_State;  //if the error is an irrecoverable error, dont return to idle state.
-	     }
+
+		else if(totalizer2_error == 1)
+		{
+			totalizer2_error = 0;
+		}
+
+
+		return idle_State;
+	}
+	else
+	 {
+		return inactive_State;  //if the error is an irrecoverable error, dont return to idle state.
+	 }
 }
 //============================================================================================================
 uint8_t key_available2()
@@ -1892,6 +1895,8 @@ eSystemState progState_Handler2(void)
 
 	char st__[10] = {0},
 		 pass_[9];
+
+	char *endPtr;
 
 	uint8_t rd19 = 0;
 
@@ -2882,8 +2887,8 @@ eSystemState progState_Handler2(void)
    	  {
    		 //copy[pump_indx-1].price_ =  atoi(keyboard_entry2);
    		 printDisp_f2(copy_stream1[pump_indx-1].price_, 1, 0, 6, RT, CLEAR);
-   		 float pr = atoff(keyboard_entry2);
-   		 printDisp_f2(pr,2,0,7,RT,CLEAR);
+   		 float pr = strtof(keyboard_entry2, &endPtr);
+   		 printDisp_f2(pr, 2, 0, 7, RT, CLEAR);
 
 //   		 if (pump_indx == 1)
 //   		 {
@@ -2932,7 +2937,7 @@ eSystemState progState_Handler2(void)
 //   					}
 //   				 if (pump_indx == 2)   // if side B
 //   					{
-   				copy_stream1[1].price_ =  atof(keyboard_entry2);
+   				copy_stream1[1].price_ = strtof(keyboard_entry2, &endPtr);
 
    				fxn = nothing;
    				clr_screen2();
@@ -3931,14 +3936,16 @@ eSystemState progState_Handler2(void)
       			  if(t2 > 400)
       				  {
       					lcd_print_line1_2("Volunne ");
-      					printDisp_f2(atoff(keyboard_entry2), 2, 0, 7, RT, CLEAR);
+
+      					float vol = strtof(keyboard_entry2, &endPtr);
+      					printDisp_f2(vol, 2, 0, 7, RT, CLEAR);
       					t2 = 0;
       				  }
 
       			  pkey = read_keypad2();
       			  if (pkey == 'D')  //ENTER key to adjusted volume.
       			  {
-      				  float cal_vol = atoff(keyboard_entry2);
+      				  float cal_vol = strtof(keyboard_entry2, &endPtr);
       				  lcd_print_line1_2("        ");   //clear screen.
       				  lcd_print_line2_2("        ");
       				  clear_buffer2();
@@ -6036,37 +6043,39 @@ eSystemState idleState_Handler2(void)
 		}
 	}
 
-	else if(settings_stream1[1].mode == AUTO_MODE)
+	else if( (timer_go >= TIMEOUT_GO)  && (settings_stream1[1].mode == AUTO_MODE) ) //if go's timeout is 5sec threshold
 	{
-		if(timer_go >= TIMEOUT_GO)   //if go's timeout is 5sec threshold
+		if ( (t2 >= 300) && (t2 <= 700) )
 		{
+			lcd_print_line1_2("        ");
+			lcd_print_line2_2(" Offline");
+			lcd_print_line3_2("      ");
+		}
+		else if ( (t2 > 700) && (t2 <= 3000) )
+		{
+			  if(settings_stream1[1].display_format == PL)
+			  {
+				 lcd_print_line1_2(upper2);
+				 lcd_print_line2_2(middle2);
+			  }
+			  else if(settings_stream1[0].display_format == LP)
+			  {
+				  lcd_print_line1_2(middle2);
+				  lcd_print_line2_2(upper2);
+			  }
+			 lcd_print_line3_2("        ");
+			 char str__[8]= {0};
+			 snprintf(str__, sizeof(str__), "%.2f", litre_price2); lcd_print_line3_2(str__);
+		}
 
-			if ( (t2 >= 300) && (t2 <= 700) )
-			{
-				lcd_print_line1_2("        ");
-				lcd_print_line2_2(" Offline");
-				lcd_print_line3_2("      ");
-			}
-			else if ( (t2 > 700) && (t2 <= 3000) )
-			{
-				  if(settings_stream1[1].display_format == PL)
-				  {
-					 lcd_print_line1_2(upper2);
-					 lcd_print_line2_2(middle2);
-				  }
-				  else if(settings_stream1[0].display_format == LP)
-				  {
-					  lcd_print_line1_2(middle2);
-					  lcd_print_line2_2(upper2);
-				  }
-				 lcd_print_line3_2("        ");
-				 char str__[8]= {0};
-				 snprintf(str__, sizeof(str__), "%.2f", litre_price2); lcd_print_line3_2(str__);
-			}
+		if (t2 > 2000)
+		{
+		  /* start the DMA again */
+		  HAL_UARTEx_ReceiveToIdle_DMA(&huart2, (uint8_t *) RxBuf, RxBuf_SIZE);
+		  __HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
 
-		  if (t2 > 2000)
-				  t2 = 0;
-	   }
+		  t2 = 0;
+		}
 	}
 
 	else if ( (t2 > 500) && (nozzleup_awaitingauth_state_not_timedOut2 == 0) && (pump_LitreOverflow2 == 0) && (_litre_price2 == 0)
@@ -6382,6 +6391,8 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 	static int8_t firstTime = 1,
 				  firstTime_1 = 1;
 
+	char *endPtr;
+
 	pump_status_2 = STATUS_AUTH;
 
 	slowFlow_startThreshold2 = (fast_flow_threshold2 * settings_stream2[1].valve_salesStart);
@@ -6506,7 +6517,7 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 	 {
 		 if(index_2 >= 1)
 		 {
-			  key_value2 = atof(keyboard_entry2);
+			  key_value2 = strtof(keyboard_entry2, &endPtr);
 
 
 			  if(strchr(keyboard_entry2, '.'))
@@ -6594,12 +6605,12 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 
 			  if (index_2 >= 1)
 			  {
-					key_value2 = atof(keyboard_entry2);
+					key_value2 = strtof(keyboard_entry2, &endPtr);
 
-					if(strchr(keyboard_entry2, '.'))
-					{
-						key_value2 += 0.00011;
-					}
+//					if(strchr(keyboard_entry2, '.'))
+//					{
+//						key_value2 += 0.00011;
+//					}
 
 					if (sellmode2 == L)
 					{
@@ -6651,7 +6662,7 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 				  }
 
 				  sprintf(keyboard_entry2, "%2f", auth_p2);
-				  key_value2 = atof(keyboard_entry2);
+				  key_value2 = strtof(keyboard_entry2, &endPtr);
 
 				  target_pulser2 = price2pulser2(key_value2);  //calculate pulse frm price.
 			  }
@@ -6667,7 +6678,7 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 
 			  if (index_2 >= 1)
 			  {
-					key_value2 = atof(keyboard_entry2);
+					key_value2 = strtof(keyboard_entry2, &endPtr);
 
 					if(strchr(keyboard_entry2, '.'))
 					{
@@ -6723,7 +6734,7 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 					}
 
 				  sprintf(keyboard_entry2,"%2f", auth_v2);
-				  key_value2 = atof(keyboard_entry2);
+				  key_value2 = strtof(keyboard_entry2, &endPtr);
 
 				  target_pulser2 = amt2pulser2(key_value2);   //calculate pulse frm amt.
 			   }
@@ -7575,6 +7586,8 @@ eSystemState nozzleup_Handler2(void)
 //-------------
 eSystemState auth_command_Handler2(void)
 {
+	  char *endPtr;
+
 	  reset_timer2( timeout_picknozzle);
 	  start_timer2( timeout_picknozzle);
     //-----------------------------------
@@ -7583,7 +7596,7 @@ eSystemState auth_command_Handler2(void)
 		  //check if any keypad entry
 		 if(index_2 >= 1)
 		  {
-              key_value2 = atof(keyboard_entry2);
+              key_value2 = strtof(keyboard_entry2, &endPtr);
 		  }
 
 		  // auth_cmd_flag = 1;
@@ -7655,6 +7668,8 @@ eSystemState authorise_Handler2(void)
 //---------------
 eSystemState authorised_nozzledown_State_Handler2(void)
 {
+	char *endPtr;
+
 	nozzle_bit2 = 0;
 	pump2_status_4G = STATUS_AUTHORIZED_NOZZLE_DOWN;
 
@@ -7662,7 +7677,7 @@ eSystemState authorised_nozzledown_State_Handler2(void)
 
 	    if(index_2 >= 1)
 		  {
-			  key_value2 = atof(keyboard_entry2);
+			  key_value2 = strtof(keyboard_entry2, &endPtr);
 		  }
 		 else
 		 {
@@ -7767,7 +7782,7 @@ void make_string2(sellmode_ sll, float pr)
 	int8_t tmp = 1,
 		   ind = 0;
 
-	char *end;
+	char *endPtr;
 
 	char temp[10] = {0};
 	char ttmp[10] = {0};
@@ -7784,7 +7799,8 @@ void make_string2(sellmode_ sll, float pr)
 //		 amt_middle2 = atof(temp);
 //		 amt_middle2 += 0.00011;
 
-		 amt_middle2 = strtod(temp, NULL);
+//		 amt_middle2 = strtof(temp, NULL);
+		 amt_middle2 = strtof(temp, &endPtr);
 
 		 if(pr < display_minimumCentilitre2)   // 9 centilitres
 		 {
@@ -7810,7 +7826,7 @@ void make_string2(sellmode_ sll, float pr)
 //			price_upper2 = atof(temp);
 //			price_upper2 += 0.00011;
 
-			price_upper2 = strtod(temp, NULL);
+			price_upper2 = strtof(temp, &endPtr);
 
 			if(pr < display_minimumCentilitrePrice2)   // 9 centilitres
 			{
@@ -9500,10 +9516,6 @@ eSystemState pnpState_Handler2(void)
 
 	int pulser_diff = 0;
 
-//	display_overflow1 = 1;
-
-//	pump1_status_4G = STATUS_IDLE;
-
 	stop_fueling_bit2 = 1;
 
 	lock_clr2 = 0;
@@ -9595,17 +9607,14 @@ eSystemState pnpState_Handler2(void)
 
 	 if  (t2 > 500)
 	 {
-//		 lcd_print_line1_2("        ");
-//		 lcd_print_line2_2(" Offline");
-//		 if(settings_stream1[1].display_format == PL)
+		 lcd_print_line1_2("  Auto  ");
+		 lcd_print_line2_2(" NNode  ");
 
 //		 lcd_print_line3_2("        ");
 
 		 char str__[8] = {0};
 		 snprintf(str__, sizeof(str__), "%.2f", litre_price2);
 		 lcd_print_line3_2(str__);
-
-//		 lcd_print_line3_2("      ");
 
 		 t2 = 0;
 	 }

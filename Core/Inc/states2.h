@@ -252,6 +252,13 @@ int8_t nozzleup_awaitingauth_state_not_timedOut2;
 
 extern uint8_t batteryStatus;
 
+extern uint8_t RxBuf[RxBuf_SIZE],
+			   MainBuf[MainBuf_SIZE];
+
+extern UART_HandleTypeDef huart2;
+extern DMA_HandleTypeDef hdma_usart2_rx,
+						 hdma_usart2_tx;
+
 void state_ini2(void);
 void states2(void);
 void reset_timer2(int tm);

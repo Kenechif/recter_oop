@@ -459,13 +459,16 @@ float dp(float flt, int n)
   uint8_t chrr[10] = {0};
   uint8_t chrr_[10] = {0};
 
+  char *endPtr;
 
   if(n == 1) snprintf(chrr_, sizeof(chrr_), "%.1f", flt);
   else if(n == 2) snprintf(chrr_, sizeof(chrr_), "%.2f", flt);
   else if(n == 3) snprintf(chrr_, sizeof(chrr_), "%.3f", flt);
 
-	float f = atof(chrr_);
- 	f += 0.00011;  //make small correction for the inherent rounddown.
+//	float f = atof(chrr_);
+
+	float f  = strtof(chrr_, &endPtr);
+// 	f += 0.00011;  //make small correction for the inherent rounddown.
  //	f+= 0.000011;
 
 	if(f < 1.0)
@@ -543,10 +546,12 @@ float dp(float flt, int n)
 		}
 	}
 
- 	float temp_ = atof(chrrr);
+// 	float temp_ = atof(chrrr);
  	//double temp1_ = atoff(chrrr);
 
- 	temp_ += 0.00011;  //make small correction for the inherent rounddown.
+// 	temp_ += 0.00011;  //make small correction for the inherent rounddown.
+
+	float temp_  = strtof(chrrr, &endPtr);
 
 // 	price_dp = temp_;
 
@@ -1013,7 +1018,9 @@ eSystemState nozzleup_Handler(void)
 //-------------
 eSystemState auth_command_Handler(void)
 {
-	  reset_timer( timeout_picknozzle);
+	char *endPtr;
+
+	reset_timer( timeout_picknozzle);
 	  start_timer( timeout_picknozzle);
     //-----------------------------------
 	  if(opmode == MANUAL_MODE)
@@ -1021,7 +1028,7 @@ eSystemState auth_command_Handler(void)
 		  //check if any keypad entry
 		 if(index_ >= 1)
 		  {
-              key_value = atof(keyboard_entry);
+              key_value  = strtof(keyboard_entry, &endPtr);
 		  }
 
 		  // auth_cmd_flag = 1;
@@ -2914,26 +2921,25 @@ eSystemState operator_State_Handler(void)
 eSystemState error_clear_Handler(void)
 {
 	if(irrecov_flag == 0)
-		{
-//			lcd_print_line1(upper1);
-//			lcd_print_line2(middle1);
+	{
+		clear_screen1();
 
-			if(settings_stream1[0].display_format == PL)
-		  	  {
-				lcd_print_line1(upper1);
-		  		 lcd_print_line2(middle1);
-		  	  }
-			  else if(settings_stream1[0].display_format == LP)
-			  {
-				  lcd_print_line1(middle1);
-				  lcd_print_line2(upper1);
-			  }
+		if(settings_stream1[0].display_format == PL)
+		  {
+			lcd_print_line1(upper1);
+			 lcd_print_line2(middle1);
+		  }
+		  else if(settings_stream1[0].display_format == LP)
+		  {
+			  lcd_print_line1(middle1);
+			  lcd_print_line2(upper1);
+		  }
 
 
-			char str__[8]= {0};
-			snprintf(str__, sizeof(str_), "%.2f", litre_price);
-			lcd_print_line3(str__);
-			error_clr_flag = 0;  //clear flag..
+		char str__[8]= {0};
+		snprintf(str__, sizeof(str_), "%.2f", litre_price);
+		lcd_print_line3(str__);
+		error_clr_flag = 0;  //clear flag..
 
 //			if(calibration1_error == 1)
 //			{
@@ -2942,9 +2948,9 @@ eSystemState error_clear_Handler(void)
 //
 //			else
 
-			if(changeLitrePrice1_2 == 1)
-			{
-				changeLitrePrice1_2 = 0;
+		if(changeLitrePrice1_2 == 1)
+		{
+			changeLitrePrice1_2 = 0;
 
 //				if(settings_stream1[0].mode == AUTO_MODE)
 //				{
@@ -2953,12 +2959,12 @@ eSystemState error_clear_Handler(void)
 //
 //					}
 //				}
-			}
+		}
 
-			else if(totalizer1_error == 1)
-			{
-				totalizer1_error = 0;
-			}
+		else if(totalizer1_error == 1)
+		{
+			totalizer1_error = 0;
+		}
 
 //			else if(HAL_GPIO_ReadPin(pulser1_detect_GPIO_Port, pulser1_detect_Pin) == 0 )
 //			{
@@ -2967,12 +2973,12 @@ eSystemState error_clear_Handler(void)
 
 
 
-			return idle_State;
-		}
-	    else
-	     {
-            return inactive_State;  //if the error is an irrecoverable error dont return to idle state.
-	     }
+		return idle_State;
+	}
+	else
+	 {
+		return inactive_State;  //if the error is an irrecoverable error dont return to idle state.
+	 }
 }
 //============================================================================================================
 uint8_t key_available()
@@ -3105,6 +3111,8 @@ eSystemState progState_Handler(void)
 		pass_[9];
 
    uint8_t rd19 = 0;
+
+   char *endPtr;
 
 #ifndef DEV_MODE
    if(prog_revisitt1 == 1)
@@ -3839,7 +3847,7 @@ eSystemState progState_Handler(void)
 	   if (t >= 300)
 		 {
 			//lcd_print_line1();
-//			if(copy[pump_indx-1].mode == AUTO)
+//			if(copy[0].mode == AUTO)
 			   if(copy_stream1[0].mode == AUTO_MODE)
 				{
 					lcd_print_line2(" Auto ");
@@ -3878,18 +3886,18 @@ eSystemState progState_Handler(void)
 		 {
 			 if (pkey == 'B')  // up key
 				{
-				  if (copy_stream1[pump_indx-1].mode == AUTO_MODE) //;
-					copy_stream1[pump_indx-1].mode = MANUAL_MODE;
+				  if (copy_stream1[0].mode == AUTO_MODE) //;
+					copy_stream1[0].mode = MANUAL_MODE;
 				  else
-					  copy_stream1[pump_indx-1].mode = AUTO_MODE;
+					  copy_stream1[0].mode = AUTO_MODE;
 				}
 
 			 else if (pkey == 'C')  // down key
 				{
-					if (copy_stream1[pump_indx-1].mode == AUTO_MODE) //;
-						copy_stream1[pump_indx-1].mode = MANUAL_MODE;
+					if (copy_stream1[0].mode == AUTO_MODE) //;
+						copy_stream1[0].mode = MANUAL_MODE;
 					  else
-						  copy_stream1[pump_indx-1].mode = AUTO_MODE;
+						  copy_stream1[0].mode = AUTO_MODE;
 				}
 
 			 else if (pkey == 'F')  //change pump index.
@@ -3900,12 +3908,12 @@ eSystemState progState_Handler(void)
 
 			 else if (pkey == 'D')  // back key
 			 {
-				  if (copy_stream1[pump_indx-1].mode == AUTO_MODE) //;
-					  copy_stream1[pump_indx-1].def_t = P;
-				  else if (copy_stream1[pump_indx-1].mode == MANUAL_MODE)
-					  copy_stream1[pump_indx-1].def_t = P;
-//				  else if (copy[pump_indx-1].mode == VOUCHER_ONLY)
-//					  copy[pump_indx-1].def_t = V;
+				  if (copy_stream1[0].mode == AUTO_MODE) //;
+					  copy_stream1[0].def_t = P;
+				  else if (copy_stream1[0].mode == MANUAL_MODE)
+					  copy_stream1[0].def_t = P;
+//				  else if (copy[0].mode == VOUCHER_ONLY)
+//					  copy[0].def_t = V;
 
 				fxn = nothing;
  //				lcd_print_line3("      ");
@@ -3932,7 +3940,7 @@ eSystemState progState_Handler(void)
 	   if (t >= 300)
 	   {
 			//lcd_print_line1();
-		  if(copy_stream1[pump_indx-1].noz_override == override)
+		  if(copy_stream1[0].noz_override == override)
 		  {
 			lcd_print_line2("Active");
 		  }
@@ -3970,18 +3978,18 @@ eSystemState progState_Handler(void)
 		 {
 			 if (pkey == 'B')  // up key
 				{
-				 if (copy_stream1[pump_indx-1].noz_override == override)
-					 copy_stream1[pump_indx-1].noz_override = nooverride;
+				 if (copy_stream1[0].noz_override == override)
+					 copy_stream1[0].noz_override = nooverride;
 				 else
-					 copy_stream1[pump_indx-1].noz_override = override;
+					 copy_stream1[0].noz_override = override;
 				}
 
 			 else if (pkey == 'C')  // down key
 				{
-				 if (copy_stream1[pump_indx-1].noz_override == override)
-					 copy_stream1[pump_indx-1].noz_override = nooverride;
+				 if (copy_stream1[0].noz_override == override)
+					 copy_stream1[0].noz_override = nooverride;
 				 else
-					 copy_stream1[pump_indx-1].noz_override = override;
+					 copy_stream1[0].noz_override = override;
 				}
 
 			 else if (pkey == 'F')  //change pump index.
@@ -4114,9 +4122,9 @@ eSystemState progState_Handler(void)
    {
 	 if (t >= 300)
 	  {
-		 //copy[pump_indx-1].price_ =  atoi(keyboard_entry);
-		 printDisp_f(copy_stream1[pump_indx-1].price_, 1, 0, 6, RT, CLEAR);
-		 float pr = atoff(keyboard_entry);
+		 //copy[0].price_ =  atoi(keyboard_entry);
+		 printDisp_f(copy_stream1[0].price_, 1, 0, 6, RT, CLEAR);
+		 float pr = strtof(keyboard_entry, &endPtr);
 		 printDisp_f(pr,2,0,7,RT,CLEAR);
 
 //		 if (pump_indx == 1)
@@ -4133,7 +4141,7 @@ eSystemState progState_Handler(void)
 	 // -------------- test keys....----------------
 	  rd19 = readkey19_state();
 
-	   if ( (rd19 == 1)&&( key19_sto_ == 0) )
+	   if ( (rd19 == 1) && ( key19_sto_ == 0) )
 		 {
 		   keyboard_entry[0] = 0;   //clear the previous entry...
 		   index_ = 0;
@@ -4160,14 +4168,14 @@ eSystemState progState_Handler(void)
 
 			 if (pkey == 'D')  //store entered value.
 			 {
-				 if (pump_indx == 1)   // if side A
-				 {
-					 copy_stream1[0].price_ =  atof(keyboard_entry);
-				 }
-				 if (pump_indx == 2)   // if side B
-				 {
-					 copy_stream1[1].price_ =  atof(keyboard_entry);
-				  }
+//				 if (pump_indx == 1)   // if side A
+//				 {
+					 copy_stream1[0].price_   = strtof(keyboard_entry, &endPtr);
+//				 }
+//				 if (pump_indx == 2)   // if side B
+//				 {
+//					 copy_stream1[1].price_   = strtof(keyboard_entry, &endPtr);
+//				  }
 
 				 fxn = nothing;
 				 clr_screen1();
@@ -4191,7 +4199,7 @@ eSystemState progState_Handler(void)
    {
 	   if (t >= 500)
 	   {
-			printDisp_i(copy_stream1[pump_indx-1].noz_addr, 1, 0, 4, RT, CLEAR);
+			printDisp_i(copy_stream1[0].noz_addr, 1, 0, 4, RT, CLEAR);
 			lcd_print_line2(keyboard_entry);
 
 //			if (pump_indx == 1)
@@ -4234,14 +4242,14 @@ eSystemState progState_Handler(void)
 
 			 else if (pkey == 'D')  //enter key
 			 {
-					if (pump_indx == 1)   // if side A
-					{
+//					if (pump_indx == 1)   // if side A
+//					{
 						copy_stream1[0].noz_addr =  atoi(keyboard_entry);
-					}
-					else if (pump_indx == 2)   // if side b
-					{
+//					}
+//					else if (pump_indx == 2)   // if side b
+//					{
 						copy_stream1[1].noz_addr =  atoi(keyboard_entry);
-					}
+//					}
 
 					fxn = nothing;
 					clr_screen1();
@@ -4265,7 +4273,7 @@ eSystemState progState_Handler(void)
    {
 	   if (t >= 500)
 		 {
-		   printDisp_i(copy_stream2[pump_indx-1].timeOut_noFlow, 1, 0, 4, RT, CLEAR);
+		   printDisp_i(copy_stream2[0].timeOut_noFlow, 1, 0, 4, RT, CLEAR);
 		   lcd_print_line2(keyboard_entry);
 
 //		 if (pump_indx == 1)
@@ -4310,14 +4318,14 @@ eSystemState progState_Handler(void)
 
 			 else if (pkey == 'D')  //enter key
 				{
-					 if (pump_indx == 1)   // if side A
-						{
+//					 if (pump_indx == 1)   // if side A
+//						{
 						 copy_stream2[0].timeOut_noFlow =  atoi(keyboard_entry);
-						}
-					 else if (pump_indx == 2)   // if side b
-						{
-						 copy_stream2[1].timeOut_noFlow =  atoi(keyboard_entry);
-						}
+//						}
+//					 else if (pump_indx == 2)   // if side b
+//						{
+//						 copy_stream2[1].timeOut_noFlow =  atoi(keyboard_entry);
+//						}
 
 					 fxn = nothing;
 					 clr_screen1();
@@ -4341,7 +4349,7 @@ eSystemState progState_Handler(void)
    {
 	   if (t >= 500)
 	   {
-		   printDisp_i(copy_stream1[pump_indx-1].max_amt_, 1, 0, 4, RT, CLEAR);
+		   printDisp_i(copy_stream1[0].max_amt_, 1, 0, 4, RT, CLEAR);
 		   lcd_print_line2(keyboard_entry);
 
 //		 if (pump_indx == 1)
@@ -4384,14 +4392,14 @@ eSystemState progState_Handler(void)
 
 			 else if (pkey == 'D')  //enter key
 				{
-					 if (pump_indx == 1)   // if side A
-						{
+//					 if (pump_indx == 1)   // if side A
+//						{
 						 copy_stream1[0].max_amt_ =  atoi(keyboard_entry);
-						}
-					 if (pump_indx == 2)   // if side b
-						{
-						 copy_stream1[1].max_amt_ =  atoi(keyboard_entry);
-						}
+//						}
+//					 if (pump_indx == 2)   // if side b
+//						{
+//						 copy_stream1[1].max_amt_ =  atoi(keyboard_entry);
+//						}
 
 					 fxn = nothing;
 					 clr_screen1();
@@ -4414,7 +4422,7 @@ eSystemState progState_Handler(void)
    {
 	   if (t >= 500)
 		 {
-		   //printDisp_i(copy[pump_indx-1].max_amt_, 1, 0, 4, RT, CLEAR);
+		   //printDisp_i(copy[0].max_amt_, 1, 0, 4, RT, CLEAR);
 //		   lcd_print_line2(keyboard_entry);
 //
 //		 if (pump_indx == 1)
@@ -4499,7 +4507,7 @@ eSystemState progState_Handler(void)
     {
  	   if (t >= 500)
  		 {
- 		   //printDisp_i(copy[pump_indx-1].max_amt_, 1, 0, 4, RT, CLEAR);
+ 		   //printDisp_i(copy[0].max_amt_, 1, 0, 4, RT, CLEAR);
 // 		   lcd_print_line2(keyboard_entry);
 //
 // 		 if (pump_indx == 1)
@@ -4584,7 +4592,7 @@ eSystemState progState_Handler(void)
    {
 	   if (t >= 500)
 		 {
-		   //printDisp_i(copy[pump_indx-1].max_amt_, 1, 0, 4, RT, CLEAR);
+		   //printDisp_i(copy[0].max_amt_, 1, 0, 4, RT, CLEAR);
 		  // lcd_print_line2(keyboard_entry);
 /*
 		 if (pump_indx == 1)
@@ -4628,13 +4636,13 @@ eSystemState progState_Handler(void)
 
 			 if (pkey == 'D')  //enter key
 				{
-					  for (int i = 0 ; i < 14;i++)
+					  for (uint8_t i = 0 ; i < 14;i++)
 					  {
 						//   send the bits to the external system
 
 					  }
 
-					  for (int i = 0 ; i < 14;i++)
+					  for (uint8_t i = 0 ; i < 14;i++)
 					  {
 						  //   send the bits to the external system
 					  }
@@ -5223,14 +5231,16 @@ eSystemState progState_Handler(void)
 			  if(t > 400)
 			  {
 				  lcd_print_line1("Volunne ");
-				printDisp_f(atoff(keyboard_entry), 2, 0, 7, RT, CLEAR);
-				t = 0;
+
+				  float vol = strtof(keyboard_entry, &endPtr);
+				  printDisp_f(vol, 2, 0, 7, RT, CLEAR);
+				  t = 0;
 			  }
 
 			  pkey = read_keypad();
 			  if (pkey == 'D')  //ENTER key to adjusted volume.
 				{
-				  float cal_vol = atoff(keyboard_entry);
+				  float cal_vol = strtof(keyboard_entry, &endPtr);
 				  lcd_print_line1("        ");   //clear screen.
 				  lcd_print_line2("        ");
 				  clear_buffer1();
@@ -5273,20 +5283,20 @@ eSystemState progState_Handler(void)
                     printDisp_f(pi_c, 2, 0, 8, RT, CLEAR);
                     HAL_Delay(2500);
 
-                    //store in the settings structure.
-                    if(pump_indx == 1)
-                    {
+//                    //store in the settings structure.
+//                    if(pump_indx == 1)
+//                    {
                     	// data for side a.
                     	copy_stream1[0].pi_cal = pi_c;
                     	copy_stream1[0].pi_real  = pi;
-                    }
+//                    }
 
-                    if(pump_indx == 2)
-					{
-						// data for side b.
-                    	copy_stream1[1].pi_cal = pi_c;
-                    	copy_stream1[1].pi_real	 = pi;
-					}
+//                    if(pump_indx == 2)
+//					{
+//						// data for side b.
+//                    	copy_stream1[1].pi_cal = pi_c;
+//                    	copy_stream1[1].pi_real	 = pi;
+//					}
 					 fxn = nothing;
 					 calibr1 = 0;
 					 clr_screen1();
@@ -7435,42 +7445,38 @@ eSystemState idleState_Handler(void)
 		}
 	}
 
-	else if(settings_stream1[0].mode == AUTO_MODE)
+	else if( (timer_go >= TIMEOUT_GO) && (settings_stream1[0].mode == AUTO_MODE) )  //if go's timeout is 5sec threshold
 	{
-		if(timer_go >= TIMEOUT_GO)   //if go's timeout is 5sec threshold
+		if ( (t >= 300) && (t <= 700) )
 		{
+			lcd_print_line1("        ");
+			lcd_print_line2(" Offline");
+			lcd_print_line3("      ");
+		}
+		else if ( (t > 700) && (t <= 2000) )
+		{
+			  if(settings_stream1[0].display_format == PL)
+			  {
+				 lcd_print_line1(upper1);
+				 lcd_print_line2(middle1);
+			  }
+			  else if(settings_stream1[0].display_format == LP)
+			  {
+				  lcd_print_line1(middle1);
+				  lcd_print_line2(upper1);
+			  }
+			 lcd_print_line3("        ");
+			 char str__[8]= {0};
+			 snprintf(str__, sizeof(str__), "%.2f", litre_price); lcd_print_line3(str__);
+		}
 
-			if ( (t >= 300) && (t <= 700) )
-			{
-				lcd_print_line1("        ");
-				lcd_print_line2(" Offline");
-				lcd_print_line3("      ");
-			}
-			else if ( (t > 700) && (t <= 2000) )
-			{
-				  if(settings_stream1[0].display_format == PL)
-				  {
-					 lcd_print_line1(upper1);
-					 lcd_print_line2(middle1);
-				  }
-				  else if(settings_stream1[0].display_format == LP)
-				  {
-					  lcd_print_line1(middle1);
-					  lcd_print_line2(upper1);
-				  }
-				 lcd_print_line3("        ");
-				 char str__[8]= {0};
-				 snprintf(str__, sizeof(str__), "%.2f", litre_price); lcd_print_line3(str__);
-			}
+	   if (t > 2000)
+	   {
+		  /* start the DMA again */
+		  HAL_UARTEx_ReceiveToIdle_DMA(&huart2, (uint8_t *) RxBuf, RxBuf_SIZE);
+		  __HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
 
-		  if (t > 2000)
-		  {
-			  /* start the DMA again */
-			  HAL_UARTEx_ReceiveToIdle_DMA(&huart2, (uint8_t *) RxBuf, RxBuf_SIZE);
-			  __HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
-
-			  t = 0;
-		  }
+		  t = 0;
 	   }
 	}
 
@@ -7784,8 +7790,10 @@ eSystemState idleState_Handler(void)
 //---------------
 eSystemState authorised_nozzledown_State_Handler(void)
 {
-	nozzle_bit = 0;
-	pump1_status_4G = STATUS_AUTHORIZED_NOZZLE_DOWN;
+	  char *endPtr;
+
+	  nozzle_bit = 0;
+	  pump1_status_4G = STATUS_AUTHORIZED_NOZZLE_DOWN;
 
 
 	/* if (t > 1000)
@@ -7802,8 +7810,7 @@ eSystemState authorised_nozzledown_State_Handler(void)
 
 	     if(index_ >= 1)
 		  {
-			  key_value = atof(keyboard_entry);
-			  key_value += 0.00011;
+			  key_value = strtof(keyboard_entry, &endPtr);
 		  }
 		 else
 		 {
@@ -7926,6 +7933,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 				  firstTime_1 = 1;
 //				  firstTime_nozz = 1;
 
+	char *endPtr;
 
 
 	int8_t pkey = 0;
@@ -8062,12 +8070,12 @@ eSystemState authorised_nozzleup_State_Handler(void)
 	 {
 		 if(index_ >= 1)
 		 {
-			  key_value = atof(keyboard_entry);
+			  key_value = strtof(keyboard_entry, &endPtr);
 
-			  if(strchr(keyboard_entry, '.'))
-			  {
-				  key_value += 0.00011;
-			  }
+//			  if(strchr(keyboard_entry, '.'))
+//			  {
+//				  key_value += 0.00011;
+//			  }
 
 			  half_litre1 = (0.5 * litre_price1);
 
@@ -8154,12 +8162,12 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 			  if (index_ >= 1)
 			  {
-				  	key_value = atof(keyboard_entry);
+					key_value = strtof(keyboard_entry, &endPtr);
 
-				  	if(strchr(keyboard_entry, '.'))
-					{
-						key_value += 0.00011;
-					}
+//				  	if(strchr(keyboard_entry, '.'))
+//					{
+//						key_value += 0.00011;
+//					}
 
 				  	if (sellmode == L)
 					{
@@ -8211,7 +8219,8 @@ eSystemState authorised_nozzleup_State_Handler(void)
 				  }
 
 				  sprintf(keyboard_entry,"%2f", auth_p1);
-				  key_value = atof(keyboard_entry);
+
+				  key_value = strtof(keyboard_entry, &endPtr);
 
 				  target_pulser1 = price2pulser(key_value);  //calculate pulse frm price.
 			  }
@@ -8227,7 +8236,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 			  if (index_ >= 1)
 			  {
-				  	key_value = atof(keyboard_entry);
+					key_value = strtof(keyboard_entry, &endPtr);
 
 				  	if(strchr(keyboard_entry, '.'))
 					{
@@ -8282,7 +8291,8 @@ eSystemState authorised_nozzleup_State_Handler(void)
 			    	}
 
 				  sprintf(keyboard_entry,"%2f", auth_v1);
-				  key_value = atof(keyboard_entry);
+
+				  key_value = strtof(keyboard_entry, &endPtr);
 
 				  target_pulser1 = amt2pulser(key_value);   //calculate pulse frm amt.
 			   }
@@ -8579,6 +8589,8 @@ void make_string(sellmode_ sll, float pr)
     int8_t tmp = 1,
     	   ind = 0;
 
+    char *endPtr;
+
 	char temp[10] = {0};
 	char ttmp[10] = {0};
 
@@ -8591,8 +8603,9 @@ void make_string(sellmode_ sll, float pr)
 		 else if (dp_vol1 == 3)
 		 	 snprintf(temp , sizeof(temp), "%.3f", pr);
 
-		 amt_middle1 = atof(temp);
-		 amt_middle1 += 0.00011;
+//		 amt_middle1 = atof(temp);
+//		 amt_middle1 += 0.00011;
+		 amt_middle1 = strtof(temp, &endPtr);
 
 		 if(pr < display_minimumCentilitre1)   // 9 centilitres
 		 {
@@ -8616,8 +8629,10 @@ void make_string(sellmode_ sll, float pr)
 		 else if (dp_amount1 == 3)
 			 snprintf(temp , sizeof(temp), "%.3f", pr);
 
-		price_upper1 = atof(temp);
-		price_upper1 += 0.00011;
+//		price_upper1 = atof(temp);
+//		price_upper1 += 0.00011;
+
+		price_upper1 = strtof(temp, &endPtr);
 
 		if(pr < display_minimumCentilitrePrice1)   // 9 centilitres
 		{
@@ -10136,9 +10151,9 @@ eSystemState pnpState_Handler(void)
 
 	 if  (t > 500)
 	 {
-//		 lcd_print_line1("        ");
-//		 lcd_print_line2(" Offline");
-//
+		 lcd_print_line1("  Auto  ");
+		 lcd_print_line2(" NNode  ");
+
 //		 lcd_print_line3("      ");
 
 		 char str__[8] = {0};
