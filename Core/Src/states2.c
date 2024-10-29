@@ -6520,10 +6520,10 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 			  key_value2 = strtof(keyboard_entry2, &endPtr);
 
 
-			  if(strchr(keyboard_entry2, '.'))
-			  {
-				  key_value2 += 0.00011;
-			  }
+//			  if(strchr(keyboard_entry2, '.'))
+//			  {
+//				  key_value2 += 0.00011;
+//			  }
 			  //initialise the fuel and price variables
 
 			  half_litre2 = (0.5 * litre_price2);
@@ -6680,10 +6680,10 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 			  {
 					key_value2 = strtof(keyboard_entry2, &endPtr);
 
-					if(strchr(keyboard_entry2, '.'))
-					{
-						key_value2 += 0.00011;
-					}
+//					if(strchr(keyboard_entry2, '.'))
+//					{
+//						key_value2 += 0.00011;
+//					}
 
 					if (sellmode2 == P)
 					{

@@ -329,10 +329,10 @@ int retn;
 				 current_pulser2,
 				 overall_currentPulser1;
 
- extern float key_value ,key_value2;
- extern int index2 , index2;
- extern char keypad_pw[10],keypad_pw2[10];
- extern char keypad_pw_[10] , keypad_pw_2[10] ;
+ extern float key_value, key_value2;
+ extern int index2, index2;
+ extern char keypad_pw[10], keypad_pw2[10];
+ extern char keypad_pw_[10], keypad_pw_2[10];
 
  extern int auth;      //first set this to
  extern int side;      //pump side selected.
@@ -2209,7 +2209,7 @@ skip_test:
     settings_stream1[0].noz_addr = 0x01;
 	settings_stream1[1].noz_addr = 0x02;
 
-    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
+//    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
 //    settings_stream1[0].mode = AUTO_MODE;    //AUTO_MODE;
 //
 //    settings_stream1[0].noz = nooverride;  //nooveride
@@ -2217,7 +2217,7 @@ skip_test:
 
 //    settings_stream2[0].calibration_measureCan = 2;
 
-    settings_stream1[0].keypad__ = BLSKY22;   //BLSKY22
+//    settings_stream1[0].keypad__ = BLSKY22;   //BLSKY22
 //    settings_stream1[0].keypad__ = LAFNG18_K_V2;  //LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
 
 //
@@ -2226,7 +2226,7 @@ skip_test:
 //
 //    settings_stream1[1].noz = nooverride;  //nooveride
 ////	settings_stream1[1].noz = override;  //nooveride
-	settings_stream1[1].keypad__ = BLSKY22;   //BLSKY22
+//	settings_stream1[1].keypad__ = BLSKY22;   //BLSKY22
 //    settings_stream1[1].keypad__ = LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
 //    settings_stream1[1].keypad__ = LAFNG18_K_V2;  //LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
 

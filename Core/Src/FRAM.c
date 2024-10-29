@@ -5,8 +5,8 @@
 #include "math.h"
 #include "string.h"
 
-//#define FRAM_I2C_ADDRESS 0x54
-#define FRAM_I2C_ADDRESS 0x50
+#define FRAM_I2C_ADDRESS 0x54
+//#define FRAM_I2C_ADDRESS 0x50
 
 #define FRAMBYTESIZE 8192
 

@@ -8238,10 +8238,10 @@ eSystemState authorised_nozzleup_State_Handler(void)
 			  {
 					key_value = strtof(keyboard_entry, &endPtr);
 
-				  	if(strchr(keyboard_entry, '.'))
-					{
-						key_value += 0.00011;
-					}
+//				  	if(strchr(keyboard_entry, '.'))
+//					{
+//						key_value += 0.00011;
+//					}
 
 				  	if (sellmode == P)
 					{
