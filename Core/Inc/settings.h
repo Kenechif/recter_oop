@@ -47,8 +47,8 @@ extern "C" {
 //============================================
 
 #ifdef DEV_MODE
-//	#define _USE_SOFT_PULSER            1
-	#define _USE_SOFT_PULSER            0
+	#define _USE_SOFT_PULSER            1
+//	#define _USE_SOFT_PULSER            0
 	#define sense_battery 				0
 //	#define sense_power  				0
 //	#define sense_battery 				1

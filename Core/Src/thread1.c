@@ -2235,7 +2235,7 @@ skip_test:
 //    settings_stream1[0].noz_addr = 0x01;
 //    settings_stream1[1].noz_addr = 0x02;
 
-//    settings_stream2[0].keypress_tone = No;   //Yes;
+    settings_stream2[0].keypress_tone = No;   //Yes;
 //    settings_stream1[0].display_format = PL;
 //    settings_stream1[1].display_format = PL;
 //    settings_stream1[0].def_t = P;

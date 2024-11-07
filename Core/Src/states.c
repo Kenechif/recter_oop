@@ -1491,30 +1491,30 @@ eSystemState keypress_Handler(void)
    int8_t space = allowed_xters - index_; //int space = 6 - index_;
    uint8_t ind = 1;
 
-//----------------------------------------------------------
-//If only 0 - 9 is pressed.....
-if(
-	(kkey != 'A') && (kkey != 'B') &&
-	(kkey != 'C') && (kkey != 'D') &&
-	(kkey != 'F') && (kkey != '-') &&
-	(kkey != 'G') && (kkey != 'J')  //&&(index_ < 6)
-  )
-{
-//	 keyEntry_len = strlen(keyboard_entry);
+	//----------------------------------------------------------
+	//If only 0 - 9 is pressed.....
+	if(
+		(kkey != 'A') && (kkey != 'B') &&
+		(kkey != 'C') && (kkey != 'D') &&
+		(kkey != 'F') && (kkey != '-') &&
+		(kkey != 'G') && (kkey != 'J')  //&&(index_ < 6)
+	  )
+	{
+	//	 keyEntry_len = strlen(keyboard_entry);
 
-	 if(index_ <= allowed_xters)    //only allow 6 xters...
-	  {
-		keyboard_entry[index_] = kkey;
-		keyboard_entry[index_+1] = 0;         //NULL;
-//		if(kkey == '.')
-//		{
-//			keyboard_entry[index_+1] = '0';         //NULL;
-//			keyboard_entry[index_+2] = 0;         //NULL;
-//		}
-		index_++;
-	  }
-	}
-//--------------------------------------------------------
+		 if(index_ <= allowed_xters)    //only allow 6 xters...
+		 {
+			keyboard_entry[index_] = kkey;
+			keyboard_entry[index_+1] = 0;         //NULL;
+	//		if(kkey == '.')
+	//		{
+	//			keyboard_entry[index_+1] = '0';         //NULL;
+	//			keyboard_entry[index_+2] = 0;         //NULL;
+	//		}
+			index_++;
+		  }
+		}
+	//--------------------------------------------------------
 		  if (kkey == 'F')      //'clear' key.
 		  	{
 			  //ePrevState = eLastState1;
@@ -7496,7 +7496,8 @@ eSystemState idleState_Handler(void)
 		  }
 		 lcd_print_line3("        ");
 		 char str__[8]= {0};
-		 snprintf(str__, sizeof(str__), "%.2f", litre_price); lcd_print_line3(str__);
+		 snprintf(str__, sizeof(str__), "%.2f", litre_price);
+		 lcd_print_line3(str__);
 		 t = 0;
 	 }
 
@@ -8072,11 +8073,6 @@ eSystemState authorised_nozzleup_State_Handler(void)
 		 {
 			  key_value = strtof(keyboard_entry, &endPtr);
 
-//			  if(strchr(keyboard_entry, '.'))
-//			  {
-//				  key_value += 0.00011;
-//			  }
-
 			  half_litre1 = (0.5 * litre_price1);
 
 			  //initialise the fuel and price variables
@@ -8085,15 +8081,8 @@ eSystemState authorised_nozzleup_State_Handler(void)
 				{
 					  sellPrice_max_pump = (litre_price1 * pump_max_litres1);
 
-//					  if( (key_value > sellPrice_max_pump) || (key_value > sellPrice_max_dpp) || (key_value < half_litre1) )
 					  if( (key_value > sellPrice_max_pump) || (key_value > sellPrice_max_dpp) )  // || (key_value < half_litre1) )
 					  {
-//						  if(key_value < half_litre1)
-//						  {
-////							 nonValid_sale1 = 1;
-//							 nonValid_sale1 = 0;
-//							 return idle_State;
-//						  }
 						  if(sellPrice_max_pump < sellPrice_max_dpp)
 						  {
 							  key_value = sellPrice_max_pump;
@@ -8112,42 +8101,59 @@ eSystemState authorised_nozzleup_State_Handler(void)
 				}
 				else  //amt was selected.
 				{
-//					 if( (key_value > pump_max_litres1) || (key_value > sellPrice_max_dpp) || (key_value < 0.5) )
-					 if( (key_value > pump_max_litres1) || (key_value > sellPrice_max_dpp) )  // || (key_value < 0.5) )
+					float key_value_ = (sellPrice_max_dpp / litre_price1);
+
+					if( (key_value > pump_max_litres1) || (key_value > key_value_) )
 					 {
-//						 if(key_value < 0.5)
-//						 {
-////							 nonValid_sale1 = 1;
-//							 nonValid_sale1 = 0;
-//							 return idle_State;
-//						 }
-						 if(pump_max_litres1 < sellPrice_max_dpp)
+						 if(pump_max_litres1 < key_value_)
 						 {
 							  key_value = pump_max_litres1;
 							  pump_LitreOverflow = 1;
 						 }
-						 else if(pump_max_litres1 > sellPrice_max_dpp)
+						 else if(pump_max_litres1 > key_value_)
 						 {
-							  key_value = sellPrice_max_dpp;
+							  key_value = key_value_;
 							  display_overflow1 = 1;
 						 }
 					 }
 
 					 target_pulser1 = amt2pulser(key_value);   //calculate pulse frm amt.
-//					 }
 				}
 		  }
 		  else
 		  {
-//			  key_value = (litre_price1 * pump_max_litres1);
-//			  pump_LitreOverflow = 1;
+			  key_value = (litre_price1 * pump_max_litres1);
 
-			  key_value = sellPrice_max_dpp;
-//		      display_overflow1 = 1;
+			  if (sellmode == P)
+			  {
+				  if(key_value < sellPrice_max_dpp)
+				  {
+					  key_value = key_value;
+				  }
+				  else if(key_value > sellPrice_max_dpp)
+				  {
+					  key_value = sellPrice_max_dpp;
+				  }
 
-		      target_pulser1 = price2pulser(key_value);  //calculate pulse frm price.
-//			  key_value = 0;
-		  }
+				  target_pulser1 = price2pulser(key_value);  //calculate pulse frm price.
+			  }
+			  else if (sellmode == L)
+			  {
+					key_value = (sellPrice_max_dpp / litre_price1);
+
+					if(pump_max_litres1 < key_value)
+					{
+						  key_value = pump_max_litres1;
+					}
+					else if(pump_max_litres1 > key_value)
+					{
+						  key_value = key_value;
+					}
+
+					target_pulser1 = amt2pulser(key_value);   //calculate pulse frm amt.
+			  }
+
+		   }
 
 	 }
 	 else if(opmode == AUTO_MODE)
@@ -8163,11 +8169,6 @@ eSystemState authorised_nozzleup_State_Handler(void)
 			  if (index_ >= 1)
 			  {
 					key_value = strtof(keyboard_entry, &endPtr);
-
-//				  	if(strchr(keyboard_entry, '.'))
-//					{
-//						key_value += 0.00011;
-//					}
 
 				  	if (sellmode == L)
 					{
@@ -8237,11 +8238,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 			  if (index_ >= 1)
 			  {
 					key_value = strtof(keyboard_entry, &endPtr);
-
-//				  	if(strchr(keyboard_entry, '.'))
-//					{
-//						key_value += 0.00011;
-//					}
+//					key_value = strtod(keyboard_entry, NULL);
 
 				  	if (sellmode == P)
 					{

@@ -47,11 +47,11 @@ extern uint32_t millis;
 void shiftOut(uint8_t data_byte, uint8_t lat);
 int32_t Multiplex( int row, int col);  //char *str,
 
-void printDisp_i(int32_t num, int row, int col,int n,justify_ jst,clear_ cl);
-void printDisp_f(float num, int row, int col,int n,justify_ jst,clear_ cl);
-void printDisp_c(char* num, int row, int col,int n,justify_ jst,clear_ cl);
+void printDisp_i(int32_t num, int row, int col, int n, justify_ jst, clear_ cl);
+void printDisp_f(float num, uint8_t row, uint8_t col, int8_t n, justify_ jst, clear_ cl);
+void printDisp_c(char *num, uint8_t row, uint8_t col, int8_t n, justify_ jst, clear_ cl);
 
-void process(int isflt,char* str,int8_t cnv, int row, int col,int n ,int justify ,int clear );
+void process(int isflt, char* str, int8_t cnv, int row, int col, int n, int justify, int clear );
 void _Delay(int v);
 
 void clear_screen1();

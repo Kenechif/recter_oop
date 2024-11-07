@@ -6519,11 +6519,6 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 		 {
 			  key_value2 = strtof(keyboard_entry2, &endPtr);
 
-
-//			  if(strchr(keyboard_entry2, '.'))
-//			  {
-//				  key_value2 += 0.00011;
-//			  }
 			  //initialise the fuel and price variables
 
 			  half_litre2 = (0.5 * litre_price2);
@@ -6534,12 +6529,6 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 
 					  if( (key_value2 > sellPrice_max_pump) || (key_value2 > sellPrice_max_dpp) ) // || (key_value2 < half_litre2) )
 					  {
-//						  if(key_value2 < half_litre2)
-//						  {
-////							 nonValid_sale2 = 1;
-//							 nonValid_sale2 = 0;
-//							 return idle_State;
-//						  }
 						  if(sellPrice_max_pump < sellPrice_max_dpp)
 						  {
 							  key_value2 = sellPrice_max_pump;
@@ -6557,22 +6546,18 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 				}
 				else  //amt was selected.
 				{
-					if( (key_value2 > pump_max_litres2) || (key_value2 > sellPrice_max_dpp) )  //|| (key_value2 < 0.5) )
+					float key_value_ = (sellPrice_max_dpp / litre_price2);
+
+					if( (key_value2 > pump_max_litres2) || (key_value2 > key_value_) )
 					{
-//						 if(key_value2 < 0.5)
-//						 {
-////							 nonValid_sale2 = 1;
-//							 nonValid_sale2 = 0;
-//							 return idle_State;
-//						 }
-						 if(pump_max_litres2 < sellPrice_max_dpp)
+						 if(pump_max_litres2 < key_value_)
 						 {
 							  key_value2 = pump_max_litres2;
 							  pump_LitreOverflow2 = 1;
 						 }
-						 else if(pump_max_litres2 > sellPrice_max_dpp)
+						 else if(pump_max_litres2 > key_value_)
 						 {
-							  key_value2 = sellPrice_max_dpp;
+							  key_value2 = key_value_;
 							  display_overflow2 = 1;
 						 }
 					  }
@@ -6582,16 +6567,37 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 		  }
 		  else
 		  {
-//			  key_value2 = (litre_price2 * pump_max_litres2);
-//			  pump_LitreOverflow2 = 1;
+			  key_value2 = (litre_price2 * pump_max_litres2);
 
-			  key_value2 = sellPrice_max_dpp;
-//			  display_overflow2 = 1;
+			  if (sellmode2 == P)
+			  {
+				  if(key_value2 < sellPrice_max_dpp)
+				  {
+					  key_value2 = key_value2;
+				  }
+				  else if(key_value2 > sellPrice_max_dpp)
+				  {
+					  key_value2 = sellPrice_max_dpp;
+				  }
 
-			  target_pulser2 = price2pulser2(key_value2);  //calculate pulse frm price.
-//			  key_value2 = 0;
+				  target_pulser2 = price2pulser2(key_value2);  //calculate pulse frm price.
+			  }
+			  else if (sellmode2 == L)
+			  {
+					key_value2 = (sellPrice_max_dpp / litre_price2);
+
+					if(pump_max_litres2 < key_value2)
+					{
+						  key_value2 = pump_max_litres2;
+					}
+					else if(pump_max_litres2 > key_value2)
+					{
+						  key_value2 = key_value2;
+					}
+
+					target_pulser2 = amt2pulser2(key_value2);   //calculate pulse frm amt.
+			  }
 		  }
-
 	 }
 	 else if(opmode2 == AUTO_MODE)
 	 {

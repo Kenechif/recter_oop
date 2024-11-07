@@ -97,7 +97,8 @@ void lcd_print_line2(char lcd_[10])
 
 void lcd_print_line3(char lcd_[10])
 {
-	 printDisp_c(lcd_,3,0,7,RT,CLEAR);
+	 printDisp_c(lcd_, 3, 0, 7, RT, CLEAR);
+//	 void printDisp_c(char *num, uint8_t row, uint8_t col, int8_t n, justify_ jst, clear_ cl);
 }
 
 void keypad_print(char lcd_[8])

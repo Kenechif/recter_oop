@@ -915,25 +915,25 @@ static void MX_TIM2_Init(void)
   htim2.Init.Period = 4294967295;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-//  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
-//  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
-//  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
-//  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-//  sConfig.IC1Filter = 10;
-//  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
-//  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
-//  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
-//  sConfig.IC2Filter = 10;
-//  if (HAL_TIM_Encoder_Init(&htim2, &sConfig) != HAL_OK)
-//  {
-//    Error_Handler();
-//  }
-//  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-//  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-//  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
-//  {
-//    Error_Handler();
-//  }
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
+  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC1Filter = 10;
+  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC2Filter = 10;
+  if (HAL_TIM_Encoder_Init(&htim2, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN TIM2_Init 2 */
 
 
@@ -1015,25 +1015,25 @@ static void MX_TIM5_Init(void)
   htim5.Init.Period = 4294967295;
   htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
-//  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
-//  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
-//  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
-//  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-//  sConfig.IC1Filter = 10;
-//  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
-//  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
-//  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
-//  sConfig.IC2Filter = 10;
-//  if (HAL_TIM_Encoder_Init(&htim5, &sConfig) != HAL_OK)
-//  {
-//    Error_Handler();
-//  }
-//  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-//  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-//  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
-//  {
-//    Error_Handler();
-//  }
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
+  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC1Filter = 10;
+  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC2Filter = 10;
+  if (HAL_TIM_Encoder_Init(&htim5, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim5, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN TIM5_Init 2 */
 
 	if(settings_stream2[0].pulser_type_ == quadrature)

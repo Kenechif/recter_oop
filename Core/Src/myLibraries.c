@@ -715,12 +715,12 @@ int32_t Multiplex2( int row, int col)
   return 0;
 }
 //=============================================================================================
-void process(int isflt,char* str,int8_t cnv, int row, int col,int n ,int justify,int clear)
+void process(int isflt, char* str, int8_t cnv, int row, int col, int n, int justify, int clear)
 {
    //	char str_[10]= {0};
    //	int cnv = snprintf(str_, sizeof(str), "%ld", num);
 
-	int temp1,temp2 = 0;
+	int temp1, temp2 = 0;
 	int count = 0;
 
 	int start;
@@ -770,12 +770,12 @@ void process(int isflt,char* str,int8_t cnv, int row, int col,int n ,int justify
           if (x_ > xtercount_max) x_ = xtercount_max;  //limit..
           //-----------   write initial spaces -----------------
 		   while(x_ > 0)
-			   {
-				 if (clear == 1 ) vbuf[temp2] = 0;
-				   x_--;
-				   temp2--;
-				   count++; if (count > xtercount_max-1) { goto end; }
-			   }
+		   {
+			 if (clear == 1 ) vbuf[temp2] = 0;
+			   x_--;
+			   temp2--;
+			   count++; if (count > xtercount_max-1) { goto end; }
+		   }
           }
     //========================================================
           temp1 = cnv;
@@ -815,7 +815,11 @@ void process(int isflt,char* str,int8_t cnv, int row, int col,int n ,int justify
 
 			   temp2--;
 			   temp1--;
-			   count++;  if(count > xtercount_max-1) { goto end; }
+			   count++;
+			   if(count > xtercount_max-1)
+			   {
+				   goto end;
+			   }
 		   }
          //---------------------------------------------------------------------------
          //clear the extra character   ---- when in left justify and clear = 0
@@ -1009,32 +1013,32 @@ void printDisp_i(int32_t num, int row, int col,int n,justify_ jst,clear_ cl)
 {
 	  	char str_[10]= {0};
 	   	int cnv = snprintf(str_, sizeof(str_), "%ld", num);
-	   	process(0,str_,cnv,row,col,n,jst,cl);
+	   	process(0, str_, cnv, row, col, n, jst, cl);
 }
 
-void printDisp_c(char *num, int row, int col,int n,justify_ jst,clear_ cl )
+void printDisp_c(char *num, uint8_t row, uint8_t col, int8_t n, justify_ jst, clear_ cl)
 {
 	//char str_[10]= {0};
 	//sprintf(str_, "%sc", num);
 	//int cnv = snprintf(str_, sizeof(str), "%ld", num);
-	int max_ = 8;
+	int8_t max_ = 8;
 	if(row < 3) max_ = 10;
-	int cnv = strlen(num);
+	int8_t cnv = strlen(num);
 	if(cnv > max_) cnv = max_;
- 	process(0,num,cnv,row,col,n,1,cl);
+ 	process(0, num, cnv, row, col, n, 1, cl);
 }
 
-void printDisp_f(float num, int row, int col,int n ,justify_ jst , clear_ cl)
+void printDisp_f(float num, uint8_t row, uint8_t col, int8_t n, justify_ jst, clear_ cl)
 {
 	char str_[10]= {0};
-	int cnv = snprintf(str_, sizeof(str_), "%.2f", num);
+	int8_t cnv = snprintf(str_, sizeof(str_), "%.2f", num);
 
      //	int clear = 1;
 
         //justify for float is always left because of the decimals
 	    //int justify = 0;
 	    //int n = 4;
-	process(1,str_,cnv,row,col,n,0,cl);
+	process(1, str_, cnv, row, col, n, 0, cl);
 }
 //================================================================================================
 /* routines to write integer , float and string to the lcd  */

@@ -734,7 +734,7 @@ void make_settings(pump_sid side)
 	    settings_stream2[sdd].pulser_type_ = quadrature;   //non_quadrature;   //quadrature;
 	    settings_stream2[sdd].pulser_offset = 0;
 	    settings_stream2[sdd].valve_salesStart = 0.15;
-	    settings_stream2[sdd].valve_salesEnd = 1.0;
+	    settings_stream2[sdd].valve_salesEnd = 0.36;    //1.0;
 	    settings_stream2[sdd].non_calibration_seed = 0;
 
 	     /*
