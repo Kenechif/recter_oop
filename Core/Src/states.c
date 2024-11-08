@@ -96,6 +96,8 @@ eSystemState eNextState1_1;
 eSystemEvent eNewEvent1_1;
 uint8_t dummyData = 0;
 
+bool keypad_zerorise1 = true;
+
 //===========================================
 
 
@@ -1210,8 +1212,8 @@ eSystemState nozzledown_Handler(void)
 //	 }
 	 //
 
-
-	 keypad_zerorize();
+	 if(keypad_zerorise1 == true)
+		 keypad_zerorize();
   //---------------------------------------------------------------------
   //             saving to the log
 	 if(eNextState1 == filling_State)
@@ -1602,6 +1604,7 @@ eSystemState keypress_Handler(void)
 
 		   nozzle_flag_key1 = 0;
 		   nozzle_flag_key_old1 = 1;
+		   keypad_zerorise1 = true;
 	  }
 
 //====================================================
@@ -8807,7 +8810,10 @@ eSystemState filling_State_Handler(void)
 
 	if(filling_mamo_flag1 == 1)
 	{
-		return filling_State;
+	   nozzle_flag_key1 = 0;
+	   nozzle_flag_key_old1 = 1;
+
+	   return filling_State;
 	}
 
 	float temp = 0.0;
@@ -10020,6 +10026,24 @@ eSystemState filledmamo_State_Handler(void)
 //	nozzle_bit = 0;
 
 	filling_mamo_flag1 = 0;
+
+	nozzle_flag_key1 = 0;
+	nozzle_flag_key_old1 = 1;
+	keypad_zerorise1 = false;
+
+//	for(uint8_t i = 0; i <= 8; i++)
+//	{
+//		keyboard[i] = 0;
+//	}
+
+	index_ = 0;
+	_index = 0;
+
+	for(uint8_t i = 0; i < 9; i++)
+	{
+		keypad_pw_xter1[i] = 0;
+		keyboard_entry[i] = 0;   //clear the buffer
+	}
 
 
 	  if (t > LCD_UPDATE_RATE)

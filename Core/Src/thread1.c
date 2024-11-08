@@ -70,6 +70,9 @@ extern TIM_HandleTypeDef htim5;
 
 extern I2C_HandleTypeDef hi2c1;
 
+extern bool keypad_zerorise1,
+			keypad_zerorise2;
+
 //extern  pump_settings settings[2],
 //					  copy[2],
 //					  settings0[2];
@@ -2209,8 +2212,11 @@ skip_test:
     settings_stream1[0].noz_addr = 0x01;
 	settings_stream1[1].noz_addr = 0x02;
 
-	settings_stream2[0].valve_salesStart = 0.00; // 0.15;
-	settings_stream2[0].valve_salesEnd = 0.00;   //0.36;
+//	settings_stream2[0].valve_salesStart = 0.00; // 0.15;
+//	settings_stream2[0].valve_salesEnd = 0.00;   //0.36;
+
+	settings_stream2[0].startUp_suppressVol = 0.12;
+	settings_stream2[1].startUp_suppressVol = 0.12;
 
 //    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
 //    settings_stream1[0].mode = AUTO_MODE;    //AUTO_MODE;
@@ -2401,8 +2407,15 @@ skip_test:
 //    strcpy(settings_stream1[1].product_, "DPK");
 
 
-    pulser_benchMark1 = 15985;   //15987;
-    pulser_benchMark2 = 15962;   //15987;
+//    pulser_benchMark1 = 15985;   //15987;
+//    pulser_benchMark2 = 15962;   //15987;
+
+    //===============================================//
+    //xxxxx Tinpet, Bale, Ajegunle  xxxxx//
+    //===============================================//
+    pulser_benchMark1 = 7903;   //15987;
+    pulser_benchMark2 = 7903;   //15987;
+    //===============================================//
 
 //    FRAM_Write_NUM (0, 0, 234);
 //
@@ -3296,6 +3309,8 @@ int  read_event2()
 		   if( ((nozzle_flag_old2 == 0) && (nozzle_flag2 == 1)) ||
 			 ((nozzle_flag_key_old2 == 0) && (nozzle_flag_key2 == 1)) )
 		   {
+			   keypad_zerorise2 = true;
+
 			   if((nozzle_flag_old2 == 0) && (nozzle_flag2 == 1))
 			   {
 				   if((nozzle_flag_key_old2 == 0) && (nozzle_flag_key2 == 0))
@@ -4038,7 +4053,10 @@ uint8_t read_event1_1(void)
 	   if( ((nozzle_flag_old == 0) && (nozzle_flag == 1)) ||
 	   	 ((nozzle_flag_key_old1 == 0) && (nozzle_flag_key1 == 1)) )
 	   {
- 		   if((nozzle_flag_old == 0) && (nozzle_flag == 1))
+		   keypad_zerorise1 = true;
+//		   keypad_zerorize();
+
+		   if((nozzle_flag_old == 0) && (nozzle_flag == 1))
 		   {
 			   if((nozzle_flag_key_old1 == 0) && (nozzle_flag_key1 == 0))
 			   {

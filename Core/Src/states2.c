@@ -82,6 +82,8 @@ extern int data_size; //w25qxx.PageSize;    //0;
     last_Event = 0;
  */
 
+bool keypad_zerorise2 = true;
+
 extern pump_status_enum pump_status_1,
 						pump_status_2;
 
@@ -8350,7 +8352,8 @@ eSystemState nozzledown_Handler2(void)
 // 	//	 }
 // 		 send_keypad2(keyboard2);
 
-	 keypad_zerorize2();
+	 if(keypad_zerorise2 == true)
+		 keypad_zerorize2();
  	//--------------------------------------------------------------------
 
 	  //-------------------------------------------
@@ -8680,6 +8683,8 @@ if(
 
 		   nozzle_flag_key2 = 0;
 		   nozzle_flag_key_old2 = 1;
+
+		   keypad_zerorise2 = true;
 		}
 
 //====================================================
@@ -9489,6 +9494,19 @@ eSystemState filledmamo_State_Handler2(void)
 //	nozzle_bit2 = 0;
 
 	filling_mamo_flag2 = 0;
+
+	nozzle_flag_key2 = 0;
+	nozzle_flag_key_old2 = 1;
+
+	index_2 = 0;
+	_index2 = 0;
+
+	 for(uint8_t i = 0; i < 9; i++)
+	 {
+	   keypad_pw_xter2[i] = 0;
+	   keyboard_entry2[i] = 0;   //clear the buffer
+	 }
+
 
 	  if (t2 > LCD_UPDATE_RATE)
 	  {
