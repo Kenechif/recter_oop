@@ -2609,17 +2609,22 @@ void _process_response1(response_enum response)
 				DART_BUFF1[ii + 10] = bcd_[j];
 			}
 
-			roundedNum = round_off(tot_vol2, decimalPlaces);
-			roundedNum = roundedNum * 1000;
-			num_ = (int)(roundedNum);
+//			roundedNum = round_off(tot_vol2, decimalPlaces);
+//			roundedNum = roundedNum * 1000;
+//			num_ = (int)(roundedNum);
+//
+//			memset(bcd_, 0, sizeof(bcd_));
+//
+//			int_to_bcd(num_, bcd_);
+//
+//			for (uint8_t ii = 0, j = 0; ii < 5; ii++, j--)
+//			{
+//				DART_BUFF1[ii + 15] = bcd_[j];
+//			}
 
-			memset(bcd_, 0, sizeof(bcd_));
-
-			int_to_bcd(num_, bcd_);
-
-			for (uint8_t ii = 0, j = 0; ii < 5; ii++, j--)
+			for (uint8_t ii = 0; ii < 5; ii++)
 			{
-				DART_BUFF1[ii + 15] = bcd_[j];
+				DART_BUFF1[ii + 15] = 0x00;
 			}
 
 			//'50 38 65 10 01 00 00 18 03 67 00 00 18 03 67 00 00 00 00 00 59 ab 03 fa '
@@ -3362,7 +3367,6 @@ void _process_response2(response_enum response)
 					DART_BUFF2[i + 8] = bcd_[j];
 				}
 
-
 				//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
 				//////////////////////////////////  GET NOZSTATUS_AND_FILLINGPRICE //////////////////////////////////
 
@@ -3599,7 +3603,7 @@ void _process_response2(response_enum response)
 			//=============================================================================//
 			//command_ ==> REQUEST_VOL_TOTAL_COUNT;      //REQUEST TOTALIZER   DP ==> 3
 
-			float tot_vol = totaliser_vol1c;
+			float tot_vol = totaliser_vol2c;
 			float tot_vol1 = tot_vol;
 			float tot_vol2 = 0.0000;
 			uint8_t decimalPlaces;
@@ -3650,17 +3654,22 @@ void _process_response2(response_enum response)
 				DART_BUFF2[ii + 10] = bcd_[j];
 			}
 
-			roundedNum = round_off(tot_vol2, decimalPlaces);
-			roundedNum = roundedNum * 1000;
-			num_ = (int)(roundedNum);
+//			roundedNum = round_off(tot_vol2, decimalPlaces);
+//			roundedNum = roundedNum * 1000;
+//			num_ = (int)(roundedNum);
+//
+//			memset(bcd_, 0, sizeof(bcd_));
+//
+//			int_to_bcd(num_, bcd_);
+//
+//			for (uint8_t ii = 0, j = 0; ii < 5; ii++, j--)
+//			{
+//				DART_BUFF2[ii + 15] = bcd_[j];
+//			}
 
-			memset(bcd_, 0, sizeof(bcd_));
-
-			int_to_bcd(num_, bcd_);
-
-			for (uint8_t ii = 0, j = 0; ii < 5; ii++, j--)
+			for (uint8_t ii = 0; ii < 5; ii++)
 			{
-				DART_BUFF2[ii + 15] = bcd_[j];
+				DART_BUFF2[ii + 15] = 0x00;
 			}
 
 			//'50 38 65 10 01 00 00 18 03 67 00 00 18 03 67 00 00 00 00 00 59 ab 03 fa '
@@ -4653,11 +4662,11 @@ uint16_t calculate_crc(uint8_t *data, size_t length) {
 }
 
 
-double round_off(float value, int decimalPlaces)
-{
-    double factor = pow(10, decimalPlaces);
-    return ceil(value * factor) / factor;
-}
+//double round_off(float value, int decimalPlaces)
+//{
+//    double factor = pow(10, decimalPlaces);
+//    return ceil(value * factor) / factor;
+//}
 
 // unsigned int decimalToPackedBCD(unsigned int decimal)
 // {
@@ -4697,6 +4706,51 @@ void int_to_bcd(int num, unsigned char *bcd)
         num /= 10;
         index++;
     }
+}
+
+void int_to_bcd_(int num, unsigned char *bcd, uint8_t bcd_size)
+{
+    for (int8_t i = bcd_size - 1; i >= 0; i--)
+    {
+        bcd[i] = (num % 10) | ((num / 10 % 10) << 4);
+        num /= 100;
+    }
+}
+
+
+int8_t countDigits(int number)
+{
+    int count = 0;
+
+    // Handle negative numbers by making the number positive
+    if (number < 0) {
+        number = -number;
+    }
+
+    do {
+        count++;
+        number /= 10;
+    } while (number != 0);
+
+    return count;
+}
+
+int powerOfTen(uint8_t exponent)
+{
+    static const int powers[] =
+    {
+        1,
+		10,
+		100,
+		1000,
+		10000,
+		100000,
+		1000000,
+		10000000,
+		100000000
+    };
+
+    return powers[exponent];
 }
 
 // Function to convert BCD to integer
@@ -5527,7 +5581,7 @@ void send_fillingInfo1(uint8_t buff_index)
 	double roundedNum;
 	int num_;
 	// unsigned int bcd;
-	unsigned char bcd_[10] = {0};  // Array to hold the BCD result
+	unsigned char bcd_[4] = {0};  // Array to hold the BCD result
 
 	uint16_t crc;
 
@@ -5549,11 +5603,20 @@ void send_fillingInfo1(uint8_t buff_index)
 	roundedNum = roundedNum * 100;
 	num_ = (int)(roundedNum);
 
-	int_to_bcd(num_, bcd_);
+//	num_ = (num_ * powerOfTen(8 - countDigits(num_)));
 
-	for (uint8_t i = 0, j = 3; i < 4; i++, j--)
+//	int_to_bcd(num_, bcd_);
+
+	int_to_bcd_(num_, bcd_, sizeof(bcd_));
+
+//	for (uint8_t i = 0, j = 3; i < 4; i++, j--)
+//	{
+//		DART_BUFF1[i + 4 + buff_index] = bcd_[j];
+//	}
+
+	for (uint8_t i = 0; i < 4; i++)
 	{
-		DART_BUFF1[i + 4 + buff_index] = bcd_[j];
+		DART_BUFF1[i + 4 + buff_index] = bcd_[i];
 	}
 
 	decimalPlaces = 1;
@@ -5562,15 +5625,29 @@ void send_fillingInfo1(uint8_t buff_index)
 	roundedNum = roundedNum * 10;
 	num_ = (int)(roundedNum);
 
+	//To ensure MSB remains in the 1st BCD Byte
+//	num_ = (num_ * powerOfTen(8 - countDigits(num_)));
+
+
+
 	memset(bcd_, 0, sizeof(bcd_));
 
-	int_to_bcd(num_, bcd_);
+//	int_to_bcd(num_, bcd_);
+
+	int_to_bcd_(num_, bcd_, sizeof(bcd_));
 
 	// for(uint8_t i = 0; i < 4; i++)
-	for (uint8_t i = 0, j = 3; i < 4; i++, j--)
+//	for (uint8_t i = 0, j = 3; i < 4; i++, j--)
+//	{
+//		DART_BUFF1[i + 8 + buff_index] = bcd_[j];
+//	}
+
+	for (uint8_t i = 0; i < 4; i++)
 	{
-		DART_BUFF1[i + 8 + buff_index] = bcd_[j];
+		DART_BUFF1[i + 8 + buff_index] = bcd_[i];
 	}
+
+
 
 	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
 	//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
@@ -5625,11 +5702,34 @@ void send_fillingInfo2(uint8_t buff_index)
 	roundedNum = roundedNum * 100;
 	num_ = (int)(roundedNum);
 
-	int_to_bcd(num_, bcd_);
+//	int_to_bcd(num_, bcd_);
+//
+//	for (uint8_t i = 0, j = 3; i < 4; i++, j--)
+//	{
+//		DART_BUFF2[i + 4 + buff_index] = bcd_[j];
+//	}
+//
+//	decimalPlaces = 1;
+//
+//	roundedNum = round_off(amo_, decimalPlaces);
+//	roundedNum = roundedNum * 10;
+//	num_ = (int)(roundedNum);
+//
+//	memset(bcd_, 0, sizeof(bcd_));
+//
+//	int_to_bcd(num_, bcd_);
+//
+//	// for(uint8_t i = 0; i < 4; i++)
+//	for (uint8_t i = 0, j = 3; i < 4; i++, j--)
+//	{
+//		DART_BUFF2[i + 8 + buff_index] = bcd_[j];
+//	}
 
-	for (uint8_t i = 0, j = 3; i < 4; i++, j--)
+	int_to_bcd_(num_, bcd_, sizeof(bcd_));
+
+	for (uint8_t i = 0; i < 4; i++)
 	{
-		DART_BUFF2[i + 4 + buff_index] = bcd_[j];
+		DART_BUFF2[i + 4 + buff_index] = bcd_[i];
 	}
 
 	decimalPlaces = 1;
@@ -5640,12 +5740,11 @@ void send_fillingInfo2(uint8_t buff_index)
 
 	memset(bcd_, 0, sizeof(bcd_));
 
-	int_to_bcd(num_, bcd_);
+	int_to_bcd_(num_, bcd_, sizeof(bcd_));
 
-	// for(uint8_t i = 0; i < 4; i++)
-	for (uint8_t i = 0, j = 3; i < 4; i++, j--)
+	for (uint8_t i = 0; i < 4; i++)
 	{
-		DART_BUFF2[i + 8 + buff_index] = bcd_[j];
+		DART_BUFF2[i + 8 + buff_index] = bcd_[i];
 	}
 
 	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//

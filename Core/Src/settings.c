@@ -3573,3 +3573,16 @@ void clr_pulser2()
 {
    __HAL_TIM_SET_COUNTER(&htim2, settings_stream2[1].pulser_offset);
 }
+
+
+double round_off(float value, int decimalPlaces)
+{
+    double factor = pow(10, decimalPlaces);
+    return ceil(value * factor) / factor;
+}
+
+double round_off2(float value, int decimalPlaces)
+{
+    double factor = pow(10, decimalPlaces);
+    return ceil(value * factor) / factor;
+}

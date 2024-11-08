@@ -1071,6 +1071,9 @@ void clr_pulser2();
 
 void dp_init(pump_sid sdd);
 
+double round_off(float value, int decimalPlaces);
+double round_off2(float value, int decimalPlaces);
+
 void save_settings(void);
 void save_settings_original(void);
 void retrieve_settings(void);

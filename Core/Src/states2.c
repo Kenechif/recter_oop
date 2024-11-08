@@ -466,97 +466,101 @@ float dp2(float flt,int n)
 		return f;
 	}
 
-	uint32_t temp = (f * pow(10,n));
+ 	float roundedNum = round_off2(f, n);
 
+ 	return roundedNum;
 
-	//temp = floor(temp);
- 	int nn = snprintf(chrr, sizeof(chrr_), "%d", temp);
- 	uint8_t chrrr[12] = {0};
- 	for(int indx = 0; indx<10;indx++)
- 	{
- 		chrrr[indx] = 48;
- 	}
- 	chrrr[9] = 0;
- 	int j = 8;
- 	int dpp = 0;
-
-// 	for (int i = nn-1; i > -1;i--)
-//		{
-// 			chrrr[j] =  chrr[i];
-// 			dpp++;
-// 			if(dpp == n)  //if decimal point
-//				{
+//	uint32_t temp = (f * pow(10,n));
+//
+//
+//	//temp = floor(temp);
+// 	int nn = snprintf(chrr, sizeof(chrr_), "%d", temp);
+// 	uint8_t chrrr[12] = {0};
+// 	for(int indx = 0; indx<10;indx++)
+// 	{
+// 		chrrr[indx] = 48;
+// 	}
+// 	chrrr[9] = 0;
+// 	int j = 8;
+// 	int dpp = 0;
+//
+//// 	for (int i = nn-1; i > -1;i--)
+////		{
+//// 			chrrr[j] =  chrr[i];
+//// 			dpp++;
+//// 			if(dpp == n)  //if decimal point
+////				{
+//// 				   j--;
+//// 				   chrrr[j] = '.';   // insert decimmal point
+////				}
+//// 			j--;
+////		}
+//
+// 	if (temp < 100000000)
+// 	 	{
+// 	 		chrrr[9] = 0;
+//
+// 			for (int8_t i = nn-1; i > -1; i--)
+// 			{
+// 	 			chrrr[j] =  chrr[i];
+// 	 			dpp++;
+// 	 			if(dpp == n)  //if decimal point
+// 				{
 // 				   j--;
 // 				   chrrr[j] = '.';   // insert decimmal point
-//				}
-// 			j--;
+// 				}
+// 	 			j--;
+// 			}
+// 	 	}
+//
+// 	 	else if( (temp >= 100000000) && (temp < 1000000000) )
+// 	 	{
+// 	 	 	chrrr[10] = 0;        //chrrr[9] = 0;
+// 	 	 	j = 9;				  //j = 8;
+//
+// 	 	 	for (int8_t i = nn-1; i > -1;i--)
+// 			{
+// 				chrrr[j] =  chrr[i];
+// 				dpp++;
+// 				if(dpp == n)  //if decimal point
+// 				{
+// 				   j--;
+// 				   chrrr[j] = '.';   // insert decimmal point
+// 				}
+// 				j--;
+// 			}
+// 	 	}
+//
+// 	 	else if( (temp >= 1000000000) && (temp < 10000000000) )
+// 		{
+// 			chrrr[11] = 0;        //chrrr[9] = 0;
+// 			j = 10;				  //j = 8;
+//
+// 			for (int8_t i = nn-1; i > -1; i--)
+// 			{
+// 				chrrr[j] =  chrr[i];
+// 				dpp++;
+// 				if(dpp == n)  //if decimal point
+// 				{
+// 				   j--;
+// 				   chrrr[j] = '.';   // insert decimmal point
+// 				}
+// 				j--;
+// 			}
+// 		}
+//
+//    /* for (int i = nn-1; n > -1;n--)
+//		{
+//			chrrr[j] =  chrr[i];
+//			j--;
 //		}
-
- 	if (temp < 100000000)
- 	 	{
- 	 		chrrr[9] = 0;
-
- 			for (int8_t i = nn-1; i > -1; i--)
- 			{
- 	 			chrrr[j] =  chrr[i];
- 	 			dpp++;
- 	 			if(dpp == n)  //if decimal point
- 				{
- 				   j--;
- 				   chrrr[j] = '.';   // insert decimmal point
- 				}
- 	 			j--;
- 			}
- 	 	}
-
- 	 	else if( (temp >= 100000000) && (temp < 1000000000) )
- 	 	{
- 	 	 	chrrr[10] = 0;        //chrrr[9] = 0;
- 	 	 	j = 9;				  //j = 8;
-
- 	 	 	for (int8_t i = nn-1; i > -1;i--)
- 			{
- 				chrrr[j] =  chrr[i];
- 				dpp++;
- 				if(dpp == n)  //if decimal point
- 				{
- 				   j--;
- 				   chrrr[j] = '.';   // insert decimmal point
- 				}
- 				j--;
- 			}
- 	 	}
-
- 	 	else if( (temp >= 1000000000) && (temp < 10000000000) )
- 		{
- 			chrrr[11] = 0;        //chrrr[9] = 0;
- 			j = 10;				  //j = 8;
-
- 			for (int8_t i = nn-1; i > -1; i--)
- 			{
- 				chrrr[j] =  chrr[i];
- 				dpp++;
- 				if(dpp == n)  //if decimal point
- 				{
- 				   j--;
- 				   chrrr[j] = '.';   // insert decimmal point
- 				}
- 				j--;
- 			}
- 		}
-
-    /* for (int i = nn-1; n > -1;n--)
-		{
-			chrrr[j] =  chrr[i];
-			j--;
-		}
-	 */
-	//float temp_ = temp/pow(10,n);
-	//temp_ = (temp_);
-
- 	float temp_ = strtof(chrrr, &endPtr);
-
- 	return temp_;
+//	 */
+//	//float temp_ = temp/pow(10,n);
+//	//temp_ = (temp_);
+//
+// 	float temp_ = strtof(chrrr, &endPtr);
+//
+// 	return temp_;
 }
 
 
@@ -8380,7 +8384,7 @@ eSystemState nozzledown_Handler2(void)
 		   }
 
 
-			r_volTotaliser2 = floor( running_volTotaliser2c );
+			r_volTotaliser2 = floor(running_volTotaliser2c);
 
 			if(r_volTotaliser2 != old_r_volTotaliser2)
 			{
@@ -9123,8 +9127,10 @@ void do_calcs2 ()
    else
    {
       //programmed but still dispensing @ stop pt.
-		 temp = pulser2amt2(current_pulser2);  amt2   = dp2(temp, dp_vol2);
-		 temp = amt2price2(amt2);   			price2 = dp2(temp, dp_amount2);
+		 temp = pulser2amt2(current_pulser2);
+		 amt2   = dp2(temp, dp_vol2);
+		 temp = amt2price2(amt2);
+		 price2 = dp2(temp, dp_amount2);
 
 		  make_string2(P, dp2(price2, dp_amount2));
 		  make_string2(L, dp2(amt2, dp_vol2));
@@ -9622,7 +9628,14 @@ eSystemState pnpState_Handler2(void)
 		 snprintf(str__, sizeof(str__), "%.2f", litre_price2);
 		 lcd_print_line3_2(str__);
 
-		 t2 = 0;
+		 if (t2 > 2000)
+		 {
+		  /* start the DMA again */
+		  HAL_UARTEx_ReceiveToIdle_DMA(&huart2, (uint8_t *) RxBuf, RxBuf_SIZE);
+		  __HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
+
+		  t2 = 0;
+		 }
 	 }
 
 

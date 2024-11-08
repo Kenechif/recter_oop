@@ -476,86 +476,90 @@ float dp(float flt, int n)
 		return f;
 	}
 
-	uint32_t temp = (f * pow(10,n));
+	float roundedNum = round_off(f, n);
+
+	return roundedNum;
 
 
-	//temp = floor(temp);
- 	int8_t nn = snprintf(chrr, sizeof(chrr_), "%d", temp);
- 	uint8_t chrrr[12] = {0};			//uint8_t chrrr[10] = {0};
-// 	for(int indx = 0; indx<10;indx++)
+//	uint32_t temp = (f * pow(10, n));
+//
+//	//temp = floor(temp);
+// 	int8_t nn = snprintf(chrr, sizeof(chrr_), "%d", temp);
+// 	uint8_t chrrr[12] = {0};			//uint8_t chrrr[10] = {0};
+//// 	for(int indx = 0; indx<10;indx++)
+//// 	{
+//// 		chrrr[indx] = 48;
+//// 	}
+//
+//	memset(chrrr, '0', sizeof(chrrr));
+//// 	chrrr[9] = 0;
+// 	int8_t j = 8;
+// 	int8_t dpp = 0;
+//
+//
+// 	if (temp < 100000000)
 // 	{
-// 		chrrr[indx] = 48;
+// 		chrrr[9] = 0;
+//
+//		for (int8_t i = nn-1; i > -1;i--)
+//		{
+// 			chrrr[j] =  chrr[i];
+// 			dpp++;
+// 			if(dpp == n)  //if decimal point
+//			{
+//			   j--;
+//			   chrrr[j] = '.';   // insert decimmal point
+//			}
+// 			j--;
+//		}
 // 	}
-
-	memset(chrrr, '0', sizeof(chrrr));
-// 	chrrr[9] = 0;
- 	int8_t j = 8;
- 	int8_t dpp = 0;
-
-
- 	if (temp < 100000000)
- 	{
- 		chrrr[9] = 0;
-
-		for (int8_t i = nn-1; i > -1;i--)
-		{
- 			chrrr[j] =  chrr[i];
- 			dpp++;
- 			if(dpp == n)  //if decimal point
-			{
-			   j--;
-			   chrrr[j] = '.';   // insert decimmal point
-			}
- 			j--;
-		}
- 	}
-
- 	else if( (temp >= 100000000) && (temp < 1000000000) )
- 	{
- 	 	chrrr[10] = 0;        //chrrr[9] = 0;
- 	 	j = 9;				  //j = 8;
-
- 	 	for (int8_t i = nn-1; i > -1; i--)
-		{
-			chrrr[j] =  chrr[i];
-			dpp++;
-			if(dpp == n)  //if decimal point
-			{
-			   j--;
-			   chrrr[j] = '.';   // insert decimmal point
-			}
-			j--;
-		}
- 	}
-
- 	else if( (temp >= 1000000000) && (temp < 10000000000) )
-	{
-		chrrr[11] = 0;        //chrrr[9] = 0;
-		j = 10;				  //j = 8;
-
-		for (int8_t i = nn-1; i > -1; i--)
-		{
-			chrrr[j] =  chrr[i];
-			dpp++;
-			if(dpp == n)  //if decimal point
-			{
-			   j--;
-			   chrrr[j] = '.';   // insert decimmal point
-			}
-			j--;
-		}
-	}
-
-// 	float temp_ = atof(chrrr);
- 	//double temp1_ = atoff(chrrr);
-
-// 	temp_ += 0.00011;  //make small correction for the inherent rounddown.
-
-	float temp_  = strtof(chrrr, &endPtr);
-
-// 	price_dp = temp_;
-
- 	return temp_;
+//
+// 	else if( (temp >= 100000000) && (temp < 1000000000) )
+// 	{
+// 	 	chrrr[10] = 0;        //chrrr[9] = 0;
+// 	 	j = 9;				  //j = 8;
+//
+// 	 	for (int8_t i = nn-1; i > -1; i--)
+//		{
+//			chrrr[j] =  chrr[i];
+//			dpp++;
+//			if(dpp == n)  //if decimal point
+//			{
+//			   j--;
+//			   chrrr[j] = '.';   // insert decimmal point
+//			}
+//			j--;
+//		}
+// 	}
+//
+// 	else if( (temp >= 1000000000) && (temp < 10000000000) )
+//	{
+//		chrrr[11] = 0;        //chrrr[9] = 0;
+//		j = 10;				  //j = 8;
+//
+//		for (int8_t i = nn-1; i > -1; i--)
+//		{
+//			chrrr[j] =  chrr[i];
+//			dpp++;
+//			if(dpp == n)  //if decimal point
+//			{
+//			   j--;
+//			   chrrr[j] = '.';   // insert decimmal point
+//			}
+//			j--;
+//		}
+//	}
+//
+//// 	float temp_ = atof(chrrr);
+// 	//double temp1_ = atoff(chrrr);
+//
+//// 	temp_ += 0.00011;  //make small correction for the inherent rounddown.
+//
+//	float temp_  = strtof(chrrr, &endPtr);
+//
+//// 	price_dp = temp_;
+//
+// 	return temp_;
 }
 
 
@@ -10157,7 +10161,14 @@ eSystemState pnpState_Handler(void)
 		 snprintf(str__, sizeof(str__), "%.2f", litre_price1);
 		 lcd_print_line3(str__);
 
-		 t = 0;
+		 if (t > 2000)
+		 {
+		  /* start the DMA again */
+		  HAL_UARTEx_ReceiveToIdle_DMA(&huart2, (uint8_t *) RxBuf, RxBuf_SIZE);
+		  __HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
+
+		  t = 0;
+		 }
 	 }
 
 
