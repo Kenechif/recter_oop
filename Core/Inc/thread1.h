@@ -72,7 +72,10 @@ void firstTotalizerDay_write(void);
 
 void eeprom_clearToken(void);
 
-// write the
+uint8_t debounceKey1(void);
+uint8_t debounceKey2(void);
+
+
 
 
 #ifdef __cplusplus

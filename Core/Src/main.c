@@ -279,7 +279,7 @@ int main(void)
 	// stop_flow1();
 
 
-  	config_mode = 0;
+   	config_mode = 0;
 
 	uint8_t MSG[35] = {'\0'};
 	uint16_t CounterTicks = 0;
@@ -575,6 +575,12 @@ int main(void)
 //		HAL_UART_Transmit (&huart2, "Hello!", 6, 1000);
 //
 //		HAL_Delay(5000);
+
+//		while(1)
+//		{
+//			 house_keeping();
+//			 house_keeping2();
+//		}
 
 		run();
 	}

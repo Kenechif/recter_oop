@@ -159,6 +159,14 @@ extern unsigned long t_exec1,
 
 int checkk = 0;
 
+KeyState state1 = KEY_IDLE,
+		 state2 = KEY_IDLE;
+
+uint32_t lastDebounceTime1 = 0,
+		 lastDebounceTime2 = 0,
+		 keyPressStartTime1 = 0,
+		 keyPressStartTime2 = 0;
+
 unsigned long cheq3 = 0;
 
 extern uint8_t mamo_reached_flag1,
@@ -374,20 +382,21 @@ extern float working_amtTotaliser1c;
 extern float working_amtTotaliser2;
 extern float working_amtTotaliser2c;
 
-int tot_longpress_flag,
-	log_longpress_flag,
-	key_longpress_flag = 0,
-	progExit_longpress_flag = 0;
+uint8_t tot_longpress_flag,
+		log_longpress_flag,
+		key_longpress_flag = 0,
+		progExit_longpress_flag = 0;
 
-int tot_longpress_flag2,
-	log_longpress_flag2,
-	key_longpress_flag2 = 0,
-	progExit_longpress_flag2 = 0;
+uint8_t tot_longpress_flag2,
+		log_longpress_flag2,
+		key_longpress_flag2 = 0,
+		progExit_longpress_flag2 = 0;
 
-extern operatorfxn_  operatorfxn , operatorfxn2;
+extern operatorfxn_  operatorfxn, operatorfxn2;
 
- extern float original_pulse , original_pulse2;
- extern int operating_side ;
+ extern float original_pulse,
+ 	 	 	  original_pulse2;
+ extern int operating_side;
 
  void compose_printer();
 
@@ -1084,6 +1093,7 @@ void compose_printer()
 //}
 
 //-------------------------------------------------------------
+  //-----------------------------------------------------------
  void setup()
 {
 	 pump_status_1 = STATUS_UNKNOWN;
@@ -1116,11 +1126,22 @@ void compose_printer()
 		 drive_slow_sole1(ACTIVATE);     // ACTIVATE here actually means DEACTIVATE
 		 drive_fast_sole1(ACTIVATE);
 	 }
+//	 else if (settings_stream1[0].pump_type_ == BLUESKY)
+//	 {
+//		 drive_slow_sole1(DEACTIVATE);
+//		 drive_fast_sole1(DEACTIVATE);
+//	 }
+
 	 if (settings_stream1[1].pump_type_ == LAFENG)
 	 {
-		 drive_slow_sole2(ACTIVATE);
+		 drive_slow_sole2(ACTIVATE); // ACTIVATE here actually means DEACTIVATE
 		 drive_fast_sole2(ACTIVATE);
 	 }
+//	 else if (settings_stream1[1].pump_type_ == BLUESKY)
+//	 {
+//		 drive_slow_sole2(DEACTIVATE);
+//		 drive_fast_sole2(DEACTIVATE);
+//	 }
 
 	 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
 
@@ -1644,9 +1665,20 @@ tmmm:
 
 //	  {"ni":"p17","pn":"pms","dt":"lafeng885",kt":"lafeng18k"}
 
+//	  {"ni":"p17","pn":"pms","dt":"lafeng885",kt":"lafeng18k_v2"}
+
 //	  {"ni":"p1","pn":"ago","dt":"bluesky886n","kt":"bluesky22","pi":"860537065690737","tn":"0003"}
 
 //	  {"ni":"p17","pn":"pms","dt":"bluesky886i","kt":"bluesky22"}
+
+	  /*
+	  {"ni":"p17","pn":"pms","dt":"bluesky886n","kt":"bluesky22"}
+	  {"ni":"p17","pn":"pms","dt":"bluesky886n","kt":"bluesky18k"}
+	  {"ni":"p17","pn":"pms","dt":"bluesky886n","kt":"lafeng17k"}
+	  {"ni":"p17","pn":"pms","dt":"bluesky886n","kt":"lafeng18k"}
+	  {"ni":"p17","pn":"pms","dt":"bluesky886n","kt":"lafeng18k_v2"}
+	  {"ni":"p17","pn":"pms","dt":"bluesky886n","kt":"bluesky22"}
+	  */
 
 //	 HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 //	 HAL_Delay(1);
@@ -2227,7 +2259,7 @@ skip_test:
 //    settings_stream2[0].calibration_measureCan = 2;
 
 //    settings_stream1[0].keypad__ = BLSKY22;   //BLSKY22
-//    settings_stream1[0].keypad__ = LAFNG18_K_V2;  //LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
+    settings_stream1[0].keypad__ = LAFNG18_K_V2;  //LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
 
 //
 //    settings_stream1[1].mode = MANUAL_MODE;  //AUTO;   //MANUAL;
@@ -2237,7 +2269,7 @@ skip_test:
 ////	settings_stream1[1].noz = override;  //nooveride
 //	settings_stream1[1].keypad__ = BLSKY22;   //BLSKY22
 //    settings_stream1[1].keypad__ = LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
-//    settings_stream1[1].keypad__ = LAFNG18_K_V2;  //LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
+    settings_stream1[1].keypad__ = LAFNG18_K_V2;  //LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
 
 //    settings_stream1[0].pi_cal = 797.150024;
 
@@ -2550,8 +2582,7 @@ skip_test:
 //   pump_status_2 = STATUS_PNP;
  }
 
- //-----------------------------------------------------------
- void led_pin_out(void)
+void led_pin_out(void)
  {
    GPIO_InitTypeDef GPIO_InitStruct = {0};
 
@@ -2575,27 +2606,43 @@ skip_test:
  {
  	          Multiplex(0, 0);
 
- 	    	  keynew = keypad_lcd(0, key_lcd);  //write lcd and read keypad.
- 			  if ( (keyold == 0) && (keyold != keynew) )  //send key only if new key is pressed
-			  {
-				 //send_keyboard();
-				 keypress_flag = 1;  //indicate that a new press was detected.
-			  }
- 			  keyold = keynew;
+// 	    	  keynew = keypad_lcd(0, key_lcd);  //write lcd and read keypad.
+// 			  if ( (keyold == 0) && (keyold != keynew) )  //send key only if new key is pressed
+//			  {
+//				 //send_keyboard();
+// 				 keypress_flag = 1;  //indicate that a new press was detected.
+//			  }
+// 			  keyold = keynew;
+
+// 			 keypress_ = keynew;
+
+
+ 			 keynew = debounceKey1();
+ 			 if (keynew != 0)
+ 			 {
+ 				 keypress_flag = 1;  //indicate that a new press was detected.
+			 }
  }
+
 
 void house_keeping2()
 {
     	Multiplex2(0, 0);
 
-			  keynew2 = keypad_lcd2(0, key_lcd2);  //write lcd and read keypad.
-			  if ( (keyold2 == 0)&&(keyold2 != keynew2) )  //send key only if new key is pressed
+//			  keynew2 = keypad_lcd2(0, key_lcd2);  //write lcd and read keypad.
+//			  if ( (keyold2 == 0)&&(keyold2 != keynew2) )  //send key only if new key is pressed
+//			  {
+//				 //send_keyboard();
+//				 keypress_flag2 = 1;  //indicate that a new press was detected.
+//			  }
+//
+//			  keyold2 = keynew2;
+
+			  keynew2 = debounceKey2();
+			  if (keynew2 != 0)
 			  {
-				 //send_keyboard();
 				 keypress_flag2 = 1;  //indicate that a new press was detected.
 			  }
-
-			  keyold2 = keynew2;
 }
 //==============================================================
 
@@ -2636,7 +2683,7 @@ void run()
 
 		timer_go = 0;
 
-			t_exec1 = DWT->CYCCNT;
+//			t_exec1 = DWT->CYCCNT;
 //			t_exec7 = t_exec6 - t_exec4;
 
 			parse_extract();
@@ -2675,7 +2722,8 @@ void run()
 //		t_exec6 = DWT->CYCCNT;
 //		t_exec7 = t_exec6 - t_exec4;
 
-//	HAL_GPIO_WritePin(batt_check_GPIO_Port, batt_check_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(batt_check_GPIO_Port, batt_check_Pin, GPIO_PIN_RESET);
+
 	float batt_val = battery_sense();
 
 //	t_exec6 = DWT->CYCCNT;
@@ -2740,15 +2788,15 @@ void run()
 	//============================================//
 	// 				EP's ROUTINE SENDING			  //
 	//============================================//
-	if (HAL_GPIO_ReadPin(network_connected_GPIO_Port, network_connected_Pin) == 1 )
-	{
-		connected = 1;
-		epSend_interval();
-	}
-	else
-	{
-		connected = 0;
-	}
+//	if (HAL_GPIO_ReadPin(network_connected_GPIO_Port, network_connected_Pin) == 1 )
+//	{
+//		connected = 1;
+//		epSend_interval();
+//	}
+//	else
+//	{
+//		connected = 0;
+//	}
 	//============================================//
 
 #endif     //#if defined (DEV_MODE)
@@ -2782,6 +2830,12 @@ void run()
 		 house_keeping();
 //		 states();
 		 states_1();
+
+//		 if(keypress_flag == 1)
+//		 {
+//			 keypress_Handler();
+//			 keypress_flag = 0;
+//		 }
 
 		 operating_sideA = false;
 		 operating_sideB = true;
@@ -3122,14 +3176,19 @@ int  read_event2()
 	 //==================================================
 	 //      then select the  operator  view mode...
 	 //--------------------------------------------------
-   			tot_longpress_flag2 = long_press_tot2();
+			if( (settings_stream1[1].keypad__ == LAFNG17_K) || (settings_stream1[1].keypad__ == LAFNG18_K) || (settings_stream1[1].keypad__ == LAFNG18_K_V2) )
+			{
+				tot_longpress_flag2 = long_press_tot2();
+			}
+
    			log_longpress_flag2 = long_press_log2();
-   			key_longpress_flag2 = long_press_key2();
-   			progExit_longpress_flag2 = long_press_progExit2();
+//   			key_longpress_flag2 = long_press_key2();
+//   			progExit_longpress_flag2 = long_press_progExit2();
 
    		  if(tot_longpress_flag2 == 1)
 		  {
 			   operatorfxn2 = totaliser_view;
+			   tot_longpress_flag2 = 0;
 			   return _operator_Event;
 		  }
 
@@ -3145,6 +3204,7 @@ int  read_event2()
 //				 {
 //					key_longpress_status2 = 1;
 					prog_entry2 = 1;   //variable used to clear the var. states in settings menu.
+					key_longpress_flag2 = 0;
 					return _keyup_Event;
 //				 }
 //				 else
@@ -3167,6 +3227,9 @@ int  read_event2()
 //				 {
 //					key_longpress_status2 = 0;
 					prog_entry2 = 0;
+
+					progExit_longpress_flag2 = 0;
+
 					return _keydown_Event;
 //				 }
 		  }
@@ -3309,7 +3372,7 @@ int  read_event2()
 		   if( ((nozzle_flag_old2 == 0) && (nozzle_flag2 == 1)) ||
 			 ((nozzle_flag_key_old2 == 0) && (nozzle_flag_key2 == 1)) )
 		   {
-			   keypad_zerorise2 = true;
+//			   keypad_zerorise2 = true;
 
 			   if((nozzle_flag_old2 == 0) && (nozzle_flag2 == 1))
 			   {
@@ -3854,14 +3917,18 @@ uint8_t read_event1_1(void)
 	 //==================================================
 	 //      then select the  operator  view mode...
 	 //--------------------------------------------------
-		tot_longpress_flag = long_press_tot();
+		if( (settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) || (settings_stream1[0].keypad__ == LAFNG18_K_V2) )
+		{
+			tot_longpress_flag = long_press_tot();
+		}
 		log_longpress_flag = long_press_log();
-		key_longpress_flag = long_press_key();
-		progExit_longpress_flag = long_press_progExit();
+//		key_longpress_flag = long_press_key();
+//		progExit_longpress_flag = long_press_progExit();
 
 		  if(tot_longpress_flag == 1)
 		  {
 			   operatorfxn = totaliser_view;
+			   tot_longpress_flag = 0;
 			   return _operator_Event;
 		  }
 
@@ -3877,6 +3944,7 @@ uint8_t read_event1_1(void)
 //				 {
 //					key_longpress_status = 1;
 				prog_entry1 = 1;   //variable used to clear the var. states in settings menu.
+				key_longpress_flag = 0;
 				return _keyup_Event;
 //				 }
 //				 else
@@ -3899,6 +3967,7 @@ uint8_t read_event1_1(void)
 //				 {
 //					key_longpress_status = 0;
 					prog_entry1 = 0;
+					progExit_longpress_flag = 0;
 					return _keydown_Event;
 //				 }
 			  }
@@ -4053,7 +4122,7 @@ uint8_t read_event1_1(void)
 	   if( ((nozzle_flag_old == 0) && (nozzle_flag == 1)) ||
 	   	 ((nozzle_flag_key_old1 == 0) && (nozzle_flag_key1 == 1)) )
 	   {
-		   keypad_zerorise1 = true;
+//		   keypad_zerorise1 = true;
 //		   keypad_zerorize();
 
 		   if((nozzle_flag_old == 0) && (nozzle_flag == 1))
@@ -4211,6 +4280,277 @@ uint8_t read_event1_1(void)
 
 	  return _no_Event;
 }
+
+
+//uint8_t debounceKey1(void)
+//{
+//     static uint8_t lastKey = 0;
+//
+//     uint8_t key = keypad_lcd(0, key_lcd);  //write lcd and read keypad.
+//
+//     uint32_t currentTime = HAL_GetTick(); // Get the current system tick
+//
+//     switch (state1)
+//     {
+//         case KEY_IDLE:
+//							 if (key != 0)
+//							 {
+//								 state1 = KEY_DEBOUNCE;
+//								 lastDebounceTime1 = currentTime;
+//							 }
+//							 break;
+//
+//         case KEY_DEBOUNCE:
+//							 if ((currentTime - lastDebounceTime1) > DEBOUNCE_TIME_MS)
+//							 {
+//								 if ((key != 0) && (key != lastKey))
+//								 {
+//									 lastKey = key;
+//									 state1 = KEY_IDLE;
+//
+//									#if delay_keypad == 1
+//
+//										   if(settings_stream2[0].keypress_tone == Yes)
+//										   {
+//											  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+//										   }
+//
+//										   HAL_Delay(keypad_delay);
+//									 #endif
+//
+//										   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+//
+//									 return key; // Valid keypress detected
+//								 }
+//
+//								 lastKey = key;
+//								 state1 = KEY_IDLE;
+//							 }
+//							 break;
+//     }
+//
+//     return 0;
+// }
+
+// uint8_t debounceKey2(void)
+// {
+//      static uint8_t lastKey = 0;
+//
+//      uint8_t key = keypad_lcd2(0, key_lcd2);  //write lcd and read keypad.
+//
+//      uint32_t currentTime = HAL_GetTick(); // Get the current system tick
+//
+//      switch (state2)
+//      {
+//          case KEY_IDLE:
+// 							 if (key != 0)
+// 							 {
+// 								 state2 = KEY_DEBOUNCE;
+// 								 lastDebounceTime2 = currentTime;
+// 							 }
+// 							 break;
+//
+//          case KEY_DEBOUNCE:
+// 							 if ((currentTime - lastDebounceTime2) > DEBOUNCE_TIME_MS)
+// 							 {
+// 								 if ((key != 0) && (key != lastKey))
+// 								 {
+// 									 lastKey = key;
+// 									 state2 = KEY_DEBOUNCE;
+//
+// 									 #if delay_keypad == 1
+//
+//									   if(settings_stream2[1].keypress_tone == Yes)
+//									   {
+//										  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+//									   }
+//
+//									   HAL_Delay(keypad_delay);
+//								 	 #endif
+//
+//									   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+//
+// 									 return key; // Valid keypress detected
+// 								 }
+// 								 lastKey = key;
+// 								 state2 = KEY_IDLE;
+// 							 }
+// 							 break;
+//      }
+//
+//      return 0;
+//  }
+
+
+uint8_t debounceKey1(void)
+ {
+      static uint8_t lastKey = 0;
+
+      uint8_t key = keypad_lcd(0, key_lcd);  //write lcd and read keypad.
+
+      uint32_t currentTime = HAL_GetTick(); // Get the current system tick
+
+      switch (state1)
+      {
+          case KEY_IDLE:
+ 							 if (key != 0)
+ 							 {
+ 								 state1 = KEY_DEBOUNCE;
+ 								 lastDebounceTime1 = currentTime;
+								 keyPressStartTime1 = currentTime;
+ 							 }
+ 							 break;
+
+          case KEY_DEBOUNCE:
+
+							 if ((currentTime - lastDebounceTime1) > DEBOUNCE_TIME_MS)
+							 {
+								if (key != 0)
+								{
+									state1 = KEY_SHORT_PRESS;
+								}
+								else
+								{
+									state1 = KEY_IDLE;
+								}
+							 }
+							 break;
+
+		   case KEY_SHORT_PRESS:
+								if (key == 0)
+								{
+									// Key released before long press delay
+									state1 = KEY_IDLE;
+
+									#if delay_keypad == 1
+
+									   if(settings_stream2[0].keypress_tone == Yes)
+									   {
+										  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+									   }
+
+									   HAL_Delay(keypad_delay);
+
+								 	#endif
+
+									   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+
+
+									return lastKey;
+								}
+								else if ((currentTime - keyPressStartTime1) > LONG_PRESS_DELAY)
+								{
+									state1 = KEY_LONG_PRESS;
+								}
+								break;
+
+		  case KEY_LONG_PRESS:
+								if (key == 0)
+								{
+									// Key released after long press delay
+									state1 = KEY_IDLE;
+
+									if(lastKey == 15)
+										key_longpress_flag = 1;
+									else if(lastKey == 14)
+										progExit_longpress_flag = 1;
+									else if( (lastKey == 21) && (settings_stream1[0].keypad__ == BLSKY22) )
+										tot_longpress_flag = 1;
+
+									return lastKey;
+								}
+								break;
+    }
+
+    lastKey = key;  // Update the last key state
+
+    return 0;
+  }
+
+ uint8_t debounceKey2(void)
+ {
+      static uint8_t lastKey = 0;
+
+      uint8_t key = keypad_lcd2(0, key_lcd2);  //write lcd and read keypad.
+
+      uint32_t currentTime = HAL_GetTick(); // Get the current system tick
+
+      switch (state2)
+      {
+          case KEY_IDLE:
+ 							 if (key != 0)
+ 							 {
+ 								 state2 = KEY_DEBOUNCE;
+ 								 lastDebounceTime2 = currentTime;
+								 keyPressStartTime2 = currentTime;
+ 							 }
+ 							 break;
+
+          case KEY_DEBOUNCE:
+
+							 if ((currentTime - lastDebounceTime2) > DEBOUNCE_TIME_MS)
+							 {
+								if (key != 0)
+								{
+									state2 = KEY_SHORT_PRESS;
+								}
+								else
+								{
+									state2 = KEY_IDLE;
+								}
+							 }
+							 break;
+
+		   case KEY_SHORT_PRESS:
+								if (key == 0)
+								{
+									// Key released before long press delay
+									state2 = KEY_IDLE;
+
+									#if delay_keypad == 1
+
+									   if(settings_stream2[1].keypress_tone == Yes)
+									   {
+										  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+									   }
+
+									   HAL_Delay(keypad_delay);
+
+								 	#endif
+
+									   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+
+
+									return lastKey;
+								}
+								else if ((currentTime - keyPressStartTime2) > LONG_PRESS_DELAY)
+								{
+									state2 = KEY_LONG_PRESS;
+								}
+								break;
+
+		  case KEY_LONG_PRESS:
+								if (key == 0)
+								{
+									// Key released after long press delay
+									state2 = KEY_IDLE;
+
+									if(lastKey == 15)
+										key_longpress_flag2 = 1;
+									else if(lastKey == 14)
+										progExit_longpress_flag2 = 1;
+									else if( (lastKey == 21) && (settings_stream1[1].keypad__ == BLSKY22) )
+										tot_longpress_flag2 = 1;
+
+									return lastKey;
+								}
+								break;
+    }
+
+    lastKey = key;  // Update the last key state
+
+    return 0;
+  }
 
 
 //uint8_t read_event1_1(void)

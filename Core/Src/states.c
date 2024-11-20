@@ -1212,7 +1212,7 @@ eSystemState nozzledown_Handler(void)
 //	 }
 	 //
 
-	 if(keypad_zerorise1 == true)
+//	 if(keypad_zerorise1 == true)
 		 keypad_zerorize();
   //---------------------------------------------------------------------
   //             saving to the log
@@ -1604,7 +1604,7 @@ eSystemState keypress_Handler(void)
 
 		   nozzle_flag_key1 = 0;
 		   nozzle_flag_key_old1 = 1;
-		   keypad_zerorise1 = true;
+//		   keypad_zerorise1 = true;
 	  }
 
 //====================================================
@@ -2081,9 +2081,9 @@ eSystemState mamo_Handler(void)
 /////////////////////////////////////////////////////////////////
 uint8_t long_press_key()
 {
-	static int pressed_ = 0;
+	static int8_t pressed_ = 0;
 		//static int pressed_old = 0;
-		int ky;
+		int8_t ky;
 
 //		if(pump_type == bluesky)
 //		if( (pump_type == DN_BLSKY18K) || (pump_type == DN_BLSKY22) ||
@@ -2106,7 +2106,7 @@ uint8_t long_press_key()
 	        pressed_ = 0;
 	        key_buttonpress_tmr = 0;  //clr timer.
 		}
-		 if((key_buttonpress_tmr >= 3)&&(pressed_ == 0) )
+		 if((key_buttonpress_tmr >= 3) && (pressed_ == 0) )
 		 {
 		   key_buttonpress_tmr = 3;
 			pressed_ = 1;
@@ -2157,8 +2157,50 @@ uint8_t long_press_log()
 {
 	static uint8_t pressed_ = 0;
 	//static int pressed_old = 0;
+
 	uint8_t ky = 0;
 	ky = readkey19_state();
+
+
+	/***************************************************************************
+	static uint32_t lastKeyPressTime = 0;
+	static uint8_t lastKeyState = 0;
+
+	uint8_t currentKeyState = readKeypad();  // Read the keypad state
+	uint32_t currentTime = HAL_GetTick(); // Get current system tick
+
+	// If the key state changed
+	if (currentKeyState != lastKeyState)
+	{
+		lastKeyPressTime = currentTime;  // Reset debounce timer
+		lastKeyState = currentKeyState;
+	}
+
+	// Check if the debounce delay has passed
+	if ((currentTime - lastKeyPressTime) > DEBOUNCE_DELAY) {
+		// Debounced key press - process only if key is actually pressed
+//		if (currentKeyState != 0) {
+//			handleKeyPress(currentKeyState);  // Process the key press
+//		}
+		if (currentKeyState != 1)
+		{
+	        pressed_ = 0;
+	        log_buttonpress_tmr = 0;   //clr timer.
+	        HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+		}
+		else if (currentKeyState == 1)
+		{
+			if(settings_stream2[0].keypress_tone == Yes)
+			{
+				HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+				HAL_Delay(10);
+			}
+
+		}
+	}
+	**********************************************************************************/
+
+
 	//	if (readkey19_state() != 1)
 	if (ky != 1)
 	{
@@ -7299,11 +7341,11 @@ eSystemState idleState_Handler(void)
 
 		}
 
-		calibration_flag1 = CALIBRATED;
+//		calibration_flag1 = CALIBRATED;
 	//	if(calib_pulser1 < 15800)  //15987, 15967 .... 1106247681
 		if(calibration_flag1 != CALIBRATED) //15800)  //15987, 15967 .... 1106247681
 		{
-			retrieve_calibrationFlag(side_a);
+			retrieve_calibrationFlag_fram(side_a);
 
 			if(calibration_flag1 != CALIBRATED) //takes care of accidental clearing of calibration_flag1 by F-keys
 			{
@@ -10029,21 +10071,21 @@ eSystemState filledmamo_State_Handler(void)
 
 	nozzle_flag_key1 = 0;
 	nozzle_flag_key_old1 = 1;
-	keypad_zerorise1 = false;
+//	keypad_zerorise1 = false;
 
 //	for(uint8_t i = 0; i <= 8; i++)
 //	{
 //		keyboard[i] = 0;
 //	}
 
-	index_ = 0;
-	_index = 0;
-
-	for(uint8_t i = 0; i < 9; i++)
-	{
-		keypad_pw_xter1[i] = 0;
-		keyboard_entry[i] = 0;   //clear the buffer
-	}
+//	index_ = 0;
+//	_index = 0;
+//
+//	for(uint8_t i = 0; i < 9; i++)
+//	{
+//		keypad_pw_xter1[i] = 0;
+//		keyboard_entry[i] = 0;   //clear the buffer
+//	}
 
 
 	  if (t > LCD_UPDATE_RATE)
@@ -10067,7 +10109,7 @@ eSystemState filledmamo_State_Handler(void)
 
 //	  reset_timer(timeout_dispense); //don't time out.
 
-	   return filledmamo_State;
+	  return filledmamo_State;
 }
 
 //----------------------------------------
@@ -10150,10 +10192,10 @@ eSystemState pnpState_Handler(void)
 		}
 
 	//	if(calib_pulser1 < 15800)  //15987, 15967 .... 1106247681
-		calibration_flag1 = CALIBRATED;
+//		calibration_flag1 = CALIBRATED;
 		if(calibration_flag1 != CALIBRATED) //15800)  //15987, 15967 .... 1106247681
 		{
-			retrieve_calibrationFlag(side_a);
+			retrieve_calibrationFlag_fram(side_a);
 
 			if(calibration_flag1 != CALIBRATED) //takes care of accidental clearing of calibration_flag1 by F-keys
 			{

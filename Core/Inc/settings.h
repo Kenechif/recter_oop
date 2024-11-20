@@ -72,7 +72,7 @@ extern "C" {
 #define test_totaliser				0
 
 #define LCD_UPDATE_RATE             100
-#define keypad_delay				70
+#define keypad_delay				40
 
 #define pump_rx_bufsize  			1000
 
@@ -101,6 +101,45 @@ extern "C" {
 #define OTPSESSION_OFF				0b00000000
 
 
+/***********************************************************************/
+#define DEBOUNCE_TIME_MS 5  //20 // Debounce period in milliseconds
+#define DEBOUNCE_DELAY DEBOUNCE_TIME_MS
+#define LONG_PRESS_DELAY 500  // Long press delay
+
+//typedef enum {
+//    IDLE,
+//    DEBOUNCING
+//} debounce_state_t;
+
+// Key states
+typedef enum {
+    KEY_IDLE,
+    KEY_DEBOUNCE,
+    KEY_SHORT_PRESS,
+    KEY_LONG_PRESS
+} KeyState;
+
+
+//// Define timing thresholds (in milliseconds)
+//#define DEBOUNCE_DELAY 50    // Debounce delay
+//#define LONG_PRESS_DELAY 1000  // Long press delay
+//
+//// Key states
+//typedef enum {
+//    KEY_IDLE,
+//    KEY_DEBOUNCE,
+//    KEY_SHORT_PRESS,
+//    KEY_LONG_PRESS
+//} KeyState;
+
+//// Keypad state variables
+//uint32_t lastDebounceTime = 0;
+//uint32_t keyPressStartTime = 0;
+//int lastKeyState = 0;
+//KeyState keyState = KEY_IDLE;
+
+
+/**********************************************************************/
 
 //#define  fast_flow_threshold       ( 140 )
 //============================================

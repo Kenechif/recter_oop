@@ -955,7 +955,7 @@ uint8_t long_press_progExit2()
 	        pressed_ = 0;
 	        progExit_buttonpress_tmr2 = 0;  //clr timer.
 		}
-		 if((progExit_buttonpress_tmr2 >= 3)&&(pressed_ == 0) )
+		 if((progExit_buttonpress_tmr2 >= 3) && (pressed_ == 0) )
 		 {
 			 progExit_buttonpress_tmr2 = 3;
 			pressed_ = 1;
@@ -3811,22 +3811,53 @@ eSystemState progState_Handler2(void)
       				  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
       				  stop_flow2();
 
-      				  pulser_totalizer2 = ( (calib_pulser2 / (float) (pulser_benchMark2)) * calibrationCan_measure2 );
+      				  if(calibration_flag2 == CALIBRATED)
+    				  {
+    					  amt_middle2 = calibrationCan_measure2;
+    					  price_real2 = (calibrationCan_measure2 * litre_price2);
+    					  price_upper2 = (calibrationCan_measure2 * litre_price2);
+    					  amt_real2 = calibrationCan_measure2;
 
-      				  amt_real2 = pulser_totalizer2;
-      				  amt_middle2 = pulser_totalizer2;
-      				  price_real2 = (pulser_totalizer2 * litre_price2);
-      				  price_upper2 = (pulser_totalizer2 * litre_price2);
+    					  totaliser_vol2c += calibrationCan_measure2;
+    					  totaliser_vol2 += calibrationCan_measure2;
+    					  totaliser_amt2c += price_real2;
+    					  totaliser_amt2 += price_real2;
 
+    					  save_totaliser_fram(operating_side);
+    					  save_lastSale_fram(operating_side);
+    				  }
+    				  else if(calibration_flag2 == UNCALIBRATED)
+    				  {
+    					  amt_middle2 = calibrationCan_measure2;
+    					  price_real2 = (calibrationCan_measure2 * litre_price2);
+    					  price_upper2 = (calibrationCan_measure2 * litre_price2);
+    					  amt_real2 = calibrationCan_measure2;
 
-      				  totaliser_vol2 += pulser_totalizer2;
-      				  totaliser_vol2c += pulser_totalizer2;
-      				  totaliser_amt2 += price_real2;
-      				  totaliser_amt2c += price_real2;
+    					  totaliser_vol2c += calibrationCan_measure2;
+    					  totaliser_vol2 += calibrationCan_measure2;
+    					  totaliser_amt2c += price_real2;
+    					  totaliser_amt2 += price_real2;
 
-      				  save_totaliser_fram(operating_side);
-      				  save_amountTotaliser_fram(operating_side);
-      				  save_lastSale_fram(operating_side);
+    					  save_totaliser_fram(operating_side);
+    					  save_lastSale_fram(operating_side);
+    				  }
+
+//      				  pulser_totalizer2 = ( (calib_pulser2 / (float) (pulser_benchMark2)) * calibrationCan_measure2 );
+//
+//      				  amt_real2 = pulser_totalizer2;
+//      				  amt_middle2 = pulser_totalizer2;
+//      				  price_real2 = (pulser_totalizer2 * litre_price2);
+//      				  price_upper2 = (pulser_totalizer2 * litre_price2);
+//
+//
+//      				  totaliser_vol2 += pulser_totalizer2;
+//      				  totaliser_vol2c += pulser_totalizer2;
+//      				  totaliser_amt2 += price_real2;
+//      				  totaliser_amt2c += price_real2;
+//
+//      				  save_totaliser_fram(operating_side);
+//      				  save_amountTotaliser_fram(operating_side);
+//      				  save_lastSale_fram(operating_side);
 
       				  return write_flash_State;
       			  }
@@ -5901,7 +5932,7 @@ eSystemState idleState_Handler2(void)
 	//	if(calib_pulser2 < 15800)  //15987, 15967 .... 1106247681
 		if(calibration_flag2 != CALIBRATED) //15800)  //15987, 15967 .... 1106247681
 		{
-			retrieve_calibrationFlag(side_b);
+			retrieve_calibrationFlag_fram(side_b);
 
 			if(calibration_flag2 != CALIBRATED) //takes care of accidental clearing of calibration_flag1 by F-keys
 			{
@@ -5920,6 +5951,25 @@ eSystemState idleState_Handler2(void)
 		}
 	#endif   //#if !defined (DEV_MODE)
 
+//		if(calibration_flag2 != CALIBRATED) //15800)  //15987, 15967 .... 1106247681
+//		{
+//			retrieve_calibrationFlag(side_b);
+//
+//			if(calibration_flag2 != CALIBRATED) //takes care of accidental clearing of calibration_flag1 by F-keys
+//			{
+//				calibration2_error = 1;
+//
+//				lcd_print_line1_2("Calibrate");
+//				lcd_print_line2_2("  Error ");
+//				lcd_print_line3_2("Err 23 ");
+//
+//				return inactive_State;
+//			}
+//		}
+//		else
+//		{
+//			calibration2_error = 0;
+//		}
 	if(nozzleUp_inProgMode2 == 1)
 	{
 			clear_buffer2();
@@ -6960,7 +7010,9 @@ eSystemState filling_State_Handler2(void)
 
 	if(filling_mamo_flag2 == 1)
 	{
-		return filling_State;
+		nozzle_flag_key2 = 0;
+	    nozzle_flag_key_old2 = 1;
+	    return filling_State;
 	}
 
 	float temp = 0.0;
@@ -8352,7 +8404,7 @@ eSystemState nozzledown_Handler2(void)
 // 	//	 }
 // 		 send_keypad2(keyboard2);
 
-	 if(keypad_zerorise2 == true)
+//	 if(keypad_zerorise2 == true)
 		 keypad_zerorize2();
  	//--------------------------------------------------------------------
 
@@ -8684,7 +8736,7 @@ if(
 		   nozzle_flag_key2 = 0;
 		   nozzle_flag_key_old2 = 1;
 
-		   keypad_zerorise2 = true;
+//		   keypad_zerorise2 = true;
 		}
 
 //====================================================
@@ -9498,14 +9550,14 @@ eSystemState filledmamo_State_Handler2(void)
 	nozzle_flag_key2 = 0;
 	nozzle_flag_key_old2 = 1;
 
-	index_2 = 0;
-	_index2 = 0;
-
-	 for(uint8_t i = 0; i < 9; i++)
-	 {
-	   keypad_pw_xter2[i] = 0;
-	   keyboard_entry2[i] = 0;   //clear the buffer
-	 }
+//	index_2 = 0;
+//	_index2 = 0;
+//
+//	 for(uint8_t i = 0; i < 9; i++)
+//	 {
+//	   keypad_pw_xter2[i] = 0;
+//	   keyboard_entry2[i] = 0;   //clear the buffer
+//	 }
 
 
 	  if (t2 > LCD_UPDATE_RATE)
@@ -9614,7 +9666,7 @@ eSystemState pnpState_Handler2(void)
 	//	if(calib_pulser1 < 15800)  //15987, 15967 .... 1106247681
 		if(calibration_flag2 != CALIBRATED) //15800)  //15987, 15967 .... 1106247681
 		{
-			retrieve_calibrationFlag(side_b);
+			retrieve_calibrationFlag_fram(side_b);
 
 			if(calibration_flag2 != CALIBRATED) //takes care of accidental clearing of calibration_flag1 by F-keys
 			{

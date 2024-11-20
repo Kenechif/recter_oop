@@ -372,7 +372,7 @@ void drive_motor2(drive drv)
 //---------------------------------------------------------------
 void drive_slow_sole1(drive drv)
 {
-	if ( (settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) )
+	if (settings_stream1[0].pump_type_ == LAFENG)
 	{
 		HAL_GPIO_WritePin(slow_sole1_GPIO_Port,slow_sole1_Pin, !drv);
 	}
@@ -384,7 +384,7 @@ void drive_slow_sole1(drive drv)
 //---------------------------------------------------------------
 void drive_slow_sole2(drive drv)
 {
-	if ( (settings_stream1[1].keypad__ == LAFNG17_K) || (settings_stream1[1].keypad__ == LAFNG18_K) )
+	if (settings_stream1[1].pump_type_ == LAFENG)
 	{
 		HAL_GPIO_WritePin(slow_sole2_GPIO_Port,slow_sole2_Pin, !drv);
 	}
@@ -396,7 +396,7 @@ void drive_slow_sole2(drive drv)
 //---------------------------------------------------------------
 void drive_fast_sole1(drive drv)
 {
-	if ( (settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) )
+	if (settings_stream1[0].pump_type_ == LAFENG)
 	{
 		HAL_GPIO_WritePin(fast_sole1_GPIO_Port,fast_sole1_Pin, !drv);
 	}
@@ -408,7 +408,7 @@ void drive_fast_sole1(drive drv)
 //---------------------------------------------------------------
 void drive_fast_sole2(drive drv)
 {
-	if ( (settings_stream1[1].keypad__ == LAFNG17_K) || (settings_stream1[1].keypad__ == LAFNG18_K) )
+	if (settings_stream1[1].pump_type_ == LAFENG)
 	{
 		HAL_GPIO_WritePin(fast_sole2_GPIO_Port,fast_sole2_Pin, !drv);
 	}

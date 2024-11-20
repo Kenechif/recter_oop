@@ -349,15 +349,15 @@ void configure_pump(pumpCompPart _case)
 							settings_stream1[0].keypad__ = LAFNG17_K;
 							settings_stream1[1].keypad__ = LAFNG17_K;
 						   }
-						   else if(strstr(rx_buf, "lafeng18k"))
-						   {
-							   settings_stream1[0].keypad__ = LAFNG18_K;
-							   settings_stream1[1].keypad__ = LAFNG18_K;
-						   }
 						   else if(strstr(rx_buf, "lafeng18k_v2"))
 						   {
 							   settings_stream1[0].keypad__ = LAFNG18_K_V2;
 							   settings_stream1[1].keypad__ = LAFNG18_K_V2;
+						   }
+						   else if(strstr(rx_buf, "lafeng18k"))
+						   {
+							   settings_stream1[0].keypad__ = LAFNG18_K;
+							   settings_stream1[1].keypad__ = LAFNG18_K;
 						   }
 
 						#ifdef DEV_MODE
