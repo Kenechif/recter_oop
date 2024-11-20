@@ -577,7 +577,7 @@ void write_v(int i, char lcd_[9])
 			}
 	}
 
-	if (i == 2)   //second line
+	else if (i == 2)   //second line
 	 {
 		  for(int ii = 0 ; ii < 9; ii++)
 			{
@@ -586,7 +586,7 @@ void write_v(int i, char lcd_[9])
 			}
    	}
 
-	if (i == 3)   //third line
+	else if (i == 3)   //third line
 	{
 		for(int ii = 0 ; ii<7 ; ii++)
 		{
@@ -838,7 +838,7 @@ sStateEventMachine asStateEventMachine [] =
 void clear_buffer1(void)
 {
 	int i;
-	for( i = 0;i<sizeof(keyboard_entry);i++)
+	for(i = 0; i < sizeof(keyboard_entry); i++)
 
 	 {
 		keyboard_entry[i] = 0;
@@ -1519,64 +1519,64 @@ eSystemState keypress_Handler(void)
 	//		}
 			index_++;
 		  }
-		}
+	}
 	//--------------------------------------------------------
-		  if (kkey == 'F')      //'clear' key.
-		  	{
-			  //ePrevState = eLastState1;
-			  //set the error clear flag..
+	else if (kkey == 'F')      //'clear' key.
+	{
+	  //ePrevState = eLastState1;
+	  //set the error clear flag..
 
-			    dpFlag = 0;
-			    error_clr_flag = 1;
-                 index_ = 0;
-                 _index = 0;
-                 for(uint8_t i = 0; i < 9; i++)
-				 {
-				   keypad_pw_xter1[i] = 0;
-				   upper1[i] = 0;
-				   middle1[i] = 0;
-				 }
+		dpFlag = 0;
+		error_clr_flag = 1;
+		 index_ = 0;
+		 _index = 0;
+		 for(uint8_t i = 0; i < 9; i++)
+		 {
+		   keypad_pw_xter1[i] = 0;
+		   upper1[i] = 0;
+		   middle1[i] = 0;
+		 }
 
-                 for(uint8_t i = 0; i <= 6; i++)
-				 {
-					 keyboard_entry[i] = 0;   //clear the buffer
-					 keyboard[i] = 0;
-				 }
+		 for(uint8_t i = 0; i <= 6; i++)
+		 {
+			 keyboard_entry[i] = 0;   //clear the buffer
+			 keyboard[i] = 0;
+		 }
 
-                 if(settings_stream1[0].display_format == PL)
-                 {
-                	 upper1[0]  = 'P';
-                	 middle1[0] = 'L';
-                 }
-                 else if(settings_stream1[0].display_format == LP)
-                 {
-                	 upper1[0]  = 'L';
-                	 middle1[0] = 'P';
-                 }
-		  	}
+		 if(settings_stream1[0].display_format == PL)
+		 {
+			 upper1[0]  = 'P';
+			 middle1[0] = 'L';
+		 }
+		 else if(settings_stream1[0].display_format == LP)
+		 {
+			 upper1[0]  = 'L';
+			 middle1[0] = 'P';
+		 }
+	}
 //--------------------------------------------------------------------
 //		  progg = 1;
 //		  auth = authed;
-		  if (progg == 1)
-		  	 {
-			  	keypad_print("       ");
-			    if (auth == not_auth)
-			    	keypad_print(keypad_pw_xter1);
-			    else
-			    {
-					 int8_t keyBoard_len = strlen(keyboard_entry);
-					 strncpy(keyboard, keyboard_entry, sizeof(keyboard));
-					 if(strchr(keyboard, '.') )
-					 {
-						 if(keyboard[keyBoard_len - 1] == '.')
-						 {
-							 keyboard[keyBoard_len] = '0';
-						 }
-					 }
-					 keypad_print(keyboard);
-				}
-		  	    return keypad_entry_State;
-		  	 }
+  if (progg == 1)
+  {
+		keypad_print("       ");
+		if (auth == not_auth)
+			keypad_print(keypad_pw_xter1);
+		else
+		{
+			 int8_t keyBoard_len = strlen(keyboard_entry);
+			 strncpy(keyboard, keyboard_entry, sizeof(keyboard));
+			 if(strchr(keyboard, '.') )
+			 {
+				 if(keyboard[keyBoard_len - 1] == '.')
+				 {
+					 keyboard[keyBoard_len] = '0';
+				 }
+			 }
+			 keypad_print(keyboard);
+		}
+		return keypad_entry_State;
+	 }
 
 
       if ( ((kkey == 'D') && (progg == 0)) && (eNextState1 != filling_State) ) //fueling key.
@@ -1608,7 +1608,7 @@ eSystemState keypress_Handler(void)
 	  }
 
 //====================================================
- if ( (kkey == 'C') && (progg == 0) )  //if change sales mode
+	if ( (kkey == 'C') && (progg == 0) )  //if change sales mode
 	{
 	   if(sellmode == L)
 	   {
@@ -1676,8 +1676,11 @@ eSystemState keypress_Handler(void)
 //	 }
 
 	 space2 = 7 - index_;     //6 - index_;
+
+//	 if( (space2 == 7) && (dpFlag != 1) )
+//		 plZero_flag = 1;
  }
- if ((sellmode == L)&&(progg == 0) )
+ if ( (sellmode == L) && (progg == 0) )
  {
 	memset(middle1, '\0', sizeof(middle1));
 	middle1[0] = 'L';     //Append price to display.
@@ -1685,6 +1688,10 @@ eSystemState keypress_Handler(void)
 	while (space2 > 0) //write spaces first..
 	{
 	   middle1[ind++] = ' ';
+
+//	   if( (plZero_flag == 1) && (space2 == 1) )
+//		   middle1[ind - 1] = '0';
+
 	   space2--;
 	}
 	space2 = index_;     //reload with len of actual number
@@ -1704,7 +1711,10 @@ eSystemState keypress_Handler(void)
 //		write_v(1,"l       ");
 //	}
 
-	write_v(1,"p       ");
+//	write_v(1,"p       ");
+	write_v(1,"        ");
+	if(index_ == 0)
+		middle1[7] = '0';
 	  //  lcd_print_line2(middle1);
    }
 //--------------------------------------------------------------------
@@ -1718,7 +1728,7 @@ eSystemState keypress_Handler(void)
 //	 upper1[0]  = 'L';
 //	 middle1[0] = 'P';
 //  }
-   else if ( (sellmode == P)&&(progg == 0) )
+   else if ( (sellmode == P) && (progg == 0) )
    {
 //	   if(settings[0].display_mode == PL)
 //		{
@@ -1750,7 +1760,11 @@ eSystemState keypress_Handler(void)
 		 }
 		//lcd_print_line1(upper1);  //clear the price
 		//lcd_print_line2("l       ");
-	   write_v(2,"L       ");
+//	   write_v(2,"L       ");
+	   write_v(2,"        ");
+
+	   if(index_ == 0)
+	   		upper1[7] = '0';
 //	   if(settings[0].display_mode == PL)
 //	   	{
 //	   		write_v(2,"l       ");
@@ -1760,7 +1774,7 @@ eSystemState keypress_Handler(void)
 //	   		write_v(2,"p       ");
 //	   	}
 	 }
-     else if ( (sellmode == V)&&(progg == 0) )
+     else if ( (sellmode == V) && (progg == 0) )
      {
     	 memset(upper1, '\0', sizeof(upper1));
     	 upper1[0] = 'C';
@@ -1848,10 +1862,14 @@ eSystemState keypress_Handler(void)
 		    	   space = 0;  //full size of xters.
 
 		      while (space > 0) //write spaces first..
-			   {
+			  {
 		    	 keyboard[ind++] = ' ';
+
+		    	 if( (index_ == 0) && (space == 1) )
+					 keyboard[ind - 1] = '0';
+
 				   space--;
-			   }
+			  }
             //---------------------------------
 				if( (index_ <= size) || ((index_ <= 6) && (dpFlag == 1)) )
 					  space = index_;
@@ -1878,7 +1896,7 @@ eSystemState keypress_Handler(void)
 
 	   }
 //----------------------------------------------------------------
-	  if (sellmode == L)
+	  else if (sellmode == L)
 	  {
 
 		  keyboard[0] = 'l';
@@ -1910,6 +1928,10 @@ eSystemState keypress_Handler(void)
 		  while (space > 0) //write spaces first..
 		   {
 			 keyboard[ind++] = ' ';
+
+			 if( (index_ == 0) && (space == 1) )
+				 keyboard[ind - 1] = '0';
+
 			   space--;
 		   }
 		  //---------------------------------

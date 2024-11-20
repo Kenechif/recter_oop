@@ -8779,7 +8779,7 @@ if(
   }
 
 // int space2 = 7 - index_2;   //6 - index_2;
- if ((sellmode2 == L)&&(progg2 == 0) )
+ if ((sellmode2 == L) && (progg2 == 0) )
  {
 	   memset(middle2, '\0', sizeof(middle2));
 	   middle2[0] = 'L';     //Append price to display.
@@ -8797,7 +8797,9 @@ if(
 		 }
 	  //  lcd_print_line2_2("p       ");
 
-	  write_v2(1,"p       ");
+	  write_v2(1,"        ");
+	  if(index_2 == 0)
+			middle2[7] = '0';
 
 	  //  lcd_print_line2_2(middle1);
    }
@@ -8821,7 +8823,10 @@ if(
  			 }
  			//lcd_print_line2_2(upper1);  //clear the price
  			//lcd_print_line2_2("l       ");
- 		   write_v2(2,"l       ");
+ 		   write_v2(2,"        ");
+
+ 		   if(index_2 == 0)
+ 			   upper2[7] = '0';
          }
 //----------------------------------------------------------------
 //                            write to the keypad
@@ -8870,6 +8875,10 @@ if(
 		 while (space > 0) //write spaces first..
 		   {
 			 keyboard2[ind++] = ' ';
+
+			 if( (index_2 == 0) && (space == 1) )
+				 keyboard2[ind - 1] = '0';
+
 			   space--;
 		   }
 	  //---------------------------------
@@ -8942,6 +8951,10 @@ if(
 		 while (space > 0) //write spaces first..
 		   {
 			 keyboard2[ind++] = ' ';
+
+			 if( (index_2 == 0) && (space == 1) )
+				 keyboard2[ind - 1] = '0';
+
 			   space--;
 		   }
 		  //---------------------------------
