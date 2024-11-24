@@ -299,7 +299,7 @@ uint8_t readkey192_state(void)
 //-------------------------------------------------------------------------------
 void slow_flow1(void)
 {
-	if (motor_tmr1 >= 2000)
+	if (motor_tmr1 >= 1000)
 		drive_motor1(ACTIVATE);
 
 	drive_slow_sole1(ACTIVATE);

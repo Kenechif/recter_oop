@@ -102,7 +102,7 @@ extern "C" {
 
 
 /***********************************************************************/
-#define DEBOUNCE_TIME_MS 5  //20 // Debounce period in milliseconds
+#define DEBOUNCE_TIME_MS 10  //20 // Debounce period in milliseconds
 #define DEBOUNCE_DELAY DEBOUNCE_TIME_MS
 #define LONG_PRESS_DELAY 500  // Long press delay
 

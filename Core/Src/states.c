@@ -8084,13 +8084,13 @@ eSystemState authorised_nozzleup_State_Handler(void)
 	}
 	else if(firstTime_nozz1 == 2)
 	{
-		if (t <= 1400)
+		if (t <= 1000)
 		{
 			lcd_print_line1("88888888");
 			lcd_print_line2("88888888");
 			lcd_print_line3("888888");
 		}
-		else if(t > 1400)
+		else if(t > 1000)
 		{
 			lcd_print_line3("        ");
 
@@ -8407,7 +8407,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 		 	firstTime_1 = 0;
 		  }
 
-		  if (motor_tmr1 >= 2000)
+		  if (motor_tmr1 >= 1000)    //2000)
 		  {
 				drive_motor1(ACTIVATE);
 

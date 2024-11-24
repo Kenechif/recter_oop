@@ -6521,13 +6521,13 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 		}
 		else if(firstTime_nozz2 == 2)
 		{
-			if (t2 <= 1400)
+			if (t2 <= 1000)
 			{
 				lcd_print_line1_2("88888888");
 				lcd_print_line2_2("88888888");
 				lcd_print_line3_2("888888");
 			}
-			else if(t2 > 1400)
+			else if(t2 > 1000)
 			{
 				lcd_print_line3_2("        ");
 				firstTime_nozz2 = 0;

@@ -2250,7 +2250,7 @@ skip_test:
 	settings_stream2[0].startUp_suppressVol = 0.12;
 	settings_stream2[1].startUp_suppressVol = 0.12;
 
-//    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
+    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
 //    settings_stream1[0].mode = AUTO_MODE;    //AUTO_MODE;
 //
 //    settings_stream1[0].noz = nooverride;  //nooveride
@@ -2262,14 +2262,14 @@ skip_test:
 //    settings_stream1[0].keypad__ = LAFNG18_K_V2;  //LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
 
 //
-    settings_stream1[1].mode = MANUAL_MODE;  //AUTO;   //MANUAL;
+//    settings_stream1[1].mode = MANUAL_MODE;  //AUTO;   //MANUAL;
 //    settings_stream1[1].mode = AUTO_MODE;    //AUTO_MODE;
 //
 //    settings_stream1[1].noz = nooverride;  //nooveride
 ////	settings_stream1[1].noz = override;  //nooveride
-	settings_stream1[1].keypad__ = BLSKY22;   //BLSKY22
+//	settings_stream1[1].keypad__ = BLSKY22;   //BLSKY22
 //    settings_stream1[1].keypad__ = LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
-//    settings_stream1[1].keypad__ = LAFNG18_K_V2;  //LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
+    settings_stream1[1].keypad__ = LAFNG18_K_V2;  //LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
 
 //    settings_stream1[0].pi_cal = 797.150024;
 
