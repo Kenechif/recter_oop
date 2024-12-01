@@ -159,6 +159,11 @@ extern unsigned long t_exec1,
 
 int checkk = 0;
 
+uint8_t keyPress1 = 0,
+	    nonKeyPress1 = 0,
+		keyPress2 = 0,
+	    nonKeyPress2 = 0;
+
 KeyState state1 = KEY_IDLE,
 		 state2 = KEY_IDLE;
 
@@ -2250,11 +2255,12 @@ skip_test:
 	settings_stream2[0].startUp_suppressVol = 0.12;
 	settings_stream2[1].startUp_suppressVol = 0.12;
 
-    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
+//    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
 //    settings_stream1[0].mode = AUTO_MODE;    //AUTO_MODE;
 //
 //    settings_stream1[0].noz = nooverride;  //nooveride
 //    settings_stream1[0].noz_override = override;  //nooveride
+//    settings_stream2[0].keypress_tone = No;   //Yes;
 
 //    settings_stream2[0].calibration_measureCan = 2;
 
@@ -2276,7 +2282,7 @@ skip_test:
 //    settings_stream1[0].noz_addr = 0x01;
 //    settings_stream1[1].noz_addr = 0x02;
 
-//    settings_stream2[0].keypress_tone = No;   //Yes;
+//    settings_stream2[1].keypress_tone = No;   //Yes;
 //    settings_stream1[0].display_format = PL;
 //    settings_stream1[1].display_format = PL;
 //    settings_stream1[0].def_t = P;
@@ -4384,7 +4390,14 @@ uint8_t read_event1_1(void)
 
 uint8_t debounceKey1(void)
  {
-      static uint8_t lastKey = 0;
+      static uint8_t lastKey = 0,
+    		  	  	 test_key = 0;
+//    		  	  	  keyPress1 = 0,
+//					  nonKeyPress1 = 0;
+
+      static bool keyPress = false;
+
+      uint32_t duration = 0;
 
       uint8_t key = keypad_lcd(0, key_lcd);  //write lcd and read keypad.
 
@@ -4398,12 +4411,20 @@ uint8_t debounceKey1(void)
  								 state1 = KEY_DEBOUNCE;
  								 lastDebounceTime1 = currentTime;
 								 keyPressStartTime1 = currentTime;
+								 test_key = key;
  							 }
  							 break;
 
           case KEY_DEBOUNCE:
 
-							 if ((currentTime - lastDebounceTime1) > DEBOUNCE_TIME_MS)
+        	  	  	  	  	 duration = currentTime - lastDebounceTime1;
+
+        	  	  	  	  	 if (key == test_key)
+								 keyPress1++;
+        	  	  	  	  	 else
+        	  	  	  	  		 nonKeyPress1++;
+
+							 if (duration > DEBOUNCE_TIME_MS)
 							 {
 								if (key != 0)
 								{
@@ -4417,26 +4438,60 @@ uint8_t debounceKey1(void)
 							 break;
 
 		   case KEY_SHORT_PRESS:
-								if (key == 0)
+								if (keyPress == true)
+			   	   	   	   	   	{
+			   	   	   	   	   		if ( (delay_nonBlocking1(keypad_delay)) == 1)
+									{
+										HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+
+										// Key released before long press delay
+										state1 = KEY_IDLE;
+
+										uint8_t test_key_1 = test_key;
+										test_key = 0;
+										keyPress1 = 0;
+										nonKeyPress1 = 0;
+
+										keyPress = false;
+
+										return test_key_1;
+									}
+			   	   	   	   	   	}
+
+								else if (key == 0)
 								{
 									// Key released before long press delay
-									state1 = KEY_IDLE;
+//									state1 = KEY_IDLE;
 
-									#if delay_keypad == 1
+									if( (test_key == lastKey) && (keyPress1 >= 5) )
+									{
 
-									   if(settings_stream2[0].keypress_tone == Yes)
-									   {
-										  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-									   }
+										#if delay_keypad == 1
 
-									   HAL_Delay(keypad_delay);
+										   if(settings_stream2[0].keypress_tone == Yes)
+										   {
+											  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+										   }
 
-								 	#endif
+										   HAL_Delay(keypad_delay);
 
-									   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+										   keyPress = true;
 
+										#endif
+									}
+									else
+									{
+										test_key = 0;
+										keyPress1 = 0;
+									    nonKeyPress1 = 0;
 
-									return lastKey;
+									    lastDebounceTime1 = currentTime;
+										keyPressStartTime1 = currentTime;
+
+										state1 = KEY_IDLE;
+
+									    return 0;
+									}
 								}
 								else if ((currentTime - keyPressStartTime1) > LONG_PRESS_DELAY)
 								{
@@ -4445,20 +4500,41 @@ uint8_t debounceKey1(void)
 								break;
 
 		  case KEY_LONG_PRESS:
-								if (key == 0)
+			  	  	  	  	  	if (key == 0)
 								{
 									// Key released after long press delay
 									state1 = KEY_IDLE;
 
-									if(lastKey == 15)
-										key_longpress_flag = 1;
-									else if(lastKey == 14)
-										progExit_longpress_flag = 1;
-									else if( (lastKey == 21) && (settings_stream1[0].keypad__ == BLSKY22) )
-										tot_longpress_flag = 1;
+									if( (test_key == lastKey) && (keyPress1 >= 5) )
+									{
+										if(lastKey == 15)
+											key_longpress_flag = 1;
+										else if(lastKey == 14)
+											progExit_longpress_flag = 1;
+										else if( (lastKey == 21) && (settings_stream1[0].keypad__ == BLSKY22) )
+											tot_longpress_flag = 1;
 
-									return lastKey;
-								}
+										test_key = 0;
+										keyPress1 = 0;
+										nonKeyPress1 = 0;
+
+										lastDebounceTime1 = currentTime;
+										keyPressStartTime1 = currentTime;
+
+										return lastKey;
+									}
+									else
+									{
+										test_key = 0;
+										keyPress1 = 0;
+										nonKeyPress1 = 0;
+
+										lastDebounceTime1 = currentTime;
+										keyPressStartTime1 = currentTime;
+
+										return 0;
+									}
+      	  	  	  	  	  	  	}
 								break;
     }
 
@@ -4469,7 +4545,12 @@ uint8_t debounceKey1(void)
 
  uint8_t debounceKey2(void)
  {
-      static uint8_t lastKey = 0;
+      static uint8_t lastKey = 0,
+    		  	  	 test_key = 0;
+
+      static bool keyPress = false;
+
+      uint32_t duration = 0;
 
       uint8_t key = keypad_lcd2(0, key_lcd2);  //write lcd and read keypad.
 
@@ -4483,12 +4564,20 @@ uint8_t debounceKey1(void)
  								 state2 = KEY_DEBOUNCE;
  								 lastDebounceTime2 = currentTime;
 								 keyPressStartTime2 = currentTime;
+								 test_key = key;
  							 }
  							 break;
 
           case KEY_DEBOUNCE:
 
-							 if ((currentTime - lastDebounceTime2) > DEBOUNCE_TIME_MS)
+        	  	  	  	  	  duration = currentTime - lastDebounceTime2;
+
+							  if (key == test_key)
+								 keyPress2++;
+							  else
+								 nonKeyPress2++;
+
+							 if (duration > DEBOUNCE_TIME_MS)
 							 {
 								if (key != 0)
 								{
@@ -4502,26 +4591,60 @@ uint8_t debounceKey1(void)
 							 break;
 
 		   case KEY_SHORT_PRESS:
-								if (key == 0)
+			   	   	   	   	   	if (keyPress == true)
+			   	   	   	   	   	{
+			   	   	   	   	   		if ( (delay_nonBlocking2(keypad_delay)) == 1)
+									{
+										HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+
+										// Key released before long press delay
+										state2 = KEY_IDLE;
+
+										uint8_t test_key_1 = test_key;
+										test_key = 0;
+										keyPress2 = 0;
+										nonKeyPress2 = 0;
+
+										keyPress = false;
+
+										return test_key_1;
+									}
+			   	   	   	   	   	}
+
+			   	   	   	   	   	else if (key == 0)
 								{
 									// Key released before long press delay
-									state2 = KEY_IDLE;
+//									state2 = KEY_IDLE;
 
-									#if delay_keypad == 1
+									if( (test_key == lastKey) && (keyPress2 >= 5) )   // 6) )
+									{
 
-									   if(settings_stream2[1].keypress_tone == Yes)
-									   {
-										  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-									   }
+										#if delay_keypad == 1
 
-									   HAL_Delay(keypad_delay);
+										   if(settings_stream2[1].keypress_tone == Yes)
+										   {
+											  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+										   }
 
-								 	#endif
+//										   HAL_Delay(keypad_delay);
 
-									   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+										   keyPress = true;
 
+										#endif
+									}
+									else
+									{
+										test_key = 0;
+										keyPress2 = 0;
+										nonKeyPress2 = 0;
 
-									return lastKey;
+										lastDebounceTime2 = currentTime;
+									    keyPressStartTime2 = currentTime;
+
+									    state2 = KEY_IDLE;
+
+										return 0;
+									}
 								}
 								else if ((currentTime - keyPressStartTime2) > LONG_PRESS_DELAY)
 								{
@@ -4535,14 +4658,35 @@ uint8_t debounceKey1(void)
 									// Key released after long press delay
 									state2 = KEY_IDLE;
 
-									if(lastKey == 15)
-										key_longpress_flag2 = 1;
-									else if(lastKey == 14)
-										progExit_longpress_flag2 = 1;
-									else if( (lastKey == 21) && (settings_stream1[1].keypad__ == BLSKY22) )
-										tot_longpress_flag2 = 1;
+									if( (test_key == lastKey) && (keyPress2 >= 5) )  // 6) )
+									{
+										if(lastKey == 15)
+											key_longpress_flag2 = 1;
+										else if(lastKey == 14)
+											progExit_longpress_flag2 = 1;
+										else if( (lastKey == 21) && (settings_stream1[1].keypad__ == BLSKY22) )
+											tot_longpress_flag2 = 1;
 
-									return lastKey;
+										test_key = 0;
+										keyPress2 = 0;
+										nonKeyPress2 = 0;
+
+										lastDebounceTime2 = currentTime;
+										keyPressStartTime2 = currentTime;
+
+										return lastKey;
+									}
+									else
+									{
+										test_key = 0;
+										keyPress2 = 0;
+										nonKeyPress2 = 0;
+
+										lastDebounceTime2 = currentTime;
+										keyPressStartTime2 = currentTime;
+
+										return 0;
+									}
 								}
 								break;
     }
@@ -4552,6 +4696,65 @@ uint8_t debounceKey1(void)
     return 0;
   }
 
+uint8_t delay_nonBlocking1(uint32_t delayTime)
+{
+   static uint32_t startTime = 0;
+   static uint8_t firstEntry = 0;
+
+   uint32_t currentTime = HAL_GetTick(); // Get the current system tick
+
+   if(firstEntry == 0)
+   {
+	   startTime = currentTime;
+	   firstEntry = 1;
+
+	   return 0;
+   }
+
+   if(firstEntry == 1)
+   {
+	   if((currentTime - startTime) >= delayTime)
+	   {
+		   firstEntry = 0;
+		   startTime = currentTime;
+		   return 1;
+	   }
+	   else
+	   {
+		   return 0;
+	   }
+   }
+}
+
+uint8_t delay_nonBlocking2(uint32_t delayTime)
+{
+   static uint32_t startTime = 0;
+   static uint8_t firstEntry = 0;
+
+   uint32_t currentTime = HAL_GetTick(); // Get the current system tick
+
+   if(firstEntry == 0)
+   {
+	   startTime = currentTime;
+	   firstEntry = 1;
+
+	   return 0;
+   }
+
+   else if(firstEntry == 1)
+   {
+	   if((currentTime - startTime) >= delayTime)
+	   {
+		   firstEntry = 0;
+		   startTime = currentTime;
+		   return 1;
+	   }
+	   else
+	   {
+		   return 0;
+	   }
+   }
+}
 
 //uint8_t read_event1_1(void)
 //{

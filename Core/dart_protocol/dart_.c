@@ -1321,7 +1321,7 @@ void parse_decode2(void)
 								}
 
 								//###########################################################################//
-								//'50 37 67 01 01 bf f7 03 fa
+								//'51 30 67 01 01 83 43 03 fa
 								//===========================================================================//
 								//============================ CONFIG CHANGE QUERY ==========================//
 								//===========================================================================//
@@ -1589,7 +1589,7 @@ void process_response1(response_enum response)
 
 							if(command_response == false)
 							{
-								if(status_change_noz1 == 1)
+								if(status_change_noz1 == 1)   // Nozzle Status Change
 								{
 									if(nozzle_out1 == true)
 									{
@@ -1649,6 +1649,11 @@ void process_response1(response_enum response)
 										array_len = 16;
 									}
 									old_value = vol_;
+
+									if(mamo_fillingInfo_send1 == 1)
+									{
+										mamo_fillingInfo_send1 = 0;
+									}
 								}
 
 								//==========================================================//
@@ -1851,6 +1856,11 @@ void process_response2(response_enum response)
 										array_len2 = 16;
 									}
 									old_value = vol_;
+
+									if(mamo_fillingInfo_send2 == 1)
+									{
+										mamo_fillingInfo_send2 = 0;
+									}
 								}
 
 								//==========================================================//
@@ -3824,6 +3834,7 @@ void _process_response2(response_enum response)
 			}
 
 			retrieve_configChange_trackNum_fram(side_b);
+//			track_num2 = 0;
 			uint8_t configCheck = configChange_notify_build2(track_num2);
 			save_configChange_trackNum_fram(side_b);
 
@@ -7955,7 +7966,8 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 						}
 
 			case DP2 :  // Display Decimal Point-2	=> 	Volume						// index ==> 0x0F
-						track_num2++;if(settings_original_stream1[1].dp_vol != settings_stream1[1].dp_vol)
+						track_num2++;
+						if(settings_original_stream1[1].dp_vol != settings_stream1[1].dp_vol)
 						{
 							if(valid_pair2 == 0)
 							{
@@ -8065,7 +8077,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 							}
 						}
 
-			case DS1 :   // Display Format => L/P or P/L									// index ==> 0x11
+			case DS1 :   // Display Format => L/P or P/L									// index ==> 0x10
 						track_num2++;
 						if(settings_original_stream1[1].display_format != settings_stream1[1].display_format)
 						{
@@ -8402,7 +8414,8 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 						}
 
 			case PO1 :	// Pulser Offset Value											// index ==> 0x17
-						track_num2++;if(settings_original_stream2[1].pulser_offset != settings_stream2[1].pulser_offset)
+						track_num2++;
+						if(settings_original_stream2[1].pulser_offset != settings_stream2[1].pulser_offset)
 						{
 							if(valid_pair2 == 0)
 							{

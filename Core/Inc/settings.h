@@ -72,7 +72,7 @@ extern "C" {
 #define test_totaliser				0
 
 #define LCD_UPDATE_RATE             100
-#define keypad_delay				40
+#define keypad_delay				70
 
 #define pump_rx_bufsize  			1000
 
@@ -100,9 +100,10 @@ extern "C" {
 #define OTPSESSION_ON				0b10011001
 #define OTPSESSION_OFF				0b00000000
 
+#define VOL_SUPPRESSED 				12
 
 /***********************************************************************/
-#define DEBOUNCE_TIME_MS 10  //20 // Debounce period in milliseconds
+#define DEBOUNCE_TIME_MS 5  //10  //20 // Debounce period in milliseconds
 #define DEBOUNCE_DELAY DEBOUNCE_TIME_MS
 #define LONG_PRESS_DELAY 500  // Long press delay
 
@@ -711,7 +712,8 @@ uint8_t status_change_pump1,
 		filling_mamo_flag1,
 		stopFlag_source1,
 		hardwareError_flag1,
-		hardwareErrorFlag_source1;
+		hardwareErrorFlag_source1,
+		mamo_fillingInfo_send1;
 
 uint8_t status_change_pump2,
 		status_change_noz2,
@@ -720,7 +722,8 @@ uint8_t status_change_pump2,
 		filling_mamo_flag2,
 		stopFlag_source2,
 		hardwareError_flag2,
-		hardwareErrorFlag_source2;
+		hardwareErrorFlag_source2,
+		mamo_fillingInfo_send2;
 
 
 ////==================================

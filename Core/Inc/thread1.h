@@ -75,6 +75,9 @@ void eeprom_clearToken(void);
 uint8_t debounceKey1(void);
 uint8_t debounceKey2(void);
 
+uint8_t delay_nonBlocking1(uint32_t delayTime);
+uint8_t delay_nonBlocking2(uint32_t delayTime);
+
 
 
 

@@ -100,6 +100,13 @@ void NMI_Handler(void)
 {
   /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
 
+	// Optional: Log error information for debugging
+		__disable_irq();  // Disable interrupts to prevent further issues
+
+	//	NVIC_SystemReset();
+		my_error_handler();
+
+
   /* USER CODE END NonMaskableInt_IRQn 0 */
   /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
   while (1)
@@ -114,6 +121,9 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
+
+	// Optional: Log error information for debugging
+	__disable_irq();  // Disable interrupts to prevent further issues
 
 //	NVIC_SystemReset();
 	my_error_handler();
@@ -133,6 +143,9 @@ void MemManage_Handler(void)
 {
   /* USER CODE BEGIN MemoryManagement_IRQn 0 */
 
+	// Optional: Log error information for debugging
+	__disable_irq();  // Disable interrupts to prevent further issues
+
 //	NVIC_SystemReset();
 	my_error_handler();
 
@@ -150,6 +163,10 @@ void MemManage_Handler(void)
 void BusFault_Handler(void)
 {
   /* USER CODE BEGIN BusFault_IRQn 0 */
+
+	// Optional: Log error information for debugging
+	__disable_irq();  // Disable interrupts to prevent further issues
+
    my_error_handler();
    //return;
   /* USER CODE END BusFault_IRQn 0 */
@@ -166,6 +183,9 @@ void BusFault_Handler(void)
 void UsageFault_Handler(void)
 {
   /* USER CODE BEGIN UsageFault_IRQn 0 */
+
+	// Optional: Log error information for debugging
+	__disable_irq();  // Disable interrupts to prevent further issues
 
 //	NVIC_SystemReset();
 	my_error_handler();

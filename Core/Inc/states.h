@@ -320,7 +320,8 @@ extern uint8_t mamo_reached_flag1,
 			   stopFlag_source1,
 			   hardwareError_flag1,
 			   hardwareErrorFlag_source1,
-			   nozzlezUp1;
+			   nozzlezUp1,
+			   mamo_fillingInfo_send1;
 
 extern uint8_t nozzle_flag,
 			   nozzle_flag_key1,

@@ -47,7 +47,9 @@ extern uint8_t mamo_reached_flag1,
 			   nozzleDown_source1 = 0,
 			   reset_flag1 = 0,
 			   hardwareError_flag1 = 0,
-			   hardwareErrorFlag_source1 = 0;
+			   hardwareErrorFlag_source1 = 0,
+			   go_timeOut1 = 0,
+			   mamo_fillingInfo_send1 = 0;
 
 extern uint8_t mamo_reached_flag2,
 			   mamo_reached_flag2_1,
@@ -57,8 +59,9 @@ extern uint8_t mamo_reached_flag2,
 			   reset_flag2 = 0,
 			   hardwareError_flag2 = 0,
 			   hardwareErrorFlag_source2 = 0,
-			   go_timeOut1 = 0,
-			   go_timeOut2 = 0;
+			   go_timeOut2 = 0,
+			   mamo_fillingInfo_send2 = 0;
+
 
 
 
@@ -536,7 +539,9 @@ eSystemState write_flash_State_Handler(void)
 			else if (mamo_reached_flag1_1 == 1)
 			{
 				mamo_reached_flag1_1 = 0;
-				mamo_reached_flag1 = 1;
+
+				mamo_fillingInfo_send1 = 1;
+
 				filling_mamo_flag1 = 1;  //Ensures Routine in the filling state is not on repeat
 
 				return filling_State;
@@ -583,7 +588,7 @@ eSystemState write_flash_State_Handler(void)
 			else if (mamo_reached_flag2_1 == 1)
 			{
 				mamo_reached_flag2_1 = 0;
-				mamo_reached_flag2 = 1;
+				mamo_fillingInfo_send2 = 1;
 				filling_mamo_flag2 = 1;  //Ensures Routine in the filling state is not on repeat
 
 				return filling_State;

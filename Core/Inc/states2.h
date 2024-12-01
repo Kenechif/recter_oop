@@ -225,6 +225,15 @@ eSystemState mamo_Handler2(void);
 //	nothing
 //};
 
+extern uint8_t mamo_reached_flag2,
+			   mamo_reached_flag2_1,
+			   filling_mamo_flag2,
+			   stopFlag_source2,
+			   hardwareError_flag2,
+			   hardwareErrorFlag_source2,
+			   nozzlezUp2,
+			   mamo_fillingInfo_send2;
+
 extern uint8_t nozzle_flag2,
 			   nozzle_flag_key2,
 			   nozzle_flag_key_old2;

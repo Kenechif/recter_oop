@@ -752,7 +752,7 @@ sStateEventMachine asStateEventMachine_1 [] =
 	{authorised_nozzleup_State, authorised_nozzleup_State_Handler, {_filling_pulse_Event,_pause_Event,_timeout_Event,_nozzledown_Event,_keypress_Event,_function_key_Event, _stopcommand_Event, _auth_suspendcommand_Event, _hardwarereset_Event, _hardwareerror_Event}},
 	{authorisation_paused_State, authorisation_paused_State_Handler, {_resume_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _auth_resumecommand_Event,  _stopcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _switchoffcommand_Event}},
 	{authorisation_resumed_State, authorisation_resumed_State_Handler, {}},
-	{filling_State, filling_State_Handler, {_filling_paused_Event,_keypress_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _stopcommand_Event, _filling_suspendcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _mamo_Event, _switchoffcommand_Event}},
+	{filling_State, filling_State_Handler, {_filling_paused_Event, _keypress_Event, _timeout_Event,_nozzledown_Event, _stopcommand_Event, _filling_suspendcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _mamo_Event, _switchoffcommand_Event}},
 	{filling_paused_State, filling_paused_State_Handler, {_filling_resumed_Event, _keypress_Event, _timeout_Event,_nozzledown_Event, _filling_resumecommand_Event, _stopcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _switchoffcommand_Event}},
 	{filling_resumed_State, filling_resumed_State_Handler, {}},
 	{keypad_entry_State, keypad_entry_State_Handler, {}},
@@ -930,7 +930,11 @@ eSystemState savesettings_State_Handler(void)
 		auth = not_auth;
 		clear_buffer1();
 //	        return savesettings_State;
-		return idle_State;
+
+		if(eNextState1 == pnp_State)
+			return pnp_State;
+		else
+			return idle_State;
 	}
 	//=======================================
 	if (sav == 2)
@@ -957,7 +961,11 @@ eSystemState savesettings_State_Handler(void)
 		 char str__[8]= {0};
 		 snprintf(str__, sizeof(str__), "%.2f", litre_price);
 		 lcd_print_line3(str__);
-		 return idle_State;
+
+		 if(eNextState1 == pnp_State)
+			return pnp_State;
+		 else
+			return idle_State;
 	}
 	//========================================
 	return savesettings_State;    //idle_State;  //return to idle mode
@@ -5835,7 +5843,7 @@ eSystemState progState_Handler(void)
   //================================ MODE ================================
   //xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   //======================================================================
-  //                NUMBER OF SIDES  ( 1 - 2) ==> default : 2
+  //                NUMBER OF SIDES  ( 1 - 2 ) ==> default : 2
   //======================================================================
    else if ( (auth == authed) && ( (access == level2)||(access == level3) ) && (fxn == number_of_sides)  )
    {
@@ -5939,7 +5947,7 @@ eSystemState progState_Handler(void)
 
 	   if (t >= 300)
 	   {
-			if(index_generic > 10) index_generic = 0;
+			if(index_generic > VOL_SUPPRESSED) index_generic = 0;
 
 			lcd_print_line1("Supp. Vol");
 
@@ -5953,7 +5961,7 @@ eSystemState progState_Handler(void)
 	 // -------------- test keys....----------------
 		rd19 = readkey19_state();
 
-		if ( (rd19 == 1)&&( key19_sto_ == 0) )
+		if ( (rd19 == 1) && ( key19_sto_ == 0) )
 			 {
 				pump_indx++;
 				if (pump_indx > 2) pump_indx = 1;  //wrap around
@@ -5967,14 +5975,14 @@ eSystemState progState_Handler(void)
 		 {
 			 if (pkey == 'B')  // up key
 			 {
-				 if (index_generic < 10)  index_generic++;
-				 else if(index_generic == 10) index_generic = 0;
+				 if (index_generic < VOL_SUPPRESSED)  index_generic++;
+				 else if(index_generic == VOL_SUPPRESSED) index_generic = 0;
 			 }
 
 			 else if (pkey == 'C')  // down key
 			 {
 				 if (index_generic > 0) index_generic--;
-				 else if(index_generic == 0) index_generic = 10;
+				 else if(index_generic == 0) index_generic = VOL_SUPPRESSED;
 			 }
 
 			 else if (pkey == 'F')  //change pump index.
@@ -7496,7 +7504,7 @@ eSystemState idleState_Handler(void)
 		{
 			priceChange_timer1 = 0;
 		}
-		else //if( (eNextState2 == idle_State) && (eLastState2 == idle_State) )
+		else //if( (eNextState1 == idle_State) && (eLastState1 == idle_State) )
 		{
 			if(priceChange_timer1 >= 3000)   //30000)
 			{
@@ -7514,6 +7522,22 @@ eSystemState idleState_Handler(void)
 				}
 			}
 		}
+
+		if(settings_stream1[0].display_format == PL)
+		{
+			 lcd_print_line1(upper1);
+			 lcd_print_line2(middle1);
+	    }
+	    else if(settings_stream1[0].display_format == LP)
+	    {
+		    lcd_print_line1(middle1);
+		    lcd_print_line2(upper1);
+	    }
+
+	    lcd_print_line3("        ");
+	    char str__[8]= {0};
+	    snprintf(str__, sizeof(str__), "%.2f", litre_price);
+	    lcd_print_line3(str__);
 	}
 
 	else if( (timer_go >= TIMEOUT_GO) && (settings_stream1[0].mode == AUTO_MODE) )  //if go's timeout is 5sec threshold
@@ -7556,15 +7580,15 @@ eSystemState idleState_Handler(void)
 			&& (flow_loss == 0) && (display_overflow1 == 0) && (changeLitrePrice1_2 == 0) && (_pump_max_litres1 == 0) && (nonValid_sale1 == 0) )
 	{
 		 if(settings_stream1[0].display_format == PL)
-		  {
+		 {
 			 lcd_print_line1(upper1);
 			 lcd_print_line2(middle1);
-		  }
-		  else if(settings_stream1[0].display_format == LP)
-		  {
+		 }
+		 else if(settings_stream1[0].display_format == LP)
+		 {
 			  lcd_print_line1(middle1);
 			  lcd_print_line2(upper1);
-		  }
+		 }
 		 lcd_print_line3("        ");
 		 char str__[8]= {0};
 		 snprintf(str__, sizeof(str__), "%.2f", litre_price);
@@ -8595,289 +8619,18 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 
 //------------------
-uint32_t price2pulser(float price)
-{
-//  float temp = (price / litre_price) *  pulser_index_c;
-//  display_minimumPulser = (0.09 * pulser_index_c);   //9 centilitres
-//  original_pulse = temp;
-  //temp = floor(temp);
-  float temp = (price / litre_price);
-//  temp -= 0.01;
-
-  temp -= 0.004;
-
-  temp *= pulser_index_c;
-  original_pulse = temp;
-//  temp -= 4;
-  return  floor(temp);
-}
-
-uint32_t amt2pulser(float amt)
-{
-	 float temp;
-
-//	 amt -= 0.01;
-
-	 amt -= 0.004;
-
-	 temp = amt * pulser_index_c;
-//	 display_minimumPulser = (0.09 * pulser_index_c);   //9 centilitres
-	 original_pulse = temp;
-	 return  floor(temp);
-}
-
-float pulser2price(uint32_t pulse_)
-{
-	 float temp = litre_price * (1.0/pulser_index_c);
-	 temp  = temp * (float) pulse_;
-	 return (temp );
-}
-
-float amt2price(float amt_)
-{
-	 float temp = litre_price * amt_;
-	 return (temp );
-}
-
-float pulser2amt(uint32_t pulse_)
-{
-	 float temp = (float)pulse_ * (1.0/pulser_index_c);
-	 return (temp );
-}
-
-float pulser2amt_R(uint32_t pulse_)
-{
-	 float temp = pulse_ * (1.0/pulser_index);
-	 //temp  = temp * (float) pulse_;
-	 return (temp );
-}
-//---------------------------------------------------
-void make_string(sellmode_ sll, float pr)
-{
-    int8_t tmp = 1,
-    	   ind = 0;
-
-    char *endPtr;
-
-	char temp[10] = {0};
-	char ttmp[10] = {0};
-
-	 if (sll == L)
-	 {
-		 if (dp_vol1 == 1)
-		     snprintf(temp , sizeof(temp), "%.1f", pr);
-		 else if (dp_vol1 == 2)
-			 snprintf(temp , sizeof(temp), "%.2f", pr);
-		 else if (dp_vol1 == 3)
-		 	 snprintf(temp , sizeof(temp), "%.3f", pr);
-
-//		 amt_middle1 = atof(temp);
-//		 amt_middle1 += 0.00011;
-		 amt_middle1 = strtof(temp, &endPtr);
-
-		 if(pr < display_minimumCentilitre1)   // 9 centilitres
-		 {
-			 pr = 0.00;
-
-			 if (dp_vol1 == 1)
-				 snprintf(temp , sizeof(temp), "%.1f", pr);
-			 else if (dp_vol1 == 2)
-				 snprintf(temp , sizeof(temp), "%.2f", pr);
-			 else if (dp_vol1 == 3)
-				 snprintf(temp , sizeof(temp), "%.3f", pr);
-		 }
-	 }
-
-	 if (sll == P)
-	 {
-		 if (dp_amount1 == 1)
-			 snprintf(temp , sizeof(temp), "%.1f", pr);
-		 else if (dp_amount1 == 2)
-			 snprintf(temp , sizeof(temp), "%.2f", pr);
-		 else if (dp_amount1 == 3)
-			 snprintf(temp , sizeof(temp), "%.3f", pr);
-
-//		price_upper1 = atof(temp);
-//		price_upper1 += 0.00011;
-
-		price_upper1 = strtof(temp, &endPtr);
-
-		if(pr < display_minimumCentilitrePrice1)   // 9 centilitres
-		{
-			 pr = 0.00;
-
-			if (dp_amount1 == 1)
-				 snprintf(temp , sizeof(temp), "%.1f", pr);
-			else if (dp_amount1 == 2)
-				 snprintf(temp , sizeof(temp), "%.2f", pr);
-			else if (dp_amount1 == 3)
-				 snprintf(temp , sizeof(temp), "%.3f", pr);
-		}
-
-	 }
-
-
-//	 temppp_ = atof(temp);
-//
-//	 temppp_ += 0.00011;  //make small correction for the inherent rounddown.
-//	 temppp_ = roundf(temppp_ * 100) / 100;
-
-
-	 uint8_t index__ = 0;
-	while (tmp != 0)
-	{
-		tmp = temp[index__++];
-	}
-
-	int8_t space = 9 - index__;
-
-	if(eNextState1 == filling_State)
-	{
-		ind = 0;
-		space += 1;
-	}
-	else
-		ind = 1;
-
-	 //--------------------------
-		  if (sll == L)
-				ttmp[0] = 'l';
-		  else
-				ttmp[0] = 'p';
-	 //--------------------------
-		while (space > 0) //write spaces first..
-		{
-		   ttmp[ind++] = ' ';
-		   space--;
-		}
-	  space = index__;  //reload with len of actual number
-	   while(space > 0)
-		 {
-			 ttmp[ind++] = temp[index__ - space];
-			 space--;
-		 }
-    //-----------------------------------------------------
-		 for (uint8_t i = 0 ; i < 10 ; i++)
-		   {
-				if (sll == P)
-				{
-					upper1[i] = ttmp[i];
-
-//					if(settings[0].display_mode == PL)
-//						upper1[i] = ttmp[i];
-//					else if(settings[0].display_mode == LP)
-//						middle1[i] = ttmp[i];
-				}
-				else
-				{
-					middle1[i] = ttmp[i];
-
-//					if(settings[0].display_mode == PL)
-//						middle1[i] = ttmp[i];
-//					else if(settings[0].display_mode == LP)
-//						upper1[i] = ttmp[i];
-				}
-		   }
-//     int t = 0;
-}
-
-//---------------------------------------------------
-//---------------
-eSystemState pause_Handler(void)
-{
-   return authorisation_paused_State;
-}
-
-//---------------
-eSystemState authorisation_paused_State_Handler(void)
-{
-	//Motor turned off
-	return authorisation_paused_State;
-}
-//--------------
-
-eSystemState resume_Handler(void)
-{
-	return authorised_nozzleup_State;
-}
-
-//--------------
-eSystemState filling_pulse_Handler(void)
-{
-    //initialise the solenoid and motor...
-
-	pump_status_1 = STATUS_FILLING;
-
-	status_change_pump1 = 1;
-
-//	lcd_print_line1(upper1);
-//	lcd_print_line2(middle1);
-
-	if(settings_stream1[0].display_format == PL)
-	  {
-		 lcd_print_line1(upper1);
-		 lcd_print_line2(middle1);
-	  }
-	  else if(settings_stream1[0].display_format == LP)
-	  {
-		  lcd_print_line1(middle1);
-		  lcd_print_line2(upper1);
-	  }
-
-	char str__[10]= {0};
-		snprintf(str__, sizeof(str__), "%.2f", litre_price);
-		lcd_print_line3(str__);
-	return filling_State;   //filling_paused_State;
-}
-
-//--------------
-/*
-eSystemState filling_State_Handler(void)
-{
-
-}
-*/
-//---------------
-eSystemState filling_paused_Handler(void)
-{
-
-	return filling_paused_State;
-}
-
-//--------------
-eSystemState filling_paused_State_Handler(void)
-{
-	//Motor turned off
-    return filling_paused_State;
-}
-
-//---------------
-eSystemState filling_resumed_Handler(void)
-{
-
-	return filling_State;
-}
-
-
-
-eSystemState keypad_entry_State_Handler(void)
-{
-
-    return  ePrevState; //
-	//return keypad_entry_State;
-}
-
-//----------------------------------------
 eSystemState filling_State_Handler(void)
 {
 	//extern uint32_t pulser_new;
 
 	if(filling_mamo_flag1 == 1)
 	{
-	   nozzle_flag_key1 = 0;
-	   nozzle_flag_key_old1 = 1;
+		if(mamo_fillingInfo_send1 == 0)
+		{
+			mamo_reached_flag1 = 1;
+		}
 
-	   return filling_State;
+	    return filling_State;
 	}
 
 	float temp = 0.0;
@@ -9268,7 +9021,7 @@ eSystemState filling_State_Handler(void)
 	//				save_amountTotaliser_fram(side_a);
 				save_lastSale_fram(side_a);
 
-				pump_status_1 = STATUS_MAMO_REACHED;
+//				pump_status_1 = STATUS_MAMO_REACHED;
 
 //				target_pulser1 = 0;
 
@@ -9360,6 +9113,281 @@ eSystemState filling_State_Handler(void)
 	   return filling_State;
 }
 
+
+
+uint32_t price2pulser(float price)
+{
+//  float temp = (price / litre_price) *  pulser_index_c;
+//  display_minimumPulser = (0.09 * pulser_index_c);   //9 centilitres
+//  original_pulse = temp;
+  //temp = floor(temp);
+  float temp = (price / litre_price);
+//  temp -= 0.01;
+
+  temp -= 0.004;
+
+  temp *= pulser_index_c;
+  original_pulse = temp;
+//  temp -= 4;
+  return  floor(temp);
+}
+
+uint32_t amt2pulser(float amt)
+{
+	 float temp;
+
+//	 amt -= 0.01;
+
+	 amt -= 0.004;
+
+	 temp = amt * pulser_index_c;
+//	 display_minimumPulser = (0.09 * pulser_index_c);   //9 centilitres
+	 original_pulse = temp;
+	 return  floor(temp);
+}
+
+float pulser2price(uint32_t pulse_)
+{
+	 float temp = litre_price * (1.0/pulser_index_c);
+	 temp  = temp * (float) pulse_;
+	 return (temp );
+}
+
+float amt2price(float amt_)
+{
+	 float temp = litre_price * amt_;
+	 return (temp );
+}
+
+float pulser2amt(uint32_t pulse_)
+{
+	 float temp = (float)pulse_ * (1.0/pulser_index_c);
+	 return (temp );
+}
+
+float pulser2amt_R(uint32_t pulse_)
+{
+	 float temp = pulse_ * (1.0/pulser_index);
+	 //temp  = temp * (float) pulse_;
+	 return (temp );
+}
+//---------------------------------------------------
+void make_string(sellmode_ sll, float pr)
+{
+    int8_t tmp = 1,
+    	   ind = 0;
+
+    char *endPtr;
+
+	char temp[10] = {0};
+	char ttmp[10] = {0};
+
+	 if (sll == L)
+	 {
+		 if (dp_vol1 == 1)
+		     snprintf(temp , sizeof(temp), "%.1f", pr);
+		 else if (dp_vol1 == 2)
+			 snprintf(temp , sizeof(temp), "%.2f", pr);
+		 else if (dp_vol1 == 3)
+		 	 snprintf(temp , sizeof(temp), "%.3f", pr);
+
+//		 amt_middle1 = atof(temp);
+//		 amt_middle1 += 0.00011;
+		 amt_middle1 = strtof(temp, &endPtr);
+
+		 if(pr < display_minimumCentilitre1)   // 9 centilitres
+		 {
+			 pr = 0.00;
+
+			 if (dp_vol1 == 1)
+				 snprintf(temp , sizeof(temp), "%.1f", pr);
+			 else if (dp_vol1 == 2)
+				 snprintf(temp , sizeof(temp), "%.2f", pr);
+			 else if (dp_vol1 == 3)
+				 snprintf(temp , sizeof(temp), "%.3f", pr);
+		 }
+	 }
+
+	 if (sll == P)
+	 {
+		 if (dp_amount1 == 1)
+			 snprintf(temp , sizeof(temp), "%.1f", pr);
+		 else if (dp_amount1 == 2)
+			 snprintf(temp , sizeof(temp), "%.2f", pr);
+		 else if (dp_amount1 == 3)
+			 snprintf(temp , sizeof(temp), "%.3f", pr);
+
+//		price_upper1 = atof(temp);
+//		price_upper1 += 0.00011;
+
+		price_upper1 = strtof(temp, &endPtr);
+
+		if(pr < display_minimumCentilitrePrice1)   // 9 centilitres
+		{
+			 pr = 0.00;
+
+			if (dp_amount1 == 1)
+				 snprintf(temp , sizeof(temp), "%.1f", pr);
+			else if (dp_amount1 == 2)
+				 snprintf(temp , sizeof(temp), "%.2f", pr);
+			else if (dp_amount1 == 3)
+				 snprintf(temp , sizeof(temp), "%.3f", pr);
+		}
+
+	 }
+
+
+//	 temppp_ = atof(temp);
+//
+//	 temppp_ += 0.00011;  //make small correction for the inherent rounddown.
+//	 temppp_ = roundf(temppp_ * 100) / 100;
+
+
+	 uint8_t index__ = 0;
+	while (tmp != 0)
+	{
+		tmp = temp[index__++];
+	}
+
+	int8_t space = 9 - index__;
+
+	if(eNextState1 == filling_State)
+	{
+		ind = 0;
+		space += 1;
+	}
+	else
+		ind = 1;
+
+	 //--------------------------
+		  if (sll == L)
+				ttmp[0] = 'l';
+		  else
+				ttmp[0] = 'p';
+	 //--------------------------
+		while (space > 0) //write spaces first..
+		{
+		   ttmp[ind++] = ' ';
+		   space--;
+		}
+	  space = index__;  //reload with len of actual number
+	   while(space > 0)
+		 {
+			 ttmp[ind++] = temp[index__ - space];
+			 space--;
+		 }
+    //-----------------------------------------------------
+		 for (uint8_t i = 0 ; i < 10 ; i++)
+		   {
+				if (sll == P)
+				{
+					upper1[i] = ttmp[i];
+
+//					if(settings[0].display_mode == PL)
+//						upper1[i] = ttmp[i];
+//					else if(settings[0].display_mode == LP)
+//						middle1[i] = ttmp[i];
+				}
+				else
+				{
+					middle1[i] = ttmp[i];
+
+//					if(settings[0].display_mode == PL)
+//						middle1[i] = ttmp[i];
+//					else if(settings[0].display_mode == LP)
+//						upper1[i] = ttmp[i];
+				}
+		   }
+//     int t = 0;
+}
+
+//---------------------------------------------------
+//---------------
+eSystemState pause_Handler(void)
+{
+   return authorisation_paused_State;
+}
+
+//---------------
+eSystemState authorisation_paused_State_Handler(void)
+{
+	//Motor turned off
+	return authorisation_paused_State;
+}
+//--------------
+
+eSystemState resume_Handler(void)
+{
+	return authorised_nozzleup_State;
+}
+
+//--------------
+eSystemState filling_pulse_Handler(void)
+{
+    //initialise the solenoid and motor...
+
+	pump_status_1 = STATUS_FILLING;
+
+	status_change_pump1 = 1;
+
+//	lcd_print_line1(upper1);
+//	lcd_print_line2(middle1);
+
+	if(settings_stream1[0].display_format == PL)
+	  {
+		 lcd_print_line1(upper1);
+		 lcd_print_line2(middle1);
+	  }
+	  else if(settings_stream1[0].display_format == LP)
+	  {
+		  lcd_print_line1(middle1);
+		  lcd_print_line2(upper1);
+	  }
+
+	char str__[10]= {0};
+		snprintf(str__, sizeof(str__), "%.2f", litre_price);
+		lcd_print_line3(str__);
+	return filling_State;   //filling_paused_State;
+}
+
+//--------------
+/*
+eSystemState filling_State_Handler(void)
+{
+
+}
+*/
+//---------------
+eSystemState filling_paused_Handler(void)
+{
+
+	return filling_paused_State;
+}
+
+//--------------
+eSystemState filling_paused_State_Handler(void)
+{
+	//Motor turned off
+    return filling_paused_State;
+}
+
+//---------------
+eSystemState filling_resumed_Handler(void)
+{
+
+	return filling_State;
+}
+
+
+
+eSystemState keypad_entry_State_Handler(void)
+{
+
+    return  ePrevState; //
+	//return keypad_entry_State;
+}
+
+//----------------------------------------
 
 
 //--------------------------------------------------------------

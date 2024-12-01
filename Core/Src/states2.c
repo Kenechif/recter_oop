@@ -691,7 +691,7 @@ sStateEventMachine2 asStateEventMachine2 [] =
 	{authorised_nozzleup_State, authorised_nozzleup_State_Handler2, {_filling_pulse_Event,_pause_Event,_timeout_Event,_nozzledown_Event,_keypress_Event,_function_key_Event, _stopcommand_Event, _auth_suspendcommand_Event, _hardwarereset_Event, _hardwareerror_Event}},
 	{authorisation_paused_State, authorisation_paused_State_Handler2, {_resume_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _auth_resumecommand_Event,  _stopcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _switchoffcommand_Event}},
 	{authorisation_resumed_State, authorisation_resumed_State_Handler2, {}},
-	{filling_State, filling_State_Handler2, {_filling_paused_Event,_keypress_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _stopcommand_Event, _filling_suspendcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _mamo_Event, _switchoffcommand_Event}},
+	{filling_State, filling_State_Handler2, {_filling_paused_Event,_keypress_Event,_timeout_Event,_nozzledown_Event, _stopcommand_Event, _filling_suspendcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _mamo_Event, _switchoffcommand_Event}},
 	{filling_paused_State, filling_paused_State_Handler2, {_filling_resumed_Event, _keypress_Event, _timeout_Event,_nozzledown_Event, _filling_resumecommand_Event, _stopcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _switchoffcommand_Event}},
 	{filling_resumed_State, filling_resumed_State_Handler2, {}},
 	{keypad_entry_State, keypad_entry_State_Handler2, {}},
@@ -4597,7 +4597,7 @@ eSystemState progState_Handler2(void)
 
       	   if (t2 >= 300)
       	   {
-      			if(index_generic > 10) index_generic = 0;
+      			if(index_generic > VOL_SUPPRESSED) index_generic = 0;
 
       			lcd_print_line1_2("Supp. Vol");
 
@@ -4625,14 +4625,14 @@ eSystemState progState_Handler2(void)
       		 {
       			 if (pkey == 'B')  // up key
       			 {
-      				 if (index_generic < 10)  index_generic++;
-      				 else if(index_generic == 10) index_generic = 0;
+      				 if (index_generic < VOL_SUPPRESSED)  index_generic++;
+      				 else if(index_generic == VOL_SUPPRESSED) index_generic = 0;
       			 }
 
       			 else if (pkey == 'C')  // down key
       			 {
       				 if (index_generic > 0) index_generic--;
-      				 else if(index_generic == 0) index_generic = 10;
+      				 else if(index_generic == 0) index_generic = VOL_SUPPRESSED;
       			 }
 
       			 else if (pkey == 'F')  //change pump index.
@@ -6095,8 +6095,23 @@ eSystemState idleState_Handler2(void)
 					t2 = 0;
 				}
 			}
-
 		}
+
+		if(settings_stream1[1].display_format == PL)
+		{
+			 lcd_print_line1_2(upper2);
+			 lcd_print_line2_2(middle2);
+		}
+		else if(settings_stream1[1].display_format == LP)
+		{
+			  lcd_print_line1_2(middle2);
+			  lcd_print_line2_2(upper2);
+		}
+		lcd_print_line3_2("        ");
+		char str__[8]= {0};
+		snprintf(str__, sizeof(str__), "%.2f", litre_price2);
+		lcd_print_line3_2(str__);
+
 	}
 
 	else if( (timer_go >= TIMEOUT_GO)  && (settings_stream1[1].mode == AUTO_MODE) ) //if go's timeout is 5sec threshold
@@ -6150,7 +6165,8 @@ eSystemState idleState_Handler2(void)
 		  }
 		 lcd_print_line3_2("        ");
 		 char str__[8]= {0};
-		 snprintf(str__, sizeof(str__), "%.2f", litre_price2); lcd_print_line3_2(str__);
+		 snprintf(str__, sizeof(str__), "%.2f", litre_price2);
+		 lcd_print_line3_2(str__);
 		 t2 = 0;
 	 }
 
@@ -7010,8 +7026,10 @@ eSystemState filling_State_Handler2(void)
 
 	if(filling_mamo_flag2 == 1)
 	{
-		nozzle_flag_key2 = 0;
-	    nozzle_flag_key_old2 = 1;
+		if(mamo_fillingInfo_send2 == 0)
+		{
+			mamo_reached_flag2 = 1;
+		}
 	    return filling_State;
 	}
 
@@ -7404,7 +7422,7 @@ eSystemState filling_State_Handler2(void)
 //				save_amountTotaliser_fram(operating_side);
 		        save_lastSale_fram(operating_side);
 
-		        pump_status_2 = STATUS_MAMO_REACHED;
+//		        pump_status_2 = STATUS_MAMO_REACHED;
 
 //		        target_pulser2 = 0;
 
@@ -7562,7 +7580,11 @@ eSystemState savesettings_State_Handler2(void)
 			progg2 = 0;
 			auth2 = not_auth;
 			clear_buffer2();
-			return idle_State;
+
+			if(eNextState2 == pnp_State)
+				return pnp_State;
+			else
+				return idle_State;
 		}
 	//=======================================
 	if (sav == 2)
@@ -7588,7 +7610,10 @@ eSystemState savesettings_State_Handler2(void)
 		 snprintf(str__, sizeof(str__), "%.2f", litre_price2);
 		 lcd_print_line3_2(str__);
 
-       return idle_State;
+		if(eNextState2 == pnp_State)
+			return pnp_State;
+		else
+			return idle_State;
 	}
 	//========================================
 	return savesettings_State;    //idle_State;  //return to idle mode
