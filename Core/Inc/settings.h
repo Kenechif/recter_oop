@@ -37,7 +37,7 @@ extern "C" {
 
 	  #define PRODUCT_TYPE _DPK
 
-      #define DEV_MODE
+//      #define DEV_MODE
 
 	  #define OTP_ENABLE
 

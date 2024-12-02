@@ -2264,8 +2264,8 @@ skip_test:
 
 //    settings_stream2[0].calibration_measureCan = 2;
 
-    settings_stream1[0].keypad__ = BLSKY22;   //BLSKY22
-//    settings_stream1[0].keypad__ = LAFNG18_K_V2;  //LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
+//    settings_stream1[0].keypad__ = BLSKY22;   //BLSKY22
+    settings_stream1[0].keypad__ = LAFNG18_K_V2;  //LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
 
 //
 //    settings_stream1[1].mode = MANUAL_MODE;  //AUTO;   //MANUAL;
@@ -4463,7 +4463,7 @@ uint8_t debounceKey1(void)
 									// Key released before long press delay
 //									state1 = KEY_IDLE;
 
-									if( (test_key == lastKey) && (keyPress1 >= 5) )
+									if( (test_key == lastKey) && (keyPress1 >= 4) )
 									{
 
 										#if delay_keypad == 1
@@ -4505,7 +4505,7 @@ uint8_t debounceKey1(void)
 									// Key released after long press delay
 									state1 = KEY_IDLE;
 
-									if( (test_key == lastKey) && (keyPress1 >= 5) )
+									if( (test_key == lastKey) && (keyPress1 >= 4) )
 									{
 										if(lastKey == 15)
 											key_longpress_flag = 1;
@@ -4616,7 +4616,7 @@ uint8_t debounceKey1(void)
 									// Key released before long press delay
 //									state2 = KEY_IDLE;
 
-									if( (test_key == lastKey) && (keyPress2 >= 5) )   // 6) )
+									if( (test_key == lastKey) && (keyPress2 >= 4) )   // 6) )
 									{
 
 										#if delay_keypad == 1
@@ -4658,7 +4658,7 @@ uint8_t debounceKey1(void)
 									// Key released after long press delay
 									state2 = KEY_IDLE;
 
-									if( (test_key == lastKey) && (keyPress2 >= 5) )  // 6) )
+									if( (test_key == lastKey) && (keyPress2 >= 4) )  // 6) )
 									{
 										if(lastKey == 15)
 											key_longpress_flag2 = 1;
