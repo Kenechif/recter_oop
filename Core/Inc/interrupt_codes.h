@@ -44,6 +44,34 @@ extern float working_volTotaliser1,
 			 running_volTotaliser2,
 			 running_volTotaliser2c;
 
+extern float running_volTotaliser1_tmin1,
+		     running_volTotaliser1_tmin2,
+		     running_volTotaliser1_tmin3,
+		     running_volTotaliser1c_tmin1,
+		     running_volTotaliser1c_tmin2,
+		     running_volTotaliser1c_tmin3;
+
+extern float running_volTotaliser2_tmin1,
+		     running_volTotaliser2_tmin2,
+		     running_volTotaliser2_tmin3,
+		     running_volTotaliser2c_tmin1,
+		     running_volTotaliser2c_tmin2,
+		     running_volTotaliser2c_tmin3;
+
+extern float running_amtTotaliser1_tmin1,
+		     running_amtTotaliser1_tmin2,
+		     running_amtTotaliser1_tmin3,
+		     running_amtTotaliser1c_tmin1,
+		     running_amtTotaliser1c_tmin2,
+		     running_amtTotaliser1c_tmin3;
+
+extern float running_amtTotaliser2_tmin1,
+		     running_amtTotaliser2_tmin2,
+		     running_amtTotaliser2_tmin3,
+		     running_amtTotaliser2c_tmin1,
+		     running_amtTotaliser2c_tmin2,
+		     running_amtTotaliser2c_tmin3;
+
 extern float working_amtTotaliser1,
 			 working_amtTotaliser1c,
 			 running_amtTotaliser1,
@@ -57,6 +85,36 @@ extern uint32_t  r_volTotaliser1,
 		         old_r_volTotaliser1,
 				 r_volTotaliser2,
 		         old_r_volTotaliser2;
+
+extern float running_volTotaliser1_array[4],
+			 running_volTotaliser1c_array[4],
+			 running_volTotaliser2_array[4],
+			 running_volTotaliser2c_array[4];
+
+extern float running_amtTotaliser1_array[4],
+			 running_amtTotaliser1c_array[4],
+			 running_amtTotaliser2_array[4],
+			 running_amtTotaliser2c_array[4];
+
+extern float amt_middle1_tmin1,
+			 amt_middle1_tmin2,
+			 amt_middle1_tmin3,
+			 amt_middle2_tmin1,
+			 amt_middle2_tmin2,
+			 amt_middle2_tmin3;
+
+extern float amt_real1_tmin1,
+			 amt_real1_tmin2,
+			 amt_real1_tmin3,
+			 amt_real2_tmin1,
+			 amt_real2_tmin2,
+			 amt_real2_tmin3;
+
+extern float amt_real1_array[4],
+			 amt_middle1_array[4],
+			 amt_real2_array[4],
+			 amt_middle2_array[4];
+
 
 extern uint16_t countar,
 				countar2;

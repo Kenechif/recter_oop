@@ -84,6 +84,14 @@ extern uint32_t timer_ep1,
 extern unsigned char pumpno,
 					 pumpno2;
 
+extern float vol_calibrated1,
+			 vol_effective1,
+			 vol_calibrated2,
+			 vol_effective2;
+
+extern uint8_t vol_real1,
+	    	   vol_real2;
+
 extern pump_settings_stream1 settings_stream1[2];
 
 uint8_t  DART_BUFF1[128],

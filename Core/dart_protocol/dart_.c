@@ -25,6 +25,9 @@ command_enum1 command_,
 
 uint8_t status1_;
 
+uint8_t configChangeInfo_next1 = 0,
+		configChangeInfo_next2 = 0;
+
 uint8_t rx_buf1[pump_rx_bufsize] = {0},
 		rx_buf2[pump_rx_bufsize] = {0};
 
@@ -54,7 +57,9 @@ int16_t header = 0,
 extern uint8_t track_num1 = 0,
 			   valid_pair11 = 0,
 			   track_num2 = 0,
-			   valid_pair12 = 0;
+			   valid_pair12 = 0,
+			   track_num1_0 = 0,
+			   track_num2_0 = 0;
 
 unsigned long t_exec1 = 0,
 		      t_exec2 = 0,
@@ -665,6 +670,15 @@ void parse_decode(void)
 
 										command_response = true;
 
+										if(data_[4] == 0x00)                       // Controller Requests Current Config-change Item       //Controller fails in sending preceding data to Server
+										{
+											configChangeInfo_next1 = 0;
+										}
+										else if(data_[4] == 0x01)  				   // Controller Requests Next Config-change Item         //Controller successfully sends preceding data to server
+										{
+											configChangeInfo_next1 = 1;
+										}
+
 										ack_send = true;
 									}
 									else
@@ -765,7 +779,7 @@ void parse_decode(void)
 								//==============================================================================//
 								//=====================   SET/REQUEST CALIBRATION DETAILS   ====================//
 								//==============================================================================//
-								else if( (r_raw_data1[i] == 0x69) && (r_raw_data1[i+1] == 0x04) ) //4 Data Bytes
+								else if( (r_raw_data1[i] == 0x69) && (r_raw_data1[i+1] == 0x05) ) //5 Data Bytes
 								{
 									crc_original = r_raw_data1[i+7];
 									crc_original = (crc_original << 8);
@@ -807,6 +821,8 @@ void parse_decode(void)
 											command_ = REQUEST_CALIBRATION_PARAM;
 
 											resp = DATA_REQUEST_CALIBRATION_PARAM;
+
+											command_response = true;
 										}
 
 										ack_send = true;
@@ -1321,7 +1337,8 @@ void parse_decode2(void)
 								}
 
 								//###########################################################################//
-								//'51 30 67 01 01 83 43 03 fa
+								//'51 30 67 01 00 42 83 03 fa  <=== Send Current Iteration of Info
+								//'51 30 67 01 01 83 43 03 fa  <=== Send Next Iteration of Info
 								//===========================================================================//
 								//============================ CONFIG CHANGE QUERY ==========================//
 								//===========================================================================//
@@ -1334,7 +1351,6 @@ void parse_decode2(void)
 
 									//==============================================================//
 									//==================== VALIDATING THE CRC ======================//
-									//50 37 67 01 01 bf f7 03 fa'
 									data_[0] = r_addr2;
 									data_[1] = r_ctrl2;
 
@@ -1352,6 +1368,15 @@ void parse_decode2(void)
 										resp2 = DATA_REQUEST_CONFIG_CHANGE_INFO;
 
 										command_response2 = true;
+
+										if(data_[4] == 0x00)                       // Controller Requests Current Config-change Item
+										{
+											configChangeInfo_next2 = 0;
+										}
+										else if(data_[4] == 0x01)  				   // Controller Requests Next Config-change Item       //Controller fails in sending preceding data to Server
+										{
+											configChangeInfo_next2 = 1;
+										}
 
 										ack_send2 = true;
 									}
@@ -1442,16 +1467,16 @@ void parse_decode2(void)
 								}
 
 								//##############################################################################//
-								//'50 38  69 04  01  20 04 00 46 f0 03 fa '   //Calibration Data Request
-								//'50 38  69 04  00  20 04 05 87 0f 03 fa '   //In-bound Calibration-Set Command
+								//51 30 69 05 01 01 20 04 00 34 E2 03 FA   //Calibration Data Request
+								//51 30 69 05 00 01 20 04 05 C9 21 03 FA   //In-bound Calibration-Set Command
 								//==============================================================================//
 								//=====================   SET/REQUEST CALIBRATION DETAILS   ====================//
 								//==============================================================================//
-								else if( (r_raw_data2[i] == 0x69) && (r_raw_data2[i+1] == 0x04) ) //4 Data Bytes
+								else if( (r_raw_data2[i] == 0x69) && (r_raw_data2[i+1] == 0x05) ) //5 Data Bytes
 								{
-									crc_original = r_raw_data2[i+7];
+									crc_original = r_raw_data2[i+8];
 									crc_original = (crc_original << 8);
-									crc_original = (crc_original + r_raw_data2[i+6]);
+									crc_original = (crc_original + r_raw_data2[i+7]);
 
 									//==============================================================//
 									//==================== VALIDATING THE CRC ======================//
@@ -1460,18 +1485,18 @@ void parse_decode2(void)
 									data_[1] = r_ctrl2;
 
 									////////////////////////////////////////////
-									//'50 38  69 04  01  20 04 00 46 f0 03 fa '   //Calibration Data Request
-									//'50 38  69 04  00  20 04 05 87 0f 03 fa '   //In-bound Calibration-Set Command
+									//51 30 69 06 00 01 00 20 04 05 21 70 03 FA   //Calibration Data Request
+									//51 30 69 06 01 01 00 20 04 05 EO B0 03 FA   //In-bound Calibration-Set Command
 									////////////////////////////////////////////
 									//=== the read buffer contains only data from the transaction byte to the SF byte ===//
-									//================== Data contains a cumulative of 4 raw Bytes ================//
-									for(uint8_t ii = 0, j = 2; ii < 6; ii++, j++)  //4 + Trans No. + Data Len
+									//================== Data contains a cumulative of 5 raw Bytes ================//
+									for(uint8_t ii = 0, j = 2; ii < 7; ii++, j++)  //5 + Trans No. + Data Len
 									{
 										data_[j] = r_raw_data2[ii];
 									}
 
 
-									crc_check = crc_16(data_, 8);
+									crc_check = crc_16(data_, 9);
 
 									if(crc_check == crc_original)
 									{
@@ -1479,7 +1504,7 @@ void parse_decode2(void)
 										{
 											for (uint8_t j = 0; j < 3; j++)
 											{
-												set_calib2[j] = bcd_to_int(r_raw_data2[i+3+j]);
+												set_calib2[j] = bcd_to_int(r_raw_data2[i+4+j]);
 											}
 
 											resp2 = DATA_SET_CALIBRATION_PARAM;
@@ -1489,6 +1514,8 @@ void parse_decode2(void)
 											command_2 = REQUEST_CALIBRATION_PARAM;
 
 											resp2 = DATA_REQUEST_CALIBRATION_PARAM;
+
+											command_response2 = true;
 										}
 
 										ack_send2 = true;
@@ -1788,11 +1815,7 @@ void process_response2(response_enum response)
 
 		switch (response)
 		{
-			//foe the Basic ctrls
-
 			case r_POLL:   // 20H
-
-						_process_response2(DATA_COMMAND);
 
 							if(command_response2 == false)
 							{
@@ -1970,6 +1993,10 @@ void _process_response1(response_enum response)
 	uint16_t crc;
 
 	static uint8_t check = 0;
+
+	uint8_t decimalPlaces = 2;
+	double roundedNum;
+	int num_;
 
 	ctrl = TX;
 
@@ -2190,10 +2217,12 @@ void _process_response1(response_enum response)
 					DART_BUFF1[5] = trans;
 					DART_BUFF1[6] = lng;
 
-					decimalPlaces = 1;
+//					decimalPlaces = 1;
+					decimalPlaces = dp_unitprice1;
 
 					roundedNum = round_off(fillingPrice, decimalPlaces);
-					roundedNum = roundedNum * 10;
+//					roundedNum = roundedNum * 10;
+					roundedNum = roundedNum * powerOfTen(dp_unitprice1);;
 					num_ = (int)(roundedNum);
 
 					memset(bcd_, 0, sizeof(bcd_));
@@ -2284,10 +2313,12 @@ void _process_response1(response_enum response)
 					DART_BUFF1[2] = trans;
 					DART_BUFF1[3] = lng;
 
-					decimalPlaces = 2;
+//					decimalPlaces = 2;
+					decimalPlaces = dp_vol1;
 
 					roundedNum = round_off(vol_, decimalPlaces);
-					roundedNum = roundedNum * 100;
+//					roundedNum = roundedNum * 100;
+					roundedNum = roundedNum * powerOfTen(dp_vol1);
 					num_ = (int)(roundedNum);
 
 					int_to_bcd(num_, bcd_);
@@ -2297,10 +2328,12 @@ void _process_response1(response_enum response)
 						DART_BUFF1[i + 4] = bcd_[j];
 					}
 
-					decimalPlaces = 1;
+//					decimalPlaces = 2;
+					decimalPlaces = dp_amount1;
 
 					roundedNum = round_off(amo_, decimalPlaces);
-					roundedNum = roundedNum * 10;
+//					roundedNum = roundedNum * 100;
+					roundedNum = roundedNum * powerOfTen(dp_amount1);
 					num_ = (int)(roundedNum);
 
 					memset(bcd_, 0, sizeof(bcd_));
@@ -2334,10 +2367,12 @@ void _process_response1(response_enum response)
 					DART_BUFF1[12] = trans;
 					DART_BUFF1[13] = lng;
 
-					decimalPlaces = 1;
+//					decimalPlaces = 2;
+					decimalPlaces = dp_unitprice1;
 
 					roundedNum = round_off(fillingPrice, decimalPlaces);
-					roundedNum = roundedNum * 10;
+//					roundedNum = roundedNum * 100;
+					roundedNum = roundedNum * powerOfTen(dp_unitprice1);
 					num_ = (int)(roundedNum);
 
 					memset(bcd_, 0, sizeof(bcd_));
@@ -2593,10 +2628,12 @@ void _process_response1(response_enum response)
 
 			//'50 38 65 10 01 00 00 18 03 67 00 00 18 03 67 00 00 00 00 00 59 ab 03 fa '
 
-			decimalPlaces = 3;
+//			decimalPlaces = 3;
+			decimalPlaces = dp_vol1;
 
 			roundedNum = round_off(tot_vol, decimalPlaces);
-			roundedNum = roundedNum * 1000;
+//			roundedNum = roundedNum * 1000;
+			roundedNum = roundedNum * powerOfTen(dp_vol1);
 			num_ = (int)(roundedNum);
 
 			int_to_bcd(num_, bcd_);
@@ -2607,7 +2644,8 @@ void _process_response1(response_enum response)
 			}
 
 			roundedNum = round_off(tot_vol1, decimalPlaces);
-			roundedNum = roundedNum * 1000;
+//			roundedNum = roundedNum * 1000;
+			roundedNum = roundedNum * powerOfTen(dp_vol1);
 			num_ = (int)(roundedNum);
 
 			memset(bcd_, 0, sizeof(bcd_));
@@ -2721,6 +2759,10 @@ void _process_response1(response_enum response)
 			//
 			//YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
 
+			// 51 30 67 01 00 42 83 03 FA  <== From Controller
+
+			// 51 30 67 01 01 83 43 03 FA  <== From Controller
+
 			//'50 38  67 15  12 34  12 34 56 78 90   00 00 18 03 67 00 00   00 00 00 59 57 83 27   ab 03 fa '
 
 			//####################################################################################################################################################################
@@ -2739,13 +2781,15 @@ void _process_response1(response_enum response)
 
 			uint16_t crc;
 
+			uint8_t configCheck;
+
 
 			retrieve_configFlag_fram(side_a);
 
 			//=================================================================//
 			// Checks for whether Config Mode has even been accessed @all
 			//=================================================================//
-			if(configMode1 == CONFIGUNMODIFIED)
+			if(configMode1 == CONFIGUNMODIFIED)  // && (configChangeInfo_next1 == 0) )
 			{
 				send_acknowledgement1(EOT);
 				return;
@@ -2789,7 +2833,23 @@ void _process_response1(response_enum response)
 			}
 
 			retrieve_configChange_trackNum_fram(side_a);
-			uint8_t configCheck = configChange_notify_build1(track_num1);
+
+			if(configChangeInfo_next1 == 0)
+			{
+				if(trackNum[0].track_num0 > 24)
+					trackNum[0].track_num0 = 0;
+
+				trackNum[0].track_num = trackNum[0].track_num0;
+				configCheck = configChange_notify_build1(trackNum[0].track_num0);
+			}
+			else if(configChangeInfo_next1 == 1)
+			{
+				if(trackNum[0].track_num > 24)
+					trackNum[0].track_num = 0;
+
+				configCheck = configChange_notify_build1(trackNum[0].track_num);
+			}
+
 			save_configChange_trackNum_fram(side_a);
 
 			if(configCheck == 2)
@@ -2835,7 +2895,7 @@ void _process_response1(response_enum response)
 
 
 			//'50 38 67 0E   12 34 12 34 56 78    00 00 18 03 67 00 00   00 00 00 59 57 83 27   ab 03 fa '
-
+			command_ = NO_COMMAND;
 			resp = NOREPLY;
 
 		}
@@ -2944,12 +3004,15 @@ void _process_response1(response_enum response)
 		{
 
 			//TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
-			//  _________________________________________________________________________________________________________________________________________________________________
-			// | NOZ-NUM | TX-NUM | TX-CODE | TX-LEN | DIRECTION [1 Byte] | ACTUAL CALIBRATION [1 Byte] | APPARENT CALIBRATION [1 Byte] | NEW APPARENT-CALIBRATION [1 Byte] |
-			// |         |        |         |        | (ie. SET/REQUEST)  |                             |            (1 DP)             |      			(1 DP)              |
-			// |_________|________|_________|________|____________________|_____________________________|_______________________________|___________________________________|____
+			//  ____________________________________________________________________________________________________________________________________________________________________________________
+			// | NOZ-NUM | TX-NUM | TX-CODE | TX-LEN | DIRECTION [1 Byte] |   CTT [1 Byte]	 |	ACTUAL CALIBRATION [2 Bytes] | APPARENT CALIBRATION [1 Byte] | NEW APPARENT-CALIBRATION [1 Byte] |
+			// |         |        |         |        | (ie. SET/REQUEST)  |  1 --> Non-Timed |            (1 DP)             |     		 (2 DP)              |			    (2 DP)               |
+			// |         |        |         |        |                    |  2 --> Timed     |                               |                               |									 |
+			// |_________|________|_________|________|____________________|__________________|_______________________________|_______________________________|___________________________________|__
 			// _________________________
 			//  | CRC1 |CRC2 | ETX | SF |
+			//  |      |     |     |    |
+			//  |      |     |     |    |
 			// _|______|_____|_____|____|
 			//
 			//YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
@@ -2959,7 +3022,10 @@ void _process_response1(response_enum response)
 			//'50 38  69 04  00  20 04 05 47 0c 03 fa '   //In-bound Calibration-Set Command
 
 			//####################################################################################################################################################################
-
+			//
+			// [{"nm":"P7","nz":0,"ctt":1,"ct":"20|0.5|0.4},{"nm":
+			// ctt":2,"ct":"1500|20|0.5|0.4|2005}
+			// ctt":2,"ct":"20|0.5|0.4-1500|20|0.5|0.4|2005}
 
 			//=============================================================================//
 			//       	 This transaction is sent by the pump at a Request of              //
@@ -2978,7 +3044,7 @@ void _process_response1(response_enum response)
 
 			ctrl |= 0x30;
 			trans = 0x69;
-			lng	  = 0x04;
+			lng	  = 0x06;
 
 			memset(DART_BUFF1, 0, sizeof(DART_BUFF1));
 
@@ -2990,39 +3056,58 @@ void _process_response1(response_enum response)
 
 			int_to_bcd(vol_real1, bcd_);
 
-			for (uint8_t ii = 0, j = 1; ii < 1; ii++, j--)
+			for (uint8_t ii = 0, j = 1; ii < 2; ii++, j--) // 2 Bytes
 			{
 				DART_BUFF1[ii + 5] = bcd_[j];
 			}
 
 			memset(bcd_, 0, sizeof(bcd_));
 
-			int_to_bcd(vol_calibrated1, bcd_);
+			float vol_calibrated1_ = (vol_calibrated1 - vol_real1);
 
-			for (uint8_t ii = 0, j = 4; ii < 5; ii++, j--)
-			{
-				DART_BUFF1[ii + 6] = bcd_[j];
-			}
+			roundedNum = round_off(vol_calibrated1_, decimalPlaces);
+			roundedNum = roundedNum * 100;
+			num_ = (int)(roundedNum);
 
-			memset(bcd_, 0, sizeof(bcd_));
+			int_to_bcd(num_, bcd_);
 
-			int_to_bcd(vol_effective1, bcd_);
+//			int_to_bcd(vol_calibrated1, bcd_);
 
-			for (uint8_t ii = 0, j = 4; ii < 5; ii++, j--)
+			for (uint8_t ii = 0, j = 0; ii < 1; ii++)
 			{
 				DART_BUFF1[ii + 7] = bcd_[j];
 			}
 
+			memset(bcd_, 0, sizeof(bcd_));
 
-			crc = crc_16(DART_BUFF1, 8);
+			float vol_effective1_ = (vol_effective1 - vol_real1);
 
-			DART_BUFF1[8] = crc & 0x00FF;
-			DART_BUFF1[9] = crc >> 8;
-			DART_BUFF1[10] = ETX;
-			DART_BUFF1[11] = SF;
+//			vol_effective2_ = 0.4;
 
-			array_len = 12;
+			roundedNum = round_off(vol_effective1_, decimalPlaces);
+			roundedNum = roundedNum * 100;
+			num_ = (int)(roundedNum);
 
+			int_to_bcd(num_, bcd_);
+
+//			int_to_bcd(vol_effective1, bcd_);
+
+			for (uint8_t ii = 0, j = 0; ii < 1; ii++)
+			{
+				DART_BUFF1[ii + 8] = bcd_[j];
+			}
+
+
+			crc = crc_16(DART_BUFF1, 9);
+
+			DART_BUFF1[9] = crc & 0x00FF;
+			DART_BUFF1[10] = crc >> 8;
+			DART_BUFF1[11] = ETX;
+			DART_BUFF1[12] = SF;
+
+			array_len = 13;
+
+			command_ = NO_COMMAND;
 			resp = NOREPLY;
 		}
 	}
@@ -3059,6 +3144,12 @@ void _process_response2(response_enum response)
 	uint16_t crc;
 
 	static uint8_t check = 0;
+
+	uint8_t decimalPlaces = 2;
+	double roundedNum;
+	int num_;
+
+	ctrl2 = TX2;
 
 	if(response == DATA_COMMAND)   //This transaction is sent by the pump if the status is changed or if the pump receives the command 'RETURN STATUS’.
 	{
@@ -3261,10 +3352,12 @@ void _process_response2(response_enum response)
 				DART_BUFF2[5] = trans;
 				DART_BUFF2[6] = lng;
 
-				decimalPlaces = 1;
+//				decimalPlaces = 1;
+				decimalPlaces = dp_unitprice2;
 
-				roundedNum = round_off(fillingPrice, decimalPlaces);
-				roundedNum = roundedNum * 10;
+				roundedNum = round_off2(fillingPrice, decimalPlaces);
+//				roundedNum = roundedNum * 10;
+				roundedNum = roundedNum * powerOfTen(dp_unitprice2);
 				num_ = (int)(roundedNum);
 
 				memset(bcd_, 0, sizeof(bcd_));
@@ -3349,10 +3442,12 @@ void _process_response2(response_enum response)
 				DART_BUFF2[2] = trans;
 				DART_BUFF2[3] = lng;
 
-				decimalPlaces = 2;
+//				decimalPlaces = 2;
+				decimalPlaces = dp_vol2;
 
-				roundedNum = round_off(vol_, decimalPlaces);
-				roundedNum = roundedNum * 100;
+				roundedNum = round_off2(vol_, decimalPlaces);
+//				roundedNum = roundedNum * 100;
+				roundedNum = roundedNum * powerOfTen(dp_vol2);
 				num_ = (int)(roundedNum);
 
 				int_to_bcd(num_, bcd_);
@@ -3362,10 +3457,12 @@ void _process_response2(response_enum response)
 					DART_BUFF2[i + 4] = bcd_[j];
 				}
 
-				decimalPlaces = 1;
+//				decimalPlaces = 2;
+				decimalPlaces = dp_amount2;
 
-				roundedNum = round_off(amo_, decimalPlaces);
-				roundedNum = roundedNum * 10;
+				roundedNum = round_off2(amo_, decimalPlaces);
+//				roundedNum = roundedNum * 100;
+				roundedNum = roundedNum * powerOfTen(dp_amount2);
 				num_ = (int)(roundedNum);
 
 				memset(bcd_, 0, sizeof(bcd_));
@@ -3398,10 +3495,12 @@ void _process_response2(response_enum response)
 				DART_BUFF2[12] = trans;
 				DART_BUFF2[13] = lng;
 
-				decimalPlaces = 1;
+//				decimalPlaces = 1;
+				decimalPlaces = dp_unitprice2;
 
-				roundedNum = round_off(fillingPrice, decimalPlaces);
-				roundedNum = roundedNum * 10;
+				roundedNum = round_off2(fillingPrice, decimalPlaces);
+//				roundedNum = roundedNum * 10;
+				roundedNum = roundedNum * powerOfTen(dp_unitprice2);
 				num_ = (int)(roundedNum);
 
 				memset(bcd_, 0, sizeof(bcd_));
@@ -3638,10 +3737,12 @@ void _process_response2(response_enum response)
 
 			//'50 38 65 10 01 00 00 18 03 67 00 00 18 03 67 00 00 00 00 00 59 ab 03 fa '
 
-			decimalPlaces = 3;
+//			decimalPlaces = 3;
+			decimalPlaces = dp_vol2;
 
-			roundedNum = round_off(tot_vol, decimalPlaces);
-			roundedNum = roundedNum * 1000;
+			roundedNum = round_off2(tot_vol, decimalPlaces);
+//			roundedNum = roundedNum * 1000;
+			roundedNum = roundedNum * powerOfTen(dp_vol2);
 			num_ = (int)(roundedNum);
 
 			int_to_bcd(num_, bcd_);
@@ -3651,8 +3752,9 @@ void _process_response2(response_enum response)
 				DART_BUFF2[ii + 5] = bcd_[j];
 			}
 
-			roundedNum = round_off(tot_vol1, decimalPlaces);
-			roundedNum = roundedNum * 1000;
+			roundedNum = round_off2(tot_vol1, decimalPlaces);
+//			roundedNum = roundedNum * 1000;
+			roundedNum = roundedNum * powerOfTen(dp_vol2);
 			num_ = (int)(roundedNum);
 
 			memset(bcd_, 0, sizeof(bcd_));
@@ -3767,6 +3869,10 @@ void _process_response2(response_enum response)
 			//
 			//YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
 
+			// 51 30 67 01 00 42 83 03 FA  <== From Controller
+
+			// 51 30 67 01 01 83 43 03 FA  <== From Controller
+
 			//'50 38  67 15  12 34  12 34 56 78 90   00 00 18 03 67 00 00   00 00 00 59 57 83 27   ab 03 fa '
 
 			//####################################################################################################################################################################
@@ -3785,13 +3891,15 @@ void _process_response2(response_enum response)
 
 			uint16_t crc;
 
+			uint8_t configCheck;
+
 
 			retrieve_configFlag_fram(side_b);
 
 			//=================================================================//
 			// Checks for whether Config Mode has even been accessed @all
 			//=================================================================//
-			if(configMode2 == CONFIGUNMODIFIED)
+			if(configMode2 == CONFIGUNMODIFIED)   // && (configChangeInfo_next2 == 0) )
 			{
 				send_acknowledgement2(EOT);
 				return;
@@ -3834,8 +3942,23 @@ void _process_response2(response_enum response)
 			}
 
 			retrieve_configChange_trackNum_fram(side_b);
-//			track_num2 = 0;
-			uint8_t configCheck = configChange_notify_build2(track_num2);
+
+			if(configChangeInfo_next2 == 0)
+			{
+				if(trackNum[1].track_num0 > 24)
+					trackNum[1].track_num0 = 0;
+
+				trackNum[1].track_num = trackNum[1].track_num0;
+				configCheck = configChange_notify_build2(trackNum[1].track_num0);
+			}
+			else if(configChangeInfo_next2 == 1)
+			{
+				if(trackNum[1].track_num > 24)
+					trackNum[1].track_num = 0;
+
+				configCheck = configChange_notify_build2(trackNum[1].track_num);
+			}
+
 			save_configChange_trackNum_fram(side_b);
 
 			if(configCheck == 2)
@@ -3882,6 +4005,7 @@ void _process_response2(response_enum response)
 
 			//'50 38 67 0E   12 34 12 34 56 78    00 00 18 03 67 00 00   00 00 00 59 57 83 27   ab 03 fa '
 
+			command_2 = NO_COMMAND;
 			resp2 = NOREPLY;
 
 		}
@@ -3980,7 +4104,7 @@ void _process_response2(response_enum response)
 
 	else if(response == DATA_REQUEST_CALIBRATION_PARAM)
 	{
-		if(ack_send == true)
+		if(ack_send2 == true)
 		{
 			//==> send ack
 			send_acknowledgement2(ACK);
@@ -3990,12 +4114,15 @@ void _process_response2(response_enum response)
 		{
 
 			//TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
-			//  _________________________________________________________________________________________________________________________________________________________________
-			// | NOZ-NUM | TX-NUM | TX-CODE | TX-LEN | DIRECTION [1 Byte] | ACTUAL CALIBRATION [1 Byte] | APPARENT CALIBRATION [1 Byte] | NEW APPARENT-CALIBRATION [1 Byte] |
-			// |         |        |         |        | (ie. SET/REQUEST)  |                             |            (1 DP)             |      			(1 DP)              |
-			// |_________|________|_________|________|____________________|_____________________________|_______________________________|___________________________________|____
+			//  ____________________________________________________________________________________________________________________________________________________________________________________
+			// | NOZ-NUM | TX-NUM | TX-CODE | TX-LEN | DIRECTION [1 Byte] |   CTT [1 Byte]	 |	ACTUAL CALIBRATION [2 Bytes] | APPARENT CALIBRATION [1 Byte] | NEW APPARENT-CALIBRATION [1 Byte] |
+			// |         |        |         |        | (ie. SET/REQUEST)  |  1 --> Non-Timed |            (1 DP)             |     		 (2 DP)              |			    (2 DP)               |
+			// |         |        |         |        |                    |  2 --> Timed     |                               |                               |									 |
+			// |_________|________|_________|________|____________________|__________________|_______________________________|_______________________________|___________________________________|__
 			// _________________________
 			//  | CRC1 |CRC2 | ETX | SF |
+			//  |      |     |     |    |
+			//  |      |     |     |    |
 			// _|______|_____|_____|____|
 			//
 			//YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
@@ -4005,7 +4132,10 @@ void _process_response2(response_enum response)
 			//'50 38  69 04  00  20 04 05 47 0c 03 fa '   //In-bound Calibration-Set Command
 
 			//####################################################################################################################################################################
-
+			//
+			// [{"nm":"P7","nz":0,"ctt":1,"ct":"20|0.5|0.4},{"nm":
+			// ctt":2,"ct":"1500|20|0.5|0.4|2005}
+			// ctt":2,"ct":"20|0.5|0.4-1500|20|0.5|0.4|2005}
 
 			//=============================================================================//
 			//       	 This transaction is sent by the pump at a Request of              //
@@ -4021,7 +4151,7 @@ void _process_response2(response_enum response)
 
 			ctrl2 |= 0x30;
 			trans = 0x69;
-			lng	  = 0x04;
+			lng	  = 0x06;
 
 			memset(DART_BUFF2, 0, sizeof(DART_BUFF2));
 
@@ -4031,41 +4161,64 @@ void _process_response2(response_enum response)
 			DART_BUFF2[3] = lng;
 			DART_BUFF2[4] = 0x01;       //Signals sending out Calib Details to the Controller
 
+//			vol_real2 = 345;
+
 			int_to_bcd(vol_real2, bcd_);
 
-			for (uint8_t ii = 0, j = 1; ii < 1; ii++, j--)
+			for (uint8_t ii = 0, j = 1; ii < 2; ii++, j--)  //2 Bytes
 			{
 				DART_BUFF2[ii + 5] = bcd_[j];
 			}
 
 			memset(bcd_, 0, sizeof(bcd_));
 
-			int_to_bcd(vol_calibrated2, bcd_);
+			float vol_calibrated2_ = (vol_calibrated2 - vol_real2);
 
-			for (uint8_t ii = 0, j = 4; ii < 5; ii++, j--)
-			{
-				DART_BUFF2[ii + 6] = bcd_[j];
-			}
+//			vol_calibrated2_ = 0.82;
 
-			memset(bcd_, 0, sizeof(bcd_));
+			roundedNum = round_off2(vol_calibrated2_, decimalPlaces);
+			roundedNum = roundedNum * 100;
+			num_ = (int)(roundedNum);
 
-			int_to_bcd(vol_effective2, bcd_);
+			int_to_bcd(num_, bcd_);
 
-			for (uint8_t ii = 0, j = 4; ii < 5; ii++, j--)
+//			int_to_bcd(vol_calibrated2, bcd_);
+
+			for (uint8_t ii = 0, j = 0; ii < 1; ii++)
 			{
 				DART_BUFF2[ii + 7] = bcd_[j];
 			}
 
+			memset(bcd_, 0, sizeof(bcd_));
 
-			crc = crc_16(DART_BUFF2, 8);
+			float vol_effective2_ = (vol_effective2 - vol_real2);
 
-			DART_BUFF2[8] = crc & 0x00FF;
-			DART_BUFF2[9] = crc >> 8;
-			DART_BUFF2[10] = ETX;
-			DART_BUFF2[11] = SF;
+//			vol_effective2_ = 0.4;
 
-			array_len2 = 12;
+			roundedNum = round_off2(vol_effective2_, decimalPlaces);
+			roundedNum = roundedNum * 100;
+			num_ = (int)(roundedNum);
 
+			int_to_bcd(num_, bcd_);
+
+//			int_to_bcd(vol_effective2, bcd_);
+
+			for (uint8_t ii = 0, j = 0; ii < 1; ii++)
+			{
+				DART_BUFF2[ii + 8] = bcd_[j];
+			}
+
+
+			crc = crc_16(DART_BUFF2, 9);
+
+			DART_BUFF2[9] = crc & 0x00FF;
+			DART_BUFF2[10] = crc >> 8;
+			DART_BUFF2[11] = ETX;
+			DART_BUFF2[12] = SF;
+
+			array_len2 = 13;
+
+			command_2 = NO_COMMAND;
 			resp2 = NOREPLY;
 		}
 	}
@@ -5001,10 +5154,12 @@ void send_nozzleStatus1(uint8_t buff_index)  //, float filling_price, uint8_t no
 				DART_BUFF1[2 + buff_index] = trans;
 				DART_BUFF1[3 + buff_index] = lng;
 
-				decimalPlaces = 1;
+//				decimalPlaces = 1;
+				decimalPlaces = dp_unitprice1;
 
 				roundedNum = round_off(fillingPrice, decimalPlaces);
-				roundedNum = roundedNum * 10;
+//				roundedNum = roundedNum * 10;
+				roundedNum = roundedNum * powerOfTen(dp_unitprice1);
 				num_ = (int)(roundedNum);
 
 				memset(bcd_, 0, sizeof(bcd_));
@@ -5057,10 +5212,12 @@ void send_nozzleStatus2(uint8_t buff_index)
 				DART_BUFF2[2 + buff_index] = trans;
 				DART_BUFF2[3 + buff_index] = lng;
 
-				decimalPlaces = 1;
+//				decimalPlaces = 1;
+				decimalPlaces = dp_unitprice2;
 
-				roundedNum = round_off(fillingPrice, decimalPlaces);
-				roundedNum = roundedNum * 10;
+				roundedNum = round_off2(fillingPrice, decimalPlaces);
+//				roundedNum = roundedNum * 10;
+				roundedNum = roundedNum * powerOfTen(dp_unitprice2);
 				num_ = (int)(roundedNum);
 
 				memset(bcd_, 0, sizeof(bcd_));
@@ -5608,10 +5765,12 @@ void send_fillingInfo1(uint8_t buff_index)
 	DART_BUFF1[2 + buff_index] = trans;
 	DART_BUFF1[3 + buff_index] = lng;
 
-	decimalPlaces = 2;
+//	decimalPlaces = 2;
+	decimalPlaces = dp_vol1;
 
 	roundedNum = round_off(vol_, decimalPlaces);
-	roundedNum = roundedNum * 100;
+//	roundedNum = roundedNum * 100;
+	roundedNum = roundedNum * powerOfTen(dp_vol1);
 	num_ = (int)(roundedNum);
 
 //	num_ = (num_ * powerOfTen(8 - countDigits(num_)));
@@ -5630,10 +5789,12 @@ void send_fillingInfo1(uint8_t buff_index)
 		DART_BUFF1[i + 4 + buff_index] = bcd_[i];
 	}
 
-	decimalPlaces = 1;
+//	decimalPlaces = 2;
+	decimalPlaces = dp_amount1;
 
 	roundedNum = round_off(amo_, decimalPlaces);
-	roundedNum = roundedNum * 10;
+//	roundedNum = roundedNum * 100;
+	roundedNum = roundedNum * powerOfTen(dp_amount1);
 	num_ = (int)(roundedNum);
 
 	//To ensure MSB remains in the 1st BCD Byte
@@ -5707,10 +5868,12 @@ void send_fillingInfo2(uint8_t buff_index)
 	DART_BUFF2[2 + buff_index] = trans;
 	DART_BUFF2[3 + buff_index] = lng;
 
-	decimalPlaces = 2;
+//	decimalPlaces = 2;
+	decimalPlaces = dp_vol2;
 
-	roundedNum = round_off(vol_, decimalPlaces);
-	roundedNum = roundedNum * 100;
+	roundedNum = round_off2(vol_, decimalPlaces);
+//	roundedNum = roundedNum * 100;
+	roundedNum = roundedNum * powerOfTen(dp_vol2);
 	num_ = (int)(roundedNum);
 
 //	int_to_bcd(num_, bcd_);
@@ -5743,10 +5906,12 @@ void send_fillingInfo2(uint8_t buff_index)
 		DART_BUFF2[i + 4 + buff_index] = bcd_[i];
 	}
 
-	decimalPlaces = 1;
+//	decimalPlaces = 2;
+	decimalPlaces = dp_amount2;
 
-	roundedNum = round_off(amo_, decimalPlaces);
-	roundedNum = roundedNum * 10;
+	roundedNum = round_off2(amo_, decimalPlaces);
+//	roundedNum = roundedNum * 100;
+	roundedNum = roundedNum * powerOfTen(dp_amount2);
 	num_ = (int)(roundedNum);
 
 	memset(bcd_, 0, sizeof(bcd_));
@@ -5782,10 +5947,14 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 	unsigned char bcd_[6] = {0};  // Array to hold the BCD result
 
+	uint8_t decimalPlaces = 2;
+	double roundedNum;
+	int num_;
+
 	switch(track_num)
 	{
 			case MO1 :  // Mode => Manual/Auto                      					// index ==> 0x00
-						track_num1++;
+						trackNum[0].track_num++;
 						if(settings_original_stream1[0].mode != settings_stream1[0].mode)
 						{
 							DART_BUFF1[11] = MO1;
@@ -5808,11 +5977,12 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 								DART_BUFF1[ii + 15] = bcd_[j];
 							}
 
+							trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 							valid_pair1++;
 						}
 
 			case NA1 :  // Nozzle Address												// index ==> 0x01
-						track_num1++;
+						trackNum[0].track_num++;
 						if(settings_original_stream1[0].noz_addr != settings_stream1[0].noz_addr)
 						{
 							if(valid_pair1 == 0)
@@ -5837,6 +6007,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -5868,7 +6039,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 						}
 
 			case NO1 :	// Nozzle Override												// index ==> 0x02
-						track_num1++;
+						trackNum[0].track_num++;
 						if(settings_original_stream1[0].noz_override != settings_stream1[0].noz_override)
 						{
 							if(valid_pair1 == 0)
@@ -5893,6 +6064,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -5924,7 +6096,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 						}
 
 			case NC1 :  // Nozzle Count													// index ==> 0x03
-						track_num1++;
+						trackNum[0].track_num++;
 						if(settings_original_stream2[0].noz_count != settings_stream2[0].noz_count)
 						{
 							if(valid_pair1 == 0)
@@ -5949,6 +6121,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -5980,16 +6153,20 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 						}
 
 			case UN1 :  // Unit Price													// index ==> 0x04
-						track_num1++;
-						if(settings_original_stream1[0].dp_unitprice != settings_stream1[0].dp_unitprice)
+						trackNum[0].track_num++;
+						if(settings_original_stream1[0].price_ != settings_stream1[0].price_)
 						{
 							if(valid_pair1 == 0)
 							{
 								DART_BUFF1[11] = UN1;
 
-								memset(bcd_, 0, sizeof(bcd_));
+								memset(bcd_, 0, sizeof(bcd_));roundedNum = round_off(settings_original_stream1[0].price_, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
 
-								int_to_bcd(settings_original_stream1[0].dp_unitprice, bcd_);
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_original_stream1[0].price_, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -5998,13 +6175,20 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream1[0].dp_unitprice, bcd_);
+								roundedNum = round_off(settings_stream1[0].price_, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream1[0].price_, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -6013,7 +6197,13 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream1[0].dp_unitprice, bcd_);
+								roundedNum = round_off(settings_original_stream1[0].price_, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_original_stream1[0].price_, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -6022,7 +6212,13 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream1[0].dp_unitprice, bcd_);
+								roundedNum = round_off(settings_stream1[0].price_, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream1[0].price_, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -6035,8 +6231,8 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 							}
 						}
 
-			case TO1 :  // Timeout => No-Flow											// index ==> 0x06
-						track_num1++;
+			case TO1 :  // Timeout => No-Flow											// index ==> 0x05
+						trackNum[0].track_num++;
 						if(settings_original_stream2[0].timeOut_noFlow != settings_stream2[0].timeOut_noFlow)
 						{
 							if(valid_pair1 == 0)
@@ -6061,6 +6257,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -6091,8 +6288,8 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 							}
 						}
 
-			case ML1 :  // Maximum Litre												// index ==> 0x07
-						track_num1++;
+			case ML1 :  // Maximum Litre												// index ==> 0x06
+						trackNum[0].track_num++;
 						if(settings_original_stream1[0].max_amt_ != settings_stream1[0].max_amt_)
 						{
 							if(valid_pair1 == 0)
@@ -6117,6 +6314,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -6147,8 +6345,8 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 							}
 						}
 
-			case PW1 :  // Password-1 Change											// index ==> 0x08
-						track_num1++;
+			case PW1 :  // Password-1 Change											// index ==> 0x07
+						trackNum[0].track_num++;
 						if(strcmp(settings_original_stream3[0].passwd1, settings_stream3[0].passwd1) != 0)
 						{
 							if(valid_pair1 == 0)
@@ -6173,6 +6371,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -6203,8 +6402,8 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 							}
 						}
 
-			case PW2 :  // Password-2 Change											// index ==> 0x09
-						track_num1++;
+			case PW2 :  // Password-2 Change											// index ==> 0x08
+						trackNum[0].track_num++;
 						if(strcmp(settings_original_stream3[0].passwd2, settings_stream3[0].passwd2) != 0)
 						{
 							if(valid_pair1 == 0)
@@ -6229,6 +6428,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -6259,8 +6459,8 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 							}
 						}
 
-			case PW3 :  // Password-3 Change											// index ==> 0x0A
-						track_num1++;
+			case PW3 :  // Password-3 Change											// index ==> 0x09
+						trackNum[0].track_num++;
 						if(strcmp(settings_original_stream3[0].passwd3, settings_stream3[0].passwd3) != 0)
 						{
 							if(valid_pair1 == 0)
@@ -6285,6 +6485,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -6315,8 +6516,8 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 							}
 						}
 
-			case CV1 :  // Calibration Value-1 => Apparent Pulser-index					// index ==> 0x0B
-						track_num1++;
+			case CV1 :  // Calibration Value-1 => Apparent Pulser-index					// index ==> 0x0A
+						trackNum[0].track_num++;
 						if(settings_original_stream1[0].pi_real != settings_stream1[0].pi_real)
 						{
 							if(valid_pair1 == 0)
@@ -6325,7 +6526,13 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream1[0].pi_real, bcd_);
+								roundedNum = round_off(settings_original_stream1[0].pi_real, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_original_stream1[0].pi_real, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -6334,13 +6541,20 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream1[0].pi_real, bcd_);
+								roundedNum = round_off(settings_stream1[0].pi_real, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream1[0].pi_real, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -6349,7 +6563,13 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream1[0].pi_real, bcd_);
+								roundedNum = round_off(settings_original_stream1[0].pi_real, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_original_stream1[0].pi_real, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -6358,7 +6578,13 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream1[0].pi_real, bcd_);
+								roundedNum = round_off(settings_stream1[0].pi_real, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream1[0].pi_real, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -6371,8 +6597,8 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 							}
 						}
 
-			case CV2 :  // Calibration Value-2 => Apparent Pulser-index					// index ==> 0x0C
-						track_num1++;
+			case CV2 :  // Calibration Value-2 => Apparent Pulser-index					// index ==> 0x0B
+						trackNum[0].track_num++;
 						if(settings_original_stream1[0].pi_cal != settings_stream1[0].pi_cal)
 						{
 							if(valid_pair1 == 0)
@@ -6381,7 +6607,13 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream1[0].pi_cal, bcd_);
+								roundedNum = round_off(settings_original_stream1[0].pi_cal, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_original_stream1[0].pi_cal, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -6390,13 +6622,20 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream1[0].pi_cal, bcd_);
+								roundedNum = round_off(settings_stream1[0].pi_cal, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream1[0].pi_cal, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -6405,7 +6644,13 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream1[0].pi_cal, bcd_);
+								roundedNum = round_off(settings_original_stream1[0].pi_cal, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_original_stream1[0].pi_cal, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -6414,7 +6659,13 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream1[0].pi_cal, bcd_);
+								roundedNum = round_off(settings_stream1[0].pi_cal, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream1[0].pi_cal, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -6427,8 +6678,8 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 							}
 						}
 
-			case CS1 :  // Calibration Can-size											// index ==> 0x0D
-						track_num1++;
+			case CS1 :  // Calibration Can-size											// index ==> 0x0C
+						trackNum[0].track_num++;
 						if(settings_original_stream2[0].calibration_measureCan != settings_stream2[0].calibration_measureCan)
 						{
 							if(valid_pair1 == 0)
@@ -6453,6 +6704,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -6483,8 +6735,8 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 							}
 						}
 
-			case DP1 :  // Display Decimal Point-1	=> 	Amount						// index ==> 0x0E
-						track_num1++;
+			case DP1 :  // Display Decimal Point-1	=> 	Amount						// index ==> 0x0D
+						trackNum[0].track_num++;
 						if(settings_original_stream1[0].dp_amount != settings_stream1[0].dp_amount)
 						{
 							if(valid_pair1 == 0)
@@ -6509,6 +6761,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -6539,8 +6792,9 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 							}
 						}
 
-			case DP2 :  // Display Decimal Point-2	=> 	Volume						// index ==> 0x0F
-						track_num1++;if(settings_original_stream1[0].dp_vol != settings_stream1[0].dp_vol)
+			case DP2 :  // Display Decimal Point-2	=> 	Volume						// index ==> 0x0E
+						trackNum[0].track_num++;
+						if(settings_original_stream1[0].dp_vol != settings_stream1[0].dp_vol)
 						{
 							if(valid_pair1 == 0)
 							{
@@ -6564,6 +6818,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -6594,8 +6849,8 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 							}
 						}
 
-			case DP3 :  // Display Decimal Point-3	=> 	Unit Price						// index ==> 0x10
-						track_num1++;
+			case DP3 :  // Display Decimal Point-3	=> 	Unit Price						// index ==> 0x0F
+						trackNum[0].track_num++;
 						if(settings_original_stream1[0].dp_unitprice != settings_stream1[0].dp_unitprice)
 						{
 							if(valid_pair1 == 0)
@@ -6620,6 +6875,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -6650,8 +6906,8 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 							}
 						}
 
-			case DS1 :   // Display Format => L/P or P/L									// index ==> 0x11
-						track_num1++;
+			case DS1 :   // Display Format => L/P or P/L									// index ==> 0x10
+						trackNum[0].track_num++;
 						if(settings_original_stream1[0].display_format != settings_stream1[0].display_format)
 						{
 							if(valid_pair1 == 0)
@@ -6676,6 +6932,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -6706,8 +6963,8 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 							}
 						}
 
-			case DT1 :    // Volume Display Threshold										// index ==> 0x12
-						track_num1++;
+			case DT1 :    // Volume Display Threshold										// index ==> 0x11
+						trackNum[0].track_num++;
 						if(settings_original_stream2[0].startUp_suppressVol != settings_stream2[0].startUp_suppressVol)
 						{
 							if(valid_pair1 == 0)
@@ -6716,7 +6973,14 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream2[0].startUp_suppressVol, bcd_);
+								decimalPlaces = 4;
+								roundedNum = round_off(settings_original_stream2[0].startUp_suppressVol, decimalPlaces);
+								roundedNum = roundedNum * 10000;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_original_stream2[0].startUp_suppressVol, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -6725,13 +6989,21 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream2[0].startUp_suppressVol, bcd_);
+								decimalPlaces = 4;
+								roundedNum = round_off(settings_stream2[0].startUp_suppressVol, decimalPlaces);
+								roundedNum = roundedNum * 10000;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream2[0].startUp_suppressVol, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -6740,7 +7012,14 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream2[0].startUp_suppressVol, bcd_);
+								decimalPlaces = 4;
+								roundedNum = round_off(settings_original_stream2[0].startUp_suppressVol, decimalPlaces);
+								roundedNum = roundedNum * 10000;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_original_stream2[0].startUp_suppressVol, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -6749,7 +7028,14 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream2[0].startUp_suppressVol, bcd_);
+								decimalPlaces = 4;
+								roundedNum = round_off(settings_stream2[0].startUp_suppressVol, decimalPlaces);
+								roundedNum = roundedNum * 10000;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream2[0].startUp_suppressVol, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -6762,8 +7048,8 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 							}
 						}
 
-			case SL1 :	// Shift Login Type												// index ==> 0x13
-						track_num1++;
+			case SL1 :	// Shift Login Type												// index ==> 0x12
+						trackNum[0].track_num++;
 						if(settings_original_stream2[0].shift_login_type != settings_stream2[0].shift_login_type)
 						{
 							if(valid_pair1 == 0)
@@ -6788,6 +7074,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -6818,8 +7105,8 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 							}
 						}
 
-			case SC1 :	// Shift-Count per day											// index ==> 0x14
-						track_num1++;
+			case SC1 :	// Shift-Count per day											// index ==> 0x13
+						trackNum[0].track_num++;
 						if(settings_original_stream2[0].number_of_shifts != settings_stream2[0].number_of_shifts)
 						{
 							if(valid_pair1 == 0)
@@ -6844,6 +7131,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -6874,8 +7162,8 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 							}
 						}
 
-			case TN1 :	// Tone															// index ==> 0x15
-						track_num1++;
+			case TN1 :	// Tone															// index ==> 0x14
+						trackNum[0].track_num++;
 						if(settings_original_stream2[0].keypress_tone != settings_stream2[0].keypress_tone)
 						{
 							if(valid_pair1 == 0)
@@ -6900,6 +7188,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -6930,8 +7219,8 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 							}
 						}
 
-			case PT1 :	// Pulser Type => Quadrature/Non-Quadrature						// index ==> 0x16
-						track_num1++;
+			case PT1 :	// Pulser Type => Quadrature/Non-Quadrature						// index ==> 0x15
+						trackNum[0].track_num++;
 						if(settings_original_stream2[0].pulser_type_ != settings_stream2[0].pulser_type_)
 						{
 							if(valid_pair1 == 0)
@@ -6956,6 +7245,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -6986,8 +7276,9 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 							}
 						}
 
-			case PO1 :	// Pulser Offset Value											// index ==> 0x17
-						track_num1++;if(settings_original_stream2[0].pulser_offset != settings_stream2[0].pulser_offset)
+			case PO1 :	// Pulser Offset Value											// index ==> 0x16
+						trackNum[0].track_num++;
+						if(settings_original_stream2[0].pulser_offset != settings_stream2[0].pulser_offset)
 						{
 							if(valid_pair1 == 0)
 							{
@@ -7011,6 +7302,7 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -7041,8 +7333,8 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 							}
 						}
 
-			case SF1 :	// Start Slow-Flow Width										// index ==> 0x18
-						track_num1++;
+			case SF1 :	// Start Slow-Flow Width										// index ==> 0x17
+						trackNum[0].track_num++;
 						if(settings_original_stream2[0].valve_salesStart != settings_stream2[0].valve_salesStart)
 						{
 							if(valid_pair1 == 0)
@@ -7051,7 +7343,13 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream2[0].valve_salesStart, bcd_);
+								roundedNum = round_off(settings_original_stream2[0].valve_salesStart, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_original_stream2[0].valve_salesStart, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -7060,13 +7358,20 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream2[0].valve_salesStart, bcd_);
+								roundedNum = round_off(settings_stream2[0].valve_salesStart, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream2[0].valve_salesStart, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -7075,7 +7380,13 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream2[0].valve_salesStart, bcd_);
+								roundedNum = round_off(settings_original_stream2[0].valve_salesStart, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_original_stream2[0].valve_salesStart, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -7084,7 +7395,13 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream2[0].valve_salesStart, bcd_);
+								roundedNum = round_off(settings_stream2[0].valve_salesStart, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream2[0].valve_salesStart, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -7097,8 +7414,8 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 							}
 						}
 
-			case SF2 :  		// Closing Slow-Flow Width                       				// index ==> 0x19  ==>0d25
-						track_num1++;
+			case SF2 :  		// Closing Slow-Flow Width                       				// index ==> 0x18  ==>0d24
+						trackNum[0].track_num++;
 						if(settings_original_stream2[0].valve_salesEnd != settings_stream2[0].valve_salesEnd)
 						{
 							if(valid_pair1 == 0)
@@ -7107,7 +7424,13 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream2[0].valve_salesEnd, bcd_);
+								roundedNum = round_off(settings_original_stream2[0].valve_salesEnd, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_original_stream2[0].valve_salesEnd, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -7116,13 +7439,20 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream2[0].valve_salesEnd, bcd_);
+								roundedNum = round_off(settings_stream2[0].valve_salesEnd, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream2[0].valve_salesEnd, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
 									DART_BUFF1[ii + 15] = bcd_[j];
 								}
 
+								trackNum[0].track_num0 = (trackNum[0].track_num - 1);
 								valid_pair1++;
 							}
 							else
@@ -7131,7 +7461,13 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream2[0].valve_salesEnd, bcd_);
+								decimalPlaces = 2;
+
+								roundedNum = round_off(settings_original_stream2[0].valve_salesEnd, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -7140,7 +7476,13 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream2[0].valve_salesEnd, bcd_);
+								roundedNum = round_off(settings_stream2[0].valve_salesEnd, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream2[0].valve_salesEnd, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -7168,6 +7510,8 @@ uint8_t configChange_notify_build1(uint8_t track_num)
 						//=====================================================================//
 						else if(valid_pair1 == 0)
 						{
+//							configMode1 = CONFIGUNMODIFIED;
+//							save_configFlag_fram(side_a);
 							return 0;
 						}
 
@@ -7208,10 +7552,14 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 	unsigned char bcd_[6] = {0};  // Array to hold the BCD result
 
+	uint8_t decimalPlaces = 2;
+	double roundedNum;
+	int num_;
+
 	switch(track_num)
 	{
 			case MO1 :  // Mode => Manual/Auto                      					// index ==> 0x00
-						track_num2++;
+						trackNum[1].track_num++;
 						if(settings_original_stream1[1].mode != settings_stream1[1].mode)
 						{
 							DART_BUFF2[11] = MO1;
@@ -7234,11 +7582,12 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 								DART_BUFF2[ii + 15] = bcd_[j];
 							}
 
+							trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 							valid_pair2++;
 						}
 
 			case NA1 :  // Nozzle Address												// index ==> 0x01
-						track_num2++;
+						trackNum[1].track_num++;
 						if(settings_original_stream1[1].noz_addr != settings_stream1[1].noz_addr)
 						{
 							if(valid_pair2 == 0)
@@ -7263,6 +7612,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -7294,7 +7644,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 						}
 
 			case NO1 :	// Nozzle Override												// index ==> 0x02
-						track_num2++;
+						trackNum[1].track_num++;
 						if(settings_original_stream1[1].noz_override != settings_stream1[1].noz_override)
 						{
 							if(valid_pair2 == 0)
@@ -7319,6 +7669,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -7350,7 +7701,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 						}
 
 			case NC1 :  // Nozzle Count													// index ==> 0x03
-						track_num2++;
+						trackNum[1].track_num++;
 						if(settings_original_stream2[1].noz_count != settings_stream2[1].noz_count)
 						{
 							if(valid_pair2 == 0)
@@ -7375,6 +7726,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -7406,8 +7758,8 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 						}
 
 			case UN1 :  // Unit Price													// index ==> 0x04
-						track_num2++;
-						if(settings_original_stream1[1].dp_unitprice != settings_stream1[1].dp_unitprice)
+						trackNum[1].track_num++;
+						if(settings_original_stream1[1].price_ != settings_stream1[1].price_)
 						{
 							if(valid_pair2 == 0)
 							{
@@ -7415,7 +7767,13 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream1[1].dp_unitprice, bcd_);
+								roundedNum = round_off2(settings_original_stream1[1].price_, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_original_stream1[1].price_, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -7424,13 +7782,20 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream1[1].dp_unitprice, bcd_);
+								roundedNum = round_off2(settings_stream1[1].price_, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream1[1].price_, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -7439,7 +7804,13 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream1[1].dp_unitprice, bcd_);
+								roundedNum = round_off2(settings_original_stream1[1].price_, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_original_stream1[1].price_, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -7448,7 +7819,13 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream1[1].dp_unitprice, bcd_);
+								roundedNum = round_off2(settings_stream1[1].price_, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream1[1].price_, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -7461,8 +7838,8 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 							}
 						}
 
-			case TO1 :  // Timeout => No-Flow											// index ==> 0x06
-						track_num2++;
+			case TO1 :  // Timeout => No-Flow											// index ==> 0x05
+						trackNum[1].track_num++;
 						if(settings_original_stream2[1].timeOut_noFlow != settings_stream2[1].timeOut_noFlow)
 						{
 							if(valid_pair2 == 0)
@@ -7487,6 +7864,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -7517,8 +7895,8 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 							}
 						}
 
-			case ML1 :  // Maximum Litre												// index ==> 0x07
-						track_num2++;
+			case ML1 :  // Maximum Litre												// index ==> 0x06
+						trackNum[1].track_num++;
 						if(settings_original_stream1[1].max_amt_ != settings_stream1[1].max_amt_)
 						{
 							if(valid_pair2 == 0)
@@ -7543,6 +7921,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -7573,8 +7952,8 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 							}
 						}
 
-			case PW1 :  // Password-1 Change											// index ==> 0x08
-						track_num2++;
+			case PW1 :  // Password-1 Change											// index ==> 0x07
+						trackNum[1].track_num++;
 						if(strcmp(settings_original_stream3[1].passwd1, settings_stream3[1].passwd1) != 0)
 						{
 							if(valid_pair2 == 0)
@@ -7599,6 +7978,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -7629,8 +8009,8 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 							}
 						}
 
-			case PW2 :  // Password-2 Change											// index ==> 0x09
-						track_num2++;
+			case PW2 :  // Password-2 Change											// index ==> 0x08
+						trackNum[1].track_num++;
 						if(strcmp(settings_original_stream3[1].passwd2, settings_stream3[1].passwd2) != 0)
 						{
 							if(valid_pair2 == 0)
@@ -7655,6 +8035,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -7685,8 +8066,8 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 							}
 						}
 
-			case PW3 :  // Password-3 Change											// index ==> 0x0A
-						track_num2++;
+			case PW3 :  // Password-3 Change											// index ==> 0x09
+						trackNum[1].track_num++;
 						if(strcmp(settings_original_stream3[1].passwd3, settings_stream3[1].passwd3) != 0)
 						{
 							if(valid_pair2 == 0)
@@ -7711,6 +8092,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -7741,8 +8123,8 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 							}
 						}
 
-			case CV1 :  // Calibration Value-1 => Apparent Pulser-index					// index ==> 0x0B
-						track_num2++;
+			case CV1 :  // Calibration Value-1 => Apparent Pulser-index					// index ==> 0x0A
+						trackNum[1].track_num++;
 						if(settings_original_stream1[1].pi_real != settings_stream1[1].pi_real)
 						{
 							if(valid_pair2 == 0)
@@ -7751,7 +8133,13 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream1[1].pi_real, bcd_);
+								roundedNum = round_off2(settings_original_stream1[1].pi_real, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_original_stream1[1].pi_real, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -7760,13 +8148,20 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream1[1].pi_real, bcd_);
+								roundedNum = round_off2(settings_stream1[1].pi_real, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream1[1].pi_real, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -7775,7 +8170,13 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream1[1].pi_real, bcd_);
+								roundedNum = round_off2(settings_original_stream1[1].pi_real, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_original_stream1[1].pi_real, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -7784,7 +8185,13 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream1[1].pi_real, bcd_);
+								roundedNum = round_off2(settings_stream1[1].pi_real, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream1[1].pi_real, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -7797,8 +8204,8 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 							}
 						}
 
-			case CV2 :  // Calibration Value-2 => Apparent Pulser-index					// index ==> 0x0C
-						track_num2++;
+			case CV2 :  // Calibration Value-2 => Apparent Pulser-index					// index ==> 0x0B
+						trackNum[1].track_num++;
 						if(settings_original_stream1[1].pi_cal != settings_stream1[1].pi_cal)
 						{
 							if(valid_pair2 == 0)
@@ -7807,7 +8214,13 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream1[1].pi_cal, bcd_);
+								roundedNum = round_off2(settings_original_stream1[1].pi_cal, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_original_stream1[1].pi_cal, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -7816,13 +8229,20 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream1[1].pi_cal, bcd_);
+								roundedNum = round_off2(settings_stream1[1].pi_cal, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream1[1].pi_cal, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -7831,7 +8251,13 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream1[1].pi_cal, bcd_);
+								roundedNum = round_off2(settings_original_stream1[1].pi_cal, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_original_stream1[1].pi_cal, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -7840,7 +8266,13 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream1[1].pi_cal, bcd_);
+								roundedNum = round_off2(settings_stream1[1].pi_cal, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream1[1].pi_cal, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -7853,8 +8285,8 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 							}
 						}
 
-			case CS1 :  // Calibration Can-size											// index ==> 0x0D
-						track_num2++;
+			case CS1 :  // Calibration Can-size											// index ==> 0x0C
+						trackNum[1].track_num++;
 						if(settings_original_stream2[1].calibration_measureCan != settings_stream2[1].calibration_measureCan)
 						{
 							if(valid_pair2 == 0)
@@ -7879,6 +8311,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -7909,8 +8342,8 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 							}
 						}
 
-			case DP1 :  // Display Decimal Point-1	=> 	Amount						// index ==> 0x0E
-						track_num2++;
+			case DP1 :  // Display Decimal Point-1	=> 	Amount						// index ==> 0x0D
+						trackNum[1].track_num++;
 						if(settings_original_stream1[1].dp_amount != settings_stream1[1].dp_amount)
 						{
 							if(valid_pair2 == 0)
@@ -7935,6 +8368,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -7965,8 +8399,8 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 							}
 						}
 
-			case DP2 :  // Display Decimal Point-2	=> 	Volume						// index ==> 0x0F
-						track_num2++;
+			case DP2 :  // Display Decimal Point-2	=> 	Volume						// index ==> 0x0E
+						trackNum[1].track_num++;
 						if(settings_original_stream1[1].dp_vol != settings_stream1[1].dp_vol)
 						{
 							if(valid_pair2 == 0)
@@ -7991,6 +8425,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -8021,8 +8456,8 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 							}
 						}
 
-			case DP3 :  // Display Decimal Point-3	=> 	Unit Price						// index ==> 0x10
-						track_num2++;
+			case DP3 :  // Display Decimal Point-3	=> 	Unit Price						// index ==> 0x0F
+						trackNum[1].track_num++;
 						if(settings_original_stream1[1].dp_unitprice != settings_stream1[1].dp_unitprice)
 						{
 							if(valid_pair2 == 0)
@@ -8047,6 +8482,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -8078,7 +8514,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 						}
 
 			case DS1 :   // Display Format => L/P or P/L									// index ==> 0x10
-						track_num2++;
+						trackNum[1].track_num++;
 						if(settings_original_stream1[1].display_format != settings_stream1[1].display_format)
 						{
 							if(valid_pair2 == 0)
@@ -8103,6 +8539,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -8133,8 +8570,8 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 							}
 						}
 
-			case DT1 :    // Volume Display Threshold										// index ==> 0x12
-						track_num2++;
+			case DT1 :    // Volume Display Threshold										// index ==> 0x11
+						trackNum[1].track_num++;
 						if(settings_original_stream2[1].startUp_suppressVol != settings_stream2[1].startUp_suppressVol)
 						{
 							if(valid_pair2 == 0)
@@ -8143,7 +8580,15 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream2[1].startUp_suppressVol, bcd_);
+								decimalPlaces = 4;
+								roundedNum = round_off2(settings_original_stream2[1].startUp_suppressVol, decimalPlaces);
+								roundedNum = roundedNum * 10000;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+
+//								int_to_bcd(settings_original_stream2[1].startUp_suppressVol, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -8152,13 +8597,21 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream2[1].startUp_suppressVol, bcd_);
+								decimalPlaces = 4;
+								roundedNum = round_off2(settings_stream2[1].startUp_suppressVol, decimalPlaces);
+								roundedNum = roundedNum * 10000;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream2[1].startUp_suppressVol, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -8167,7 +8620,14 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream2[1].startUp_suppressVol, bcd_);
+								decimalPlaces = 4;
+								roundedNum = round_off(settings_original_stream2[1].startUp_suppressVol, decimalPlaces);
+								roundedNum = roundedNum * 10000;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_original_stream2[1].startUp_suppressVol, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -8176,7 +8636,14 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream2[1].startUp_suppressVol, bcd_);
+								decimalPlaces = 4;
+								roundedNum = round_off(settings_stream2[1].startUp_suppressVol, decimalPlaces);
+								roundedNum = roundedNum * 10000;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream2[1].startUp_suppressVol, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -8189,8 +8656,8 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 							}
 						}
 
-			case SL1 :	// Shift Login Type												// index ==> 0x13
-						track_num2++;
+			case SL1 :	// Shift Login Type												// index ==> 0x12
+						trackNum[1].track_num++;
 						if(settings_original_stream2[1].shift_login_type != settings_stream2[1].shift_login_type)
 						{
 							if(valid_pair2 == 0)
@@ -8215,6 +8682,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -8245,8 +8713,8 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 							}
 						}
 
-			case SC1 :	// Shift-Count per day											// index ==> 0x14
-						track_num2++;
+			case SC1 :	// Shift-Count per day											// index ==> 0x13
+						trackNum[1].track_num++;
 						if(settings_original_stream2[1].number_of_shifts != settings_stream2[1].number_of_shifts)
 						{
 							if(valid_pair2 == 0)
@@ -8271,6 +8739,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -8301,8 +8770,8 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 							}
 						}
 
-			case TN1 :	// Tone															// index ==> 0x15
-						track_num2++;
+			case TN1 :	// Tone															// index ==> 0x14
+						trackNum[1].track_num++;
 						if(settings_original_stream2[1].keypress_tone != settings_stream2[1].keypress_tone)
 						{
 							if(valid_pair2 == 0)
@@ -8327,6 +8796,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -8357,8 +8827,8 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 							}
 						}
 
-			case PT1 :	// Pulser Type => Quadrature/Non-Quadrature						// index ==> 0x16
-						track_num2++;
+			case PT1 :	// Pulser Type => Quadrature/Non-Quadrature						// index ==> 0x15
+						trackNum[1].track_num++;
 						if(settings_original_stream2[1].pulser_type_ != settings_stream2[1].pulser_type_)
 						{
 							if(valid_pair2 == 0)
@@ -8383,6 +8853,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -8413,8 +8884,8 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 							}
 						}
 
-			case PO1 :	// Pulser Offset Value											// index ==> 0x17
-						track_num2++;
+			case PO1 :	// Pulser Offset Value											// index ==> 0x16
+						trackNum[1].track_num++;
 						if(settings_original_stream2[1].pulser_offset != settings_stream2[1].pulser_offset)
 						{
 							if(valid_pair2 == 0)
@@ -8439,6 +8910,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -8469,8 +8941,8 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 							}
 						}
 
-			case SF1 :	// Start Slow-Flow Width										// index ==> 0x18
-						track_num2++;
+			case SF1 :	// Start Slow-Flow Width										// index ==> 0x17
+						trackNum[1].track_num++;
 						if(settings_original_stream2[1].valve_salesStart != settings_stream2[1].valve_salesStart)
 						{
 							if(valid_pair2 == 0)
@@ -8479,7 +8951,13 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream2[1].valve_salesStart, bcd_);
+								roundedNum = round_off(settings_original_stream2[1].valve_salesStart, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_original_stream2[1].valve_salesStart, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -8488,13 +8966,20 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream2[1].valve_salesStart, bcd_);
+								roundedNum = round_off(settings_stream2[1].valve_salesStart, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream2[1].valve_salesStart, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -8503,7 +8988,13 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream2[1].valve_salesStart, bcd_);
+								roundedNum = round_off(settings_original_stream2[1].valve_salesStart, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_original_stream2[1].valve_salesStart, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -8512,7 +9003,13 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream2[1].valve_salesStart, bcd_);
+								roundedNum = round_off(settings_stream2[1].valve_salesStart, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream2[1].valve_salesStart, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -8525,8 +9022,8 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 							}
 						}
 
-			case SF2 :  		// Closing Slow-Flow Width                       				// index ==> 0x19  ==>0d25
-						track_num2++;
+			case SF2 :  		// Closing Slow-Flow Width                       				// index ==> 0x18  ==>0d24
+						trackNum[1].track_num++;
 						if(settings_original_stream2[1].valve_salesEnd != settings_stream2[1].valve_salesEnd)
 						{
 							if(valid_pair2 == 0)
@@ -8535,7 +9032,13 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream2[1].valve_salesEnd, bcd_);
+								roundedNum = round_off(settings_original_stream2[1].valve_salesEnd, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_original_stream2[1].valve_salesEnd, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -8544,13 +9047,20 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream2[1].valve_salesEnd, bcd_);
+								roundedNum = round_off(settings_stream2[1].valve_salesEnd, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream2[1].valve_salesEnd, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
 									DART_BUFF2[ii + 15] = bcd_[j];
 								}
 
+								trackNum[1].track_num0 = (trackNum[1].track_num - 1);
 								valid_pair2++;
 							}
 							else
@@ -8559,7 +9069,13 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_original_stream2[1].valve_salesEnd, bcd_);
+								roundedNum = round_off(settings_original_stream2[1].valve_salesEnd, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_original_stream2[1].valve_salesEnd, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -8568,7 +9084,13 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								int_to_bcd(settings_stream2[1].valve_salesEnd, bcd_);
+								roundedNum = round_off(settings_stream2[1].valve_salesEnd, decimalPlaces);
+								roundedNum = roundedNum * 100;
+								num_ = (int)(roundedNum);
+
+								int_to_bcd(num_, bcd_);
+
+//								int_to_bcd(settings_stream2[1].valve_salesEnd, bcd_);
 
 								for (uint8_t ii = 0, j = 2; ii < 3; ii++, j--)   //j=>2 : MSB in it, LSB is in j=>0
 								{
@@ -8595,6 +9117,8 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 						//=====================================================================//
 						else if(valid_pair2 == 0)
 						{
+//							configMode2 = CONFIGUNMODIFIED;
+//							save_configFlag_fram(side_b);
 							return 0;
 						}
 

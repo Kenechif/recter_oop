@@ -24,6 +24,9 @@ extern "C" {
 
 #include <time.h>
 
+#include "checksum.h"
+
+
 #define randnum(min, max) \ ((rand() % (int)(((max) + 1) - (min))) + (min))
 
 
@@ -37,7 +40,7 @@ extern "C" {
 
 	  #define PRODUCT_TYPE _DPK
 
-//      #define DEV_MODE
+      #define DEV_MODE
 
 	  #define OTP_ENABLE
 
@@ -90,9 +93,9 @@ extern "C" {
 #define VOUCHER_DOWNLOADED          0b00000111
 
 
-#define BATTERYOK					0b00000000
-#define LOWBATTERY					0b00000001
-#define NOBATTERY					0b00000010
+#define BATTERY_OK					0b00000000
+#define LOW_BATTERY					0b00000001
+#define NO_BATTERY					0b00000010
 
 #define CONFIGMODIFIED				0b10011001
 #define CONFIGUNMODIFIED			0b00000000
@@ -101,6 +104,10 @@ extern "C" {
 #define OTPSESSION_OFF				0b00000000
 
 #define VOL_SUPPRESSED 				12
+#define VALIDKEYPRESS_THRESHOLD		3
+
+#define OK                          1
+#define FAIL                        0
 
 /***********************************************************************/
 #define DEBOUNCE_TIME_MS 5  //10  //20 // Debounce period in milliseconds
@@ -174,26 +181,26 @@ typedef enum
 	NC1,	// Nozzle Count													// index ==> 0x03
 	UN1,	// Unit Price													// index ==> 0x04
 //	TM1,	// Clock Setting => Date/Time									// index ==> 0x05
-	TO1,	// Timeout => No-Flow											// index ==> 0x06
-	ML1,	// Maximum Litre												// index ==> 0x07
-	PW1,	// Password-1 Change											// index ==> 0x08
-	PW2,	// Password-2 Change											// index ==> 0x09
-	PW3,	// Password-3 Change											// index ==> 0x0A
-	CV1,	// Calibration Value-1 => Real Pulser-index						// index ==> 0x0B
-	CV2,	// Calibration Value-2 => Apparent Pulser-index					// index ==> 0x0C
-	CS1,	// Calibration Can-size											// index ==> 0x0D
-	DP1,	// Display Decimal Point-1  => 	Amount							// index ==> 0x0E
-	DP2,	// Display Decimal Point-2	=> 	Volume							// index ==> 0x0F
-	DP3,	// Display Decimal Point-3	=> 	Unit Price						// index ==> 0x10
-	DS1,	// Display Format => L/P or P/L									// index ==> 0x11
-	DT1,	// Volume Display Threshold										// index ==> 0x12
-	SL1,	// Shift Login Type												// index ==> 0x13
-	SC1,	// Shift-Count per day											// index ==> 0x14
-	TN1,	// Tone															// index ==> 0x15
-	PT1,	// Pulser Type => Quadrature/Non-Quadrature						// index ==> 0x16
-	PO1,	// Pulser Offset Value											// index ==> 0x17
-	SF1,	// Start Slow-Flow Width										// index ==> 0x18
-	SF2		// Closing Slow-Flow Width                       				// index ==> 0x19  ==>0d25
+	TO1,	// Timeout => No-Flow											// index ==> 0x05
+	ML1,	// Maximum Litre												// index ==> 0x06
+	PW1,	// Password-1 Change											// index ==> 0x07
+	PW2,	// Password-2 Change											// index ==> 0x08
+	PW3,	// Password-3 Change											// index ==> 0x09
+	CV1,	// Calibration Value-1 => Real Pulser-index						// index ==> 0x0A
+	CV2,	// Calibration Value-2 => Apparent Pulser-index					// index ==> 0x0B
+	CS1,	// Calibration Can-size											// index ==> 0x0C
+	DP1,	// Display Decimal Point-1  => 	Amount							// index ==> 0x0D
+	DP2,	// Display Decimal Point-2	=> 	Volume							// index ==> 0x0E
+	DP3,	// Display Decimal Point-3	=> 	Unit Price						// index ==> 0x0F
+	DS1,	// Display Format => L/P or P/L									// index ==> 0x10
+	DT1,	// Volume Display Threshold										// index ==> 0x11
+	SL1,	// Shift Login Type												// index ==> 0x12
+	SC1,	// Shift-Count per day											// index ==> 0x13
+	TN1,	// Tone															// index ==> 0x14
+	PT1,	// Pulser Type => Quadrature/Non-Quadrature						// index ==> 0x15
+	PO1,	// Pulser Offset Value											// index ==> 0x16
+	SF1,	// Start Slow-Flow Width										// index ==> 0x17
+	SF2		// Closing Slow-Flow Width                       				// index ==> 0x18  ==>0d24
 }config_change;
 
   enum
@@ -299,6 +306,24 @@ typedef struct   //structure for log.
 
 }log_new;
 
+typedef struct{
+	unsigned long timestamp;
+	unsigned long token;
+	char transaction_id[20];
+	char nozzle_name[5];
+	char nozzle_product[6];
+	uint8_t nozzle_address;
+	float litre_price;
+	float transaction_vol;
+	float transaction_price;
+	float totalizer;
+	uint32_t transaction_period;
+	char transaction_type;
+	char device_id[16];
+	char tag[12];
+	char storage_loc;
+	char session_id[9];
+}transaction_1;
 
 //typedef struct   //structure for log.
 //{
@@ -1015,6 +1040,14 @@ typedef struct ConfigChange
 
 ConfigChange configChange[2];
 
+typedef struct TrackNum
+{
+	uint8_t track_num0;
+	uint8_t track_num;		    // 2 Bytes
+}TrackNum;
+
+TrackNum trackNum[2];
+
 //=== screen Arrays ====
 extern char upper1[10],
 			middle1[10],
@@ -1045,6 +1078,9 @@ uint8_t vol_real1,
 	    vol_real2,
 		ctTimed_flag1,
 		ctTimed_flag2;
+
+//uint16_t vol_real1,
+//	     vol_real2;
 
 int startTime1,
 	startTime2,
@@ -1100,11 +1136,71 @@ uint8_t changeLitrePrice1,
 uint8_t track_num1,
 		valid_pair1,
 		track_num2,
-		valid_pair2;
+		valid_pair2,
+		track_num1_0,
+		track_num2_0;
 
 
 uint16_t otp_seed1,
 		 otp_seed2;
+
+
+float running_volTotaliser1_tmin1,
+	  running_volTotaliser1_tmin2,
+	  running_volTotaliser1_tmin3,
+	  running_volTotaliser1c_tmin1,
+	  running_volTotaliser1c_tmin2,
+	  running_volTotaliser1c_tmin3;
+
+float running_volTotaliser2_tmin1,
+	  running_volTotaliser2_tmin2,
+	  running_volTotaliser2_tmin3,
+	  running_volTotaliser2c_tmin1,
+	  running_volTotaliser2c_tmin2,
+	  running_volTotaliser2c_tmin3;
+
+float running_amtTotaliser1_tmin1,
+	 running_amtTotaliser1_tmin2,
+	 running_amtTotaliser1_tmin3,
+	 running_amtTotaliser1c_tmin1,
+	 running_amtTotaliser1c_tmin2,
+	 running_amtTotaliser1c_tmin3;
+
+float running_amtTotaliser2_tmin1,
+	 running_amtTotaliser2_tmin2,
+	 running_amtTotaliser2_tmin3,
+	 running_amtTotaliser2c_tmin1,
+	 running_amtTotaliser2c_tmin2,
+	 running_amtTotaliser2c_tmin3;
+
+float running_volTotaliser1_array[4],
+	  running_volTotaliser1c_array[4],
+	  running_volTotaliser2_array[4],
+	  running_volTotaliser2c_array[4];
+
+float running_amtTotaliser1_array[4],
+	  running_amtTotaliser1c_array[4],
+	  running_amtTotaliser2_array[4],
+	  running_amtTotaliser2c_array[4];
+
+float amt_middle1_tmin1,
+	 amt_middle1_tmin2,
+	 amt_middle1_tmin3,
+	 amt_middle2_tmin1,
+	 amt_middle2_tmin2,
+	 amt_middle2_tmin3;
+
+float amt_real1_tmin1,
+	 amt_real1_tmin2,
+	 amt_real1_tmin3,
+	 amt_real2_tmin1,
+	 amt_real2_tmin2,
+	 amt_real2_tmin3;
+
+float amt_real1_array[4],
+	 amt_middle1_array[4],
+	 amt_real2_array[4],
+	 amt_middle2_array[4];
 
 //void get_settings();
 
@@ -1127,12 +1223,12 @@ void retrieve_settings_fram(void);
 void save_settings_original_fram(pump_sid side);
 void retrieve_settings_original_fram(pump_sid side);
 
-void save_volumeTotaliser(pump_sid side);
-void retrieve_volumeTotaliser(pump_sid side);
-void clear_volumeTotaliser(pump_sid side);
+void save_totaliser_eeprom(pump_sid side);
+void retrieve_totaliser_eeprom(pump_sid side);
+void clear_totaliser_eeprom(pump_sid side);
 
 void save_totaliser_fram(pump_sid side);
-void retrieve_totaliser_fram(pump_sid side);
+uint8_t retrieve_totaliser_fram(pump_sid side);
 void clear_totaliser_fram(pump_sid side);
 
 void saver_Totaliser_startShift_fram(pump_sid side);
@@ -1147,12 +1243,12 @@ void save_amountTotaliser_fram(pump_sid side);
 void retrieve_amountTotaliser_fram(pump_sid side);
 void clear_amountTotaliser_fram(pump_sid side);
 
-void save_lastSale(pump_sid side);
-void retrieve_lastSale(pump_sid side);
-void clear_lastSale(pump_sid side);
+void save_lastSale_eeprom(pump_sid side);
+void retrieve_lastSale_eeprom(pump_sid side);
+void clear_lastSale_eeprom(pump_sid side);
 
 void save_lastSale_fram(pump_sid side);
-void retrieve_lastSale_fram(pump_sid side);
+uint8_t retrieve_lastSale_fram(pump_sid side);
 void clear_lastSale_fram(pump_sid side);
 
 void save_ctSettings(pump_sid side);

@@ -69,6 +69,9 @@ extern uint16_t countar,
 extern uint8_t mamo_reached_flag1 = 0,
 			   mamo_reached_flag1_1 = 0;
 
+extern uint32_t  r_volTotaliser2,
+		  	     old_r_volTotaliser2,
+				 old_r_volTotaliser2_0;
 //===============================================
 
 extern int tot_buttonpress_tmr2;
@@ -482,6 +485,11 @@ void check_flow(void)
 
 			  	if(r_volTotaliser2 != old_r_volTotaliser2)
 			  	{
+//			  		int differential = r_volTotaliser2 - old_r_volTotaliser2;
+//			  		if( (differential > 1) || (differential < -1) )
+//			  		{
+//
+//			  		}
 			  		totalizer2Timer = 0;
 			  //			then toggle the totaliser harware I/O.
 			  		drive_totaliser2(ACTIVATE);
@@ -497,7 +505,9 @@ void check_flow(void)
 			  		}
 
 			  	}
-			  	  old_r_volTotaliser2 = r_volTotaliser2;   //update...
+
+//			  	old_r_volTotaliser2_0 = old_r_volTotaliser2;
+			  	old_r_volTotaliser2 = r_volTotaliser2;   //update...
 			 }
 			 else
 			 {

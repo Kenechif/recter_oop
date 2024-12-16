@@ -48,6 +48,16 @@
 
 #define PAGE_SIZE 32  // Define the page size (typically up to 256 bytes)
 
+#define FLASH_BEGINPAGE_SIDEB 		0x400000 //--> 4,194,304 pg16,384
+#define FLASH_ENDPAGE_SIDEB 		0x7FFFFF //--> 8,388,607 pg32767.996
+
+char ep_messagee[650] = {0};
+
+extern const uint32_t flash_beginA,
+					  flash_endA,
+					  flash_beginB,
+					  flash_endB;
+
 //uint8_t MSG[200] = {0};
 extern uint8_t change_p1,
 			   change_v1,
@@ -102,7 +112,7 @@ extern drive drive1,
 
 extern uint8_t hmacKey[];
 
-uint8_t batteryStatus = BATTERYOK;
+uint8_t batteryStatus = BATTERY_OK;
 
 //===================================================
 #define DEV_ADDR 0xa0
@@ -113,6 +123,8 @@ float dataw3 = 1234.5678;
 uint8_t datar1[50];
 //uint8_t datar2[100];
 float datar3;
+
+int number = 0;
 
 #define FRAM_I2C &hi2c1
 
@@ -1636,7 +1648,7 @@ tmmm:
 //  if( HAL_GPIO_ReadPin(nLed_GPIO_Port, nLed_Pin) == 1)  // config
   if( (HAL_GPIO_ReadPin(settings1_GPIO_Port, settings1_Pin) == 1 ) || ( HAL_GPIO_ReadPin(settings2_GPIO_Port, settings2_Pin) == 1) )
   {
-	  printDisp_c("config",1,2,4,LT,CLEAR);
+	  printDisp_c("config", 1, 2, 4, LT, CLEAR);
 
 //	  settings[0].passwd1 = 0000;
 //	  settings[0].passwd2 = 0000;
@@ -1644,21 +1656,21 @@ tmmm:
 //	  settings[0].passwd2 = 0000;
 
 
-
-	 //==============================================
-	 //    This step is to compose the settings.
-	 //==============================================
-	 make_settings(side_a);
-	 make_settings(side_b);
-
-	 save_settings_fram();
-//	 save_volumeTotaliser_fram(side_a); //side_a
-//	 save_volumeTotaliser_fram(side_b);
-	 flash_infoA.current_loc = 0;
-	 flash_infoA.number_logs = 0;
-	 FRAM_Write(flash_stoA_fram, &flash_infoA, sizeof(flash_infoA));
-	 FRAM_Write(flash_stoB_fram, &flash_infoB, sizeof(flash_infoA));
-	 // ===========================================================================
+//
+//	 //==============================================
+//	 //    This step is to compose the settings.
+//	 //==============================================
+//	 make_settings(side_a);
+//	 make_settings(side_b);
+//
+//	 save_settings_fram();
+////	 save_volumeTotaliser_fram(side_a); //side_a
+////	 save_volumeTotaliser_fram(side_b);
+//	 flash_infoA.current_loc = 0;
+//	 flash_infoA.number_logs = 0;
+//	 FRAM_Write(flash_stoA_fram, &flash_infoA, sizeof(flash_infoA));
+//	 FRAM_Write(flash_stoB_fram, &flash_infoB, sizeof(flash_infoA));
+//	 // ===========================================================================
 
 
 	  config_mode = 1;
@@ -1700,19 +1712,19 @@ tmmm:
 		 HAL_Delay(1000);
 	  }
 
-	  config_rx_parse();
-//	  pumpType_configure();
-	  pumpType_configure_fram();
-
-
-	  // ===========================================================================
-
-
-	  //********************  INITIALIZATIONS ***********************//
-
-	  //----------------------//
-	  firstTotalizer_day();
-	  //----------------------//
+//	  config_rx_parse();
+////	  pumpType_configure();
+//	  pumpType_configure_fram();
+//
+//
+//	  // ===========================================================================
+//
+//
+//	  //********************  INITIALIZATIONS ***********************//
+//
+//	  //----------------------//
+//	  firstTotalizer_day();
+//	  //----------------------//
 
 //	  uint16_t firstTime = 0;
 //
@@ -1732,7 +1744,15 @@ tmmm:
 //		  EEPROM_PageErase(i);
 //	  }
 
-//	  FRAM_ChipErase();
+	  HAL_GPIO_WritePin(nLed_GPIO_Port, nLed_Pin, GPIO_PIN_SET);
+	  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+
+	  FRAM_ChipErase();
+
+	  clear_logA();
+	  clear_logB();
+
+	  W25qxx_EraseChip();
 
 //	  clear_totalTransaction_sides(side_a);
 //	  clear_totalTransaction_sides(side_b);
@@ -1752,8 +1772,8 @@ tmmm:
 //	  clear_amountTotaliser(side_a);
 //	  clear_amountTotaliser(side_b);
 
-	  clear_amountTotaliser_fram(side_a);
-	  clear_amountTotaliser_fram(side_b);
+//	  clear_amountTotaliser_fram(side_a);
+//	  clear_amountTotaliser_fram(side_b);
 
 //	  clear_lastSale(side_a);
 //	  clear_lastSale(side_b);
@@ -1804,13 +1824,32 @@ tmmm:
 //	  clear_otp(side_a);
 //	  clear_otp(side_b);
 
-	  clear_logA();
-	  clear_logB();
+//	  clear_logA();
+//	  clear_logB();
 
-	  HAL_GPIO_WritePin(nLed_GPIO_Port, nLed_Pin, GPIO_PIN_SET);
-	  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+//	  HAL_GPIO_WritePin(nLed_GPIO_Port, nLed_Pin, GPIO_PIN_SET);
+//	  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 
-	  W25qxx_EraseChip();
+//	  W25qxx_EraseChip();
+
+
+	 //==============================================
+	 //    This step is to compose the settings.
+	 //==============================================
+//	 make_settings(side_a);
+//	 make_settings(side_b);
+//
+//	 save_settings_fram();
+//	 save_volumeTotaliser_fram(side_a); //side_a
+//	 save_volumeTotaliser_fram(side_b);
+	 flash_infoA.current_loc = flash_beginA;
+	 flash_infoA.number_logs = 0;
+	 flash_infoB.current_loc = flash_beginB;
+	 flash_infoB.number_logs = 0;
+	 FRAM_Write(flash_stoA_fram, &flash_infoA, sizeof(flash_infoA));
+	 FRAM_Write(flash_stoB_fram, &flash_infoB, sizeof(flash_infoB));
+	 // ===========================================================================
+
 
 	  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 
@@ -1821,51 +1860,65 @@ tmmm:
 		 //==============================================
 		 //    This step is to compose the settings.
 		 //==============================================
-		 make_settings(side_a);
-		 make_settings(side_b);
+	 make_settings(side_a);
+	 make_settings(side_b);
 
-		 settings_stream1[0].noz_addr = 0x01;
-		 settings_stream1[1].noz_addr = 0x02;
+	 settings_stream1[0].noz_addr = 0x01;
+	 settings_stream1[1].noz_addr = 0x02;
 
-		 settings_stream1[0].pi_real = 797.15;   //798.1;  //407.3;   //399.25;   //798.35;
-		 settings_stream1[0].pi_cal = 797.15;  //767.40;  //391.64;   //383.89;  //760.33;
-		 settings_stream1[1].pi_real = 799.8;    //799.25;  //399.25;   //798.35;
-		 settings_stream1[1].pi_cal = 799.8;   //768.51;   //383.89;  //760.33;
+	 settings_stream1[0].pi_real = 797.15;   //798.1;  //407.3;   //399.25;   //798.35;
+	 settings_stream1[0].pi_cal = 797.15;  //767.40;  //391.64;   //383.89;  //760.33;
+	 settings_stream1[1].pi_real = 799.8;    //799.25;  //399.25;   //798.35;
+	 settings_stream1[1].pi_cal = 799.8;   //768.51;   //383.89;  //760.33;
 
 //		Pulser_count1 = 15962 20|0.8|0.0
 //		Pulser_count2 = 15985 20|0.8|0.0
 
 //4650
-		 vol_real1 = 20;
-		 vol_real2 = 20;
-		 vol_calibrated1 = 20;  //20.8;   //21.0;
-		 vol_calibrated2 = 20;  //20.8;
-		 vol_effective1 = 20;   //20.8;    //21.0;
-		 vol_effective2 = 20;   //20.8;
+	 vol_real1 = 20;
+	 vol_real2 = 20;
+	 vol_calibrated1 = 20;  //20.8;   //21.0;
+	 vol_calibrated2 = 20;  //20.8;
+	 vol_effective1 = 20;   //20.8;    //21.0;
+	 vol_effective2 = 20;   //20.8;
 
-		 calib_pulser1 =  (settings_stream1[0].pi_cal * vol_calibrated1);
-		 calib_pulser2 =  (settings_stream1[1].pi_cal * vol_calibrated2);
+	 calib_pulser1 =  (settings_stream1[0].pi_cal * vol_calibrated1);
+	 calib_pulser2 =  (settings_stream1[1].pi_cal * vol_calibrated2);
+
+	 config_rx_parse();
+	//pumpType_configure();
+	 pumpType_configure_fram();
+
+
+		// ===========================================================================
+
+
+		//********************  INITIALIZATIONS ***********************//
+
+		//----------------------//
+	 firstTotalizer_day();
+	//----------------------//
 
 //		 save_settings();
-		 save_settings_fram();
+	 save_settings_fram();
 
 //		 save_ctSettings(side_a);
 //		 save_ctSettings(side_b);
 //		 save_calibrationPulser(side_a);
 //		 save_calibrationPulser(side_b);
 
-		 save_ctSettings_fram(side_a);
-		 save_ctSettings_fram(side_b);
-		 save_calibrationPulser_fram(side_a);
-		 save_calibrationPulser_fram(side_b);
+	 save_ctSettings_fram(side_a);
+	 save_ctSettings_fram(side_b);
+	 save_calibrationPulser_fram(side_a);
+	 save_calibrationPulser_fram(side_b);
 
-		 calibration_flag1 = UNCALIBRATED;
+	 calibration_flag1 = UNCALIBRATED;
 //		 save_calibrationFlag(side_a);
-		 save_calibrationFlag_fram(side_a);
+	 save_calibrationFlag_fram(side_a);
 
-		 calibration_flag2 = UNCALIBRATED;
+	 calibration_flag2 = UNCALIBRATED;
 //		 save_calibrationFlag(side_b);
-		 save_calibrationFlag_fram(side_b);
+	 save_calibrationFlag_fram(side_b);
 
 //		 calib_pulser1 = 0;
 //		 calib_pulser2 = 0;
@@ -2252,8 +2305,8 @@ skip_test:
 //	settings_stream2[0].valve_salesStart = 0.00; // 0.15;
 //	settings_stream2[0].valve_salesEnd = 0.00;   //0.36;
 
-	settings_stream2[0].startUp_suppressVol = 0.12;
-	settings_stream2[1].startUp_suppressVol = 0.12;
+//	settings_stream2[0].startUp_suppressVol = 0.12;
+//	settings_stream2[1].startUp_suppressVol = 0.12;
 
 //    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
 //    settings_stream1[0].mode = AUTO_MODE;    //AUTO_MODE;
@@ -2265,7 +2318,7 @@ skip_test:
 //    settings_stream2[0].calibration_measureCan = 2;
 
 //    settings_stream1[0].keypad__ = BLSKY22;   //BLSKY22
-    settings_stream1[0].keypad__ = LAFNG18_K_V2;  //LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
+//    settings_stream1[0].keypad__ = LAFNG18_K_V2;  //LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
 
 //
 //    settings_stream1[1].mode = MANUAL_MODE;  //AUTO;   //MANUAL;
@@ -2275,14 +2328,14 @@ skip_test:
 ////	settings_stream1[1].noz = override;  //nooveride
 //	settings_stream1[1].keypad__ = BLSKY22;   //BLSKY22
 //    settings_stream1[1].keypad__ = LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
-    settings_stream1[1].keypad__ = LAFNG18_K_V2;  //LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
+//    settings_stream1[1].keypad__ = LAFNG18_K_V2;  //LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
 
 //    settings_stream1[0].pi_cal = 797.150024;
 
 //    settings_stream1[0].noz_addr = 0x01;
 //    settings_stream1[1].noz_addr = 0x02;
 
-//    settings_stream2[1].keypress_tone = No;   //Yes;
+//    settings_stream2[1].keypress_tone = Yes;   //No;   //Yes;
 //    settings_stream1[0].display_format = PL;
 //    settings_stream1[1].display_format = PL;
 //    settings_stream1[0].def_t = P;
@@ -2322,14 +2375,56 @@ skip_test:
 //    retrieve_lastSale(side_a);
 //    retrieve_lastSale(side_b);
 
-    retrieve_totaliser_fram(side_a);
-    retrieve_totaliser_fram(side_b);
 
-    retrieve_amountTotaliser_fram(side_a);
-    retrieve_amountTotaliser_fram(side_b);
+    while(!retrieve_totaliser_fram(side_a))   //If it fails, retry 5X
+    {
+    	static uint8_t try = 0;
+    	if(try++ >= 5)
+    	{
+    		retrieve_totaliser_eeprom(side_a);
+    		break;
+    	}
+    }
 
-    retrieve_lastSale_fram(side_a);
-    retrieve_lastSale_fram(side_b);
+    while(!retrieve_totaliser_fram(side_b))   //If it fails, retry 5X
+    {
+		static uint8_t try = 0;
+		if(try++ >= 5)
+		{
+			retrieve_totaliser_eeprom(side_b);
+			break;
+		}
+    }
+
+//    retrieve_amountTotaliser_fram(side_a);
+//    retrieve_amountTotaliser_fram(side_b);
+
+    while(!retrieve_lastSale_fram(side_a))   //If it fails, retry 5X
+    {
+		static uint8_t try = 0;
+		if(try++ >= 5)
+		{
+			retrieve_totaliser_eeprom(side_a);
+			break;
+		}
+    }
+    while(!retrieve_lastSale_fram(side_b))   //If it fails, retry 5X
+    {
+    	static uint8_t try = 0;
+    	if(try++ >= 5)
+    	{
+    		retrieve_totaliser_eeprom(side_b);
+    		break;
+    	}
+    }
+
+//    uint8_t sz = sizeof(totaliser_storeA);
+//
+//	totaliser_storeA.totaliserVol_cal = 80;
+//	totaliser_storeA.totaliserVol_real = 80;
+//	totaliser_storeA.totaliserAmount_cal = totaliser_amt1c;
+//	totaliser_storeA.totaliserAmount_real = totaliser_amt1;
+//	FRAM_Write(208, &totaliser_storeA, sz);
 
 //    retrieve_totalTransaction_sides(side_a);
 //    retrieve_totalTransaction_sides(side_b);
@@ -2586,6 +2681,39 @@ skip_test:
 
 //   pump_status_ = STATUS_PNP;
 //   pump_status_2 = STATUS_PNP;
+
+//   while (1)
+//   {
+//
+//	    uint32_t pg = 0;
+//
+//	    uint8_t number1 = 0;
+////	    HAL_UART_Transmit (&huart2, "Hello", 5, 1000);
+   //flash_beginB => 0x400000 --> 4,194,304 pg16,384
+   ////
+//flash_beginB;  //flash_endB => 0x7FFFFF --> 8,388,607 pg32767.996
+////		for(int i = FLASH_BEGINPAGE_SIDEB; ( (i >= FLASH_BEGINPAGE_SIDEB) && (i <= FLASH_ENDPAGE_SIDEB) ); i+=256)
+////		{
+//		for(int i = 4194816; ( (i <= FLASH_ENDPAGE_SIDEB) ); i+=256)
+//		{
+//			pg = i/w25qxx.PageSize;
+//			W25qxx_ReadPage(&log_b_new,  pg, 0, sizeof(log_b_new) );
+//
+//			if( (isnan(log_b_new.pr_)) || (log_b_new.litre_price_ < 1000) )
+//			{
+//				;
+//			}
+//			else
+//			{
+////				if(number1++ == 21)
+////				{
+////					number1 = 0;
+////				}
+//				sendStructData(); // Send data
+//				HAL_Delay(5);
+//			}
+//		}
+//   	 }
  }
 
 void led_pin_out(void)
@@ -4463,7 +4591,7 @@ uint8_t debounceKey1(void)
 									// Key released before long press delay
 //									state1 = KEY_IDLE;
 
-									if( (test_key == lastKey) && (keyPress1 >= 4) )
+									if( (test_key == lastKey) && (keyPress1 >= VALIDKEYPRESS_THRESHOLD) )
 									{
 
 										#if delay_keypad == 1
@@ -4505,7 +4633,7 @@ uint8_t debounceKey1(void)
 									// Key released after long press delay
 									state1 = KEY_IDLE;
 
-									if( (test_key == lastKey) && (keyPress1 >= 4) )
+									if( (test_key == lastKey) && (keyPress1 >= VALIDKEYPRESS_THRESHOLD) )
 									{
 										if(lastKey == 15)
 											key_longpress_flag = 1;
@@ -4616,7 +4744,7 @@ uint8_t debounceKey1(void)
 									// Key released before long press delay
 //									state2 = KEY_IDLE;
 
-									if( (test_key == lastKey) && (keyPress2 >= 4) )   // 6) )
+									if( (test_key == lastKey) && (keyPress2 >= VALIDKEYPRESS_THRESHOLD) )   // 6) )
 									{
 
 										#if delay_keypad == 1
@@ -4658,7 +4786,7 @@ uint8_t debounceKey1(void)
 									// Key released after long press delay
 									state2 = KEY_IDLE;
 
-									if( (test_key == lastKey) && (keyPress2 >= 4) )  // 6) )
+									if( (test_key == lastKey) && (keyPress2 >= VALIDKEYPRESS_THRESHOLD) )  // 6) )
 									{
 										if(lastKey == 15)
 											key_longpress_flag2 = 1;
@@ -4754,6 +4882,55 @@ uint8_t delay_nonBlocking2(uint32_t delayTime)
 		   return 0;
 	   }
    }
+}
+
+
+void sendStructData(void)
+{
+    //char buffer[100]; // Adjust size based on your needs
+
+    // Format the data into a string
+    //snprintf(buffer, sizeof(buffer), "ID: %d, Temp: %.2f, Status: %s\r\n",
+            // data.id, data.temperature, data.status);
+//	static int number = 0;
+	tranx_savee.transaction_type = 'a';
+	tranx_savee.storage_loc = 'i';
+//					strcpy(tranx_save.session_id, " ");
+
+	strcpy(tranx_savee.device_id, device_id);
+
+	strcpy(tranx_savee.tag, "null");
+
+	tranxB_token = generate_tk();
+
+	tranx_savee.token = tranxB_token;
+
+	tranx_savee.timestamp = log_b_new.timestamp;
+//		strcpy(tranx_save.device_id, log_b_new.device_id);
+	strcpy(tranx_savee.transaction_id, log_b_new.transaction_id);
+	tranx_savee.transaction_price = log_b_new.pr__;
+	tranx_savee.transaction_vol = log_b_new.vol__;
+	tranx_savee.litre_price = log_b_new.litre_price_;
+	tranx_savee.totalizer = log_b_new.totaliserVol_cal;
+//		strcpy(tranx_save.nozzle_name, log_b_new.nozzle_name);
+	tranx_savee.nozzle_address = 2;
+	strcpy(tranx_savee.nozzle_product, log_b_new.nozzle_product);
+	tranx_savee.transaction_period = log_b_new.transaction_period;
+	strncpy(tranx_savee.session_id, attendant2.session_id, 9);
+	strcpy(tranx_savee.nozzle_name, pumpName[1].pump_name);
+
+	 sprintf(ep_messagee,
+					"No. %lu  ==>  {\"ep\":2,\"di\":\"%s\",\"tk\":%lu,\"tm\":%lu,\"ti\":\"%s\",\"ta\":%0.3f,\"tv\":%0.3f,\"pl\":%0.3f,\"tz\":%0.3f,\"pm\":\"%s\",\"pa\":%d,\"pr\":\"%s\",\"tt\":\'%c\',\"tp\":%u,\"sl\":\'%c\',\"tg\":\"%s\",\"ci\":\"%s\"}\r\n\r\n",
+					number++,
+					tranx_savee.device_id, tranx_savee.token, tranx_savee.timestamp,
+					tranx_savee.transaction_id, tranx_savee.transaction_price,
+					tranx_savee.transaction_vol, tranx_savee.litre_price,
+					tranx_savee.totalizer, tranx_savee.nozzle_name,
+					tranx_savee.nozzle_address, tranx_savee.nozzle_product,
+					tranx_savee.transaction_type, tranx_savee.transaction_period,
+					tranx_savee.storage_loc, tranx_savee.tag, tranx_savee.session_id);
+
+ 	HAL_UART_Transmit (&huart2, ep_messagee, strlen(ep_messagee), 1000);
 }
 
 //uint8_t read_event1_1(void)

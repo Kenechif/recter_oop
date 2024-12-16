@@ -279,7 +279,7 @@ int main(void)
 	// stop_flow1();
 
 
-   	config_mode = 0;
+  	config_mode = 0;
 
 	uint8_t MSG[35] = {'\0'};
 	uint16_t CounterTicks = 0;
@@ -333,14 +333,14 @@ int main(void)
   MX_RTC_Init();
   MX_SPI1_Init();
   MX_SPI2_Init();
-  MX_TIM2_Init();
-  MX_TIM5_Init();
-  MX_USART1_UART_Init();
-  MX_USART2_UART_Init();
-  MX_ADC1_Init();
-  MX_USART3_UART_Init();
-  MX_UART5_Init();
-  MX_RNG_Init();
+//  MX_TIM2_Init();
+//  MX_TIM5_Init();
+//  MX_USART1_UART_Init();
+//  MX_USART2_UART_Init();
+//  MX_ADC1_Init();
+//  MX_USART3_UART_Init();
+//  MX_UART5_Init();
+//  MX_RNG_Init();
   /* USER CODE BEGIN 2 */
 
 //  retrieve_settings();    //Retrieves settings prior to Timers Initialisation

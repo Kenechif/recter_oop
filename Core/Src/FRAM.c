@@ -114,7 +114,8 @@ void FRAM_ChipErase(void)
 {
 	for (uint16_t i = 0; i < FRAMBYTESIZE; i++)
 	{
-		FRAM_WriteByte(i, 0xFF);
+//		FRAM_WriteByte(i, 0xFF);
+		FRAM_WriteByte(i, 0x00);
 		HAL_Delay(5);  // write cycle delay
 	}
 }

@@ -244,7 +244,7 @@ void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
 
-	 if(timeout >0)  timeout--;
+	 if(timeout > 0)  timeout--;
 
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();

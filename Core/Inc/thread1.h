@@ -23,10 +23,17 @@ extern const uint16_t save_pumpType_loc_fram,
 
 //extern nozzle_state_enum nozzle_state;		//state of nozzle returned from pump
 
+transaction_1 tranx_savee;
+
 uint8_t awaiting_masterResponse;
 
 uint8_t config_mode,
  	    config_found;
+
+extern totaliser_store totaliser_storeA,
+					   totaliser_storeB,
+					   startShiftTotaliser_storeA,
+					   startShiftTotaliser_storeB;
 
 extern uint32_t millis;
 extern uint16_t timer_go;
@@ -78,7 +85,7 @@ uint8_t debounceKey2(void);
 uint8_t delay_nonBlocking1(uint32_t delayTime);
 uint8_t delay_nonBlocking2(uint32_t delayTime);
 
-
+void sendStructData(void);
 
 
 #ifdef __cplusplus
