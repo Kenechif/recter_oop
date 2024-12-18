@@ -36,6 +36,8 @@
 
 extern TIM_HandleTypeDef htim5;
 
+extern RNG_HandleTypeDef hrng;
+
 extern SPI_HandleTypeDef _W25QXX_SPI;
 #define W25qxx_Delay(delay) HAL_Delay(delay)
 //===========================================
@@ -188,6 +190,11 @@ extern uint16_t _tt1,
 				priceChange_timer1,
 				timer_config1,
 				key19Timer1;
+
+extern uint16_t autoSale_timer1,
+		 	 	autoSale_timer2;
+
+uint8_t firstTime_idleState1 = 1;
 
 extern uint32_t num ;
 
@@ -1143,18 +1150,30 @@ eSystemState authorise_Handler(void)
 	start_timer(timeout_picknozzle);
 
 //initialise the fuel and price variables
- price  = 0.0;
- amt = 0.0;
+	 price  = 0.0;
+	 amt = 0.0;
+
+	amt_middle1_tmin3 = 0.0;
+	amt_middle1_tmin2 = 0.0;
+	amt_middle1_tmin1 = 0.0;
+	amt_middle1 = 0.0;
+
+	amt_real1_tmin3 = 0.0;
+	amt_real1_tmin2 = 0.0;
+	amt_real1_tmin1 = 0.0;
+	amt_real1 = 0.0;
 
 
- target_pulser1 = 0;  //state is coming from nozzleup ,no price/amt set
 
- pump_status_1 = STATUS_AUTH;
- status_change_pump1 = 1;
 
- clr_pulser1();    //clear hardware pulser
- current_pulser1 = 0;
- overall_currentPulser1 = 0;
+	 target_pulser1 = 0;  //state is coming from nozzleup ,no price/amt set
+
+	 pump_status_1 = STATUS_AUTH;
+	 status_change_pump1 = 1;
+
+	 clr_pulser1();    //clear hardware pulser
+	 current_pulser1 = 0;
+	 overall_currentPulser1 = 0;
 
 // int cnv = 0;
 // snprintf(str_, sizeof(str_), "%.2f", price); lcd_print_line1(str_);
@@ -7429,7 +7448,17 @@ eSystemState idleState_Handler(void)
 
 	int pulser_diff = 0;
 
-//	display_overflow1 = 1;
+	//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
+	//======================= AUTOMATED SALES TEST ==========================//
+
+	if(firstTime_idleState1 == 1)
+	{
+		autoSale_timer1 = 0;
+		firstTime_idleState1 = 2;
+	}
+
+	//UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
+
 
 	pump1_status_4G = STATUS_IDLE;
 
@@ -8069,6 +8098,16 @@ eSystemState authorised_nozzledown_State_Handler(void)
 	  price  = 0.0;
 	  amt = 0.0;
 
+	  amt_middle1_tmin3 = 0.0;
+	  amt_middle1_tmin2 = 0.0;
+	  amt_middle1_tmin1 = 0.0;
+	  amt_middle1 = 0.0;
+
+	  amt_real1_tmin3 = 0.0;
+	  amt_real1_tmin2 = 0.0;
+	  amt_real1_tmin1 = 0.0;
+	  amt_real1 = 0.0;
+
 	  current_pulser1 = 0;
 	  overall_currentPulser1 = 0;
 
@@ -8292,13 +8331,77 @@ eSystemState authorised_nozzleup_State_Handler(void)
 	 }
 	 else if(opmode == MANUAL_MODE)
 	 {
-		 if(index_ >= 1)
-		 {
-			  key_value = strtof(keyboard_entry, &endPtr);
+//		 if(index_ >= 1)
+//		 {
+//			  key_value = strtof(keyboard_entry, &endPtr);
+//
+//			  half_litre1 = (0.5 * litre_price1);
 
-			  half_litre1 = (0.5 * litre_price1);
+		  //initialise the fuel and price variables
+		  //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
+		  //======================= AUTOMATED SALES TEST ==========================//
 
-			  //initialise the fuel and price variables
+		  index_ = 1;
+		  firstTime_idleState1 = 1;
+
+		  //UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
+
+
+		  if (index_ >= 1)
+		  {
+				key_value = strtof(keyboard_entry, &endPtr);
+	//					key_value = strtod(keyboard_entry, NULL);
+
+				//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
+				//======================= AUTOMATED SALES TEST ==========================//
+
+				uint16_t tk_int_;
+				uint32_t tk_int;
+				uint64_t tk_;
+
+				static uint8_t salemode = 0;
+
+				if(salemode == 0)
+					salemode = 1;
+				else
+					salemode = 0;
+
+				generate_4Rand :
+
+					HAL_RNG_GenerateRandomNumber(&hrng, &tk_int);
+
+					if(salemode == 1)
+					{
+						tk_int_ = (uint16_t)tk_int;
+
+						if( (tk_int_ < 10) || (tk_int_ > 100) )
+						{
+							goto generate_4Rand;
+						}
+
+						key_value = (float)tk_int_ / 10;
+
+	//							key_value = 1.0;
+
+						sellmode = L;
+					}
+					else if(salemode == 0)
+					{
+						if( (tk_int < 1000) || (tk_int > 10000) )
+						{
+							goto generate_4Rand;
+						}
+
+						key_value = (float)tk_int / 10;
+
+	//							key_value = 1050.0;
+
+						sellmode = P;
+					}
+
+				//UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
+
+
 
 				if (sellmode == P)
 				{
@@ -8458,10 +8561,70 @@ eSystemState authorised_nozzleup_State_Handler(void)
 			  change_v1 = 0;      //reset tbe flag.
 			  index_ = strlen(keyboard_entry);
 
+
+			  //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
+			  //======================= AUTOMATED SALES TEST ==========================//
+
+			  index_ = 1;
+			  firstTime_idleState1 = 1;
+
+			  //UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
+
+
 			  if (index_ >= 1)
 			  {
 					key_value = strtof(keyboard_entry, &endPtr);
 //					key_value = strtod(keyboard_entry, NULL);
+
+					//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
+				    //======================= AUTOMATED SALES TEST ==========================//
+
+					uint16_t tk_int_;
+					uint32_t tk_int;
+					uint64_t tk_;
+
+					static uint8_t salemode = 0;
+
+					if(salemode == 0)
+						salemode = 1;
+					else
+						salemode = 0;
+
+					generate_4Rand1 :
+
+						HAL_RNG_GenerateRandomNumber(&hrng, &tk_int);
+
+						if(salemode == 1)
+						{
+							tk_int_ = (uint16_t)tk_int;
+
+							if( (tk_int_ < 10) || (tk_int_ > 100) )
+							{
+								goto generate_4Rand1;
+							}
+
+							key_value = (float)tk_int_ / 10;
+
+//							key_value = 1.0;
+
+							sellmode = L;
+						}
+						else if(salemode == 0)
+						{
+							if( (tk_int < 1000) || (tk_int > 10000) )
+							{
+								goto generate_4Rand;
+							}
+
+							key_value = (float)tk_int / 10;
+
+//							key_value = 1050.0;
+
+							sellmode = P;
+						}
+
+					//UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
+
 
 				  	if (sellmode == P)
 					{
@@ -8537,6 +8700,16 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 	  	  price  = 0.0;
 		  amt  = 0.0;
+
+		  amt_middle1_tmin3 = 0.0;
+		  amt_middle1_tmin2 = 0.0;
+		  amt_middle1_tmin1 = 0.0;
+		  amt_middle1 = 0.0;
+
+		  amt_real1_tmin3 = 0.0;
+		  amt_real1_tmin2 = 0.0;
+		  amt_real1_tmin1 = 0.0;
+		  amt_real1 = 0.0;
 
 		  if (key_value == 0)
 		  {
@@ -8886,10 +9059,10 @@ eSystemState filling_State_Handler(void)
 			  get_time();
 			  do_calcs();
 			  update_info();
-			  save_volumeTotaliser(operating_side);
-			  save_amountTotaliser(operating_side);
-//			  save_lastSale(operating_side);
+			  save_totaliser_fram(operating_side);
+			  save_totaliser_eeprom(operating_side);
 			  save_lastSale_fram(operating_side);
+			  save_lastSale_eeprom(operating_side);
 
 			  if(settings_stream1[0].mode == AUTO_MODE)
 			  {

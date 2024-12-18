@@ -685,6 +685,8 @@ static void MX_ADC1_Init(void)
 
 }
 
+
+
 /**
   * @brief I2C1 Initialization Function
   * @param None

@@ -40,7 +40,7 @@ extern "C" {
 
 	  #define PRODUCT_TYPE _DPK
 
-      #define DEV_MODE
+//      #define DEV_MODE
 
 	  #define OTP_ENABLE
 
@@ -106,8 +106,8 @@ extern "C" {
 #define VOL_SUPPRESSED 				12
 #define VALIDKEYPRESS_THRESHOLD		3
 
-#define OK                          1
-#define FAIL                        0
+#define OK                          0
+#define FAIL                        1
 
 /***********************************************************************/
 #define DEBOUNCE_TIME_MS 5  //10  //20 // Debounce period in milliseconds

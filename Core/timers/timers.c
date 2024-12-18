@@ -53,6 +53,9 @@ extern uint32_t transaction_period,
 uint32_t millis = 0;
 uint16_t timer_go = 0;
 
+uint16_t autoSale_timer1 = 0,
+		 autoSale_timer2 = 0;
+
 
 //=====================================================
 void dec_var()
@@ -101,6 +104,9 @@ void dec_var()
 		if(transaction_period2 > 4294967294) transaction_period2 = 0;
 
 		timer_go++;
+
+		autoSale_timer1++;
+		autoSale_timer2++;
 
 	}
 //------------------------------------------------------

@@ -38,6 +38,8 @@
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim5;
 
+extern RNG_HandleTypeDef hrng;
+
 extern SPI_HandleTypeDef _W25QXX_SPI;
 #define W25qxx_Delay(delay) HAL_Delay(delay)
 //===========================================
@@ -171,7 +173,12 @@ extern  int16_t _tt2,
 				timer_config2,
 				key19Timer2;
 
+extern uint16_t autoSale_timer1,
+		 	 	autoSale_timer2;
+
 extern uint32_t transaction_period2;
+
+uint8_t firstTime_idleState2 = 1;
 
 //extern float target_pulser1 , current_pulser1 ;
 extern sellmode_ sellmode2; //int sellmode2 ;
@@ -397,11 +404,15 @@ uint8_t volume_flag2 = 0,
 
 float original_pulse2 = 0;
 
-float price_real2,amt_real2 = 0.0;
-float amt_2,price_2;
+float price_real2,
+	  amt_real2 = 0.0;
+float amt_2,
+	  price_2;
 
-extern float price_real1,amt_real1;
-extern float amt_,price_;
+extern float price_real1,
+			 amt_real1;
+extern float amt_,
+			 price_;
 
 extern uint32_t pulser_new2;
 uint8_t filling2 = 0;
@@ -5929,7 +5940,7 @@ eSystemState progState_Handler2(void)
 
 eSystemState idleState_Handler2(void)
 {
-	static int  printer_status;
+	static int printer_status;
 
 	static int8_t idleState_flag = 1;
 
@@ -5939,6 +5950,19 @@ eSystemState idleState_Handler2(void)
 	uint16_t gerCtTime;
 
 	int pulser_diff = 0;
+
+
+	//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
+	//======================= AUTOMATED SALES TEST ==========================//
+
+	if(firstTime_idleState2 == 1)
+	{
+		autoSale_timer2 = 0;
+		firstTime_idleState2 = 2;
+	}
+
+	//UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
+
 
 	pump2_status_4G = STATUS_IDLE;
 
@@ -6838,14 +6862,75 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 			  change_v2 = 0;      //reset tbe flag.
 			  index_2 = strlen(keyboard_entry2);
 
+			  //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
+			  //======================= AUTOMATED SALES TEST ==========================//
+
+			  index_2 = 1;
+			  firstTime_idleState2 = 1;
+
+			  //UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
+
+
 			  if (index_2 >= 1)
 			  {
 					key_value2 = strtof(keyboard_entry2, &endPtr);
+//					key_value = strtod(keyboard_entry, NULL);
 
-//					if(strchr(keyboard_entry2, '.'))
-//					{
-//						key_value2 += 0.00011;
-//					}
+					//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
+				    //======================= AUTOMATED SALES TEST ==========================//
+
+					uint16_t tk_int_;
+					uint32_t tk_int;
+					uint64_t tk_;
+
+					static uint8_t salemode = 0;
+
+					if(salemode == 0)
+						salemode = 1;
+					else
+						salemode = 0;
+
+					generate_4Rand :
+
+						HAL_RNG_GenerateRandomNumber(&hrng, &tk_int);
+
+//						salemode = 1;
+
+						if(salemode == 1)
+						{
+							tk_int_ = (uint16_t)tk_int;
+
+							if( (tk_int_ < 10) || (tk_int_ > 100) )
+							{
+								goto generate_4Rand;
+							}
+
+							key_value2 = (float)tk_int_ / 10;
+
+//							key_value2 = 1.00;
+
+							sellmode2 = L;
+						}
+						else if(salemode == 0)
+						{
+							if( (tk_int < 1000) || (tk_int > 10000) )
+							{
+								goto generate_4Rand;
+							}
+
+							key_value2 = (float)tk_int / 10;
+
+//							key_value2 = 1050.00;
+
+							sellmode2 = P;
+						}
+
+					//UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
+
+
+//			  if (index_2 >= 1)
+//			  {
+//					key_value2 = strtof(keyboard_entry2, &endPtr);
 
 					if (sellmode2 == P)
 					{
@@ -6922,6 +7007,16 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 
 	      price2  = 0.0;
 		  amt2  = 0.0;
+
+		  amt_middle2_tmin3 = 0.0;
+		  amt_middle2_tmin2 = 0.0;
+		  amt_middle2_tmin1 = 0.0;
+		  amt_middle2 = 0.0;
+
+		  amt_real2_tmin3 = 0.0;
+		  amt_real2_tmin2 = 0.0;
+		  amt_real2_tmin1 = 0.0;
+		  amt_real2 = 0.0;
 
 		  if (key_value2 == 0)
 		  {
@@ -7164,9 +7259,10 @@ eSystemState filling_State_Handler2(void)
 			  get_time();
 			  do_calcs2();
 			  update_info();
-			  save_volumeTotaliser(operating_side);
-			  save_amountTotaliser(operating_side);
-			  save_lastSale(operating_side);
+			  save_totaliser_fram(operating_side);
+			  save_totaliser_eeprom(operating_side);
+			  save_lastSale_fram(operating_side);
+			  save_lastSale_eeprom(operating_side);
 
 
 			  if(settings_stream1[1].mode == AUTO_MODE)
@@ -7193,9 +7289,10 @@ eSystemState filling_State_Handler2(void)
 			  get_time();
 			  do_calcs2();
 			  update_info();
-			  save_volumeTotaliser(operating_side);
-			  save_amountTotaliser(operating_side);
-			  save_lastSale(operating_side);
+			  save_totaliser_fram(operating_side);
+			  save_totaliser_eeprom(operating_side);
+			  save_lastSale_fram(operating_side);
+			  save_lastSale_eeprom(operating_side);
 
 			  if(settings_stream1[1].mode == AUTO_MODE)
 			  {
@@ -7220,9 +7317,10 @@ eSystemState filling_State_Handler2(void)
 		  get_time();
 		  do_calcs2();
 		  update_info();
-		  save_volumeTotaliser(operating_side);
-		  save_amountTotaliser(operating_side);
-		  save_lastSale(operating_side);
+		  save_totaliser_fram(operating_side);
+		  save_totaliser_eeprom(operating_side);
+		  save_lastSale_fram(operating_side);
+		  save_lastSale_eeprom(operating_side);
 
 		  if(settings_stream1[1].mode == AUTO_MODE)
 		  {
@@ -7981,6 +8079,16 @@ eSystemState authorise_Handler2(void)
  price2  = 0.0;
  amt2 = 0.0;
 
+  amt_middle2_tmin3 = 0.0;
+  amt_middle2_tmin2 = 0.0;
+  amt_middle2_tmin1 = 0.0;
+  amt_middle2 = 0.0;
+
+  amt_real2_tmin3 = 0.0;
+  amt_real2_tmin2 = 0.0;
+  amt_real2_tmin1 = 0.0;
+  amt_real2 = 0.0;
+
  target_pulser2 = 0;  //state is coming from nozzleup ,no price/amt set
 
  pump_status_2 = STATUS_AUTH;
@@ -8032,6 +8140,16 @@ eSystemState authorised_nozzledown_State_Handler2(void)
 
 	  price2  = 0.0;
 	  amt2 = 0.0;
+
+	  amt_middle2_tmin3 = 0.0;
+	  amt_middle2_tmin2 = 0.0;
+	  amt_middle2_tmin1 = 0.0;
+	  amt_middle2 = 0.0;
+
+	  amt_real2_tmin3 = 0.0;
+	  amt_real2_tmin2 = 0.0;
+	  amt_real2_tmin1 = 0.0;
+	  amt_real2 = 0.0;
 
 	  current_pulser2 = 0;
 
@@ -9375,7 +9493,6 @@ if(
 
 eSystemState keypad_entry_State_Handler2(void)
 {
-
     return  ePrevState2; //
 	//return keypad_entry_State;
 }

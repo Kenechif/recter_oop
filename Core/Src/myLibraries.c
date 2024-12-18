@@ -126,7 +126,7 @@ float battery_read(void)
 
 float battery_sense(void)
 {
-	uint16_t digital_reading;
+	static uint16_t digital_reading;
 	float batt_v;
 
 	static uint8_t firstTime_battSense = 1;

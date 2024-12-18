@@ -268,6 +268,9 @@ uint32_t transaction_period = 0,
 unsigned int ttt1 = 0,
 			 ttt2 = 0;
 
+extern uint16_t autoSale_timer1,
+		 	 	autoSale_timer2;
+
 uint8_t server_message_found = 0,
 	    card1_message_found = 0,
 	    card2_message_found = 0;
@@ -2308,7 +2311,7 @@ skip_test:
 //	settings_stream2[0].startUp_suppressVol = 0.12;
 //	settings_stream2[1].startUp_suppressVol = 0.12;
 
-//    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
+    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
 //    settings_stream1[0].mode = AUTO_MODE;    //AUTO_MODE;
 //
 //    settings_stream1[0].noz = nooverride;  //nooveride
@@ -2376,7 +2379,7 @@ skip_test:
 //    retrieve_lastSale(side_b);
 
 
-    while(!retrieve_totaliser_fram(side_a))   //If it fails, retry 5X
+    while(retrieve_totaliser_fram(side_a) != OK)   //If it fails, retry 5X
     {
     	static uint8_t try = 0;
     	if(try++ >= 5)
@@ -2386,7 +2389,7 @@ skip_test:
     	}
     }
 
-    while(!retrieve_totaliser_fram(side_b))   //If it fails, retry 5X
+    while(retrieve_totaliser_fram(side_b) != OK)   //If it fails, retry 5X
     {
 		static uint8_t try = 0;
 		if(try++ >= 5)
@@ -2399,7 +2402,7 @@ skip_test:
 //    retrieve_amountTotaliser_fram(side_a);
 //    retrieve_amountTotaliser_fram(side_b);
 
-    while(!retrieve_lastSale_fram(side_a))   //If it fails, retry 5X
+    while(retrieve_lastSale_fram(side_a) != OK)   //If it fails, retry 5X
     {
 		static uint8_t try = 0;
 		if(try++ >= 5)
@@ -2408,7 +2411,7 @@ skip_test:
 			break;
 		}
     }
-    while(!retrieve_lastSale_fram(side_b))   //If it fails, retry 5X
+    while(retrieve_lastSale_fram(side_b) != OK)   //If it fails, retry 5X
     {
     	static uint8_t try = 0;
     	if(try++ >= 5)
@@ -2689,17 +2692,17 @@ skip_test:
 //
 //	    uint8_t number1 = 0;
 ////	    HAL_UART_Transmit (&huart2, "Hello", 5, 1000);
-   //flash_beginB => 0x400000 --> 4,194,304 pg16,384
-   ////
-//flash_beginB;  //flash_endB => 0x7FFFFF --> 8,388,607 pg32767.996
-////		for(int i = FLASH_BEGINPAGE_SIDEB; ( (i >= FLASH_BEGINPAGE_SIDEB) && (i <= FLASH_ENDPAGE_SIDEB) ); i+=256)
+////   flash_beginB => 0x400000 --> 4,194,304 pg16,384
+//   //
+////flash_beginB;  //flash_endB => 0x7FFFFF --> 8,388,607 pg32767.996
+//		for(int i = FLASH_BEGINPAGE_SIDEB; ( (i >= FLASH_BEGINPAGE_SIDEB) && (i <= FLASH_ENDPAGE_SIDEB) ); i+=256)
 ////		{
-//		for(int i = 4194816; ( (i <= FLASH_ENDPAGE_SIDEB) ); i+=256)
+////		for(int i = 4194816; ( (i <= FLASH_ENDPAGE_SIDEB) ); i+=256)
 //		{
 //			pg = i/w25qxx.PageSize;
 //			W25qxx_ReadPage(&log_b_new,  pg, 0, sizeof(log_b_new) );
 //
-//			if( (isnan(log_b_new.pr_)) || (log_b_new.litre_price_ < 1000) )
+//			if( (isnan(log_b_new.pr_)) || (log_b_new.litre_price_ < 100) )
 //			{
 //				;
 //			}
@@ -3292,6 +3295,26 @@ int  read_event2()
 
 	          nozzle_flag2 = readNozzle2();
 
+	          //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
+			  //======================= AUTOMATED SALES TEST ==========================//
+	          if(settings_stream1[1].mode == AUTO_MODE)
+	          {
+	        	  if(eNextState2 != idle_State)
+	        	  {
+	        		  autoSale_timer2 = 0;
+	        	  }
+	        	  if( (autoSale_timer2 >= 5000) && (eNextState2 == idle_State) )
+				  {
+//					  nozzle_flag2 = 1;
+//					  nozzle_flag_old2 = 0;
+					  nozzle_flag_key2 = 1;
+//					  nozzle_flag_key_old2 = 0;
+					  autoSale_timer2 = 0;
+				  }
+	          }
+
+			  //UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
+
    			  keypress_2 = keynew2;  //key flag is also set...
 
 #ifndef DEV_MODE
@@ -3502,7 +3525,10 @@ int  read_event2()
 			   }
 		   }
 
-	   // nozzle up  event capture...
+		//HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH//
+		//======================== NOZZLE-UP EVENT ============================//
+
+	    // nozzle up  event capture...
 		   if( ((nozzle_flag_old2 == 0) && (nozzle_flag2 == 1)) ||
 			 ((nozzle_flag_key_old2 == 0) && (nozzle_flag_key2 == 1)) )
 		   {
@@ -3554,8 +3580,14 @@ int  read_event2()
 //				}
 		   }
 
-	  //---------------------------------------------------------------------------
-	  // nozzle down  event capture...
+	   //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH//
+
+
+	   //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH//
+	   //=========================== NOZZLE-DOWN EVENT ============================//
+	   //--------------------------------------------------------------------------//
+
+	   // nozzle down  event capture...
 		   else if( ((nozzle_flag_old2 == 1) && (nozzle_flag2 == 0))  ||
 				   ((nozzle_flag_key_old2 == 1) && (nozzle_flag_key2 == 0)) )
 		   {
@@ -3601,6 +3633,9 @@ int  read_event2()
    //		 if (override_ != override)
 			  return _nozzledown_Event;
 		   }
+
+	   //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH//
+
 		//	nozzle_flag_old = nozzle_flag;
 	  //--------------------------------------------------
 
@@ -4033,6 +4068,24 @@ uint8_t read_event1_1(void)
 
 	  nozzle_flag = readNozzle1();
 
+
+	  //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
+	  //======================= AUTOMATED SALES TEST ==========================//
+	  if(settings_stream1[0].mode == AUTO_MODE)
+	  {
+//		  if(eNextState1 != idle_State)
+//		  {
+//			  autoSale_timer1 = 0;
+//		  }
+//		  if( (autoSale_timer1 >= 7000) && (eNextState1 == idle_State) )
+//		  {
+//			  nozzle_flag_key1 = 1;
+//			  autoSale_timer1 = 0;
+//		  }
+	  }
+
+	  //UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
+
 	  keypress_ = keynew;  //key flag is also set...
 
 #ifndef DEV_MODE
@@ -4253,6 +4306,9 @@ uint8_t read_event1_1(void)
 //				return _nozzledown_Event;
 //	   }
 
+	   //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH//
+	   //======================== NOZZLE-UP EVENT ============================//
+
 	   if( ((nozzle_flag_old == 0) && (nozzle_flag == 1)) ||
 	   	 ((nozzle_flag_key_old1 == 0) && (nozzle_flag_key1 == 1)) )
 	   {
@@ -4304,7 +4360,12 @@ uint8_t read_event1_1(void)
 	   //
 	   //			}
 	   		}
-	   	  //-----------------------
+	   //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH//
+
+
+	   //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH//
+	   //=========================== NOZZLE-DOWN EVENT ============================//
+	   //--------------------------------------------------------------------------//
 	   	  // nozzle down  event capture...
 	   	   else if( ((nozzle_flag_old == 1) && (nozzle_flag == 0))  ||
 	   			   ((nozzle_flag_key_old1 == 1) && (nozzle_flag_key1 == 0)) )
@@ -4351,6 +4412,7 @@ uint8_t read_event1_1(void)
 	   //			if (override_ != override)
 	   				return _nozzledown_Event;
 	   	   }
+	   //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH//
 		//	nozzle_flag_old = nozzle_flag;
 	  //--------------------------------------------------
 	  //--------------------------------------------------

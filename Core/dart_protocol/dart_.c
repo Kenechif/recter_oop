@@ -433,7 +433,16 @@ void parse_decode(void)
 
 										price_updatee = bcdArray_to_int(price_update, 3);
 
-										price_update1 = (price_updatee * 0.1);
+//										price_update1 = (price_updatee * 0.1);
+
+										switch(dp_unitprice1)
+										{
+											case 0	: { price_update1 = (price_updatee * 1); break; }
+											case 1	: { price_update1 = (price_updatee * 0.1); break; }
+											case 2	: { price_update1 = (price_updatee * 0.01); break; }
+											case 3	: { price_update1 = (price_updatee * 0.001); break; }
+											default	: { break; }
+										}
 
 										resp = DATA_PRICE_UPDATE;
 										ack_send = true;
@@ -1132,7 +1141,16 @@ void parse_decode2(void)
 
 										price_updatee = bcdArray_to_int(price_update, 3);
 
-										price_update2 = (price_updatee * 0.1);
+//										price_update2 = (price_updatee * 0.1);
+
+										switch(dp_unitprice2)
+										{
+											case 0	: { price_update2 = (price_updatee * 1); break; }
+											case 1	: { price_update2 = (price_updatee * 0.1); break; }
+											case 2	: { price_update2 = (price_updatee * 0.01); break; }
+											case 3	: { price_update2 = (price_updatee * 0.001); break; }
+											default	: { break; }
+										}
 
 										resp2 = DATA_PRICE_UPDATE;
 										ack_send2 = true;
