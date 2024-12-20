@@ -1347,7 +1347,9 @@ void compose_printer()
 
 //	HAL_UART_Receive_IT(&huart2, uart2_rx_buf, pump_rx_bufsize);    //server-communication
 
-	HAL_UART_Receive_IT(&huart3, uart3_rx_buf, pump_rx_bufsize);    //printer1
+//	HAL_UART_Receive_IT(&huart3, uart3_rx_buf, pump_rx_bufsize);    //printer1
+	HAL_UART_Receive_IT(&huart3, rxBuffer, 1);
+	HAL_UART_Transmit(&huart3, "Hello, I'm Usart-3!\r\n", 21, HAL_MAX_DELAY);
 
 	HAL_UART_Receive_IT(&huart5, uart5_rx_buf, pump_rx_bufsize);    //printer2
 
@@ -1869,10 +1871,10 @@ tmmm:
 	 settings_stream1[0].noz_addr = 0x01;
 	 settings_stream1[1].noz_addr = 0x02;
 
-	 settings_stream1[0].pi_real = 797.15;   //798.1;  //407.3;   //399.25;   //798.35;
-	 settings_stream1[0].pi_cal = 797.15;  //767.40;  //391.64;   //383.89;  //760.33;
-	 settings_stream1[1].pi_real = 799.8;    //799.25;  //399.25;   //798.35;
-	 settings_stream1[1].pi_cal = 799.8;   //768.51;   //383.89;  //760.33;
+	 settings_stream1[0].pi_real = 805.75;  //797.15;   //798.1;  //407.3;   //399.25;   //798.35;
+	 settings_stream1[0].pi_cal = 786.10;   //797.15;  //767.40;  //391.64;   //383.89;  //760.33;
+	 settings_stream1[1].pi_real = 800.00;  //799.8;    //799.25;  //399.25;   //798.35;
+	 settings_stream1[1].pi_cal = 780.88;   //799.8;   //768.51;   //383.89;  //760.33;
 
 //		Pulser_count1 = 15962 20|0.8|0.0
 //		Pulser_count2 = 15985 20|0.8|0.0
@@ -1880,10 +1882,10 @@ tmmm:
 //4650
 	 vol_real1 = 20;
 	 vol_real2 = 20;
-	 vol_calibrated1 = 20;  //20.8;   //21.0;
-	 vol_calibrated2 = 20;  //20.8;
-	 vol_effective1 = 20;   //20.8;    //21.0;
-	 vol_effective2 = 20;   //20.8;
+	 vol_calibrated1 = 20.5;  //20.8;   //21.0;
+	 vol_calibrated2 = 20.5;  //20.8;
+	 vol_effective1 = 20.5;   //20.8;    //21.0;
+	 vol_effective2 = 20.5;   //20.8;
 
 	 calib_pulser1 =  (settings_stream1[0].pi_cal * vol_calibrated1);
 	 calib_pulser2 =  (settings_stream1[1].pi_cal * vol_calibrated2);
@@ -1915,11 +1917,13 @@ tmmm:
 	 save_calibrationPulser_fram(side_a);
 	 save_calibrationPulser_fram(side_b);
 
-	 calibration_flag1 = UNCALIBRATED;
+//	 calibration_flag1 = UNCALIBRATED;
+	 calibration_flag1 = CALIBRATED;
 //		 save_calibrationFlag(side_a);
 	 save_calibrationFlag_fram(side_a);
 
-	 calibration_flag2 = UNCALIBRATED;
+//	 calibration_flag2 = UNCALIBRATED;
+	 calibration_flag2 = CALIBRATED;
 //		 save_calibrationFlag(side_b);
 	 save_calibrationFlag_fram(side_b);
 
@@ -2311,7 +2315,7 @@ skip_test:
 //	settings_stream2[0].startUp_suppressVol = 0.12;
 //	settings_stream2[1].startUp_suppressVol = 0.12;
 
-    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
+//    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
 //    settings_stream1[0].mode = AUTO_MODE;    //AUTO_MODE;
 //
 //    settings_stream1[0].noz = nooverride;  //nooveride
@@ -2384,6 +2388,7 @@ skip_test:
     	static uint8_t try = 0;
     	if(try++ >= 5)
     	{
+    		try = 0;
     		retrieve_totaliser_eeprom(side_a);
     		break;
     	}
@@ -2395,6 +2400,7 @@ skip_test:
 		if(try++ >= 5)
 		{
 			retrieve_totaliser_eeprom(side_b);
+			try = 0;
 			break;
 		}
     }
@@ -2407,7 +2413,8 @@ skip_test:
 		static uint8_t try = 0;
 		if(try++ >= 5)
 		{
-			retrieve_totaliser_eeprom(side_a);
+			retrieve_lastSale_eeprom(side_a);
+			try = 0;
 			break;
 		}
     }
@@ -2416,18 +2423,35 @@ skip_test:
     	static uint8_t try = 0;
     	if(try++ >= 5)
     	{
-    		retrieve_totaliser_eeprom(side_b);
+    		retrieve_lastSale_eeprom(side_b);
+    		try = 0;
     		break;
     	}
     }
 
 //    uint8_t sz = sizeof(totaliser_storeA);
 //
-//	totaliser_storeA.totaliserVol_cal = 80;
-//	totaliser_storeA.totaliserVol_real = 80;
-//	totaliser_storeA.totaliserAmount_cal = totaliser_amt1c;
-//	totaliser_storeA.totaliserAmount_real = totaliser_amt1;
-//	FRAM_Write(208, &totaliser_storeA, sz);
+    //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH//
+    //==============================================//
+
+//    totaliser_vol1c = 161.69;
+//    totaliser_vol1 = 161.69;
+//    totaliser_amt1c = 0.00;
+//	totaliser_amt1 = 0.00;
+//	save_totaliser_fram(side_a);
+//	save_totaliser_eeprom(side_a);
+//
+//	totaliser_vol2c = 8060.52;
+//	totaliser_vol2 = 8060.52;
+//	totaliser_amt2c = 0.00;
+//    totaliser_amt2 = 0.00;
+//	save_totaliser_fram(side_b);
+//	save_totaliser_eeprom(side_b);
+
+	//VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//
+
+
+
 
 //    retrieve_totalTransaction_sides(side_a);
 //    retrieve_totalTransaction_sides(side_b);
@@ -3299,18 +3323,18 @@ int  read_event2()
 			  //======================= AUTOMATED SALES TEST ==========================//
 	          if(settings_stream1[1].mode == AUTO_MODE)
 	          {
-	        	  if(eNextState2 != idle_State)
-	        	  {
-	        		  autoSale_timer2 = 0;
-	        	  }
-	        	  if( (autoSale_timer2 >= 5000) && (eNextState2 == idle_State) )
-				  {
-//					  nozzle_flag2 = 1;
-//					  nozzle_flag_old2 = 0;
-					  nozzle_flag_key2 = 1;
-//					  nozzle_flag_key_old2 = 0;
-					  autoSale_timer2 = 0;
-				  }
+//	        	  if(eNextState2 != idle_State)
+//	        	  {
+//	        		  autoSale_timer2 = 0;
+//	        	  }
+//	        	  if( (autoSale_timer2 >= 5000) && (eNextState2 == idle_State) )
+//				  {
+////					  nozzle_flag2 = 1;
+////					  nozzle_flag_old2 = 0;
+//					  nozzle_flag_key2 = 1;
+////					  nozzle_flag_key_old2 = 0;
+//					  autoSale_timer2 = 0;
+//				  }
 	          }
 
 			  //UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//

@@ -20,6 +20,9 @@ uint32_t otp_codeInt1;
 
 extern const int max_events_per_state ;
 
+extern UART_HandleTypeDef huart3;
+extern UART_HandleTypeDef huart5;
+
 //typedef enum
 //{
 //	prog_State,
@@ -279,8 +282,8 @@ enum
 //"Sides No", "Start CL", "Calib.Can", "Shift No"};
 //"Calib.typ"
 
-float price_real1, amt_real1;
-float amt_, price_;
+//float price_real1, amt_real1;
+//float amt_, price_;
 
 //static bool mth_success = false,
 //			clock_save = false;

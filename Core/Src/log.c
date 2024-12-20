@@ -140,7 +140,13 @@ extern totaliser_store totaliser_vol_storeA,
 						otaliser_amt_storeA,
 						totaliser_amt_storeB;
 
-extern uint8_t hour,minute,second,day,month,year,dayofweek;
+extern uint8_t hour,
+			   minute,
+			   second,
+			   day,
+			   month,
+			   year,
+			   dayofweek;
 
 extern time_ timeA, timeB;
 extern date_ dateA, dateB;

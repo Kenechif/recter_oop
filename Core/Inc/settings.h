@@ -29,6 +29,8 @@ extern "C" {
 
 #define randnum(min, max) \ ((rand() % (int)(((max) + 1) - (min))) + (min))
 
+#define CCRAM __attribute__((section(".ccmram")))
+
 
 #define _PMS      					1
 #define _AGO      					2
@@ -38,9 +40,11 @@ extern "C" {
 
 //:::::::::::::::::::::::::::::::::::::::::::://
 
+	  #define DEBUG 1
+
 	  #define PRODUCT_TYPE _DPK
 
-//      #define DEV_MODE
+      #define DEV_MODE
 
 	  #define OTP_ENABLE
 
@@ -113,6 +117,8 @@ extern "C" {
 #define DEBOUNCE_TIME_MS 5  //10  //20 // Debounce period in milliseconds
 #define DEBOUNCE_DELAY DEBOUNCE_TIME_MS
 #define LONG_PRESS_DELAY 500  // Long press delay
+
+#define RX_BUFFER_SIZE 100
 
 //typedef enum {
 //    IDLE,
@@ -426,9 +432,9 @@ typedef struct
 
  typedef struct
  {
-	 uint8_t original;   //1
-	 float base;         //1 + 4 => 5
-	 float effective;    //5 + 4 => 9
+	 uint16_t original;   //2
+	 float base;          //2 + 4 => 6
+	 float effective;     //6 + 4 => 10
  }ct_settings;
 
  typedef struct
@@ -1074,13 +1080,12 @@ extern char upper1[10],
  uint8_t keyEntry_len,
  	 	keyEntry2_len;
 
-uint8_t vol_real1,
-	    vol_real2,
-		ctTimed_flag1,
+
+uint8_t ctTimed_flag1,
 		ctTimed_flag2;
 
-//uint16_t vol_real1,
-//	     vol_real2;
+uint16_t vol_real1,
+	     vol_real2;
 
 int startTime1,
 	startTime2,
@@ -1145,62 +1150,62 @@ uint16_t otp_seed1,
 		 otp_seed2;
 
 
-float running_volTotaliser1_tmin1,
-	  running_volTotaliser1_tmin2,
-	  running_volTotaliser1_tmin3,
-	  running_volTotaliser1c_tmin1,
-	  running_volTotaliser1c_tmin2,
-	  running_volTotaliser1c_tmin3;
-
-float running_volTotaliser2_tmin1,
-	  running_volTotaliser2_tmin2,
-	  running_volTotaliser2_tmin3,
-	  running_volTotaliser2c_tmin1,
-	  running_volTotaliser2c_tmin2,
-	  running_volTotaliser2c_tmin3;
-
-float running_amtTotaliser1_tmin1,
-	 running_amtTotaliser1_tmin2,
-	 running_amtTotaliser1_tmin3,
-	 running_amtTotaliser1c_tmin1,
-	 running_amtTotaliser1c_tmin2,
-	 running_amtTotaliser1c_tmin3;
-
-float running_amtTotaliser2_tmin1,
-	 running_amtTotaliser2_tmin2,
-	 running_amtTotaliser2_tmin3,
-	 running_amtTotaliser2c_tmin1,
-	 running_amtTotaliser2c_tmin2,
-	 running_amtTotaliser2c_tmin3;
-
-float running_volTotaliser1_array[4],
-	  running_volTotaliser1c_array[4],
-	  running_volTotaliser2_array[4],
-	  running_volTotaliser2c_array[4];
-
-float running_amtTotaliser1_array[4],
-	  running_amtTotaliser1c_array[4],
-	  running_amtTotaliser2_array[4],
-	  running_amtTotaliser2c_array[4];
-
-float amt_middle1_tmin1,
-	 amt_middle1_tmin2,
-	 amt_middle1_tmin3,
-	 amt_middle2_tmin1,
-	 amt_middle2_tmin2,
-	 amt_middle2_tmin3;
-
-float amt_real1_tmin1,
-	 amt_real1_tmin2,
-	 amt_real1_tmin3,
-	 amt_real2_tmin1,
-	 amt_real2_tmin2,
-	 amt_real2_tmin3;
-
-float amt_real1_array[4],
-	 amt_middle1_array[4],
-	 amt_real2_array[4],
-	 amt_middle2_array[4];
+//float running_volTotaliser1_tmin1,
+//	  running_volTotaliser1_tmin2,
+//	  running_volTotaliser1_tmin3,
+//	  running_volTotaliser1c_tmin1,
+//	  running_volTotaliser1c_tmin2,
+//	  running_volTotaliser1c_tmin3;
+//
+//float running_volTotaliser2_tmin1,
+//	  running_volTotaliser2_tmin2,
+//	  running_volTotaliser2_tmin3,
+//	  running_volTotaliser2c_tmin1,
+//	  running_volTotaliser2c_tmin2,
+//	  running_volTotaliser2c_tmin3;
+//
+//float running_amtTotaliser1_tmin1,
+//	 running_amtTotaliser1_tmin2,
+//	 running_amtTotaliser1_tmin3,
+//	 running_amtTotaliser1c_tmin1,
+//	 running_amtTotaliser1c_tmin2,
+//	 running_amtTotaliser1c_tmin3;
+//
+//float running_amtTotaliser2_tmin1,
+//	 running_amtTotaliser2_tmin2,
+//	 running_amtTotaliser2_tmin3,
+//	 running_amtTotaliser2c_tmin1,
+//	 running_amtTotaliser2c_tmin2,
+//	 running_amtTotaliser2c_tmin3;
+//
+//float running_volTotaliser1_array[4],
+//	  running_volTotaliser1c_array[4],
+//	  running_volTotaliser2_array[4],
+//	  running_volTotaliser2c_array[4];
+//
+//float running_amtTotaliser1_array[4],
+//	  running_amtTotaliser1c_array[4],
+//	  running_amtTotaliser2_array[4],
+//	  running_amtTotaliser2c_array[4];
+//
+//float amt_middle1_tmin1,
+//	 amt_middle1_tmin2,
+//	 amt_middle1_tmin3,
+//	 amt_middle2_tmin1,
+//	 amt_middle2_tmin2,
+//	 amt_middle2_tmin3;
+//
+//float amt_real1_tmin1,
+//	 amt_real1_tmin2,
+//	 amt_real1_tmin3,
+//	 amt_real2_tmin1,
+//	 amt_real2_tmin2,
+//	 amt_real2_tmin3;
+//
+//float amt_real1_array[4],
+//	 amt_middle1_array[4],
+//	 amt_real2_array[4],
+//	 amt_middle2_array[4];
 
 //void get_settings();
 
@@ -1226,6 +1231,9 @@ void retrieve_settings_original_fram(pump_sid side);
 void save_totaliser_eeprom(pump_sid side);
 void retrieve_totaliser_eeprom(pump_sid side);
 void clear_totaliser_eeprom(pump_sid side);
+
+uint8_t retrieve_totaliser_fram_check(pump_sid side);
+void retrieve_totaliser_eeprom_check(pump_sid side);
 
 void save_totaliser_fram(pump_sid side);
 uint8_t retrieve_totaliser_fram(pump_sid side);

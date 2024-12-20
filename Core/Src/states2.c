@@ -110,7 +110,7 @@ extern uint8_t online_calibFlag2 = 0;
 extern uint8_t pwr2 = NOPOWERINTERRUPTION;
 
 extern float price_upper2 = 0.000,
-			 amt_middle2 = 0.000;
+			 amt_middle2;
 
 extern uint8_t ep1a_priceChangeFlag2 = 0;
 
@@ -205,8 +205,8 @@ int  keypress_2 = 0;
 int8_t index_2 = 0;
 
 //uint32_t key_value = 0;
-float key_value2 = 0,
-	  key_value_original2 = 0.00;
+float key_value2 CCRAM = 0.0,
+	  key_value_original2 CCRAM = 0.0;
 
 uint8_t key_value_sellmodeP2 = 0,
 		key_value_sellmodeL2 = 0;
@@ -405,8 +405,8 @@ uint8_t volume_flag2 = 0,
 float original_pulse2 = 0;
 
 float price_real2,
-	  amt_real2 = 0.0;
-float amt_2,
+	  amt_real2 CCRAM = 0.0;
+float amt_2 CCRAM = 0.0,
 	  price_2;
 
 extern float price_real1,
@@ -3187,7 +3187,7 @@ eSystemState progState_Handler2(void)
       {
    	   if (t2 >= 500)
    	   {
-   		   printDisp_i2(copy_stream1[pump_indx-1].max_amt_, 1, 0, 4, RT, CLEAR);
+   		   printDisp_i2(copy_stream1[1].max_amt_, 1, 0, 4, RT, CLEAR);
    		   lcd_print_line1_2(keyboard_entry2);
 
 //   		 if (pump_indx == 1)
@@ -3892,6 +3892,18 @@ eSystemState progState_Handler2(void)
     					  totaliser_amt2c += price_real2;
     					  totaliser_amt2 += price_real2;
 
+    					  while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
+    					  {
+    							static uint8_t try = 0;
+    							if(try++ >= 5)
+    							{
+    								retrieve_totaliser_eeprom_check(operating_side);
+    								try = 0;
+    								break;
+    							}
+    					  }
+
+
     					  save_totaliser_fram(operating_side);
     					  save_totaliser_eeprom(operating_side);
 
@@ -3909,6 +3921,17 @@ eSystemState progState_Handler2(void)
     					  totaliser_vol2 += calibrationCan_measure2;
     					  totaliser_amt2c += price_real2;
     					  totaliser_amt2 += price_real2;
+
+    					  while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
+    					  {
+    						  	static uint8_t try = 0;
+    							if(try++ >= 5)
+    							{
+    								retrieve_totaliser_eeprom_check(operating_side);
+    								try = 0;
+    								break;
+    							}
+    					   }
 
     					  save_totaliser_fram(operating_side);
     					  save_totaliser_eeprom(operating_side);
@@ -3964,6 +3987,18 @@ eSystemState progState_Handler2(void)
 							  totaliser_amt2c += price_real2;
 							  totaliser_amt2 += price_real2;
 
+							  while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
+	    					  {
+	    							static uint8_t try = 0;
+	    							if(try++ >= 5)
+	    							{
+	    								retrieve_totaliser_eeprom_check(operating_side);
+	    								try = 0;
+	    								break;
+	    							}
+	    					   }
+
+
 							  save_totaliser_fram(operating_side);
 							  save_totaliser_eeprom(operating_side);
 
@@ -3982,6 +4017,18 @@ eSystemState progState_Handler2(void)
 							  totaliser_vol2 += calibrationCan_measure2;
 							  totaliser_amt2c += price_real2;
 							  totaliser_amt2 += price_real2;
+
+							  while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
+	    					  {
+								    static uint8_t try = 0;
+	    							if(try++ >= 5)
+	    							{
+	    								retrieve_totaliser_eeprom_check(operating_side);
+	    								try = 0;
+	    								break;
+	    							}
+	    					   }
+
 
 							  save_totaliser_fram(operating_side);
 							  save_totaliser_eeprom(operating_side);
@@ -4033,6 +4080,18 @@ eSystemState progState_Handler2(void)
 					  totaliser_vol2 += calibrationCan_measure2;
 					  totaliser_amt2c += price_real2;
 					  totaliser_amt2 += price_real2;
+
+					  while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
+					  {
+						    static uint8_t try = 0;
+							if(try++ >= 5)
+							{
+								retrieve_totaliser_eeprom_check(operating_side);
+								try = 0;
+								break;
+							}
+					   }
+
 
 					  save_totaliser_fram(operating_side);
 					  save_totaliser_eeprom(operating_side);
@@ -6862,75 +6921,75 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 			  change_v2 = 0;      //reset tbe flag.
 			  index_2 = strlen(keyboard_entry2);
 
-			  //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
-			  //======================= AUTOMATED SALES TEST ==========================//
-
-			  index_2 = 1;
-			  firstTime_idleState2 = 1;
-
-			  //UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
+//			  //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
+//			  //======================= AUTOMATED SALES TEST ==========================//
+//
+//			  index_2 = 1;
+//			  firstTime_idleState2 = 1;
+//
+//			  //UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
+//
+//
+//			  if (index_2 >= 1)
+//			  {
+//					key_value2 = strtof(keyboard_entry2, &endPtr);
+////					key_value = strtod(keyboard_entry, NULL);
+//
+//					//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
+//				    //======================= AUTOMATED SALES TEST ==========================//
+//
+//					uint16_t tk_int_;
+//					uint32_t tk_int;
+//					uint64_t tk_;
+//
+//					static uint8_t salemode = 0;
+//
+//					if(salemode == 0)
+//						salemode = 1;
+//					else
+//						salemode = 0;
+//
+//					generate_4Rand :
+//
+//						HAL_RNG_GenerateRandomNumber(&hrng, &tk_int);
+//
+////						salemode = 1;
+//
+//						if(salemode == 1)
+//						{
+//							tk_int_ = (uint16_t)tk_int;
+//
+//							if( (tk_int_ < 10) || (tk_int_ > 100) )
+//							{
+//								goto generate_4Rand;
+//							}
+//
+//							key_value2 = (float)tk_int_ / 10;
+//
+////							key_value2 = 1.00;
+//
+//							sellmode2 = L;
+//						}
+//						else if(salemode == 0)
+//						{
+//							if( (tk_int < 1000) || (tk_int > 10000) )
+//							{
+//								goto generate_4Rand;
+//							}
+//
+//							key_value2 = (float)tk_int / 10;
+//
+////							key_value2 = 1050.00;
+//
+//							sellmode2 = P;
+//						}
+//
+//					//UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
 
 
 			  if (index_2 >= 1)
 			  {
 					key_value2 = strtof(keyboard_entry2, &endPtr);
-//					key_value = strtod(keyboard_entry, NULL);
-
-					//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
-				    //======================= AUTOMATED SALES TEST ==========================//
-
-					uint16_t tk_int_;
-					uint32_t tk_int;
-					uint64_t tk_;
-
-					static uint8_t salemode = 0;
-
-					if(salemode == 0)
-						salemode = 1;
-					else
-						salemode = 0;
-
-					generate_4Rand :
-
-						HAL_RNG_GenerateRandomNumber(&hrng, &tk_int);
-
-//						salemode = 1;
-
-						if(salemode == 1)
-						{
-							tk_int_ = (uint16_t)tk_int;
-
-							if( (tk_int_ < 10) || (tk_int_ > 100) )
-							{
-								goto generate_4Rand;
-							}
-
-							key_value2 = (float)tk_int_ / 10;
-
-//							key_value2 = 1.00;
-
-							sellmode2 = L;
-						}
-						else if(salemode == 0)
-						{
-							if( (tk_int < 1000) || (tk_int > 10000) )
-							{
-								goto generate_4Rand;
-							}
-
-							key_value2 = (float)tk_int / 10;
-
-//							key_value2 = 1050.00;
-
-							sellmode2 = P;
-						}
-
-					//UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
-
-
-//			  if (index_2 >= 1)
-//			  {
-//					key_value2 = strtof(keyboard_entry2, &endPtr);
 
 					if (sellmode2 == P)
 					{
@@ -7259,6 +7318,18 @@ eSystemState filling_State_Handler2(void)
 			  get_time();
 			  do_calcs2();
 			  update_info();
+
+			  while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
+			  {
+				    static uint8_t try = 0;
+					if(try++ >= 5)
+					{
+						retrieve_totaliser_eeprom_check(operating_side);
+						try = 0;
+						break;
+					}
+			   }
+
 			  save_totaliser_fram(operating_side);
 			  save_totaliser_eeprom(operating_side);
 			  save_lastSale_fram(operating_side);
@@ -7289,6 +7360,18 @@ eSystemState filling_State_Handler2(void)
 			  get_time();
 			  do_calcs2();
 			  update_info();
+
+			  while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
+			  {
+				  static uint8_t try = 0;
+					if(try++ >= 5)
+					{
+						retrieve_totaliser_eeprom_check(operating_side);
+						try = 0;
+						break;
+					}
+			   }
+
 			  save_totaliser_fram(operating_side);
 			  save_totaliser_eeprom(operating_side);
 			  save_lastSale_fram(operating_side);
@@ -7317,6 +7400,18 @@ eSystemState filling_State_Handler2(void)
 		  get_time();
 		  do_calcs2();
 		  update_info();
+
+		  while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
+		  {
+			  static uint8_t try = 0;
+				if(try++ >= 5)
+				{
+					retrieve_totaliser_eeprom_check(operating_side);
+					try = 0;
+					break;
+				}
+		   }
+
 		  save_totaliser_fram(operating_side);
 		  save_totaliser_eeprom(operating_side);
 		  save_lastSale_fram(operating_side);
@@ -7351,6 +7446,17 @@ eSystemState filling_State_Handler2(void)
 				do_calcs2();
 				update_info();
 
+				while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
+				{
+					static uint8_t try = 0;
+					if(try++ >= 5)
+					{
+						retrieve_totaliser_eeprom_check(operating_side);
+						try = 0;
+						break;
+					}
+				 }
+
 				save_totaliser_fram(side_b);
 				save_totaliser_eeprom(side_b);
 
@@ -7372,6 +7478,17 @@ eSystemState filling_State_Handler2(void)
 //        save_volumeTotaliser(operating_side);
 //        save_amountTotaliser(operating_side);
 //        save_lastSale(operating_side);
+
+        while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
+		{
+        	static uint8_t try = 0;
+			if(try++ >= 5)
+			{
+				retrieve_totaliser_eeprom_check(operating_side);
+				try = 0;
+				break;
+			}
+		 }
 
         save_totaliser_fram(operating_side);
 		save_totaliser_eeprom(operating_side);
@@ -7439,6 +7556,17 @@ eSystemState filling_State_Handler2(void)
 //			save_amountTotaliser(operating_side);
 //			save_lastSale(operating_side);
 
+			while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
+			{
+				static uint8_t try = 0;
+				if(try++ >= 5)
+				{
+					retrieve_totaliser_eeprom_check(operating_side);
+					try = 0;
+					break;
+				}
+			 }
+
 	        save_totaliser_fram(operating_side);
 			save_totaliser_eeprom(operating_side);
 
@@ -7469,6 +7597,17 @@ eSystemState filling_State_Handler2(void)
 //			save_volumeTotaliser(operating_side);
 //			save_amountTotaliser(operating_side);
 //			save_lastSale(operating_side);
+
+			while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
+			{
+				static uint8_t try = 0;
+				if(try++ >= 5)
+				{
+					retrieve_totaliser_eeprom_check(operating_side);
+					try = 0;
+					break;
+				}
+			 }
 
 			save_totaliser_fram(operating_side);
 			save_totaliser_eeprom(operating_side);
@@ -7760,6 +7899,17 @@ eSystemState filling_State_Handler2(void)
 //		        save_volumeTotaliser(operating_side);
 //		        save_amountTotaliser(operating_side);
 //		        save_lastSale(operating_side);
+
+		        while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
+				{
+		        	static uint8_t try = 0;
+					if(try++ >= 5)
+					{
+						retrieve_totaliser_eeprom_check(operating_side);
+						try = 0;
+						break;
+					}
+				 }
 
 		        save_totaliser_fram(operating_side);
 				save_totaliser_eeprom(operating_side);
@@ -8758,6 +8908,17 @@ eSystemState nozzledown_Handler2(void)
 //		  save_volumeTotaliser(operating_side);
 //		  save_amountTotaliser(operating_side);
 //		  save_lastSale(operating_side);
+
+		  while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
+		  {
+			  static uint8_t try = 0;
+				if(try++ >= 5)
+				{
+					retrieve_totaliser_eeprom_check(operating_side);
+					try = 0;
+					break;
+				}
+		  }
 
 		  save_totaliser_fram(operating_side);
 		  save_totaliser_eeprom(operating_side);

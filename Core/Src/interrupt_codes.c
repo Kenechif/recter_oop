@@ -28,7 +28,12 @@ extern pump_status_enum pump_status_1,
 extern UART_HandleTypeDef huart1;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim5;
-extern uint8_t buff[30] ;
+extern uint8_t buff[30];
+
+extern uint8_t rxBuffer[RX_BUFFER_SIZE],  // Buffer for single character reception
+			   messageBuffer[RX_BUFFER_SIZE]; // Buffer to hold complete message
+
+extern uint16_t messageIndex;
 
 
 extern int tot_buttonpress_tmr;
@@ -161,7 +166,42 @@ HAL_UART_RxHalfCpltCallback(UART_HandleTypeDef *huart)
 
 HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-  // full data received !
+	if (huart->Instance == USART3)
+	{
+//	        HAL_UART_Transmit(&huart1, rxData, sizeof(rxData), HAL_MAX_DELAY);
+//	        HAL_UART_Receive_IT(&huart1, rxData, sizeof(rxData));
+			if (rxBuffer[0] == '\n' || rxBuffer[0] == '\r')   // End of message detected
+			{
+
+				messageBuffer[messageIndex] = '\0';  // Null-terminate the string
+				messageIndex = 0;  // Reset the index
+
+				char str[100];
+				// Process the complete message
+				sprintf(str, "\r\nInjected Amount : ");  // Unsafe, may overflow buffer
+				HAL_UART_Transmit(&huart3, str, strlen((char*)str), HAL_MAX_DELAY);
+				HAL_UART_Transmit(&huart3, messageBuffer, strlen((char*)messageBuffer), HAL_MAX_DELAY);
+
+//				amt_middle1 = strtof(messageBuffer, NULL);
+				running_volTotaliser1c = strtof(messageBuffer, NULL);
+
+				memset(str, '\0', sizeof(str));
+
+//				sprintf(str, "\r\namt_middle1 = %0.2f\n", amt_middle1);
+				sprintf(str, "\r\nrunning_volTotaliser1c = %0.2f\n", running_volTotaliser1c);
+				HAL_UART_Transmit(&huart3, str, strlen((char*)str), HAL_MAX_DELAY);
+
+			}
+			else if (messageIndex < RX_BUFFER_SIZE - 1)   // Accumulate characters
+			{
+				messageBuffer[messageIndex++] = rxBuffer[0];
+			}
+
+		        // Re-enable interrupt reception for the next character
+			HAL_UART_Receive_IT(&huart3, rxBuffer, 1);
+	 }
+
+	// full data received !
   // reenergise he receive
   // HAL_UART_Receive_DMA(&huart1,  &MsgStruct_, 15);
 	/* for (int i  = 0 ; i < 15 ; i++)

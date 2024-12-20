@@ -89,8 +89,8 @@ extern float vol_calibrated1,
 			 vol_calibrated2,
 			 vol_effective2;
 
-extern uint8_t vol_real1,
-	    	   vol_real2;
+extern uint16_t vol_real1,
+	    	    vol_real2;
 
 extern pump_settings_stream1 settings_stream1[2];
 
@@ -102,8 +102,8 @@ uint8_t  DART_BUFF1[128],
 uint8_t set_param1[51],
 		set_param2[51];
 
-uint8_t set_calib1[3],
-		set_calib2[3];
+uint8_t set_calib1[4],
+		set_calib2[4];
 
 uint32_t update_date_time;
 

@@ -783,16 +783,38 @@ void parse_decode(void)
 								}
 
 								//##############################################################################//
+
+								//TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+								//  ____________________________________________________________________________________________________________________________________________________________________________________
+								// | NOZ-NUM | TX-NUM | TX-CODE | TX-LEN | DIRECTION [1 Byte] |   CTT [1 Byte]	 |	ACTUAL CALIBRATION [2 Bytes] | APPARENT CALIBRATION [1 Byte] | NEW APPARENT-CALIBRATION [1 Byte] |
+								// |         |        |         |        | (ie. SET/REQUEST)  |  1 --> Non-Timed |            (1 DP)             |     		 (2 DP)              |			    (2 DP)               |
+								// |         |        |         |        |     0 --> Set      |  2 --> Timed     |                               |                               |									 |
+								// |         |        |         |        |    1 --> Request   |                  |                               |                               |                                   |
+								// |_________|________|_________|________|____________________|__________________|_______________________________|_______________________________|___________________________________|__
+								// _________________________
+								//  | CRC1 |CRC2 | ETX | SF |
+								//  |      |     |     |    |
+								//  |      |     |     |    |
+								// _|______|_____|_____|____|
+								//
+								//YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+
+								////////////////////////////////////////////
+								//51 30 69 06 00 01 00 20 04 05 21 70 03 FA   //Calibration Data Request
+								//51 30 69 06 01 01 00 20 04 05 EO B0 03 FA   //In-bound Calibration-Set Command
+								////////////////////////////////////////////
+
+
 								//'50 38  69 04  01  20 04 00 46  f0 03 fa '   //Calibration Data Request
 								//'50 38  69 04  00  20 04 05 87  0f 03 fa '   //In-bound Calibration-Set Command
 								//==============================================================================//
 								//=====================   SET/REQUEST CALIBRATION DETAILS   ====================//
 								//==============================================================================//
-								else if( (r_raw_data1[i] == 0x69) && (r_raw_data1[i+1] == 0x05) ) //5 Data Bytes
+								else if( (r_raw_data1[i] == 0x69) && (r_raw_data1[i+1] == 0x06) ) //6 Data Bytes
 								{
-									crc_original = r_raw_data1[i+7];
+									crc_original = r_raw_data1[i+9];
 									crc_original = (crc_original << 8);
-									crc_original = (crc_original + r_raw_data1[i+6]);
+									crc_original = (crc_original + r_raw_data1[i+8]);
 
 									//==============================================================//
 									//==================== VALIDATING THE CRC ======================//
@@ -801,26 +823,27 @@ void parse_decode(void)
 									data_[1] = r_ctrl;
 
 									////////////////////////////////////////////
-									//'50 38  69 04  01  20 04 00 46 f0 03 fa '   //Calibration Data Request
-									//'50 38  69 04  00  20 04 05 87 0f 03 fa '   //In-bound Calibration-Set Command
+									//51 30 69 06 00 01 00 20 04 05 21 70 03 FA   //Calibration Data Request
+									//51 30 69 06 01 01 00 20 04 05 EO B0 03 FA   //In-bound Calibration-Set Command
 									////////////////////////////////////////////
+
 									//=== the read buffer contains only data from the transaction byte to the SF byte ===//
-									//================== Data contains a cumulative of 4 raw Bytes ================//
-									for(uint8_t ii = 0, j = 2; ii < 6; ii++, j++)  //4 + Trans No. + Data Len
+									//================== Data contains a cumulative of 6 raw Bytes ================//
+									for(uint8_t ii = 0, j = 2; ii < 8; ii++, j++)  //6 + Trans No. + Data Len
 									{
 										data_[j] = r_raw_data1[ii];
 									}
 
 
-									crc_check = crc_16(data_, 8);
+									crc_check = crc_16(data_, 10);
 
 									if(crc_check == crc_original)
 									{
 										if(data_[4] == 0x00)                       //Controller commands to set new Calibration Parameters
 										{
-											for (uint8_t j = 0; j < 3; j++)
+											for (uint8_t j = 0; j < 4; j++)
 											{
-												set_calib1[j] = bcd_to_int(r_raw_data1[i+3+j]);
+												set_calib1[j] = bcd_to_int(r_raw_data1[i+4+j]);
 											}
 
 											resp = DATA_SET_CALIBRATION_PARAM;
@@ -1485,16 +1508,39 @@ void parse_decode2(void)
 								}
 
 								//##############################################################################//
+
+								//TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
+								//  ____________________________________________________________________________________________________________________________________________________________________________________
+								// | NOZ-NUM | TX-NUM | TX-CODE | TX-LEN | DIRECTION [1 Byte] |   CTT [1 Byte]	 |	ACTUAL CALIBRATION [2 Bytes] | APPARENT CALIBRATION [1 Byte] | NEW APPARENT-CALIBRATION [1 Byte] |
+								// |         |        |         |        | (ie. SET/REQUEST)  |  1 --> Non-Timed |            (1 DP)             |     		 (2 DP)              |			    (2 DP)               |
+								// |         |        |         |        |     0 --> Set      |  2 --> Timed     |                               |                               |									 |
+								// |         |        |         |        |    1 --> Request   |                  |                               |                               |                                   |
+								// |_________|________|_________|________|____________________|__________________|_______________________________|_______________________________|___________________________________|__
+								// _________________________
+								//  | CRC1 |CRC2 | ETX | SF |
+								//  |      |     |     |    |
+								//  |      |     |     |    |
+								// _|______|_____|_____|____|
+								//
+								//YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+
+								////////////////////////////////////////////
+								//51 30 69 06 00 01 00 20 04 05 21 70 03 FA   //Calibration Data Request
+								//51 30 69 06 01 01 00 20 04 05 EO B0 03 FA   //In-bound Calibration-Set Command
+								////////////////////////////////////////////
+
+
 								//51 30 69 05 01 01 20 04 00 34 E2 03 FA   //Calibration Data Request
 								//51 30 69 05 00 01 20 04 05 C9 21 03 FA   //In-bound Calibration-Set Command
+
 								//==============================================================================//
 								//=====================   SET/REQUEST CALIBRATION DETAILS   ====================//
 								//==============================================================================//
-								else if( (r_raw_data2[i] == 0x69) && (r_raw_data2[i+1] == 0x05) ) //5 Data Bytes
+								else if( (r_raw_data2[i] == 0x69) && (r_raw_data2[i+1] == 0x06) ) //6 Data Bytes
 								{
-									crc_original = r_raw_data2[i+8];
+ 									crc_original = r_raw_data2[i+9];
 									crc_original = (crc_original << 8);
-									crc_original = (crc_original + r_raw_data2[i+7]);
+									crc_original = (crc_original + r_raw_data2[i+8]);
 
 									//==============================================================//
 									//==================== VALIDATING THE CRC ======================//
@@ -1507,20 +1553,20 @@ void parse_decode2(void)
 									//51 30 69 06 01 01 00 20 04 05 EO B0 03 FA   //In-bound Calibration-Set Command
 									////////////////////////////////////////////
 									//=== the read buffer contains only data from the transaction byte to the SF byte ===//
-									//================== Data contains a cumulative of 5 raw Bytes ================//
-									for(uint8_t ii = 0, j = 2; ii < 7; ii++, j++)  //5 + Trans No. + Data Len
+									//================== Data contains a cumulative of 6 raw Bytes ================//
+									for(uint8_t ii = 0, j = 2; ii < 8; ii++, j++)  //6 + Trans No. + Data Len
 									{
 										data_[j] = r_raw_data2[ii];
 									}
 
 
-									crc_check = crc_16(data_, 9);
+									crc_check = crc_16(data_, 10);
 
 									if(crc_check == crc_original)
 									{
 										if(data_[4] == 0x00)                       //Controller commands to set new Calibration Parameters
 										{
-											for (uint8_t j = 0; j < 3; j++)
+											for (uint8_t j = 0; j < 4; j++)
 											{
 												set_calib2[j] = bcd_to_int(r_raw_data2[i+4+j]);
 											}
@@ -3025,7 +3071,8 @@ void _process_response1(response_enum response)
 			//  ____________________________________________________________________________________________________________________________________________________________________________________
 			// | NOZ-NUM | TX-NUM | TX-CODE | TX-LEN | DIRECTION [1 Byte] |   CTT [1 Byte]	 |	ACTUAL CALIBRATION [2 Bytes] | APPARENT CALIBRATION [1 Byte] | NEW APPARENT-CALIBRATION [1 Byte] |
 			// |         |        |         |        | (ie. SET/REQUEST)  |  1 --> Non-Timed |            (1 DP)             |     		 (2 DP)              |			    (2 DP)               |
-			// |         |        |         |        |                    |  2 --> Timed     |                               |                               |									 |
+			// |         |        |         |        |     0 --> Set      |  2 --> Timed     |                               |                               |									 |
+			// |         |        |         |        |    1 --> Request   |                  |                               |                               |                                   |
 			// |_________|________|_________|________|____________________|__________________|_______________________________|_______________________________|___________________________________|__
 			// _________________________
 			//  | CRC1 |CRC2 | ETX | SF |
@@ -3034,6 +3081,11 @@ void _process_response1(response_enum response)
 			// _|______|_____|_____|____|
 			//
 			//YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+
+			////////////////////////////////////////////
+			//51 30 69 06 00 01 00 20 04 05 21 70 03 FA   //Calibration Data Request
+			//51 30 69 06 01 01 00 20 04 05 EO B0 03 FA   //In-bound Calibration-Set Command
+			////////////////////////////////////////////
 
 			//'50 38  69 04  01  20 04 00 46 f0 03 fa '   //Calibration Data Request
 
@@ -3076,7 +3128,7 @@ void _process_response1(response_enum response)
 
 			for (uint8_t ii = 0, j = 1; ii < 2; ii++, j--) // 2 Bytes
 			{
-				DART_BUFF1[ii + 5] = bcd_[j];
+				DART_BUFF1[ii + 6] = bcd_[j];
 			}
 
 			memset(bcd_, 0, sizeof(bcd_));
@@ -3093,7 +3145,7 @@ void _process_response1(response_enum response)
 
 			for (uint8_t ii = 0, j = 0; ii < 1; ii++)
 			{
-				DART_BUFF1[ii + 7] = bcd_[j];
+				DART_BUFF1[ii + 8] = bcd_[j];
 			}
 
 			memset(bcd_, 0, sizeof(bcd_));
@@ -3112,18 +3164,18 @@ void _process_response1(response_enum response)
 
 			for (uint8_t ii = 0, j = 0; ii < 1; ii++)
 			{
-				DART_BUFF1[ii + 8] = bcd_[j];
+				DART_BUFF1[ii + 9] = bcd_[j];
 			}
 
 
-			crc = crc_16(DART_BUFF1, 9);
+			crc = crc_16(DART_BUFF1, 10);
 
-			DART_BUFF1[9] = crc & 0x00FF;
-			DART_BUFF1[10] = crc >> 8;
-			DART_BUFF1[11] = ETX;
-			DART_BUFF1[12] = SF;
+			DART_BUFF1[10] = crc & 0x00FF;
+			DART_BUFF1[11] = crc >> 8;
+			DART_BUFF1[12] = ETX;
+			DART_BUFF1[13] = SF;
 
-			array_len = 13;
+			array_len = 14;
 
 			command_ = NO_COMMAND;
 			resp = NOREPLY;
@@ -3141,8 +3193,9 @@ void _process_response1(response_enum response)
 		if (settings_stream1[0].mode == AUTO_MODE)
 		{
 			vol_real1 = set_calib1[0];
-			vol_calibrated1 = ((set_calib1[1] * 0.1) + set_calib1[0]);
-			vol_effective1 = ((set_calib1[2] * 0.1) + set_calib1[0]);
+			vol_real1 = ( (vol_real1 << 8) + set_calib1[1] );
+			vol_calibrated1 = ((set_calib1[2] * 0.1) + vol_real1);
+			vol_effective1 = ((set_calib1[3] * 0.1) + vol_real1);
 
 			save_ctSettings_fram(side_a);
 
@@ -4135,7 +4188,8 @@ void _process_response2(response_enum response)
 			//  ____________________________________________________________________________________________________________________________________________________________________________________
 			// | NOZ-NUM | TX-NUM | TX-CODE | TX-LEN | DIRECTION [1 Byte] |   CTT [1 Byte]	 |	ACTUAL CALIBRATION [2 Bytes] | APPARENT CALIBRATION [1 Byte] | NEW APPARENT-CALIBRATION [1 Byte] |
 			// |         |        |         |        | (ie. SET/REQUEST)  |  1 --> Non-Timed |            (1 DP)             |     		 (2 DP)              |			    (2 DP)               |
-			// |         |        |         |        |                    |  2 --> Timed     |                               |                               |									 |
+			// |         |        |         |        |     0 --> Set      |  2 --> Timed     |                               |                               |									 |
+			// |         |        |         |        |    1 --> Request   |                  |                               |                               |                                   |
 			// |_________|________|_________|________|____________________|__________________|_______________________________|_______________________________|___________________________________|__
 			// _________________________
 			//  | CRC1 |CRC2 | ETX | SF |
@@ -4145,9 +4199,10 @@ void _process_response2(response_enum response)
 			//
 			//YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
 
-			//'50 38  69 04  01  20 04 00 46 f0 03 fa '   //Calibration Data Request
-
-			//'50 38  69 04  00  20 04 05 47 0c 03 fa '   //In-bound Calibration-Set Command
+			////////////////////////////////////////////
+			//51 30 69 06 00 01 00 20 04 05 21 70 03 FA   //Calibration Data Request
+			//51 30 69 06 01 01 00 20 04 05 EO B0 03 FA   //In-bound Calibration-Set Command
+			////////////////////////////////////////////
 
 			//####################################################################################################################################################################
 			//
@@ -4185,7 +4240,7 @@ void _process_response2(response_enum response)
 
 			for (uint8_t ii = 0, j = 1; ii < 2; ii++, j--)  //2 Bytes
 			{
-				DART_BUFF2[ii + 5] = bcd_[j];
+				DART_BUFF2[ii + 6] = bcd_[j];
 			}
 
 			memset(bcd_, 0, sizeof(bcd_));
@@ -4204,7 +4259,7 @@ void _process_response2(response_enum response)
 
 			for (uint8_t ii = 0, j = 0; ii < 1; ii++)
 			{
-				DART_BUFF2[ii + 7] = bcd_[j];
+				DART_BUFF2[ii + 8] = bcd_[j];
 			}
 
 			memset(bcd_, 0, sizeof(bcd_));
@@ -4223,18 +4278,18 @@ void _process_response2(response_enum response)
 
 			for (uint8_t ii = 0, j = 0; ii < 1; ii++)
 			{
-				DART_BUFF2[ii + 8] = bcd_[j];
+				DART_BUFF2[ii + 9] = bcd_[j];
 			}
 
 
-			crc = crc_16(DART_BUFF2, 9);
+			crc = crc_16(DART_BUFF2, 10);
 
-			DART_BUFF2[9] = crc & 0x00FF;
-			DART_BUFF2[10] = crc >> 8;
-			DART_BUFF2[11] = ETX;
-			DART_BUFF2[12] = SF;
+			DART_BUFF2[10] = crc & 0x00FF;
+			DART_BUFF2[11] = crc >> 8;
+			DART_BUFF2[12] = ETX;
+			DART_BUFF2[13] = SF;
 
-			array_len2 = 13;
+			array_len2 = 14;
 
 			command_2 = NO_COMMAND;
 			resp2 = NOREPLY;
@@ -4252,8 +4307,9 @@ void _process_response2(response_enum response)
 		if (settings_stream1[1].mode == AUTO_MODE)
 		{
 			vol_real2 = set_calib2[0];
-			vol_calibrated2 = ((set_calib2[1] * 0.1) + set_calib2[0]);
-			vol_effective2 = ((set_calib2[2] * 0.1) + set_calib2[0]);
+			vol_real2 = ( (vol_real2 << 8) + set_calib2[1] );
+			vol_calibrated2 = ((set_calib2[2] * 0.1) + vol_real2);
+			vol_effective2 = ((set_calib2[3] * 0.1) + vol_real2);
 
 			save_ctSettings_fram(side_b);
 

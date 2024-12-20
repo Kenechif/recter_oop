@@ -38,6 +38,10 @@ char session_id[9] = {0};
 //##################################################
 
 
+uint8_t rxBuffer[RX_BUFFER_SIZE];  // Buffer for single character reception
+uint8_t messageBuffer[RX_BUFFER_SIZE]; // Buffer to hold complete message
+uint16_t messageIndex = 0;
+
 
  const int max_events_per_state = 10;
 
@@ -92,11 +96,11 @@ extern uint8_t calibrationCan_measure1,
 			   calibrationCan_measure2;
 
  float price = 0.0;
- float amt = 0.0;
+ float amt CCRAM = 0.0;
  int auth_flag = 0;
 
  float price2 = 0.0;
- float amt2 = 0.0;
+ float amt2 CCRAM = 0.0;
  int auth_flag2 = 0;
 
  int operating_side = 0;
@@ -111,20 +115,20 @@ int access_level = non;    //default
     sellmode_ sellmode = P;
     sellmode_ sellmode2 = P;
 
-	float totaliser_vol1 = 0.00,
-	      totaliser_vol1c = 0.00,
-	      totaliser_vol2 = 0.00,
-		  totaliser_vol2c = 0.00;
+	float totaliser_vol1 CCRAM = 0.00,
+	      totaliser_vol1c CCRAM = 0.00,
+	      totaliser_vol2 CCRAM = 0.00,
+		  totaliser_vol2c CCRAM = 0.00;
 
 	float firstTotaliser_vol1 = 0.00,
 		  firstTotaliser_vol1c = 0.00,
 		  firstTotaliser_vol2 = 0.00,
 		  firstTotaliser_vol2c = 0.00;
 
-	float totaliser_amt1 = 0.00,
-		  totaliser_amt1c = 0.00,
-		  totaliser_amt2 = 0.00,
-		  totaliser_amt2c = 0.00,
+	float totaliser_amt1 CCRAM = 0.00,
+		  totaliser_amt1c CCRAM = 0.00,
+		  totaliser_amt2 CCRAM = 0.00,
+		  totaliser_amt2c CCRAM = 0.00,
 		  priceOld1 = 0.00,
 		  priceOld2 = 0.00;
 
@@ -138,24 +142,24 @@ int access_level = non;    //default
 		  startShiftTotaliser_amt2 = 0.00,
 		  startShiftTotaliser_amt2c = 0.00;
 
-	float working_volTotaliser1 = 0;
-	float working_volTotaliser1c = 0;
-	float running_volTotaliser1 = 0;
-	float running_volTotaliser1c = 0;
+	float working_volTotaliser1 CCRAM = 0;
+	float working_volTotaliser1c CCRAM = 0;
+	float running_volTotaliser1 CCRAM = 0;
+	float running_volTotaliser1c CCRAM = 0;
 
-	float working_volTotaliser2 = 0;
-	float working_volTotaliser2c = 0;
-	float running_volTotaliser2 = 0;
-	float running_volTotaliser2c = 0;
+	float working_volTotaliser2 CCRAM = 0;
+	float working_volTotaliser2c CCRAM = 0;
+	float running_volTotaliser2 CCRAM = 0;
+	float running_volTotaliser2c CCRAM = 0;
 
-	float working_amtTotaliser1 = 0,
-		  working_amtTotaliser1c = 0,
-		  running_amtTotaliser1 = 0,
-		  running_amtTotaliser1c = 0,
-		  working_amtTotaliser2 = 0,
-		  working_amtTotaliser2c = 0,
-		  running_amtTotaliser2 = 0,
-		  running_amtTotaliser2c = 0;
+	float working_amtTotaliser1 CCRAM = 0,
+		  working_amtTotaliser1c CCRAM = 0,
+		  running_amtTotaliser1 CCRAM = 0,
+		  running_amtTotaliser1c CCRAM = 0,
+		  working_amtTotaliser2 CCRAM = 0,
+		  working_amtTotaliser2c CCRAM = 0,
+		  running_amtTotaliser2 CCRAM = 0,
+		  running_amtTotaliser2c CCRAM = 0;
 
  float pulser_index = 500;
  float pulser_index_c = 500;
@@ -172,20 +176,78 @@ int access_level = non;    //default
 		 dp_unitprice2 = 2;
 
 
-float lastVolumeSale1 = 0.00,
-      lastVolumeSale1c = 0.00;
-float lastVolumeSale2 = 0.00,
-	  lastVolumeSale2c = 0.00;
+float lastVolumeSale1 CCRAM = 0.00,
+      lastVolumeSale1c CCRAM = 0.00;
+float lastVolumeSale2 CCRAM = 0.00,
+	  lastVolumeSale2c CCRAM = 0.00;
 
-float lastAmountSale1 = 0.00,
-      lastAmountSale1c = 0.00;
-float lastAmountSale2 = 0.00,
-	  lastAmountSale2c = 0.00;
+float lastAmountSale1 CCRAM = 0.00,
+      lastAmountSale1c CCRAM = 0.00;
+float lastAmountSale2 CCRAM = 0.00,
+	  lastAmountSale2c CCRAM = 0.00;
 
 float price_upper1,
-	  amt_middle1,
+	  amt_middle1 CCRAM = 0.000,
 	  price_upper2,
-	  amt_middle2;
+	  amt_middle2 CCRAM = 0.000;
+
+float running_volTotaliser1_tmin1 CCRAM = 0.00,
+	  running_volTotaliser1_tmin2 CCRAM = 0.00,
+	  running_volTotaliser1_tmin3 CCRAM = 0.00,
+	  running_volTotaliser1c_tmin1 CCRAM = 0.00,
+	  running_volTotaliser1c_tmin2 CCRAM = 0.00,
+	  running_volTotaliser1c_tmin3 CCRAM = 0.00;
+
+float running_volTotaliser2_tmin1 CCRAM = 0.00,
+	  running_volTotaliser2_tmin2 CCRAM = 0.00,
+	  running_volTotaliser2_tmin3 CCRAM = 0.00,
+	  running_volTotaliser2c_tmin1 CCRAM = 0.00,
+	  running_volTotaliser2c_tmin2 CCRAM = 0.00,
+	  running_volTotaliser2c_tmin3 CCRAM = 0.00;
+
+float running_amtTotaliser1_tmin1 CCRAM = 0.00,
+	 running_amtTotaliser1_tmin2 CCRAM = 0.00,
+	 running_amtTotaliser1_tmin3 CCRAM = 0.00,
+	 running_amtTotaliser1c_tmin1 CCRAM = 0.00,
+	 running_amtTotaliser1c_tmin2 CCRAM = 0.00,
+	 running_amtTotaliser1c_tmin3 CCRAM = 0.00;
+
+float running_amtTotaliser2_tmin1 CCRAM = 0.00,
+	 running_amtTotaliser2_tmin2 CCRAM = 0.00,
+	 running_amtTotaliser2_tmin3 CCRAM = 0.00,
+	 running_amtTotaliser2c_tmin1 CCRAM = 0.00,
+	 running_amtTotaliser2c_tmin2 CCRAM = 0.00,
+	 running_amtTotaliser2c_tmin3 CCRAM = 0.00;
+
+float running_volTotaliser1_array[4] CCRAM = {0},
+	  running_volTotaliser1c_array[4] CCRAM = {0},
+	  running_volTotaliser2_array[4] CCRAM = {0},
+	  running_volTotaliser2c_array[4] CCRAM = {0};
+
+float running_amtTotaliser1_array[4] CCRAM = {0},
+	  running_amtTotaliser1c_array[4] CCRAM = {0},
+	  running_amtTotaliser2_array[4] CCRAM = {0},
+	  running_amtTotaliser2c_array[4] CCRAM = {0};
+
+float amt_middle1_tmin1 CCRAM = 0.00,
+	 amt_middle1_tmin2 CCRAM = 0.00,
+	 amt_middle1_tmin3 CCRAM = 0.00,
+	 amt_middle2_tmin1 CCRAM = 0.00,
+	 amt_middle2_tmin2 CCRAM = 0.00,
+	 amt_middle2_tmin3 CCRAM = 0.00;
+
+float amt_real1_tmin1 CCRAM = 0.00,
+	 amt_real1_tmin2 CCRAM = 0.00,
+	 amt_real1_tmin3 CCRAM = 0.00,
+	 amt_real2_tmin1 CCRAM = 0.00,
+	 amt_real2_tmin2 CCRAM = 0.00,
+	 amt_real2_tmin3 CCRAM = 0.00;
+
+float amt_real1_array[4] CCRAM = {0},
+	 amt_middle1_array[4] CCRAM = {0},
+	 amt_real2_array[4] CCRAM = {0},
+	 amt_middle2_array[4] CCRAM = {0};
+
 
 
  int8_t opmode  = MANUAL_MODE;
@@ -288,8 +350,8 @@ float price_upper1,
  const uint16_t firstTotVol1_loc_fram  =  252,
  	 	 	 	firstTotVol2_loc_fram =  firstTotVol1_loc_fram + (1+(3*4));   // 265 -> 277
 
- const uint16_t ct_settings1_loc_fram  =  278,
- 	 	 	 	ct_settings2_loc_fram =  ct_settings1_loc_fram + (1+(3*4));   // 291 -> 303
+ const uint16_t ct_settings1_loc_fram  =  278,                                // 10 Bytes <==>  278 --> 287
+ 	 	 	 	ct_settings2_loc_fram =  ct_settings1_loc_fram + (1+(3*4));   // 10 Bytes <==>  288 --> 297  // 291 -> 303
 
  const uint16_t calib_pulser1_loc_fram  =  304,
  	 	 	 	calib_pulser2_loc_fram =  calib_pulser1_loc_fram + (1 + 4);   // 309 -> 313
@@ -521,18 +583,20 @@ _calibrationData calibrationData[2];
 flash_store_info flash_infoA,
 				 flash_infoB;
 
-totaliser_store totaliser_storeA,
-				totaliser_storeB,
+totaliser_store totaliser_storeA CCRAM,
+				totaliser_storeB CCRAM,
 				startShiftTotaliser_storeA,
-				startShiftTotaliser_storeB;
+				startShiftTotaliser_storeB,
+				totaliser_storeA_check,
+				totaliser_storeB_check;
 
 firstTotaliser_store firstTotaliser_vol_storeA,
 					 firstTotaliser_vol_storeB,
 					 firstTtotaliser_amt_storeA,
 					 firstTtotaliser_amt_storeB;
 
-lastSale_store lastSale_storeA,
-			   lastSale_storeB;
+lastSale_store lastSale_storeA CCRAM,
+			   lastSale_storeB CCRAM;
 
 _sessionId sessionId[2];
 
@@ -712,7 +776,8 @@ void make_settings(pump_sid side)
 //	  	settings[0].pi_c = 391.64;   //383.89;  //760.33;
 //	    settings[1].pi_ = 399.25;   //798.35;
 //	  	settings[1].pi_c = 383.89;  //760.33;
-   	settings_stream1[sdd].mode = MANUAL_MODE;   //AUTO;
+//   	settings_stream1[sdd].mode = MANUAL_MODE;   //AUTO;
+   	settings_stream1[sdd].mode = AUTO_MODE;
 
    	settings_stream1[sdd].price_ = 648.00;
 
@@ -1210,6 +1275,44 @@ void retrieve_totaliser_eeprom(pump_sid side)
 	}
 }
 
+
+void retrieve_totaliser_eeprom_check(pump_sid side)
+{
+  int sz = sizeof( totaliser_storeA);
+	if (side == side_a)
+	{
+		EEPROM_Read(totVol_loc, totVol1_loc, &totaliser_storeA_check, sz);
+
+
+		float totaliser_vol1c_0 = totaliser_vol1c - amt_middle1;
+		float totaliser_vol1c_ = totaliser_storeA_check.totaliserVol_cal - totaliser_vol1c_0;
+		if(totaliser_vol1c_ >= 0.2)
+		{
+			totaliser_vol1c = totaliser_storeA_check.totaliserVol_cal + amt_middle1;
+			totaliser_vol1 = totaliser_storeA_check.totaliserVol_real + amt_real1;
+		}
+
+//		totaliser_amt1c = totaliser_storeA.totaliserAmount_cal;
+//		totaliser_amt1 = totaliser_storeA.totaliserAmount_real;
+
+	}
+	else if (side == side_b)
+	{
+		EEPROM_Read(totVol_loc, totVol2_loc, &totaliser_storeB_check, sz);
+
+		float totaliser_vol2c_0 = totaliser_vol2c - amt_middle2;
+		float totaliser_vol2c_ = totaliser_storeB_check.totaliserVol_cal - totaliser_vol2c_0;
+		if(totaliser_vol2c_ >= 0.2)
+		{
+			totaliser_vol2c = totaliser_storeB_check.totaliserVol_cal + amt_middle2;
+			totaliser_vol2 = totaliser_storeB_check.totaliserVol_real + amt_real2;
+		}
+
+//		totaliser_amt2c = totaliser_storeB.totaliserAmount_cal;
+//		totaliser_amt2 = totaliser_storeB.totaliserAmount_real;
+	}
+}
+
 //void retrieve_totaliser_fram(pump_sid side)
 //{
 //	uint8_t sz = sizeof(totaliser_storeA);
@@ -1313,6 +1416,82 @@ uint8_t retrieve_totaliser_fram(pump_sid side)
 			if(isnan(totaliser_vol2)) totaliser_vol2 = 0.0;
 			if(isnan(totaliser_amt2c)) totaliser_amt2c = 0.0;
 			if(isnan(totaliser_amt2)) totaliser_amt2 = 0.0;
+
+			return OK;
+
+		}
+		else
+		{
+			return FAIL;
+		}
+	}
+}
+
+uint8_t retrieve_totaliser_fram_check(pump_sid side)
+{
+	uint8_t sz = sizeof(totaliser_storeA);
+	uint8_t buffer[sz + sizeof(uint16_t)];
+	uint16_t retrieved_crc,
+			 crc;
+
+	if (side == side_a)
+	{
+		FRAM_Read(tot1_loc_fram, &buffer, sizeof(buffer));
+
+		// Extract data and CRC
+		memcpy(&totaliser_storeA_check, buffer, sz);
+		memcpy(&retrieved_crc, (buffer + sz), sizeof(uint16_t));
+
+
+		// Recompute CRC and compare
+		crc = crc_16(&totaliser_storeA_check, sz);
+
+		if(retrieved_crc == crc)
+		{
+			float totaliser_vol1c_0 = totaliser_vol1c - amt_middle1;
+			float totaliser_vol1c_ = totaliser_storeA_check.totaliserVol_cal - totaliser_vol1c_0;
+			if(totaliser_vol1c_ >= 0.2)
+			{
+				totaliser_vol1c = totaliser_storeA_check.totaliserVol_cal + amt_middle1;
+				totaliser_vol1 = totaliser_storeA_check.totaliserVol_real + amt_real1;
+			}
+
+//			totaliser_amt1c = totaliser_storeA_check.totaliserAmount_cal;
+//			totaliser_amt1 = totaliser_storeA_check.totaliserAmount_real;
+
+			return OK;
+
+		}
+		else
+		{
+			return FAIL;
+		}
+
+	}
+	else if (side == side_b)
+	{
+	  	FRAM_Read(tot2_loc_fram, &buffer, sizeof(buffer));
+
+		// Extract data and CRC
+		memcpy(&totaliser_storeB, buffer, sz);
+		memcpy(&retrieved_crc, (buffer + sz), sizeof(uint16_t));
+
+
+		// Recompute CRC and compare
+		crc = crc_16(&totaliser_storeB, sz);
+
+		if(retrieved_crc == crc)
+		{
+			float totaliser_vol2c_0 = totaliser_vol2c - amt_middle2;
+			float totaliser_vol2c_ = totaliser_storeB_check.totaliserVol_cal - totaliser_vol2c_0;
+			if(totaliser_vol2c_ >= 0.2)
+			{
+				totaliser_vol2c = totaliser_storeB_check.totaliserVol_cal + amt_middle2;
+				totaliser_vol2 = totaliser_storeB_check.totaliserVol_real + amt_real2;
+			}
+
+//			totaliser_amt2c = totaliser_storeB.totaliserAmount_cal;
+//			totaliser_amt2 = totaliser_storeB.totaliserAmount_real;
 
 			return OK;
 
@@ -1960,7 +2139,7 @@ uint8_t retrieve_lastSale_fram(pump_sid side)
 
 
 		// Recompute CRC and compare
-		crc = crc_16(&totaliser_storeB, sz);
+		crc = crc_16(&lastSale_storeB, sz);
 
 		if(retrieved_crc == crc)
 		{
@@ -2034,7 +2213,7 @@ void clear_lastSale_eeprom(pump_sid side)
 
 void clear_lastSale_fram(pump_sid side)
 {
-	uint8_t sz = sizeof(totaliser_storeA);
+	uint8_t sz = sizeof(lastSale_storeA);
 	uint8_t buffer[sz + sizeof(uint16_t)];
 	uint16_t crc;
 

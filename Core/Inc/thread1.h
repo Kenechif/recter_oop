@@ -49,6 +49,10 @@ extern uint32_t calib_pulser1,
 
 extern char rx_buf[pump_rx_bufsize];
 
+extern uint8_t rxBuffer[RX_BUFFER_SIZE],  // Buffer for single character reception
+			   messageBuffer[RX_BUFFER_SIZE]; // Buffer to hold complete message
+
+
 void setup();
 void run();
 

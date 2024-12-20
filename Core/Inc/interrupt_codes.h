@@ -14,6 +14,10 @@ extern "C" {
 
 #include "stm32f4xx_hal.h"
 
+extern UART_HandleTypeDef huart3;
+extern float price_upper1,
+			 amt_middle1;
+
  typedef struct rcv_structure
 {
     uint8_t preamble;	  //just a unique byte data
