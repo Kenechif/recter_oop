@@ -148,7 +148,7 @@ extern pump_names pumpName[2];
 
 //extern calibrate calibrate_ct;
 
-extern double totaliser_vol1c,
+extern float totaliser_vol1c,
 			 totaliser_vol2c,
 			 totaliser_vol1,
 			 totaliser_vol2;

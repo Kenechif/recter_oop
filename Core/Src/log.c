@@ -130,7 +130,7 @@ extern float price_real1, price_real2,
 			 priceOld1,
 			 priceOld2;
 
-extern double totaliser_vol1,
+extern float totaliser_vol1,
 			 totaliser_vol1c,
 			 totaliser_vol2,
 			 totaliser_vol2c;

@@ -70,7 +70,7 @@ char my_message_[400] = {0};
 //char msg_[400] = {0};
 
   //===========================================
-extern  double totaliser_vol1,    // = 0.00;
+extern float totaliser_vol1,    // = 0.00;
 			  totaliser_vol1c,   // = 0.00;
 			  totaliser_vol2,    // = 0.00;
 			  totaliser_vol2c;   // = 0.00;

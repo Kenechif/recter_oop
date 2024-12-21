@@ -113,6 +113,9 @@ extern "C" {
 #define OK                          0
 #define FAIL                        1
 
+#define MIN_VAL						0.0f
+#define MAX_VAL						99999999.0f
+
 /***********************************************************************/
 #define DEBOUNCE_TIME_MS 5  //10  //20 // Debounce period in milliseconds
 #define DEBOUNCE_DELAY DEBOUNCE_TIME_MS

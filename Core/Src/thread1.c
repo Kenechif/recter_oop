@@ -378,7 +378,7 @@ extern char sc1[10] , sc12[10];
 //extern float totaliser_vol2;
 //extern float totaliser_vol2c;
 
-extern double totaliser_vol1,
+extern float totaliser_vol1,
 			 totaliser_vol1c,
 			 totaliser_vol2,
 			 totaliser_vol2c;
@@ -2450,8 +2450,11 @@ skip_test:
 //
     //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH//
     //==============================================//
-//    totaliser_vol1c = 21474836.00;
-//    totaliser_vol1 = 21474836.00;
+//    totaliser_vol1c = 1000000.00;
+//    totaliser_vol1 = 1000000.00;
+//
+////    totaliser_vol1c = 21474836.00;
+////    totaliser_vol1 = 21474836.00;
 ////    totaliser_vol1c = 161.69;
 ////    totaliser_vol1 = 161.69;
 //    totaliser_amt1c = 0.00;

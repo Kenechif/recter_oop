@@ -115,7 +115,7 @@ int access_level = non;    //default
     sellmode_ sellmode = P;
     sellmode_ sellmode2 = P;
 
-    double totaliser_vol1 CCRAM = 0.00,
+    float totaliser_vol1 CCRAM = 0.00,
 	      totaliser_vol1c CCRAM = 0.00,
 	      totaliser_vol2 CCRAM = 0.00,
 		  totaliser_vol2c CCRAM = 0.00;

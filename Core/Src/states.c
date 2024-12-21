@@ -297,7 +297,7 @@ extern int max_dp;
 //extern float totaliser_vol2;
 //extern float totaliser_vol2c;
 
-extern double totaliser_vol1,
+extern float totaliser_vol1,
 			 totaliser_vol1c,
 			 totaliser_vol2,
 			 totaliser_vol2c;
@@ -9008,33 +9008,60 @@ eSystemState authorised_nozzleup_State_Handler(void)
 			}
 		}
 	   //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
-	    totaliser_vol1c = 9000000; //21474836;   // 5000000;
-	    totaliser_vol1 = 0.0;  //21474836;    // 5000000;
+//	    totaliser_vol1c = 21474836.00;  //1000000.00; // 9000000; //21474836;   // 5000000;
+//	    totaliser_vol1 = 0.0;  //21474836;    // 5000000;
 	   //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
-		working_volTotaliser1 = totaliser_vol1;
 
-		working_volTotaliser1c = totaliser_vol1c;
+//		working_volTotaliser1 = totaliser_vol1;
+//		working_volTotaliser1c = totaliser_vol1c;
+//
+//		working_amtTotaliser1 = totaliser_amt1;
+//		working_amtTotaliser1c = totaliser_amt1c;
+//
+//		running_volTotaliser1 = totaliser_vol1;
+//		running_volTotaliser1_tmin1 = totaliser_vol1;
+//		running_volTotaliser1_tmin2 = totaliser_vol1;
+//		running_volTotaliser1_tmin3 = totaliser_vol1;
+//
+//		running_volTotaliser1c = totaliser_vol1c;
+//		running_volTotaliser1c_tmin1 = totaliser_vol1c;
+//		running_volTotaliser1c_tmin2 = totaliser_vol1c;
+//		running_volTotaliser1c_tmin3 = totaliser_vol1c;
 
-		running_volTotaliser1_tmin1 = totaliser_vol1;
+
+		working_volTotaliser1 = scale_to_range1(totaliser_vol1);
+		working_volTotaliser1c = scale_to_range1(totaliser_vol1c);
 
 		working_amtTotaliser1 = totaliser_amt1;
-
-		running_volTotaliser1_tmin2 = totaliser_vol1;
-
-		running_volTotaliser1c_tmin1 = totaliser_vol1c;
-
 		working_amtTotaliser1c = totaliser_amt1c;
 
-		running_volTotaliser1c_tmin2 = totaliser_vol1c;
+		running_volTotaliser1 = working_volTotaliser1;
+		running_volTotaliser1_tmin1 = working_volTotaliser1;
+		running_volTotaliser1_tmin2 = working_volTotaliser1;
+		running_volTotaliser1_tmin3 = working_volTotaliser1;
+
+		running_volTotaliser1c = working_volTotaliser1c;
+		running_volTotaliser1c_tmin1 = working_volTotaliser1c;
+		running_volTotaliser1c_tmin2 = working_volTotaliser1c;
+		running_volTotaliser1c_tmin3 = working_volTotaliser1c;
+
+
+
+
+//		running_volTotaliser1c_tmin1 = totaliser_vol1c;
+
+//		working_amtTotaliser1c = totaliser_amt1c;
+
+//		running_volTotaliser1c_tmin2 = totaliser_vol1c;
 
 
 		r_volTotaliser1 = floor(working_volTotaliser1c);
 
-		running_volTotaliser1c_tmin3 = totaliser_vol1c;
+//		running_volTotaliser1c_tmin3 = totaliser_vol1c;
 
 		old_r_volTotaliser1 = r_volTotaliser1;
 
-		running_volTotaliser1_tmin3 = totaliser_vol1;
+//		running_volTotaliser1_tmin3 = totaliser_vol1;
 
 	return authorised_nozzleup_State;
 }
@@ -9484,7 +9511,7 @@ eSystemState filling_State_Handler(void)
 		running_volTotaliser1_tmin2 = running_volTotaliser1_array[2];
 		running_volTotaliser1_tmin3 = running_volTotaliser1_array[3];
 
-		totaliser_vol1 = running_volTotaliser1;
+		totaliser_vol1 = scale_to_original1(running_volTotaliser1);
 
 		//============================================================================//
 
@@ -9509,7 +9536,7 @@ eSystemState filling_State_Handler(void)
 		running_volTotaliser1c_tmin2 = running_volTotaliser1c_array[2];
 		running_volTotaliser1c_tmin3 = running_volTotaliser1c_array[3];
 
-		totaliser_vol1c = running_volTotaliser1c;
+		totaliser_vol1c = scale_to_original1(running_volTotaliser1c);
 
 		//============================================================================//
 
@@ -9539,7 +9566,7 @@ eSystemState filling_State_Handler(void)
 		running_volTotaliser1_tmin2 = running_volTotaliser1_array[2];
 		running_volTotaliser1_tmin3 = running_volTotaliser1_array[3];
 
-		totaliser_vol1 = running_volTotaliser1;
+		totaliser_vol1 = scale_to_original1(running_volTotaliser1);
 
 
 		//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
@@ -9561,7 +9588,7 @@ eSystemState filling_State_Handler(void)
 		running_volTotaliser1c_tmin2 = running_volTotaliser1c_array[2];
 		running_volTotaliser1c_tmin3 = running_volTotaliser1c_array[3];
 
-		totaliser_vol1c = running_volTotaliser1c;
+		totaliser_vol1c = scale_to_original1(running_volTotaliser1c);
 
 
 		//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
@@ -10188,7 +10215,7 @@ void do_calcs ()
 				running_volTotaliser1_tmin2 = running_volTotaliser1_array[2];
 				running_volTotaliser1_tmin3 = running_volTotaliser1_array[3];
 
-				totaliser_vol1 = running_volTotaliser1;
+				totaliser_vol1 = scale_to_original1(running_volTotaliser1);
 
 				//============================================================================//
 
@@ -10213,7 +10240,7 @@ void do_calcs ()
 				running_volTotaliser1c_tmin2 = running_volTotaliser1c_array[2];
 				running_volTotaliser1c_tmin3 = running_volTotaliser1c_array[3];
 
-				totaliser_vol1c = running_volTotaliser1c;
+				totaliser_vol1c = scale_to_original1(running_volTotaliser1c);
 
 				//============================================================================//
 
@@ -10234,8 +10261,8 @@ void do_calcs ()
 				   server_write(str);
 				}
 
-			   totaliser_vol1 = running_volTotaliser1;    // update totaliser
-			   totaliser_vol1c = running_volTotaliser1c;  // update totaliser
+			   totaliser_vol1 = scale_to_original1(running_volTotaliser1);    // update totaliser
+			   totaliser_vol1c = scale_to_original1(running_volTotaliser1c);  // update totaliser
 			   totaliser_amt1 = running_amtTotaliser1;    // update totaliser
 			   totaliser_amt1c = running_amtTotaliser1c;  // update totaliser
 
@@ -10321,7 +10348,7 @@ void do_calcs ()
 				running_volTotaliser1_tmin2 = running_volTotaliser1_array[2];
 				running_volTotaliser1_tmin3 = running_volTotaliser1_array[3];
 
-				totaliser_vol1 = running_volTotaliser1;
+				totaliser_vol1 = scale_to_original1(running_volTotaliser1);
 
 				//============================================================================//
 
@@ -10346,7 +10373,7 @@ void do_calcs ()
 				running_volTotaliser1c_tmin2 = running_volTotaliser1c_array[2];
 				running_volTotaliser1c_tmin3 = running_volTotaliser1c_array[3];
 
-				totaliser_vol1c = running_volTotaliser1c;
+				totaliser_vol1c = scale_to_original1(running_volTotaliser1c);
 
 				//============================================================================//
 
@@ -10367,8 +10394,8 @@ void do_calcs ()
 				   server_write(str);
 				}
 
-			   totaliser_vol1 = running_volTotaliser1;    // update totaliser
-			   totaliser_vol1c = running_volTotaliser1c;  // update totaliser
+			   totaliser_vol1 = scale_to_original1(running_volTotaliser1);    // update totaliser
+			   totaliser_vol1c = scale_to_original1(running_volTotaliser1c);  // update totaliser
 			   totaliser_amt1 = running_amtTotaliser1;    // update totaliser
 			   totaliser_amt1c = running_amtTotaliser1c;  // update totaliser
 
@@ -10444,7 +10471,7 @@ void do_calcs ()
 				running_volTotaliser1_tmin2 = running_volTotaliser1_array[2];
 				running_volTotaliser1_tmin3 = running_volTotaliser1_array[3];
 
-				totaliser_vol1 = running_volTotaliser1;
+				totaliser_vol1 = scale_to_original1(running_volTotaliser1);
 				//============================================================================//
 
 	//	   	  running_volTotaliser1c = working_volTotaliser1c + amt;
@@ -10468,7 +10495,7 @@ void do_calcs ()
 				running_volTotaliser1c_tmin2 = running_volTotaliser1c_array[2];
 				running_volTotaliser1c_tmin3 = running_volTotaliser1c_array[3];
 
-				totaliser_vol1c = running_volTotaliser1c;
+				totaliser_vol1c = scale_to_original1(running_volTotaliser1c);
 
 				//============================================================================//
 
@@ -10489,8 +10516,8 @@ void do_calcs ()
 				   server_write(str);
 				}
 
-			   totaliser_vol1 = running_volTotaliser1;    // update totaliser
-			   totaliser_vol1c = running_volTotaliser1c;  // update totaliser
+			   totaliser_vol1 = scale_to_original1(running_volTotaliser1);    // update totaliser
+			   totaliser_vol1c = scale_to_original1(running_volTotaliser1c);  // update totaliser
 			   totaliser_amt1 = running_amtTotaliser1;    // update totaliser
 			   totaliser_amt1c = running_amtTotaliser1c;  // update totaliser
 
@@ -11276,7 +11303,7 @@ void keypad_fillingUpdate1(void)
 }
 
 // Function to check and correct questionable values in the array
-void correctArray1(double v[4])
+void correctArray1(float v[4])
 {
     bool corrected;
     char str[200];
@@ -11285,7 +11312,7 @@ void correctArray1(double v[4])
         corrected = false;
 
         // Check if v[3] <= v[2] <= v[1] <= v[0] with differences <= 0.9
-        for (int i = 3; i > 0; i--) {
+        for (int8_t i = 3; i > 0; i--) {
             if (v[i - 1] < v[i] || fabs(v[i - 1] - v[i]) > 0.9)
             {
 			  #if DEBUG
@@ -11318,4 +11345,38 @@ void correctArray1(double v[4])
             }
         }
     } while (corrected); // Repeat until no corrections are needed
+}
+
+
+// Scale value to range [0, 1,000,000]
+float scale_to_range1(float value)
+{
+    if (MAX_VAL <= MIN_VAL)
+    {
+//        printf("Invalid range: max_val should be greater than min_val.\n");
+        return 0.0f;
+    }
+
+    float normalized = (value - MIN_VAL) / (MAX_VAL - MIN_VAL); // Normalize to 0-1
+    float scaled_value = normalized * 1000000.0f;              // Scale to 0-1,000,000
+
+    if (scaled_value < 0.0f) scaled_value = 0.0f;
+    if (scaled_value > 1000000.0f) scaled_value = 1000000.0f;
+
+    return scaled_value;
+}
+
+// Convert scaled value back to the original range
+float scale_to_original1(float scaled_value)
+{
+    if (MAX_VAL <= MIN_VAL)
+    {
+//        printf("Invalid range: max_val should be greater than min_val.\n");
+        return 0.0f;
+    }
+
+    float normalized = scaled_value / 1000000.0f;             // Normalize to 0-1
+    float original_value = normalized * (MAX_VAL - MIN_VAL) + MIN_VAL; // Scale back to original range
+
+    return original_value;
 }

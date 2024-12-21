@@ -273,7 +273,7 @@ extern int max_dp;
 //extern float totaliser_vol2;
 //extern float totaliser_vol2c;
 
-extern double totaliser_vol1,
+extern float totaliser_vol1,
 			 totaliser_vol1c,
 			 totaliser_vol2,
 			 totaliser_vol2c;
@@ -10639,7 +10639,7 @@ void correctArray2(float v[4])
         corrected = false;
 
         // Check if v[3] <= v[2] <= v[1] <= v[0] with differences <= 0.9
-        for (int i = 3; i > 0; i--) {
+        for (int8_t i = 3; i > 0; i--) {
             if (v[i - 1] < v[i] || fabs(v[i - 1] - v[i]) > 0.9) {
                 printf("Error detected at v[%d]: %.2f\n", i - 1, v[i - 1]);
 
