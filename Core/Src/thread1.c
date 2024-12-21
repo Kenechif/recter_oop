@@ -372,11 +372,16 @@ extern int _index , _index2;
 
 extern char sc1[10] , sc12[10];
 
-extern float totaliser_vol1;
-extern float totaliser_vol1c;
+//extern float totaliser_vol1;
+//extern float totaliser_vol1c;
+//
+//extern float totaliser_vol2;
+//extern float totaliser_vol2c;
 
-extern float totaliser_vol2;
-extern float totaliser_vol2c;
+extern double totaliser_vol1,
+			 totaliser_vol1c,
+			 totaliser_vol2,
+			 totaliser_vol2c;
 
 extern float firstTotaliser_vol1,
 			 firstTotaliser_vol1c,
@@ -2429,13 +2434,26 @@ skip_test:
     	}
     }
 
+//    retrieve_totaliser_fram(side_a);
+//    totaliser_vol1c = 0;
+//    totaliser_vol2c = 0;
+//    totaliser_vol1 = 0;
+//    totaliser_vol2 = 0;
+//    retrieve_totaliser_eeprom(side_a);
+//    retrieve_totaliser_fram(side_b);
+//    totaliser_vol1c = 0;
+//    totaliser_vol2c = 0;
+//    totaliser_vol1 = 0;
+//    totaliser_vol2 = 0;
+//    retrieve_totaliser_eeprom(side_b);
 //    uint8_t sz = sizeof(totaliser_storeA);
 //
     //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH//
     //==============================================//
-
-//    totaliser_vol1c = 161.69;
-//    totaliser_vol1 = 161.69;
+//    totaliser_vol1c = 21474836.00;
+//    totaliser_vol1 = 21474836.00;
+////    totaliser_vol1c = 161.69;
+////    totaliser_vol1 = 161.69;
 //    totaliser_amt1c = 0.00;
 //	totaliser_amt1 = 0.00;
 //	save_totaliser_fram(side_a);

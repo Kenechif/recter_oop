@@ -90,7 +90,7 @@ extern uint32_t  r_volTotaliser1,
 				 r_volTotaliser2,
 		         old_r_volTotaliser2;
 
-extern float running_volTotaliser1_array[4],
+extern double running_volTotaliser1_array[4],
 			 running_volTotaliser1c_array[4],
 			 running_volTotaliser2_array[4],
 			 running_volTotaliser2c_array[4];

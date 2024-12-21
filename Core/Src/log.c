@@ -123,12 +123,17 @@ extern float price_real1, price_real2,
 			 amt_real1, amt_real2,
 			 price, price2,
 			 amt, amt2,
-			 totaliser_vol1, totaliser_vol1c,
-			 totaliser_vol2, totaliser_vol2c,
+//			 totaliser_vol1, totaliser_vol1c,
+//			 totaliser_vol2, totaliser_vol2c,
 			 totaliser_amt1, totaliser_amt1c,
 			 totaliser_amt2, totaliser_amt2c,
 			 priceOld1,
 			 priceOld2;
+
+extern double totaliser_vol1,
+			 totaliser_vol1c,
+			 totaliser_vol2,
+			 totaliser_vol2c;
 
 extern float firstTotaliser_vol1,
 			 firstTotaliser_vol1c,

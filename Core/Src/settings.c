@@ -115,7 +115,7 @@ int access_level = non;    //default
     sellmode_ sellmode = P;
     sellmode_ sellmode2 = P;
 
-	float totaliser_vol1 CCRAM = 0.00,
+    double totaliser_vol1 CCRAM = 0.00,
 	      totaliser_vol1c CCRAM = 0.00,
 	      totaliser_vol2 CCRAM = 0.00,
 		  totaliser_vol2c CCRAM = 0.00;
@@ -219,7 +219,7 @@ float running_amtTotaliser2_tmin1 CCRAM = 0.00,
 	 running_amtTotaliser2c_tmin2 CCRAM = 0.00,
 	 running_amtTotaliser2c_tmin3 CCRAM = 0.00;
 
-float running_volTotaliser1_array[4] CCRAM = {0},
+double running_volTotaliser1_array[4] CCRAM = {0},
 	  running_volTotaliser1c_array[4] CCRAM = {0},
 	  running_volTotaliser2_array[4] CCRAM = {0},
 	  running_volTotaliser2c_array[4] CCRAM = {0};
@@ -1286,7 +1286,7 @@ void retrieve_totaliser_eeprom_check(pump_sid side)
 
 		float totaliser_vol1c_0 = totaliser_vol1c - amt_middle1;
 		float totaliser_vol1c_ = totaliser_storeA_check.totaliserVol_cal - totaliser_vol1c_0;
-		if(totaliser_vol1c_ >= 0.2)
+		if(fabs(totaliser_vol1c_) >= 0.2)
 		{
 			totaliser_vol1c = totaliser_storeA_check.totaliserVol_cal + amt_middle1;
 			totaliser_vol1 = totaliser_storeA_check.totaliserVol_real + amt_real1;
@@ -1302,7 +1302,7 @@ void retrieve_totaliser_eeprom_check(pump_sid side)
 
 		float totaliser_vol2c_0 = totaliser_vol2c - amt_middle2;
 		float totaliser_vol2c_ = totaliser_storeB_check.totaliserVol_cal - totaliser_vol2c_0;
-		if(totaliser_vol2c_ >= 0.2)
+		if(fabs(totaliser_vol2c_) >= 0.2)
 		{
 			totaliser_vol2c = totaliser_storeB_check.totaliserVol_cal + amt_middle2;
 			totaliser_vol2 = totaliser_storeB_check.totaliserVol_real + amt_real2;
@@ -1448,9 +1448,11 @@ uint8_t retrieve_totaliser_fram_check(pump_sid side)
 
 		if(retrieved_crc == crc)
 		{
-			float totaliser_vol1c_0 = totaliser_vol1c - amt_middle1;
+//			float totaliser_vol1c_0 = totaliser_vol1c - amt_middle1;
+			float totaliser_vol1c_0 = working_volTotaliser1c - amt_middle1;
 			float totaliser_vol1c_ = totaliser_storeA_check.totaliserVol_cal - totaliser_vol1c_0;
-			if(totaliser_vol1c_ >= 0.2)
+			if(fabs(totaliser_vol1c_) >= 0.2)
+//			if(totaliser_vol1c_ >= 0.2)
 			{
 				totaliser_vol1c = totaliser_storeA_check.totaliserVol_cal + amt_middle1;
 				totaliser_vol1 = totaliser_storeA_check.totaliserVol_real + amt_real1;
@@ -1482,9 +1484,10 @@ uint8_t retrieve_totaliser_fram_check(pump_sid side)
 
 		if(retrieved_crc == crc)
 		{
-			float totaliser_vol2c_0 = totaliser_vol2c - amt_middle2;
+//			float totaliser_vol2c_0 = totaliser_vol2c - amt_middle2;
+			float totaliser_vol2c_0 = working_volTotaliser2c - amt_middle2;
 			float totaliser_vol2c_ = totaliser_storeB_check.totaliserVol_cal - totaliser_vol2c_0;
-			if(totaliser_vol2c_ >= 0.2)
+			if(fabs(totaliser_vol2c_) >= 0.2)
 			{
 				totaliser_vol2c = totaliser_storeB_check.totaliserVol_cal + amt_middle2;
 				totaliser_vol2 = totaliser_storeB_check.totaliserVol_real + amt_real2;

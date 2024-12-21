@@ -317,7 +317,7 @@ extern bool nozzle_out1,
 					   dp_vol2,
 					   dp_unitprice2;
 
-		extern float totaliser_vol1c,
+		extern double totaliser_vol1c,
 					 totaliser_vol2c,
 					 totaliser_vol1,
 					 totaliser_vol2;

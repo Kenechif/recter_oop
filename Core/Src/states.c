@@ -292,10 +292,15 @@ extern char password_level1[9],
 extern int operating_side;
 extern int max_dp;
 
-extern float totaliser_vol1;
-extern float totaliser_vol1c;
-extern float totaliser_vol2;
-extern float totaliser_vol2c;
+//extern float totaliser_vol1;
+//extern double totaliser_vol1c;
+//extern float totaliser_vol2;
+//extern float totaliser_vol2c;
+
+extern double totaliser_vol1,
+			 totaliser_vol1c,
+			 totaliser_vol2,
+			 totaliser_vol2c;
 
 extern float firstTotaliser_vol1,
 			 firstTotaliser_vol1c,
@@ -369,7 +374,7 @@ extern float working_amtTotaliser2,
 			working_amtTotaliser2c,
 			running_amtTotaliser2c;
 
-extern float running_volTotaliser1_array[4],
+extern double running_volTotaliser1_array[4],
 			 running_volTotaliser1c_array[4],
 			 running_volTotaliser2_array[4],
 			 running_volTotaliser2c_array[4];
@@ -1336,6 +1341,7 @@ eSystemState nozzledown_Handler(void)
 		running_volTotaliser1_tmin1 = running_volTotaliser1;
 		running_volTotaliser1 = working_volTotaliser1 + amt_real1;
 
+
 		running_volTotaliser1_array[0] = running_volTotaliser1;
 		running_volTotaliser1_array[1] = running_volTotaliser1_tmin1;
 		running_volTotaliser1_array[2] = running_volTotaliser1_tmin2;
@@ -1347,6 +1353,8 @@ eSystemState nozzledown_Handler(void)
 		running_volTotaliser1_tmin1 = running_volTotaliser1_array[1];
 		running_volTotaliser1_tmin2 = running_volTotaliser1_array[2];
 		running_volTotaliser1_tmin3 = running_volTotaliser1_array[3];
+
+		totaliser_vol1 = running_volTotaliser1;
 
 		//============================================================================//
 
@@ -1369,6 +1377,8 @@ eSystemState nozzledown_Handler(void)
 		running_volTotaliser1c_tmin1 = running_volTotaliser1c_array[1];
 		running_volTotaliser1c_tmin2 = running_volTotaliser1c_array[2];
 		running_volTotaliser1c_tmin3 = running_volTotaliser1c_array[3];
+
+		totaliser_vol1c = running_volTotaliser1c;
 
 		//============================================================================//
 
@@ -8209,7 +8219,7 @@ eSystemState authorised_nozzledown_State_Handler(void)
 //---------------
 eSystemState  nozzleup_waitingforauthState_Handler(void)
 {
-   	if (settings_stream1[operating_side - 1].mode == MANUAL_MODE)
+   	if (settings_stream1[0].mode == MANUAL_MODE)
 	{
 		//send nozzleup command only in MANUAL mode
 		return authorised_nozzleup_State;     //idle_State;
@@ -8987,6 +8997,20 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
  // slow_flow1();
 
+	   while(retrieve_totaliser_fram(side_a) != OK)   //If it fails, retry 5X
+	   {
+			static uint8_t try = 0;
+			if(try++ >= 5)
+			{
+				try = 0;
+				retrieve_totaliser_eeprom(side_a);
+				break;
+			}
+		}
+	   //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
+	    totaliser_vol1c = 9000000; //21474836;   // 5000000;
+	    totaliser_vol1 = 0.0;  //21474836;    // 5000000;
+	   //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
 		working_volTotaliser1 = totaliser_vol1;
 
 		working_volTotaliser1c = totaliser_vol1c;
@@ -9460,6 +9484,8 @@ eSystemState filling_State_Handler(void)
 		running_volTotaliser1_tmin2 = running_volTotaliser1_array[2];
 		running_volTotaliser1_tmin3 = running_volTotaliser1_array[3];
 
+		totaliser_vol1 = running_volTotaliser1;
+
 		//============================================================================//
 
 	//	   	  running_volTotaliser1c = working_volTotaliser1c + amt;
@@ -9482,6 +9508,8 @@ eSystemState filling_State_Handler(void)
 		running_volTotaliser1c_tmin1 = running_volTotaliser1c_array[1];
 		running_volTotaliser1c_tmin2 = running_volTotaliser1c_array[2];
 		running_volTotaliser1c_tmin3 = running_volTotaliser1c_array[3];
+
+		totaliser_vol1c = running_volTotaliser1c;
 
 		//============================================================================//
 
@@ -9511,6 +9539,8 @@ eSystemState filling_State_Handler(void)
 		running_volTotaliser1_tmin2 = running_volTotaliser1_array[2];
 		running_volTotaliser1_tmin3 = running_volTotaliser1_array[3];
 
+		totaliser_vol1 = running_volTotaliser1;
+
 
 		//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
 
@@ -9530,6 +9560,8 @@ eSystemState filling_State_Handler(void)
 		running_volTotaliser1c_tmin1 = running_volTotaliser1c_array[1];
 		running_volTotaliser1c_tmin2 = running_volTotaliser1c_array[2];
 		running_volTotaliser1c_tmin3 = running_volTotaliser1c_array[3];
+
+		totaliser_vol1c = running_volTotaliser1c;
 
 
 		//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
@@ -10156,6 +10188,8 @@ void do_calcs ()
 				running_volTotaliser1_tmin2 = running_volTotaliser1_array[2];
 				running_volTotaliser1_tmin3 = running_volTotaliser1_array[3];
 
+				totaliser_vol1 = running_volTotaliser1;
+
 				//============================================================================//
 
 	//	   	  running_volTotaliser1c = working_volTotaliser1c + amt;
@@ -10178,6 +10212,8 @@ void do_calcs ()
 				running_volTotaliser1c_tmin1 = running_volTotaliser1c_array[1];
 				running_volTotaliser1c_tmin2 = running_volTotaliser1c_array[2];
 				running_volTotaliser1c_tmin3 = running_volTotaliser1c_array[3];
+
+				totaliser_vol1c = running_volTotaliser1c;
 
 				//============================================================================//
 
@@ -10285,6 +10321,8 @@ void do_calcs ()
 				running_volTotaliser1_tmin2 = running_volTotaliser1_array[2];
 				running_volTotaliser1_tmin3 = running_volTotaliser1_array[3];
 
+				totaliser_vol1 = running_volTotaliser1;
+
 				//============================================================================//
 
 	//	   	  running_volTotaliser1c = working_volTotaliser1c + amt;
@@ -10307,6 +10345,8 @@ void do_calcs ()
 				running_volTotaliser1c_tmin1 = running_volTotaliser1c_array[1];
 				running_volTotaliser1c_tmin2 = running_volTotaliser1c_array[2];
 				running_volTotaliser1c_tmin3 = running_volTotaliser1c_array[3];
+
+				totaliser_vol1c = running_volTotaliser1c;
 
 				//============================================================================//
 
@@ -10404,6 +10444,7 @@ void do_calcs ()
 				running_volTotaliser1_tmin2 = running_volTotaliser1_array[2];
 				running_volTotaliser1_tmin3 = running_volTotaliser1_array[3];
 
+				totaliser_vol1 = running_volTotaliser1;
 				//============================================================================//
 
 	//	   	  running_volTotaliser1c = working_volTotaliser1c + amt;
@@ -10426,6 +10467,8 @@ void do_calcs ()
 				running_volTotaliser1c_tmin1 = running_volTotaliser1c_array[1];
 				running_volTotaliser1c_tmin2 = running_volTotaliser1c_array[2];
 				running_volTotaliser1c_tmin3 = running_volTotaliser1c_array[3];
+
+				totaliser_vol1c = running_volTotaliser1c;
 
 				//============================================================================//
 
@@ -11233,7 +11276,7 @@ void keypad_fillingUpdate1(void)
 }
 
 // Function to check and correct questionable values in the array
-void correctArray1(float v[4])
+void correctArray1(double v[4])
 {
     bool corrected;
     char str[200];

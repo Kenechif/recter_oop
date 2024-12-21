@@ -435,7 +435,7 @@ void keypad_zerorize(void);
 
 void keypad_fillingUpdate1(void);
 
-void correctArray1(float v[4]);
+void correctArray1(double v[4]);
 
 #ifdef __cplusplus
 }

@@ -268,10 +268,15 @@ extern char password_level1[9],
 extern int operating_side;
 extern int max_dp;
 
-extern float totaliser_vol1;
-extern float totaliser_vol1c;
-extern float totaliser_vol2;
-extern float totaliser_vol2c;
+//extern float totaliser_vol1;
+//extern float totaliser_vol1c;
+//extern float totaliser_vol2;
+//extern float totaliser_vol2c;
+
+extern double totaliser_vol1,
+			 totaliser_vol1c,
+			 totaliser_vol2,
+			 totaliser_vol2c;
 
 extern float firstTotaliser_vol1,
 			 firstTotaliser_vol1c,
@@ -344,7 +349,7 @@ extern float working_amtTotaliser2,
 			working_amtTotaliser2c,
 			running_amtTotaliser2c;
 
-extern float running_volTotaliser1_array[4],
+extern double running_volTotaliser1_array[4],
 			 running_volTotaliser1c_array[4],
 			 running_volTotaliser2_array[4],
 			 running_volTotaliser2c_array[4];
@@ -7239,6 +7244,17 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 //	}
 //  else
 //   {
+	   while(retrieve_totaliser_fram(side_b) != OK)   //If it fails, retry 5X
+	   {
+			static uint8_t try = 0;
+			if(try++ >= 5)
+			{
+				try = 0;
+				retrieve_totaliser_eeprom(side_b);
+				break;
+			}
+		}
+
   		working_volTotaliser2 = totaliser_vol2;
 
   		working_volTotaliser2c = totaliser_vol2c;
@@ -7726,6 +7742,8 @@ eSystemState filling_State_Handler2(void)
 		running_volTotaliser2_tmin2 = running_volTotaliser2_array[2];
 		running_volTotaliser2_tmin3 = running_volTotaliser2_array[3];
 
+		totaliser_vol2 = running_volTotaliser2;
+
 		//============================================================================//
 
 //		float differential = running_volTotaliser2 - running_volTotaliser2_tmin1;
@@ -7786,6 +7804,8 @@ eSystemState filling_State_Handler2(void)
 		running_volTotaliser2c_tmin1 = running_volTotaliser2c_array[1];
 		running_volTotaliser2c_tmin2 = running_volTotaliser2c_array[2];
 		running_volTotaliser2c_tmin3 = running_volTotaliser2c_array[3];
+
+		totaliser_vol2c = running_volTotaliser2c;
 
 		//============================================================================//
 
@@ -9011,6 +9031,8 @@ eSystemState nozzledown_Handler2(void)
 			running_volTotaliser2_tmin2 = running_volTotaliser2_array[2];
 			running_volTotaliser2_tmin3 = running_volTotaliser2_array[3];
 
+			totaliser_vol2 = running_volTotaliser2;
+
 			//============================================================================//
 
 
@@ -9032,6 +9054,8 @@ eSystemState nozzledown_Handler2(void)
 			running_volTotaliser2c_tmin1 = running_volTotaliser2c_array[1];
 			running_volTotaliser2c_tmin2 = running_volTotaliser2c_array[2];
 			running_volTotaliser2c_tmin3 = running_volTotaliser2c_array[3];
+
+			totaliser_vol2c = running_volTotaliser2c;
 
 	//		running_volTotaliser2c = working_volTotaliser2c + amt_middle2;
 			//============================================================================//
@@ -9770,6 +9794,8 @@ void do_calcs2 ()
 			running_volTotaliser2_tmin2 = running_volTotaliser2_array[2];
 			running_volTotaliser2_tmin3 = running_volTotaliser2_array[3];
 
+			totaliser_vol2 = running_volTotaliser2;
+
 			//============================================================================//
 
 //	   	  running_volTotaliser2c = working_volTotaliser2c + amt2;
@@ -9792,6 +9818,8 @@ void do_calcs2 ()
 			running_volTotaliser2c_tmin1 = running_volTotaliser2c_array[1];
 			running_volTotaliser2c_tmin2 = running_volTotaliser2c_array[2];
 			running_volTotaliser2c_tmin3 = running_volTotaliser2c_array[3];
+
+			totaliser_vol2c = running_volTotaliser2c;
 
 	//		running_volTotaliser2c = working_volTotaliser2c + amt_middle2;
 			//============================================================================//
@@ -9907,6 +9935,7 @@ void do_calcs2 ()
 			running_volTotaliser2c_tmin2 = running_volTotaliser2c_array[2];
 			running_volTotaliser2c_tmin3 = running_volTotaliser2c_array[3];
 
+			totaliser_vol2c = running_volTotaliser2c;
 	//		running_volTotaliser2c = working_volTotaliser2c + amt_middle2;
 			//============================================================================//
 
@@ -10012,6 +10041,8 @@ void do_calcs2 ()
 			running_volTotaliser2c_tmin1 = running_volTotaliser2c_array[1];
 			running_volTotaliser2c_tmin2 = running_volTotaliser2c_array[2];
 			running_volTotaliser2c_tmin3 = running_volTotaliser2c_array[3];
+
+			totaliser_vol2c = running_volTotaliser2c;
 
 	//		running_volTotaliser2c = working_volTotaliser2c + amt_middle2;
 			//============================================================================//
