@@ -2450,13 +2450,13 @@ skip_test:
 //
     //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH//
     //==============================================//
-//    totaliser_vol1c = 1000000.00;
-//    totaliser_vol1 = 1000000.00;
+////    totaliser_vol1c = 1000000.00;
+////    totaliser_vol1 = 1000000.00;
 //
 ////    totaliser_vol1c = 21474836.00;
 ////    totaliser_vol1 = 21474836.00;
-////    totaliser_vol1c = 161.69;
-////    totaliser_vol1 = 161.69;
+//    totaliser_vol1c = 161.69;
+//    totaliser_vol1 = 161.69;
 //    totaliser_amt1c = 0.00;
 //	totaliser_amt1 = 0.00;
 //	save_totaliser_fram(side_a);
