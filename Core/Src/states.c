@@ -1095,9 +1095,9 @@ eSystemState nozzleup_Handler(void)
 
 	if (eLastState1 == authorised_nozzledown_State)
 	{
-		 current_pulser1 = 0;
 		 overall_currentPulser1 = 0;
 		 clr_pulser1();    //clear hardware pulser
+		 current_pulser1 = 0;
 		 return authorised_nozzleup_State;
 	}
 
@@ -1347,7 +1347,7 @@ eSystemState nozzledown_Handler(void)
 		running_volTotaliser1_array[2] = running_volTotaliser1_tmin2;
 		running_volTotaliser1_array[3] = running_volTotaliser1_tmin3;
 
-		correctArray1(running_volTotaliser1_array);
+		correctArray1(running_volTotaliser1_array, tot_a);
 
 		running_volTotaliser1 = running_volTotaliser1_array[0];
 		running_volTotaliser1_tmin1 = running_volTotaliser1_array[1];
@@ -1364,21 +1364,21 @@ eSystemState nozzledown_Handler(void)
 		running_volTotaliser1c_tmin3 = running_volTotaliser1c_tmin2;
 		running_volTotaliser1c_tmin2 = running_volTotaliser1c_tmin1;
 		running_volTotaliser1c_tmin1 = running_volTotaliser1c;
-		running_volTotaliser1c = working_volTotaliser1c + amt_middle1;
+		running_volTotaliser1c = working_volTotaliser1c + scale_to_range1(amt_middle1);
 
 		running_volTotaliser1c_array[0] = running_volTotaliser1c;
 		running_volTotaliser1c_array[1] = running_volTotaliser1c_tmin1;
 		running_volTotaliser1c_array[2] = running_volTotaliser1c_tmin2;
 		running_volTotaliser1c_array[3] = running_volTotaliser1c_tmin3;
 
-		correctArray1(running_volTotaliser1c_array);
+		correctArray1(running_volTotaliser1c_array, tot_a);
 
 		running_volTotaliser1c = running_volTotaliser1c_array[0];
 		running_volTotaliser1c_tmin1 = running_volTotaliser1c_array[1];
 		running_volTotaliser1c_tmin2 = running_volTotaliser1c_array[2];
 		running_volTotaliser1c_tmin3 = running_volTotaliser1c_array[3];
 
-		totaliser_vol1c = running_volTotaliser1c;
+		totaliser_vol1c = scale_to_original1(running_volTotaliser1c);
 
 		//============================================================================//
 
@@ -1402,7 +1402,7 @@ eSystemState nozzledown_Handler(void)
 		   server_write(str);
 		}
 
-		r_volTotaliser1 = floor( running_volTotaliser1c );
+		r_volTotaliser1 = floor( scale_to_original1(running_volTotaliser1c) );
 
 		if(r_volTotaliser1 != old_r_volTotaliser1)
 		{
@@ -1462,6 +1462,9 @@ eSystemState timeout_Handler(void)
 	 {
 		 lcd_print_line1(" t out  ");
 		 lcd_print_line2("--------");
+
+		 nozzle_flag_key1 = 0;
+		 nozzle_flag_key_old1 = 1;
 
 		 if( ((pump_LitreOverflow == 1) && (pulser_rem1 > 0 )) || ((display_overflow1 == 1) && (pulser_rem1 > 0 )) )
 		 {
@@ -8832,9 +8835,9 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 			  if( (lock_clr == 0) && (firstTime_1 == 0) ) ///   to activate this section once.
 			  {
-					 current_pulser1 = 0;
 					 overall_currentPulser1 = 0;
 					 clr_pulser1();    //clear hardware pulser
+					 current_pulser1 = 0;
 
 					 //current_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);
 					 lock_clr = 1;
@@ -9045,6 +9048,19 @@ eSystemState authorised_nozzleup_State_Handler(void)
 		running_volTotaliser1c_tmin2 = working_volTotaliser1c;
 		running_volTotaliser1c_tmin3 = working_volTotaliser1c;
 
+		price  = 0.0;
+		amt  = 0.0;
+
+		amt_middle1_tmin3 = 0.0;
+		amt_middle1_tmin2 = 0.0;
+		amt_middle1_tmin1 = 0.0;
+		amt_middle1 = 0.0;
+
+		amt_real1_tmin3 = 0.0;
+		amt_real1_tmin2 = 0.0;
+		amt_real1_tmin1 = 0.0;
+		amt_real1 = 0.0;
+
 
 
 
@@ -9055,7 +9071,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 //		running_volTotaliser1c_tmin2 = totaliser_vol1c;
 
 
-		r_volTotaliser1 = floor(working_volTotaliser1c);
+		r_volTotaliser1 = floor(scale_to_original1(working_volTotaliser1c));
 
 //		running_volTotaliser1c_tmin3 = totaliser_vol1c;
 
@@ -9452,7 +9468,7 @@ eSystemState filling_State_Handler(void)
 	   amt_real1_array[2] = amt_real1_tmin2;
 	   amt_real1_array[3] = amt_real1_tmin3;
 
-		correctArray1(amt_real1_array);
+		correctArray1(amt_real1_array, amt_a);
 
 		amt_real1 = amt_real1_array[0];
 		amt_real1_tmin1 = amt_real1_array[1];
@@ -9504,7 +9520,7 @@ eSystemState filling_State_Handler(void)
 		running_volTotaliser1_array[2] = running_volTotaliser1_tmin2;
 		running_volTotaliser1_array[3] = running_volTotaliser1_tmin3;
 
-		correctArray1(running_volTotaliser1_array);
+		correctArray1(running_volTotaliser1_array, tot_a);
 
 		running_volTotaliser1 = running_volTotaliser1_array[0];
 		running_volTotaliser1_tmin1 = running_volTotaliser1_array[1];
@@ -9522,14 +9538,14 @@ eSystemState filling_State_Handler(void)
 		running_volTotaliser1c_tmin3 = running_volTotaliser1c_tmin2;
 		running_volTotaliser1c_tmin2 = running_volTotaliser1c_tmin1;
 		running_volTotaliser1c_tmin1 = running_volTotaliser1c;
-		running_volTotaliser1c = working_volTotaliser1c + amt_middle1;
+		running_volTotaliser1c = working_volTotaliser1c + scale_to_range1(amt_middle1);
 
 		running_volTotaliser1c_array[0] = running_volTotaliser1c;
 		running_volTotaliser1c_array[1] = running_volTotaliser1c_tmin1;
 		running_volTotaliser1c_array[2] = running_volTotaliser1c_tmin2;
 		running_volTotaliser1c_array[3] = running_volTotaliser1c_tmin3;
 
-		correctArray1(running_volTotaliser1c_array);
+		correctArray1(running_volTotaliser1c_array, tot_a);
 
 		running_volTotaliser1c = running_volTotaliser1c_array[0];
 		running_volTotaliser1c_tmin1 = running_volTotaliser1c_array[1];
@@ -9559,7 +9575,7 @@ eSystemState filling_State_Handler(void)
 		running_volTotaliser1_array[2] = running_volTotaliser1_tmin2;
 		running_volTotaliser1_array[3] = running_volTotaliser1_tmin3;
 
-		correctArray1(running_volTotaliser1_array);
+		correctArray1(running_volTotaliser1_array, tot_a);
 
 		running_volTotaliser1 = running_volTotaliser1_array[0];
 		running_volTotaliser1_tmin1 = running_volTotaliser1_array[1];
@@ -9574,14 +9590,14 @@ eSystemState filling_State_Handler(void)
 		running_volTotaliser1c_tmin3 = running_volTotaliser1c_tmin2;
 		running_volTotaliser1c_tmin2 = running_volTotaliser1c_tmin1;
 		running_volTotaliser1c_tmin1 = running_volTotaliser1c;
-		running_volTotaliser1c = working_volTotaliser1c + amt_middle1;
+		running_volTotaliser1c = working_volTotaliser1c + scale_to_range1(amt_middle1);
 
 		running_volTotaliser1c_array[0] = running_volTotaliser1c;
 		running_volTotaliser1c_array[1] = running_volTotaliser1c_tmin1;
 		running_volTotaliser1c_array[2] = running_volTotaliser1c_tmin2;
 		running_volTotaliser1c_array[3] = running_volTotaliser1c_tmin3;
 
-		correctArray1(running_volTotaliser1c_array);
+		correctArray1(running_volTotaliser1c_array, tot_a);
 
 		running_volTotaliser1c = running_volTotaliser1c_array[0];
 		running_volTotaliser1c_tmin1 = running_volTotaliser1c_array[1];
@@ -9612,7 +9628,7 @@ eSystemState filling_State_Handler(void)
 	    }
 ////============================================================
 //         for totaliser toggle.
-	  r_volTotaliser1 	  = floor( running_volTotaliser1c );
+	  r_volTotaliser1 	  = floor(scale_to_original1(running_volTotaliser1c) );
 //	  r_amtTotaliser 	  = floor(running_amtTotaliser1c);
 //
 //	if(r_volTotaliser1 != old_r_volTotaliser1)
@@ -9902,7 +9918,7 @@ void make_string(sellmode_ sll, float pr)
 		 amt_middle1_array[2] = amt_middle1_tmin2;
 		 amt_middle1_array[3] = amt_middle1_tmin3;
 
-		 correctArray1(amt_middle1_array);
+		 correctArray1(amt_middle1_array, amt_a);
 
 		 amt_middle1 = amt_middle1_array[0];
 		 amt_middle1_tmin1 = amt_middle1_array[1];
@@ -10208,7 +10224,7 @@ void do_calcs ()
 				running_volTotaliser1_array[2] = running_volTotaliser1_tmin2;
 				running_volTotaliser1_array[3] = running_volTotaliser1_tmin3;
 
-				correctArray1(running_volTotaliser1_array);
+				correctArray1(running_volTotaliser1_array, tot_a);
 
 				running_volTotaliser1 = running_volTotaliser1_array[0];
 				running_volTotaliser1_tmin1 = running_volTotaliser1_array[1];
@@ -10226,14 +10242,14 @@ void do_calcs ()
 				running_volTotaliser1c_tmin3 = running_volTotaliser1c_tmin2;
 				running_volTotaliser1c_tmin2 = running_volTotaliser1c_tmin1;
 				running_volTotaliser1c_tmin1 = running_volTotaliser1c;
-				running_volTotaliser1c = working_volTotaliser1c + amt_middle1;
+				running_volTotaliser1c = working_volTotaliser1c + scale_to_range1(amt_middle1);
 
 				running_volTotaliser1c_array[0] = running_volTotaliser1c;
 				running_volTotaliser1c_array[1] = running_volTotaliser1c_tmin1;
 				running_volTotaliser1c_array[2] = running_volTotaliser1c_tmin2;
 				running_volTotaliser1c_array[3] = running_volTotaliser1c_tmin3;
 
-				correctArray1(running_volTotaliser1c_array);
+				correctArray1(running_volTotaliser1c_array, tot_a);
 
 				running_volTotaliser1c = running_volTotaliser1c_array[0];
 				running_volTotaliser1c_tmin1 = running_volTotaliser1c_array[1];
@@ -10270,7 +10286,7 @@ void do_calcs ()
 
 			   //         for totaliser toggle.
 
-				r_volTotaliser1 	  = floor( running_volTotaliser1c );
+				r_volTotaliser1 	  = floor( scale_to_original1(running_volTotaliser1c) );
 
 				if(r_volTotaliser1 != old_r_volTotaliser1)
 				{
@@ -10341,7 +10357,7 @@ void do_calcs ()
 				running_volTotaliser1_array[2] = running_volTotaliser1_tmin2;
 				running_volTotaliser1_array[3] = running_volTotaliser1_tmin3;
 
-				correctArray1(running_volTotaliser1_array);
+				correctArray1(running_volTotaliser1_array, tot_a);
 
 				running_volTotaliser1 = running_volTotaliser1_array[0];
 				running_volTotaliser1_tmin1 = running_volTotaliser1_array[1];
@@ -10359,14 +10375,14 @@ void do_calcs ()
 				running_volTotaliser1c_tmin3 = running_volTotaliser1c_tmin2;
 				running_volTotaliser1c_tmin2 = running_volTotaliser1c_tmin1;
 				running_volTotaliser1c_tmin1 = running_volTotaliser1c;
-				running_volTotaliser1c = working_volTotaliser1c + amt_middle1;
+				running_volTotaliser1c = working_volTotaliser1c + scale_to_range1(amt_middle1);
 
 				running_volTotaliser1c_array[0] = running_volTotaliser1c;
 				running_volTotaliser1c_array[1] = running_volTotaliser1c_tmin1;
 				running_volTotaliser1c_array[2] = running_volTotaliser1c_tmin2;
 				running_volTotaliser1c_array[3] = running_volTotaliser1c_tmin3;
 
-				correctArray1(running_volTotaliser1c_array);
+				correctArray1(running_volTotaliser1c_array, tot_a);
 
 				running_volTotaliser1c = running_volTotaliser1c_array[0];
 				running_volTotaliser1c_tmin1 = running_volTotaliser1c_array[1];
@@ -10464,7 +10480,7 @@ void do_calcs ()
 				running_volTotaliser1_array[2] = running_volTotaliser1_tmin2;
 				running_volTotaliser1_array[3] = running_volTotaliser1_tmin3;
 
-				correctArray1(running_volTotaliser1_array);
+				correctArray1(running_volTotaliser1_array, tot_a);
 
 				running_volTotaliser1 = running_volTotaliser1_array[0];
 				running_volTotaliser1_tmin1 = running_volTotaliser1_array[1];
@@ -10481,14 +10497,14 @@ void do_calcs ()
 				running_volTotaliser1c_tmin3 = running_volTotaliser1c_tmin2;
 				running_volTotaliser1c_tmin2 = running_volTotaliser1c_tmin1;
 				running_volTotaliser1c_tmin1 = running_volTotaliser1c;
-				running_volTotaliser1c = working_volTotaliser1c + amt_middle1;
+				running_volTotaliser1c = working_volTotaliser1c + scale_to_range1(amt_middle1);
 
 				running_volTotaliser1c_array[0] = running_volTotaliser1c;
 				running_volTotaliser1c_array[1] = running_volTotaliser1c_tmin1;
 				running_volTotaliser1c_array[2] = running_volTotaliser1c_tmin2;
 				running_volTotaliser1c_array[3] = running_volTotaliser1c_tmin3;
 
-				correctArray1(running_volTotaliser1c_array);
+				correctArray1(running_volTotaliser1c_array, tot_a);
 
 				running_volTotaliser1c = running_volTotaliser1c_array[0];
 				running_volTotaliser1c_tmin1 = running_volTotaliser1c_array[1];
@@ -11173,6 +11189,9 @@ void keypad_zerorize(void)
 	index_ = 0;
 	_index = 0;
 
+	nozzle_flag_key1 = 0;
+	nozzle_flag_key_old1 = 0;
+
 	for(uint8_t i = 0; i < 9; i++)
 	{
 		keypad_pw_xter1[i] = 0;
@@ -11303,7 +11322,7 @@ void keypad_fillingUpdate1(void)
 }
 
 // Function to check and correct questionable values in the array
-void correctArray1(float v[4])
+void correctArray1(float v[4], corrected_sid sid)
 {
     bool corrected;
     char str[200];
@@ -11316,9 +11335,18 @@ void correctArray1(float v[4])
             if (v[i - 1] < v[i] || fabs(v[i - 1] - v[i]) > 0.9)
             {
 			  #if DEBUG
-            	sprintf(str,
-                		"Error detected at v[%d]: %.2f\n",
-						i - 1, v[i - 1]);
+            	if(sid == tot_a)
+            	{
+					sprintf(str,
+							"Totalizer1 Error detected @ v[%d]: %.2f\n",
+							i - 1, v[i - 1]);
+            	}
+            	else if(sid == amt_a)
+            	{
+					sprintf(str,
+							"Litre-Transaction1 Error detected @ v[%d]: %.2f\n",
+							i - 1, v[i - 1]);
+            	}
 
 				HAL_UART_Transmit(&huart3, str, strlen((char*)str), HAL_MAX_DELAY);
 			  #endif
@@ -11334,9 +11362,18 @@ void correctArray1(float v[4])
                 }
 
 			  #if DEBUG
-                sprintf(str,
-                		"Corrected v[%d] to: %.2f\n\n",
-						i - 1, v[i - 1]);
+                if(sid == tot_a)
+				{
+					sprintf(str,
+							"Corrected Totalizer1 @ v[%d] to: %.2f\n\n",
+							i - 1, v[i - 1]);
+				}
+				else if(sid == amt_a)
+				{
+					sprintf(str,
+							"Corrected Litre-Transaction1 @ v[%d] to: %.2f\n\n",
+							i - 1, v[i - 1]);
+				}
 
 				HAL_UART_Transmit(&huart3, str, strlen((char*)str), HAL_MAX_DELAY);
 			  #endif
@@ -11379,4 +11416,15 @@ float scale_to_original1(float scaled_value)
     float original_value = normalized * (MAX_VAL - MIN_VAL) + MIN_VAL; // Scale back to original range
 
     return original_value;
+}
+
+// Function to extract the fractional part of a float
+float get_fractional_part(float num) {
+    // Get the integer part using floorf
+    float int_part = floorf(num);
+
+    // Subtract the integer part from the original number to get the fractional part
+    float fractional_part = num - int_part;
+
+    return fractional_part;
 }

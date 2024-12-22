@@ -6578,7 +6578,7 @@ eSystemState idleState_Handler2(void)
 
 eSystemState  nozzleup_waitingforauthState_Handler2(void)
 {
-   	if (settings_stream1[operating_side - 1].mode == MANUAL_MODE)
+   	if (settings_stream1[1].mode == MANUAL_MODE)
 		{
 			//send nozzleup command only in MANUAL mode
 			return authorised_nozzleup_State;     //idle_State;
@@ -7132,9 +7132,9 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 
 			  if( (lock_clr2 == 0) && (firstTime_1 == 0) ) ///   to activate this section once.
 			  {
-					 current_pulser2 = 0;
 //					 overall_currentPulser1 = 0;
 					 clr_pulser2();    //clear hardware pulser
+					 current_pulser2 = 0;
 
 					 //current_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);
 					 lock_clr2 = 1;
@@ -7255,30 +7255,62 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 			}
 		}
 
-  		working_volTotaliser2 = totaliser_vol2;
+//  		working_volTotaliser2 = totaliser_vol2;
+//
+//  		working_volTotaliser2c = totaliser_vol2c;
+//
+//  		running_volTotaliser2_tmin1 = totaliser_vol2;
+//
+// 		working_amtTotaliser2 = totaliser_amt2;
+//
+//	    running_volTotaliser2_tmin2 = totaliser_vol2;
+//
+// 		running_volTotaliser2c_tmin1 = totaliser_vol2c;
+//
+//  		working_amtTotaliser2c = totaliser_amt2c;
+//
+//  		running_volTotaliser2c_tmin2 = totaliser_vol2c;
 
-  		working_volTotaliser2c = totaliser_vol2c;
+  		working_volTotaliser2 = scale_to_range2(totaliser_vol2);
+		working_volTotaliser2c = scale_to_range2(totaliser_vol2c);
 
-  		running_volTotaliser2_tmin1 = totaliser_vol2;
+		working_amtTotaliser2 = totaliser_amt2;
+		working_amtTotaliser2c = totaliser_amt2c;
 
- 		working_amtTotaliser2 = totaliser_amt2;
+		running_volTotaliser2 = working_volTotaliser2;
+		running_volTotaliser2_tmin1 = working_volTotaliser2;
+		running_volTotaliser2_tmin2 = working_volTotaliser2;
+		running_volTotaliser2_tmin3 = working_volTotaliser2;
 
-	    running_volTotaliser2_tmin2 = totaliser_vol2;
+		running_volTotaliser2c = working_volTotaliser2c;
+		running_volTotaliser2c_tmin1 = working_volTotaliser2c;
+		running_volTotaliser2c_tmin2 = working_volTotaliser2c;
+		running_volTotaliser2c_tmin3 = working_volTotaliser2c;
 
- 		running_volTotaliser2c_tmin1 = totaliser_vol2c;
+		price2  = 0.0;
+		amt2  = 0.0;
 
-  		working_amtTotaliser2c = totaliser_amt2c;
+		amt_middle2_tmin3 = 0.0;
+		amt_middle2_tmin2 = 0.0;
+		amt_middle2_tmin1 = 0.0;
+		amt_middle2 = 0.0;
 
-  		running_volTotaliser2c_tmin2 = totaliser_vol2c;
+		amt_real2_tmin3 = 0.0;
+		amt_real2_tmin2 = 0.0;
+		amt_real2_tmin1 = 0.0;
+		amt_real2 = 0.0;
+
+
+
 //  	}
 
-  r_volTotaliser2 = floor(working_volTotaliser2c);
+  r_volTotaliser2 = floor( scale_to_original2(running_volTotaliser2c) );
 
-  running_volTotaliser2c_tmin3 = totaliser_vol2c;
+//  running_volTotaliser2c_tmin3 = totaliser_vol2c;
 
   old_r_volTotaliser2 = r_volTotaliser2;
 
-  running_volTotaliser2_tmin3 = totaliser_vol2;
+//  running_volTotaliser2_tmin3 = totaliser_vol2;
 
 //  r_amtTotaliser2 = floor(working_amtTotaliser2c);
 //  old_r_amtTotaliser2 = r_amtTotaliser2;
@@ -7665,7 +7697,7 @@ eSystemState filling_State_Handler2(void)
 	   amt_real2_array[2] = amt_real2_tmin2;
 	   amt_real2_array[3] = amt_real2_tmin3;
 
-		correctArray2(amt_real2_array);
+		correctArray2(amt_real2_array, amt_b);
 
 		amt_real2 = amt_real2_array[0];
 		amt_real2_tmin1 = amt_real2_array[1];
@@ -7735,14 +7767,14 @@ eSystemState filling_State_Handler2(void)
 		running_volTotaliser2_array[2] = running_volTotaliser2_tmin2;
 		running_volTotaliser2_array[3] = running_volTotaliser2_tmin3;
 
-		correctArray2(running_volTotaliser2_array);
+		correctArray2(running_volTotaliser2_array, tot_b);
 
 		running_volTotaliser2 = running_volTotaliser2_array[0];
 		running_volTotaliser2_tmin1 = running_volTotaliser2_array[1];
 		running_volTotaliser2_tmin2 = running_volTotaliser2_array[2];
 		running_volTotaliser2_tmin3 = running_volTotaliser2_array[3];
 
-		totaliser_vol2 = running_volTotaliser2;
+		totaliser_vol2 = scale_to_original2(running_volTotaliser2);
 
 		//============================================================================//
 
@@ -7791,21 +7823,21 @@ eSystemState filling_State_Handler2(void)
 		running_volTotaliser2c_tmin3 = running_volTotaliser2c_tmin2;
 		running_volTotaliser2c_tmin2 = running_volTotaliser2c_tmin1;
 		running_volTotaliser2c_tmin1 = running_volTotaliser2c;
-		running_volTotaliser2c = working_volTotaliser2c + amt_middle2;
+		running_volTotaliser2c = ( working_volTotaliser2c + scale_to_range2(amt_middle2) );
 
 		running_volTotaliser2c_array[0] = running_volTotaliser2c;
 		running_volTotaliser2c_array[1] = running_volTotaliser2c_tmin1;
 		running_volTotaliser2c_array[2] = running_volTotaliser2c_tmin2;
 		running_volTotaliser2c_array[3] = running_volTotaliser2c_tmin3;
 
-		correctArray2(running_volTotaliser2c_array);
+		correctArray2(running_volTotaliser2c_array, tot_b);
 
 		running_volTotaliser2c = running_volTotaliser2c_array[0];
 		running_volTotaliser2c_tmin1 = running_volTotaliser2c_array[1];
 		running_volTotaliser2c_tmin2 = running_volTotaliser2c_array[2];
 		running_volTotaliser2c_tmin3 = running_volTotaliser2c_array[3];
 
-		totaliser_vol2c = running_volTotaliser2c;
+		totaliser_vol2c = scale_to_original2(running_volTotaliser2c);
 
 		//============================================================================//
 
@@ -7846,7 +7878,7 @@ eSystemState filling_State_Handler2(void)
 
 //============================================================
 //         for totaliser toggle.
-	  r_volTotaliser2 	  = floor( running_volTotaliser2c );
+	  r_volTotaliser2 	  = floor( scale_to_original2(running_volTotaliser2c) );
 
 //	  r_amtTotaliser2 	  = floor(running_amtTotaliser2c);
 //
@@ -8179,11 +8211,11 @@ eSystemState nozzleup_Handler2(void)
 //	send_pump(1);      //turn on pump.
 
 	if (eLastState2 == authorised_nozzledown_State)
-		{
-		     current_pulser2 = 0;
-			 clr_pulser2();    //clear hardware pulser
-		    return authorised_nozzleup_State;
-		}
+	{
+		 clr_pulser2();    //clear hardware pulser
+		 current_pulser2 = 0;
+		 return authorised_nozzleup_State;
+	}
 
 	return nozzleup_waitingforauth_State;
 }
@@ -8440,7 +8472,7 @@ void make_string2(sellmode_ sll, float pr)
 		 amt_middle2_array[2] = amt_middle2_tmin2;
 		 amt_middle2_array[3] = amt_middle2_tmin3;
 
-		 correctArray2(amt_middle2_array);
+		 correctArray2(amt_middle2_array, amt_b);
 
 		 amt_middle2 = amt_middle2_array[0];
 		 amt_middle2_tmin1 = amt_middle2_array[1];
@@ -9024,14 +9056,14 @@ eSystemState nozzledown_Handler2(void)
 			running_volTotaliser2_array[2] = running_volTotaliser2_tmin2;
 			running_volTotaliser2_array[3] = running_volTotaliser2_tmin3;
 
-			correctArray2(running_volTotaliser2_array);
+			correctArray2(running_volTotaliser2_array, tot_b);
 
 			running_volTotaliser2 = running_volTotaliser2_array[0];
 			running_volTotaliser2_tmin1 = running_volTotaliser2_array[1];
 			running_volTotaliser2_tmin2 = running_volTotaliser2_array[2];
 			running_volTotaliser2_tmin3 = running_volTotaliser2_array[3];
 
-			totaliser_vol2 = running_volTotaliser2;
+			totaliser_vol2 = scale_to_original2(running_volTotaliser2);
 
 			//============================================================================//
 
@@ -9041,23 +9073,23 @@ eSystemState nozzledown_Handler2(void)
 			running_volTotaliser2c_tmin3 = running_volTotaliser2c_tmin2;
 			running_volTotaliser2c_tmin2 = running_volTotaliser2c_tmin1;
 			running_volTotaliser2c_tmin1 = running_volTotaliser2c;
-			running_volTotaliser2c = working_volTotaliser2c + amt_middle2;
+			running_volTotaliser2c = ( working_volTotaliser2c + scale_to_range2(amt_middle2) );
 
 			running_volTotaliser2c_array[0] = running_volTotaliser2c;
 			running_volTotaliser2c_array[1] = running_volTotaliser2c_tmin1;
 			running_volTotaliser2c_array[2] = running_volTotaliser2c_tmin2;
 			running_volTotaliser2c_array[3] = running_volTotaliser2c_tmin3;
 
-			correctArray2(running_volTotaliser2c_array);
+			correctArray2(running_volTotaliser2c_array, tot_b);
 
 			running_volTotaliser2c = running_volTotaliser2c_array[0];
 			running_volTotaliser2c_tmin1 = running_volTotaliser2c_array[1];
 			running_volTotaliser2c_tmin2 = running_volTotaliser2c_array[2];
 			running_volTotaliser2c_tmin3 = running_volTotaliser2c_array[3];
 
-			totaliser_vol2c = running_volTotaliser2c;
+			totaliser_vol2c = scale_to_original2(running_volTotaliser2c);
 
-	//		running_volTotaliser2c = working_volTotaliser2c + amt_middle2;
+	//		running_volTotaliser2c = ( working_volTotaliser2c + scale_to_range2(amt_middle2) );
 			//============================================================================//
 
 
@@ -9081,7 +9113,7 @@ eSystemState nozzledown_Handler2(void)
 		   }
 
 
-			r_volTotaliser2 = floor(running_volTotaliser2c);
+			r_volTotaliser2 = floor( scale_to_original2(running_volTotaliser2c) );
 
 			if(r_volTotaliser2 != old_r_volTotaliser2)
 			{
@@ -9139,6 +9171,9 @@ eSystemState timeout_Handler2(void)
 	 {
 		 lcd_print_line1_2(" t out  ");
 		 lcd_print_line2_2("--------");
+
+		 nozzle_flag_key2 = 0;
+		 nozzle_flag_key_old2 = 1;
 
 		 if( ((pump_LitreOverflow2 == 1) && (pulser_rem2 > 0 )) || ((display_overflow2 == 1) && (pulser_rem2 > 0 )) )
 		 {
@@ -9787,39 +9822,39 @@ void do_calcs2 ()
 			running_volTotaliser2_array[2] = running_volTotaliser2_tmin2;
 			running_volTotaliser2_array[3] = running_volTotaliser2_tmin3;
 
-			correctArray2(running_volTotaliser2_array);
+			correctArray2(running_volTotaliser2_array, tot_b);
 
 			running_volTotaliser2 = running_volTotaliser2_array[0];
 			running_volTotaliser2_tmin1 = running_volTotaliser2_array[1];
 			running_volTotaliser2_tmin2 = running_volTotaliser2_array[2];
 			running_volTotaliser2_tmin3 = running_volTotaliser2_array[3];
 
-			totaliser_vol2 = running_volTotaliser2;
+			totaliser_vol2 = scale_to_original2(running_volTotaliser2);
 
 			//============================================================================//
 
 //	   	  running_volTotaliser2c = working_volTotaliser2c + amt2;
 
-//	   	  running_volTotaliser2c = working_volTotaliser2c + amt_middle2;
+//	   	  running_volTotaliser2c = ( working_volTotaliser2c + scale_to_range2(amt_middle2) );
 	   	  //----------------------------------------------------------------------------//
 			running_volTotaliser2c_tmin3 = running_volTotaliser2c_tmin2;
 			running_volTotaliser2c_tmin2 = running_volTotaliser2c_tmin1;
 			running_volTotaliser2c_tmin1 = running_volTotaliser2c;
-			running_volTotaliser2c = working_volTotaliser2c + amt_middle2;
+			running_volTotaliser2c = ( working_volTotaliser2c + scale_to_range2(amt_middle2) );
 
 			running_volTotaliser2c_array[0] = running_volTotaliser2c;
 			running_volTotaliser2c_array[1] = running_volTotaliser2c_tmin1;
 			running_volTotaliser2c_array[2] = running_volTotaliser2c_tmin2;
 			running_volTotaliser2c_array[3] = running_volTotaliser2c_tmin3;
 
-			correctArray2(running_volTotaliser2c_array);
+			correctArray2(running_volTotaliser2c_array, tot_b);
 
 			running_volTotaliser2c = running_volTotaliser2c_array[0];
 			running_volTotaliser2c_tmin1 = running_volTotaliser2c_array[1];
 			running_volTotaliser2c_tmin2 = running_volTotaliser2c_array[2];
 			running_volTotaliser2c_tmin3 = running_volTotaliser2c_array[3];
 
-			totaliser_vol2c = running_volTotaliser2c;
+			totaliser_vol2c = scale_to_original2(running_volTotaliser2c);
 
 	//		running_volTotaliser2c = working_volTotaliser2c + amt_middle2;
 			//============================================================================//
@@ -9845,8 +9880,8 @@ void do_calcs2 ()
 			   server_write(str);
 		   }
 
-		   totaliser_vol2 = running_volTotaliser2;   // update totaliser
-		   totaliser_vol2c = running_volTotaliser2c; // update totaliser
+		   totaliser_vol2 = scale_to_original2(running_volTotaliser2);   // update totaliser
+		   totaliser_vol2c = scale_to_original2(running_volTotaliser2c); // update totaliser
 
 		   totaliser_amt2 = running_amtTotaliser2;   // update totaliser
 		   totaliser_amt2c = running_amtTotaliser2c; // update totaliser
@@ -9857,7 +9892,7 @@ void do_calcs2 ()
 
 			   //         for totaliser toggle.
 
-				r_volTotaliser2 	  = floor( running_volTotaliser2c );
+				r_volTotaliser2 	  = floor( scale_to_original2(running_volTotaliser2c) );
 
 				if(r_volTotaliser2 != old_r_volTotaliser2)
 				{
@@ -9921,21 +9956,21 @@ void do_calcs2 ()
 			running_volTotaliser2c_tmin3 = running_volTotaliser2c_tmin2;
 			running_volTotaliser2c_tmin2 = running_volTotaliser2c_tmin1;
 			running_volTotaliser2c_tmin1 = running_volTotaliser2c;
-			running_volTotaliser2c = working_volTotaliser2c + amt_middle2;
+			running_volTotaliser2c = ( working_volTotaliser2c + scale_to_range2(amt_middle2) );
 
 			running_volTotaliser2c_array[0] = running_volTotaliser2c;
 			running_volTotaliser2c_array[1] = running_volTotaliser2c_tmin1;
 			running_volTotaliser2c_array[2] = running_volTotaliser2c_tmin2;
 			running_volTotaliser2c_array[3] = running_volTotaliser2c_tmin3;
 
-			correctArray2(running_volTotaliser2c_array);
+			correctArray2(running_volTotaliser2c_array, tot_b);
 
 			running_volTotaliser2c = running_volTotaliser2c_array[0];
 			running_volTotaliser2c_tmin1 = running_volTotaliser2c_array[1];
 			running_volTotaliser2c_tmin2 = running_volTotaliser2c_array[2];
 			running_volTotaliser2c_tmin3 = running_volTotaliser2c_array[3];
 
-			totaliser_vol2c = running_volTotaliser2c;
+			totaliser_vol2c = scale_to_original2(running_volTotaliser2c);
 	//		running_volTotaliser2c = working_volTotaliser2c + amt_middle2;
 			//============================================================================//
 
@@ -9961,8 +9996,8 @@ void do_calcs2 ()
 			   server_write(str);
 		   }
 
-		   totaliser_vol2 = running_volTotaliser2;   // update totaliser
-		   totaliser_vol2c = running_volTotaliser2c; // update totaliser
+		   totaliser_vol2 = scale_to_original2(running_volTotaliser2);   // update totaliser
+		   totaliser_vol2c = scale_to_original2(running_volTotaliser2c); // update totaliser
 		   totaliser_amt2 = running_amtTotaliser2;    // update totaliser
 		   totaliser_amt2c = running_amtTotaliser2c;  // update totaliser
 
@@ -10028,21 +10063,21 @@ void do_calcs2 ()
 			running_volTotaliser2c_tmin3 = running_volTotaliser2c_tmin2;
 			running_volTotaliser2c_tmin2 = running_volTotaliser2c_tmin1;
 			running_volTotaliser2c_tmin1 = running_volTotaliser2c;
-			running_volTotaliser2c = working_volTotaliser2c + amt_middle2;
+			running_volTotaliser2c = ( working_volTotaliser2c + scale_to_range2(amt_middle2) );
 
 			running_volTotaliser2c_array[0] = running_volTotaliser2c;
 			running_volTotaliser2c_array[1] = running_volTotaliser2c_tmin1;
 			running_volTotaliser2c_array[2] = running_volTotaliser2c_tmin2;
 			running_volTotaliser2c_array[3] = running_volTotaliser2c_tmin3;
 
-			correctArray2(running_volTotaliser2c_array);
+			correctArray2(running_volTotaliser2c_array, tot_b);
 
 			running_volTotaliser2c = running_volTotaliser2c_array[0];
 			running_volTotaliser2c_tmin1 = running_volTotaliser2c_array[1];
 			running_volTotaliser2c_tmin2 = running_volTotaliser2c_array[2];
 			running_volTotaliser2c_tmin3 = running_volTotaliser2c_array[3];
 
-			totaliser_vol2c = running_volTotaliser2c;
+			totaliser_vol2c = scale_to_original2(running_volTotaliser2c);
 
 	//		running_volTotaliser2c = working_volTotaliser2c + amt_middle2;
 			//============================================================================//
@@ -10067,8 +10102,8 @@ void do_calcs2 ()
 			   server_write(str);
 		  }
 
-		   totaliser_vol2 = running_volTotaliser2;   // update totaliser
-		   totaliser_vol2c = running_volTotaliser2c; // update totaliser
+		   totaliser_vol2 = scale_to_original2(running_volTotaliser2);   // update totaliser
+		   totaliser_vol2c = scale_to_original2(running_volTotaliser2c); // update totaliser
 		   totaliser_amt2 = running_amtTotaliser2;    // update totaliser
 		   totaliser_amt2c = running_amtTotaliser2c;  // update totaliser
 
@@ -10504,6 +10539,9 @@ void keypad_zerorize2(void)
 	index_2 = 0;
 	_index2 = 0;
 
+	nozzle_flag_key2 = 0;
+	nozzle_flag_key_old2 = 0;
+
 	 for(uint8_t i = 0; i < 9; i++)
 	 {
 	   keypad_pw_xter2[i] = 0;
@@ -10631,17 +10669,36 @@ void keypad_fillingUpdate2(void)
 
 
 // Function to check and correct questionable values in the array
-void correctArray2(float v[4])
+void correctArray2(float v[4], corrected_sid sid)
 {
     bool corrected;
+    char str[200];
 
     do {
         corrected = false;
 
         // Check if v[3] <= v[2] <= v[1] <= v[0] with differences <= 0.9
         for (int8_t i = 3; i > 0; i--) {
-            if (v[i - 1] < v[i] || fabs(v[i - 1] - v[i]) > 0.9) {
-                printf("Error detected at v[%d]: %.2f\n", i - 1, v[i - 1]);
+            if (v[i - 1] < v[i] || fabs(v[i - 1] - v[i]) > 0.9)
+            {
+//                printf("Error detected at v[%d]: %.2f\n", i - 1, v[i - 1]);
+
+                #if DEBUG
+            	if(sid == tot_b)
+            	{
+					sprintf(str,
+							"Totalizer2 Error detected @ v[%d]: %.2f\n",
+							i - 1, v[i - 1]);
+            	}
+            	else if(sid == amt_b)
+            	{
+					sprintf(str,
+							"Litre-Transaction2 Error detected @ v[%d]: %.2f\n",
+							i - 1, v[i - 1]);
+            	}
+
+				HAL_UART_Transmit(&huart3, str, strlen((char*)str), HAL_MAX_DELAY);
+			  #endif
 
                 // Correct the error based on the more recent or older value
                 if (i - 1 == 0) {
@@ -10650,9 +10707,70 @@ void correctArray2(float v[4])
                     v[i - 1] = v[i]; // Other elements take the value of the more recent element
                 }
 
-                printf("Corrected v[%d] to: %.2f\n", i - 1, v[i - 1]);
+                #if DEBUG
+					if(sid == tot_b)
+					{
+						sprintf(str,
+								"Corrected Totalizer2 @ v[%d] to: %.2f\n\n",
+								i - 1, v[i - 1]);
+					}
+					else if(sid == amt_b)
+					{
+						sprintf(str,
+								"Corrected Litre-Transaction2 @ v[%d] to: %.2f\n\n",
+								i - 1, v[i - 1]);
+					}
+
+					HAL_UART_Transmit(&huart3, str, strlen((char*)str), HAL_MAX_DELAY);
+			   #endif
+
+//                printf("Corrected v[%d] to: %.2f\n", i - 1, v[i - 1]);
                 corrected = true;
             }
         }
     } while (corrected); // Repeat until no corrections are needed
+}
+
+// Scale value to range [0, 1,000,000]
+float scale_to_range2(float value)
+{
+    if (MAX_VAL <= MIN_VAL)
+    {
+//        printf("Invalid range: max_val should be greater than min_val.\n");
+        return 0.0f;
+    }
+
+    float normalized = (value - MIN_VAL) / (MAX_VAL - MIN_VAL); // Normalize to 0-1
+    float scaled_value = normalized * 1000000.0f;              // Scale to 0-1,000,000
+
+    if (scaled_value < 0.0f) scaled_value = 0.0f;
+    if (scaled_value > 1000000.0f) scaled_value = 1000000.0f;
+
+    return scaled_value;
+}
+
+// Convert scaled value back to the original range
+float scale_to_original2(float scaled_value)
+{
+    if (MAX_VAL <= MIN_VAL)
+    {
+//        printf("Invalid range: max_val should be greater than min_val.\n");
+        return 0.0f;
+    }
+
+    float normalized = scaled_value / 1000000.0f;             // Normalize to 0-1
+    float original_value = normalized * (MAX_VAL - MIN_VAL) + MIN_VAL; // Scale back to original range
+
+    return original_value;
+}
+
+// Function to extract the fractional part of a float
+float get_fractional_part2(float num) {
+    // Get the integer part using floorf
+    float int_part = floorf(num);
+
+    // Subtract the integer part from the original number to get the fractional part
+    float fractional_part = num - int_part;
+
+    return fractional_part;
 }

@@ -44,7 +44,7 @@ extern "C" {
 
 	  #define PRODUCT_TYPE _DPK
 
-      #define DEV_MODE
+//      #define DEV_MODE
 
 	  #define OTP_ENABLE
 
@@ -54,8 +54,8 @@ extern "C" {
 //============================================
 
 #ifdef DEV_MODE
-	#define _USE_SOFT_PULSER            1
-//	#define _USE_SOFT_PULSER            0
+//	#define _USE_SOFT_PULSER            1
+	#define _USE_SOFT_PULSER            0
 	#define sense_battery 				0
 //	#define sense_power  				0
 //	#define sense_battery 				1
@@ -108,7 +108,7 @@ extern "C" {
 #define OTPSESSION_OFF				0b00000000
 
 #define VOL_SUPPRESSED 				12
-#define VALIDKEYPRESS_THRESHOLD		3
+#define VALIDKEYPRESS_THRESHOLD		1
 
 #define OK                          0
 #define FAIL                        1
@@ -501,6 +501,14 @@ typedef enum
    side_a = 1,
    side_b
 }pump_sid;
+
+typedef enum
+{
+   tot_a = 1,
+   tot_b,
+   amt_a,
+   amt_b
+}corrected_sid;
 
 typedef enum
 {

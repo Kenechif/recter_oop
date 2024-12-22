@@ -2450,20 +2450,20 @@ skip_test:
 //
     //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH//
     //==============================================//
-////    totaliser_vol1c = 1000000.00;
-////    totaliser_vol1 = 1000000.00;
-//
-////    totaliser_vol1c = 21474836.00;
-////    totaliser_vol1 = 21474836.00;
-//    totaliser_vol1c = 161.69;
-//    totaliser_vol1 = 161.69;
+//    totaliser_vol1c = 1000000.00;
+//    totaliser_vol1 = 1000000.00;
+
+//    totaliser_vol1c = 21474836.00;
+//    totaliser_vol1 = 21474836.00;
+//    totaliser_vol1c = 3828.17;  //161.69;
+//    totaliser_vol1 = 3828.17;
 //    totaliser_amt1c = 0.00;
 //	totaliser_amt1 = 0.00;
 //	save_totaliser_fram(side_a);
 //	save_totaliser_eeprom(side_a);
 //
-//	totaliser_vol2c = 8060.52;
-//	totaliser_vol2 = 8060.52;
+//	totaliser_vol2c = 14221.48;   //8060.52;
+//	totaliser_vol2 = 14221.48;
 //	totaliser_amt2c = 0.00;
 //    totaliser_amt2 = 0.00;
 //	save_totaliser_fram(side_b);
@@ -3675,6 +3675,7 @@ int  read_event2()
 				   }
 			   }
 
+			   keypad_zerorize2();
    //		 if (override_ != override)
 			  return _nozzledown_Event;
 		   }
@@ -4453,6 +4454,8 @@ uint8_t read_event1_1(void)
 					   nozzle_out1 = false;
 				   }
 			   }
+
+	   		   keypad_zerorize();
 
 	   //			if (override_ != override)
 	   				return _nozzledown_Event;

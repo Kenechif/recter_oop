@@ -1448,8 +1448,8 @@ uint8_t retrieve_totaliser_fram_check(pump_sid side)
 
 		if(retrieved_crc == crc)
 		{
-//			float totaliser_vol1c_0 = totaliser_vol1c - amt_middle1;
-			float totaliser_vol1c_0 = working_volTotaliser1c - amt_middle1;
+			float totaliser_vol1c_0 = totaliser_vol1c - amt_middle1;
+//			float totaliser_vol1c_0 = (scale_to_original1(working_volTotaliser1c) - amt_middle1);
 			float totaliser_vol1c_ = totaliser_storeA_check.totaliserVol_cal - totaliser_vol1c_0;
 			if(fabs(totaliser_vol1c_) >= 0.2)
 //			if(totaliser_vol1c_ >= 0.2)
@@ -1475,17 +1475,17 @@ uint8_t retrieve_totaliser_fram_check(pump_sid side)
 	  	FRAM_Read(tot2_loc_fram, &buffer, sizeof(buffer));
 
 		// Extract data and CRC
-		memcpy(&totaliser_storeB, buffer, sz);
+		memcpy(&totaliser_storeB_check, buffer, sz);
 		memcpy(&retrieved_crc, (buffer + sz), sizeof(uint16_t));
 
 
 		// Recompute CRC and compare
-		crc = crc_16(&totaliser_storeB, sz);
+		crc = crc_16(&totaliser_storeB_check, sz);
 
 		if(retrieved_crc == crc)
 		{
-//			float totaliser_vol2c_0 = totaliser_vol2c - amt_middle2;
-			float totaliser_vol2c_0 = working_volTotaliser2c - amt_middle2;
+			float totaliser_vol2c_0 = totaliser_vol2c - amt_middle2;
+//			float totaliser_vol2c_0 = ( scale_to_original2(working_volTotaliser2c) - amt_middle2 );
 			float totaliser_vol2c_ = totaliser_storeB_check.totaliserVol_cal - totaliser_vol2c_0;
 			if(fabs(totaliser_vol2c_) >= 0.2)
 			{

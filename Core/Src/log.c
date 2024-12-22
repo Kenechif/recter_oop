@@ -478,7 +478,7 @@ eSystemState write_flash_State_Handler(void)
 //				connected = 0;
 //			}
 
-			 if(pump_status_1 != STATUS_MAMO_REACHED)
+//			 if(pump_status_1 != STATUS_MAMO_REACHED)
 				 keypad_zerorize();
 
 			//============================================//
@@ -514,7 +514,7 @@ eSystemState write_flash_State_Handler(void)
 //				connected = 0;
 //			}
 
-			 if(pump_status_2 != STATUS_MAMO_REACHED)
+//			 if(pump_status_2 != STATUS_MAMO_REACHED)
 				 keypad_zerorize2();
 
 			//============================================//
