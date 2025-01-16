@@ -176,6 +176,8 @@ extern  int16_t _tt2,
 extern uint16_t autoSale_timer1,
 		 	 	autoSale_timer2;
 
+uint16_t tk_int_2;
+
 extern uint32_t transaction_period2;
 
 uint8_t firstTime_idleState2 = 1;
@@ -210,6 +212,8 @@ float key_value2 CCRAM = 0.0,
 
 uint8_t key_value_sellmodeP2 = 0,
 		key_value_sellmodeL2 = 0;
+
+uint8_t programmed_sale2 = 0;
 
 //=====================================================
 //int flow_coeff = 0;   //Already  defined.
@@ -755,6 +759,13 @@ sEventMachine2 asEventMachine2 [] =
 //initialise the array of structure of State and state handlers and their
 // allowed  events.
 // { <state>,<handler>,{<allowed event1>,<allowed event2>,..,<allowed eventn>}}
+uint8_t key_available2()
+{
+	if ( keypress__2 > 0)
+		return 1;
+	else
+		return 0;
+}
 sStateEventMachine2 asStateEventMachine2 [] =
 {
 	{prog_State, progState_Handler2, {_keydown_Event,_keypress_Event}},
@@ -1842,6 +1853,14 @@ eSystemState error_clear_Handler2(void)
 			totalizer2_error = 0;
 		}
 
+		//FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF//
+		//=============== NOZZLE DOWN CLEARING ROUTINE ==================//
+		//RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR//
+
+		 nozzle_flag_key2 = 0;
+		 nozzle_flag_key_old2 = 1;
+
+		 //FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF//
 
 		return idle_State;
 	}
@@ -1851,13 +1870,6 @@ eSystemState error_clear_Handler2(void)
 	 }
 }
 //============================================================================================================
-uint8_t key_available2()
-{
-	if ( keypress__2 > 0)
-		return 1;
-	else
-		return 0;
-}
 //========================================================================
 int8_t read_keypad2()
 {
@@ -6029,6 +6041,7 @@ eSystemState idleState_Handler2(void)
 
 
 	pump2_status_4G = STATUS_IDLE;
+//	pump_status_2 = STATUS_FILLING_COMP;
 
 	stop_fueling_bit2 = 1;
 
@@ -6588,6 +6601,34 @@ eSystemState  nozzleup_waitingforauthState_Handler2(void)
    		// AUTO mode...
    		if (controller_authorise())    // authed by controller...
    		{
+   			//[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+
+			//Amount, Vol., and Alarm cleared
+			//Light switched on
+			//Preset-Vol Cleared to default value
+			//Display cleared
+
+			//]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
+
+   			if(t2 > 2400) t2 = 0;
+
+   			 if ( (t2 > 400) && (t2 <= 900) ) //&& (nozzleup_awaitingauth_state_not_timedOut2 == 1) )
+			 {
+				 clr_screen2();
+				 lcd_print_line1_2("Auth    ");
+			 }
+			 else if ( (t2 > 900) && (t2 <= 1400) ) //&& (nozzleup_awaitingauth_state_not_timedOut2 == 1) )
+			 {
+				lcd_print_line1_2("Auth_ ");
+			 }
+			 else if ( (t2 > 1400) && (t2 <= 1900) ) //&& (nozzleup_awaitingauth_state_not_timedOut2 == 1) )
+			 {
+				lcd_print_line1_2("Auth__ ");
+			 }
+			 else if ( (t2 > 1900) && (t2 <= 2400) ) //&& (nozzleup_awaitingauth_state_not_timedOut2 == 1) )
+			 {
+				lcd_print_line1_2("Auth___ ");
+			 }
 //   			return  authorised_nozzleup_State;
    		}
    		else
@@ -6608,7 +6649,7 @@ eSystemState  nozzleup_waitingforauthState_Handler2(void)
    			 if ( ((t2 > 400) && (t2 <= 900)) && (nozzleup_awaitingauth_state_not_timedOut2 == 1) )
 			 {
 				 clr_screen2();
-				 lcd_print_line1_2("Auth2    ");
+				 lcd_print_line1_2("Auth    ");
 			 }
 			 else if ( ((t2 > 900) && (t2 <= 1400)) && (nozzleup_awaitingauth_state_not_timedOut2 == 1) )
 			 {
@@ -6626,700 +6667,6 @@ eSystemState  nozzleup_waitingforauthState_Handler2(void)
    	}
 	return nozzleup_waitingforauth_State;
 }
-
-eSystemState authorised_nozzleup_State_Handler2(void)
-{
-	float sellPrice_max_pump,
-		  sellPrice_max_dpp;
-
-	static int8_t firstTime = 1,
-				  firstTime_1 = 1;
-
-	char *endPtr;
-
-	pump_status_2 = STATUS_AUTH;
-
-	slowFlow_startThreshold2 = (fast_flow_threshold2 * settings_stream2[1].valve_salesStart);
-	slowFlow_endThreshold2 = (fast_flow_threshold2 * settings_stream2[1].valve_salesEnd);
-
-
-	if (stop_flag2 == 1)   //if stop key pressed
-	{
-		filling2 = 0;
-		stop_flag2 = 0;
-		stop_flow2(); //send_solenoid(1);  //stop solenoid.
-
-	  //--------------------------------------------------------
-		dpFlag2 = 0;
-		error_clr_flag2 = 1;
-		 index_2 = 0;
-		 _index2 = 0;
-		 for(int i = 0; i < 9; i++)
-		 {
-		   keypad_pw_xter2[i] = 0;
-		   keyboard_entry2[i] = 0;   //clear the buffer
-		 }
-
-		 for(int i = 0; i <= 8; i++)
-		 {
-			 keyboard2[i] = 0;
-		 }
-		 //--------------------------------------------------------------------
-		 if (sellmode2 == P)
-		 {
-			  write_v2(3, "P     0");  //send_keypad("p    ");  //5 xters  lafeng..
-		 }
-		 else if(sellmode2 == L)
-		 {
-			  write_v2(3, "L     0");  //send_keypad("l    ");  //5 xters lafeng
-		 }
-	//	 else if(sellmode2 == V)
-	//	 {
-	//		  write_v2(3, "v    0");  //send_keypad("p    ");  //5 xters  lafeng..
-	//	 }
-		 keypad_print2(keyboard2);
-
-		//--------------------------------------------------------------------
-
-	       if (settings_stream1[1].mode == AUTO_MODE)
-			 {
-
-				 ///////////////////////////////////////////////////
-				 ///////// SIGNALS GO ABOUT NOZZLE STATUS //////////
-
-				 nozzle_out2 = false;
-
-				 ///////////////////////////////////////////////////
-			 }
-
-
-			 if (settings_stream1[1].mode == MANUAL_MODE)
-			 {
-				 return idle_State;
-			 }
-		}
-
-
-	if( firstTime_nozz2 == 1)
-		{
-			firstTime_nozz2 = 2;
-			t2 = 0;
-
-			return authorised_nozzleup_State;
-		}
-		else if(firstTime_nozz2 == 2)
-		{
-			if (t2 <= 1000)
-			{
-				lcd_print_line1_2("88888888");
-				lcd_print_line2_2("88888888");
-				lcd_print_line3_2("888888");
-			}
-			else if(t2 > 1000)
-			{
-				lcd_print_line3_2("        ");
-				firstTime_nozz2 = 0;
-			}
-
-			return authorised_nozzleup_State;
-		}
-
-//	lcd_print_line3_2("        ");
-
-
-	sellPrice_max_dpp = sellPrice_max_dp2(dp_amount2);
-
-	nozzle_bit2 = 1;  stop_fueling_bit2 = 0;
-
-    pump_status_2 = STATUS_AUTH;
-    pump2_status_4G = STATUS_AUTHORIZED_NOZZLE_UP;
-
-	display_minimumCentilitrePrice2 = (display_minimumCentilitre2 * litre_price2);
-
-	 if(litre_price2 == 0)
-	 {
-		_litre_price2 = 1;
-		return idle_State;
-	 }
-	 else if(pump_max_litres2 == 0)
-	 {
-		_pump_max_litres2 = 1;
-		return idle_State;
-	 }
-	 else if ( (change_p2 == 1) && (auth_p2 == 0) )
-	 {
-		_auth_p2 = 1;
-		return idle_State;
-	 }
-	 else if ( (change_v2 == 1) && (auth_v2 == 0) )
-	 {
-		_auth_v2 = 1;
-		return idle_State;
-	 }
-
-	 else if(opmode2 == MANUAL_MODE)
-	 {
-		 if(index_2 >= 1)
-		 {
-			  key_value2 = strtof(keyboard_entry2, &endPtr);
-
-			  //initialise the fuel and price variables
-
-			  half_litre2 = (0.5 * litre_price2);
-
-				if (sellmode2 == P)
-				{
-					  sellPrice_max_pump = (litre_price2 * pump_max_litres2);
-
-					  if( (key_value2 > sellPrice_max_pump) || (key_value2 > sellPrice_max_dpp) ) // || (key_value2 < half_litre2) )
-					  {
-						  if(sellPrice_max_pump < sellPrice_max_dpp)
-						  {
-							  key_value2 = sellPrice_max_pump;
-							  pump_LitreOverflow2 = 1;
-						  }
-						  else if(sellPrice_max_pump > sellPrice_max_dpp)
-						  {
-							  key_value2 = sellPrice_max_dpp;
-							  display_overflow2 = 1;
-						  }
-					  }
-
-					  target_pulser2 = price2pulser2(key_value2);  //calculate pulse frm price.
-
-				}
-				else  //amt was selected.
-				{
-					float key_value_ = (sellPrice_max_dpp / litre_price2);
-
-					if( (key_value2 > pump_max_litres2) || (key_value2 > key_value_) )
-					{
-						 if(pump_max_litres2 < key_value_)
-						 {
-							  key_value2 = pump_max_litres2;
-							  pump_LitreOverflow2 = 1;
-						 }
-						 else if(pump_max_litres2 > key_value_)
-						 {
-							  key_value2 = key_value_;
-							  display_overflow2 = 1;
-						 }
-					  }
-
-					 target_pulser2 = amt2pulser2(key_value2);   //calculate pulse frm amt.
-				}
-		  }
-		  else
-		  {
-			  key_value2 = (litre_price2 * pump_max_litres2);
-
-			  if (sellmode2 == P)
-			  {
-				  if(key_value2 < sellPrice_max_dpp)
-				  {
-					  key_value2 = key_value2;
-				  }
-				  else if(key_value2 > sellPrice_max_dpp)
-				  {
-					  key_value2 = sellPrice_max_dpp;
-				  }
-
-				  target_pulser2 = price2pulser2(key_value2);  //calculate pulse frm price.
-			  }
-			  else if (sellmode2 == L)
-			  {
-					key_value2 = (sellPrice_max_dpp / litre_price2);
-
-					if(pump_max_litres2 < key_value2)
-					{
-						  key_value2 = pump_max_litres2;
-					}
-					else if(pump_max_litres2 > key_value2)
-					{
-						  key_value2 = key_value2;
-					}
-
-					target_pulser2 = amt2pulser2(key_value2);   //calculate pulse frm amt.
-			  }
-		  }
-	 }
-	 else if(opmode2 == AUTO_MODE)
-	 {
-		  if (change_p2 == 1)
-		  {
-			  sellPrice_max_pump = (litre_price2 * pump_max_litres2);
-			  sellPrice_max_dpp = (sellPrice_max_dpp / litre_price2);
-
-			  change_p2 = 0;      //reset tbe flag.
-			  index_2 = strlen(keyboard_entry2);
-
-			  if (index_2 >= 1)
-			  {
-					key_value2 = strtof(keyboard_entry2, &endPtr);
-
-//					if(strchr(keyboard_entry2, '.'))
-//					{
-//						key_value2 += 0.00011;
-//					}
-
-					if (sellmode2 == L)
-					{
-						key_value_original2 = key_value2;
-
-						key_value_sellmodeL2 = 1;
-
-						//======== Convert to Volume =======//
-						key_value2 = (key_value2 * litre_price2);
-					}
-
-					if(key_value2 > auth_p2)
-						key_value2 = auth_p2;
-
-					if( (key_value2 > sellPrice_max_pump) || (key_value2 > sellPrice_max_dpp) )
-					{
-						if(sellPrice_max_pump < sellPrice_max_dpp)
-						{
-							key_value2 = sellPrice_max_pump;
-							pump_LitreOverflow2 = 1;
-						}
-						else if (sellPrice_max_pump > sellPrice_max_dpp)
-						{
-							 key_value2 = sellPrice_max_dpp;
-							 display_overflow2 = 1;
-						}
-					}
-
-					target_pulser2 = price2pulser2(key_value2);  //calculate pulse frm price.
-
-				}  //End of keyboard Input Check
-
-
-			  else
-			  {
-				  if( (auth_p2 > sellPrice_max_pump) || (auth_p2 > sellPrice_max_dpp) )
-				  {
-					  if(sellPrice_max_pump < sellPrice_max_dpp)
-					  {
-						  auth_p2 = sellPrice_max_pump;
-						  pump_LitreOverflow2 = 1;
-					  }
-
-					  else if(sellPrice_max_pump > sellPrice_max_dpp)
-					  {
-						  auth_p2 = sellPrice_max_dpp;
-						  display_overflow2 = 1;
-					  }
-				  }
-
-				  sprintf(keyboard_entry2, "%2f", auth_p2);
-				  key_value2 = strtof(keyboard_entry2, &endPtr);
-
-				  target_pulser2 = price2pulser2(key_value2);  //calculate pulse frm price.
-			  }
-		  }
-		 //-----------------------------------------
-		  //authorise volume...
-		  else if (change_v2 == 1)
-		  {
-			  sellPrice_max_dpp = (sellPrice_max_dpp / litre_price1);
-
-			  change_v2 = 0;      //reset tbe flag.
-			  index_2 = strlen(keyboard_entry2);
-
-//			  //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
-//			  //======================= AUTOMATED SALES TEST ==========================//
-//
-//			  index_2 = 1;
-//			  firstTime_idleState2 = 1;
-//
-//			  //UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
-//
-//
-//			  if (index_2 >= 1)
-//			  {
-//					key_value2 = strtof(keyboard_entry2, &endPtr);
-////					key_value = strtod(keyboard_entry, NULL);
-//
-//					//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
-//				    //======================= AUTOMATED SALES TEST ==========================//
-//
-//					uint16_t tk_int_;
-//					uint32_t tk_int;
-//					uint64_t tk_;
-//
-//					static uint8_t salemode = 0;
-//
-//					if(salemode == 0)
-//						salemode = 1;
-//					else
-//						salemode = 0;
-//
-//					generate_4Rand :
-//
-//						HAL_RNG_GenerateRandomNumber(&hrng, &tk_int);
-//
-////						salemode = 1;
-//
-//						if(salemode == 1)
-//						{
-//							tk_int_ = (uint16_t)tk_int;
-//
-//							if( (tk_int_ < 10) || (tk_int_ > 100) )
-//							{
-//								goto generate_4Rand;
-//							}
-//
-//							key_value2 = (float)tk_int_ / 10;
-//
-////							key_value2 = 1.00;
-//
-//							sellmode2 = L;
-//						}
-//						else if(salemode == 0)
-//						{
-//							if( (tk_int < 1000) || (tk_int > 10000) )
-//							{
-//								goto generate_4Rand;
-//							}
-//
-//							key_value2 = (float)tk_int / 10;
-//
-////							key_value2 = 1050.00;
-//
-//							sellmode2 = P;
-//						}
-//
-//					//UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
-
-
-			  if (index_2 >= 1)
-			  {
-					key_value2 = strtof(keyboard_entry2, &endPtr);
-
-					if (sellmode2 == P)
-					{
-						key_value_original2 = key_value2;
-
-						key_value_sellmodeP2 = 1;
-
-						//======== Convert to Volume Equivalent =======//
-						key_value2 = (key_value2 / litre_price2);
-					}
-
-					if(key_value2 > auth_v2)
-						key_value2 = auth_v2;
-
-					if( (key_value2 > pump_max_litres2) || (key_value2 > sellPrice_max_dpp) )
-					{
-						if(pump_max_litres2 < sellPrice_max_dpp)
-						{
-							key_value2 = pump_max_litres2;
-							pump_LitreOverflow2 = 1;
-						}
-						else if (pump_max_litres2 > sellPrice_max_dpp)
-						{
-							 key_value2 = sellPrice_max_dpp;
-							 display_overflow2 = 1;
-						}
-					}
-
-					target_pulser2 = amt2pulser2(key_value2);   //calculate pulse frm amt.
-
-				}  //End of keyboard Input Check
-
-				else
-				{
-					if( (auth_v2 > pump_max_litres2) || (auth_v2 > sellPrice_max_dpp) )
-					{
-						  if(pump_max_litres2 < sellPrice_max_dpp)
-						  {
-							  auth_v2 = pump_max_litres2;
-							  pump_LitreOverflow2 = 1;
-						  }
-
-						  else if (pump_max_litres2 > sellPrice_max_dpp)
-						  {
-							  auth_v2 = sellPrice_max_dpp;
-							  display_overflow2 = 1;
-						  }
-					}
-
-				  sprintf(keyboard_entry2,"%2f", auth_v2);
-				  key_value2 = strtof(keyboard_entry2, &endPtr);
-
-				  target_pulser2 = amt2pulser2(key_value2);   //calculate pulse frm amt.
-			   }
-		 }
- //		 else
- //		 {
- //			  key_value = sellPrice_max_dpp;
- //		      display_overflow1 = 1;
- //			  target_pulser1 = price2pulser(key_value);  //calculate pulse frm price.
- //		 }
-	   }
-
-//============================================================================
-//============================================================================
-//	  if (authorise_flag == 1)
-//	   {
-//		  target_pulser2 = price2pulser2(5000);
-//		  key_value2  = 5000;
-//		  authorise_flag == 0;
-//	   }
-//============================================================================
-//============================================================================
-
-	      price2  = 0.0;
-		  amt2  = 0.0;
-
-		  amt_middle2_tmin3 = 0.0;
-		  amt_middle2_tmin2 = 0.0;
-		  amt_middle2_tmin1 = 0.0;
-		  amt_middle2 = 0.0;
-
-		  amt_real2_tmin3 = 0.0;
-		  amt_real2_tmin2 = 0.0;
-		  amt_real2_tmin1 = 0.0;
-		  amt_real2 = 0.0;
-
-		  if (key_value2 == 0)
-		  {
-			   target_pulser2 = 0;
-		  }
-		  else
-			  pulser_rem2 = target_pulser2 - current_pulser2;
-
-
-		  if( (target_pulser2 == 0) || (key_value2 == 0) )
-		  {
-			  hardwareError_flag2 = 1;
-		  }
-
-//		  if(lock_clr2 == 0)  ///   to activate this section once.
-//		  {
-//				 current_pulser2 = 0;
-//				 clr_pulser2();    //clear hardware pulser
-//
-//				 //current_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);
-//				 lock_clr2 = 1;
-//				 filling2 = 1;
-//
-//				 firstTime = 1;
-//				 motor_tmr2 = 0;
-//		  }
-
-		  if(firstTime_1 == 1)
-		  {
-			motor_tmr2 = 0;
-			firstTime_1 = 0;
-		  }
-
-		  if (motor_tmr2 >= 2000)
-		  {
-				drive_motor2(ACTIVATE);
-
-				if(settings_stream1[1].pump_type_ != LAFENG)
-				{
-					 drive_slow_sole2(ACTIVATE);
-					 drive_fast_sole2(DEACTIVATE);
-				}
-				else
-				{
-					drive_slow_sole2(DEACTIVATE);     // DEACTIVATE here actually means ACTIVATE
-					drive_fast_sole2(ACTIVATE);		  // ACTIVATE here actually means DEACTIVATE
-				}
-
-
-			  if( (lock_clr2 == 0) && (firstTime_1 == 0) ) ///   to activate this section once.
-			  {
-//					 overall_currentPulser1 = 0;
-					 clr_pulser2();    //clear hardware pulser
-					 current_pulser2 = 0;
-
-					 //current_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);
-					 lock_clr2 = 1;
-					 filling2 = 1;
-
-					 firstTime = 1;
-					 firstTime_1 = 1;
-	//				 motor_tmr1 = 0;
-			  }
-		  }
-
-		 // int cnv = 0;
-	     //char temp[10] = {0};
-		 //snprintf(temp , sizeof(temp), "%.2f", price);  //lcd_print_line2_2(upper1);
-         //snprintf(middle1, sizeof(middle1), "%.2f", amt);   //lcd_print_line2_2(lower);
-
-	  	  make_string2(P, price2);
-		  make_string2(L, amt2);
-
-//		 if (t2 > 300)
-//		   {
-//				lcd_print_line1_2(upper2);
-//				lcd_print_line2_2(middle2);
-//
-//				char str__[8]= {0};
-//				snprintf(str__, sizeof(str__), "%.2f", litre_price2);
-//				lcd_print_line3_2(str__);
-//				t2 = 0;
-//
-//							//trigger first pulser...
-//
-//			#if (_USE_SOFT_PULSER == 1)
-//					 //  pulser_new += 1;
-//					   current_pulser2++;
-//			#else
-//					 // pulser_new = __HAL_TIM_GET_COUNTER(&htim5);
-//					   current_pulser2 = __HAL_TIM_GET_COUNTER(&htim2);
-//			#endif
-//
-//	 	   }
-
-
-		 if (t2 > 300)
-		 {
-			 if(settings_stream1[1].display_format == PL)
-			{
-				 lcd_print_line1_2(upper2);
-				 lcd_print_line2_2(middle2);
-			 }
-			 else if(settings_stream1[1].display_format == LP)
-			 {
-				  lcd_print_line1_2(middle2);
-				  lcd_print_line2_2(upper2);
-			 }
-
-				char str__[8]= {0};
-				snprintf(str__, sizeof(str__), "%.2f", litre_price2);
-				lcd_print_line3_2(str__);
-				t2 = 0;
-
-							//trigger first pulser...
-				if(firstTime == 1)
-				{
-					firstTime = 2;
-					#if (_USE_SOFT_PULSER == 1)
-						   current_pulser2++;
-					#endif
-
-				}
-				else if (firstTime == 2)
-				{
-					firstTime = 3;
-
-					#if (_USE_SOFT_PULSER == 1)
-							current_pulser2++;
-					#else
-							current_pulser2 = 0;
-							clr_pulser2();    //clear hardware pulser
-					#endif
-				}
-				else if (firstTime == 3)
-				{
-					#if (_USE_SOFT_PULSER == 1)
-						   current_pulser2++;
-					#else
-						   current_pulser2 = __HAL_TIM_GET_COUNTER(&htim2);
-					#endif
-				}
-		 	 }
-
-
-			#if (_USE_SOFT_PULSER == 1)
-				 pulser_new2 = current_pulser2;
-			#endif
-
-			if (firstTime == 3)
-				pulser_new2 = current_pulser2;
-
-//=====================================================================
- 		// filling1 = 1;
-		// send_pump(ACTIVATE);  //pump on...
-
-//  if(operating_side == side_a)
-//	{
-//		working_volTotaliser2 = totaliser_vol1;
-//		working_volTotaliser2c = totaliser_vol1c;
-//	}
-//  else
-//   {
-	   while(retrieve_totaliser_fram(side_b) != OK)   //If it fails, retry 5X
-	   {
-			static uint8_t try = 0;
-			if(try++ >= 5)
-			{
-				try = 0;
-				retrieve_totaliser_eeprom(side_b);
-				break;
-			}
-		}
-
-//  		working_volTotaliser2 = totaliser_vol2;
-//
-//  		working_volTotaliser2c = totaliser_vol2c;
-//
-//  		running_volTotaliser2_tmin1 = totaliser_vol2;
-//
-// 		working_amtTotaliser2 = totaliser_amt2;
-//
-//	    running_volTotaliser2_tmin2 = totaliser_vol2;
-//
-// 		running_volTotaliser2c_tmin1 = totaliser_vol2c;
-//
-//  		working_amtTotaliser2c = totaliser_amt2c;
-//
-//  		running_volTotaliser2c_tmin2 = totaliser_vol2c;
-
-  		working_volTotaliser2 = scale_to_range2(totaliser_vol2);
-		working_volTotaliser2c = scale_to_range2(totaliser_vol2c);
-
-		working_amtTotaliser2 = totaliser_amt2;
-		working_amtTotaliser2c = totaliser_amt2c;
-
-		running_volTotaliser2 = working_volTotaliser2;
-		running_volTotaliser2_tmin1 = working_volTotaliser2;
-		running_volTotaliser2_tmin2 = working_volTotaliser2;
-		running_volTotaliser2_tmin3 = working_volTotaliser2;
-
-		running_volTotaliser2c = working_volTotaliser2c;
-		running_volTotaliser2c_tmin1 = working_volTotaliser2c;
-		running_volTotaliser2c_tmin2 = working_volTotaliser2c;
-		running_volTotaliser2c_tmin3 = working_volTotaliser2c;
-
-		price2  = 0.0;
-		amt2  = 0.0;
-
-		amt_middle2_tmin3 = 0.0;
-		amt_middle2_tmin2 = 0.0;
-		amt_middle2_tmin1 = 0.0;
-		amt_middle2 = 0.0;
-
-		amt_real2_tmin3 = 0.0;
-		amt_real2_tmin2 = 0.0;
-		amt_real2_tmin1 = 0.0;
-		amt_real2 = 0.0;
-
-
-
-//  	}
-
-  r_volTotaliser2 = floor( scale_to_original2(running_volTotaliser2c) );
-
-//  running_volTotaliser2c_tmin3 = totaliser_vol2c;
-
-  old_r_volTotaliser2 = r_volTotaliser2;
-
-//  running_volTotaliser2_tmin3 = totaliser_vol2;
-
-//  r_amtTotaliser2 = floor(working_amtTotaliser2c);
-//  old_r_amtTotaliser2 = r_amtTotaliser2;
-
- // slow_flow1();
-
-	return authorised_nozzleup_State;
-}
-
 
 eSystemState filling_State_Handler2(void)
 {
@@ -7823,7 +7170,9 @@ eSystemState filling_State_Handler2(void)
 		running_volTotaliser2c_tmin3 = running_volTotaliser2c_tmin2;
 		running_volTotaliser2c_tmin2 = running_volTotaliser2c_tmin1;
 		running_volTotaliser2c_tmin1 = running_volTotaliser2c;
-		running_volTotaliser2c = ( working_volTotaliser2c + scale_to_range2(amt_middle2) );
+
+		float scale_to_range_middle2 = scale_to_range2(amt_middle2);
+		running_volTotaliser2c = ( working_volTotaliser2c + scale_to_range_middle2 );
 
 		running_volTotaliser2c_array[0] = running_volTotaliser2c;
 		running_volTotaliser2c_array[1] = running_volTotaliser2c_tmin1;
@@ -7879,6 +7228,10 @@ eSystemState filling_State_Handler2(void)
 //============================================================
 //         for totaliser toggle.
 	  r_volTotaliser2 	  = floor( scale_to_original2(running_volTotaliser2c) );
+
+	  mechTotalizer2 = (mechTotalizer2_ + amt_middle2);
+
+	  mech_totalizer2 = (int) mechTotalizer2;
 
 //	  r_amtTotaliser2 	  = floor(running_amtTotaliser2c);
 //
@@ -8055,6 +7408,768 @@ eSystemState filling_State_Handler2(void)
 
 
 //-------------------------------------
+eSystemState authorised_nozzleup_State_Handler2(void)
+{
+	float sellPrice_max_pump,
+		  sellPrice_max_dpp;
+
+	static int8_t firstTime = 1,
+				  firstTime_1 = 1;
+
+	char *endPtr;
+
+	static uint16_t transact = 0;
+
+	pump_status_2 = STATUS_AUTH;
+
+	slowFlow_startThreshold2 = (fast_flow_threshold2 * settings_stream2[1].valve_salesStart);
+	slowFlow_endThreshold2 = (fast_flow_threshold2 * settings_stream2[1].valve_salesEnd);
+
+
+	if (stop_flag2 == 1)   //if stop key pressed
+	{
+		filling2 = 0;
+		stop_flag2 = 0;
+		stop_flow2(); //send_solenoid(1);  //stop solenoid.
+
+	  //--------------------------------------------------------
+		dpFlag2 = 0;
+		error_clr_flag2 = 1;
+		 index_2 = 0;
+		 _index2 = 0;
+		 for(int i = 0; i < 9; i++)
+		 {
+		   keypad_pw_xter2[i] = 0;
+		   keyboard_entry2[i] = 0;   //clear the buffer
+		 }
+
+		 for(int i = 0; i <= 8; i++)
+		 {
+			 keyboard2[i] = 0;
+		 }
+		 //--------------------------------------------------------------------
+		 if (sellmode2 == P)
+		 {
+			  write_v2(3, "P     0");  //send_keypad("p    ");  //5 xters  lafeng..
+		 }
+		 else if(sellmode2 == L)
+		 {
+			  write_v2(3, "L     0");  //send_keypad("l    ");  //5 xters lafeng
+		 }
+	//	 else if(sellmode2 == V)
+	//	 {
+	//		  write_v2(3, "v    0");  //send_keypad("p    ");  //5 xters  lafeng..
+	//	 }
+		 keypad_print2(keyboard2);
+
+		//--------------------------------------------------------------------
+
+	       if (settings_stream1[1].mode == AUTO_MODE)
+			 {
+
+				 ///////////////////////////////////////////////////
+				 ///////// SIGNALS GO ABOUT NOZZLE STATUS //////////
+
+				 nozzle_out2 = false;
+
+				 ///////////////////////////////////////////////////
+			 }
+
+
+			 if (settings_stream1[1].mode == MANUAL_MODE)
+			 {
+				 return idle_State;
+			 }
+		}
+
+
+	if( firstTime_nozz2 == 1)
+		{
+			firstTime_nozz2 = 2;
+			t2 = 0;
+
+			return authorised_nozzleup_State;
+		}
+		else if(firstTime_nozz2 == 2)
+		{
+			if (t2 <= 1000)
+			{
+				lcd_print_line1_2("88888888");
+				lcd_print_line2_2("88888888");
+				lcd_print_line3_2("888888");
+			}
+			else if(t2 > 1000)
+			{
+				lcd_print_line3_2("        ");
+				firstTime_nozz2 = 0;
+			}
+
+			return authorised_nozzleup_State;
+		}
+
+//	lcd_print_line3_2("        ");
+
+
+	sellPrice_max_dpp = sellPrice_max_dp2(dp_amount2);
+
+	nozzle_bit2 = 1;  stop_fueling_bit2 = 0;
+
+    pump_status_2 = STATUS_AUTH;
+    pump2_status_4G = STATUS_AUTHORIZED_NOZZLE_UP;
+
+	display_minimumCentilitrePrice2 = (display_minimumCentilitre2 * litre_price2);
+
+	 if(litre_price2 == 0)
+	 {
+		_litre_price2 = 1;
+		return idle_State;
+	 }
+	 else if(pump_max_litres2 == 0)
+	 {
+		_pump_max_litres2 = 1;
+		return idle_State;
+	 }
+	 else if ( (change_p2 == 1) && (auth_p2 == 0) )
+	 {
+		_auth_p2 = 1;
+		return idle_State;
+	 }
+	 else if ( (change_v2 == 1) && (auth_v2 == 0) )
+	 {
+		_auth_v2 = 1;
+		return idle_State;
+	 }
+
+	 else if(opmode2 == MANUAL_MODE)
+	 {
+		 if(index_2 >= 1)
+		 {
+			  key_value2 = strtof(keyboard_entry2, &endPtr);
+
+			  //initialise the fuel and price variables
+
+			  half_litre2 = (0.5 * litre_price2);
+
+				if (sellmode2 == P)
+				{
+					  sellPrice_max_pump = (litre_price2 * pump_max_litres2);
+
+					  if( (key_value2 > sellPrice_max_pump) || (key_value2 > sellPrice_max_dpp) ) // || (key_value2 < half_litre2) )
+					  {
+						  if(sellPrice_max_pump < sellPrice_max_dpp)
+						  {
+							  key_value2 = sellPrice_max_pump;
+							  pump_LitreOverflow2 = 1;
+						  }
+						  else if(sellPrice_max_pump > sellPrice_max_dpp)
+						  {
+							  key_value2 = sellPrice_max_dpp;
+							  display_overflow2 = 1;
+						  }
+					  }
+
+					  target_pulser2 = price2pulser2(key_value2);  //calculate pulse frm price.
+
+				}
+				else  //amt was selected.
+				{
+					float key_value_ = (sellPrice_max_dpp / litre_price2);
+
+					if( (key_value2 > pump_max_litres2) || (key_value2 > key_value_) )
+					{
+						 if(pump_max_litres2 < key_value_)
+						 {
+							  key_value2 = pump_max_litres2;
+							  pump_LitreOverflow2 = 1;
+						 }
+						 else if(pump_max_litres2 > key_value_)
+						 {
+							  key_value2 = key_value_;
+							  display_overflow2 = 1;
+						 }
+					  }
+
+					 target_pulser2 = amt2pulser2(key_value2);   //calculate pulse frm amt.
+				}
+		  }
+		  else
+		  {
+			  key_value2 = (litre_price2 * pump_max_litres2);
+
+			  if (sellmode2 == P)
+			  {
+				  if(key_value2 < sellPrice_max_dpp)
+				  {
+					  key_value2 = key_value2;
+				  }
+				  else if(key_value2 > sellPrice_max_dpp)
+				  {
+					  key_value2 = sellPrice_max_dpp;
+				  }
+
+				  target_pulser2 = price2pulser2(key_value2);  //calculate pulse frm price.
+			  }
+			  else if (sellmode2 == L)
+			  {
+					key_value2 = (sellPrice_max_dpp / litre_price2);
+
+					if(pump_max_litres2 < key_value2)
+					{
+						  key_value2 = pump_max_litres2;
+					}
+					else if(pump_max_litres2 > key_value2)
+					{
+						  key_value2 = key_value2;
+					}
+
+					target_pulser2 = amt2pulser2(key_value2);   //calculate pulse frm amt.
+			  }
+		  }
+	 }
+	 else if(opmode2 == AUTO_MODE)
+	 {
+		  if (change_p2 == 1)
+		  {
+			  sellPrice_max_pump = (litre_price2 * pump_max_litres2);
+			  sellPrice_max_dpp = (sellPrice_max_dpp / litre_price2);
+
+			  change_p2 = 0;      //reset tbe flag.
+			  index_2 = strlen(keyboard_entry2);
+
+			  if (index_2 >= 1)
+			  {
+					key_value2 = strtof(keyboard_entry2, &endPtr);
+
+//					if(strchr(keyboard_entry2, '.'))
+//					{
+//						key_value2 += 0.00011;
+//					}
+
+					if (sellmode2 == L)
+					{
+						key_value_original2 = key_value2;
+
+						key_value_sellmodeL2 = 1;
+
+						//======== Convert to Volume =======//
+						key_value2 = (key_value2 * litre_price2);
+					}
+
+					if(key_value2 > auth_p2)
+						key_value2 = auth_p2;
+
+					if( (key_value2 > sellPrice_max_pump) || (key_value2 > sellPrice_max_dpp) )
+					{
+						if(sellPrice_max_pump < sellPrice_max_dpp)
+						{
+							key_value2 = sellPrice_max_pump;
+							pump_LitreOverflow2 = 1;
+						}
+						else if (sellPrice_max_pump > sellPrice_max_dpp)
+						{
+							 key_value2 = sellPrice_max_dpp;
+							 display_overflow2 = 1;
+						}
+					}
+
+					target_pulser2 = price2pulser2(key_value2);  //calculate pulse frm price.
+
+				}  //End of keyboard Input Check
+
+
+			  else
+			  {
+				  if( (auth_p2 > sellPrice_max_pump) || (auth_p2 > sellPrice_max_dpp) )
+				  {
+					  if(sellPrice_max_pump < sellPrice_max_dpp)
+					  {
+						  auth_p2 = sellPrice_max_pump;
+						  pump_LitreOverflow2 = 1;
+					  }
+
+					  else if(sellPrice_max_pump > sellPrice_max_dpp)
+					  {
+						  auth_p2 = sellPrice_max_dpp;
+						  display_overflow2 = 1;
+					  }
+				  }
+
+				  sprintf(keyboard_entry2, "%2f", auth_p2);
+				  key_value2 = strtof(keyboard_entry2, &endPtr);
+
+				  target_pulser2 = price2pulser2(key_value2);  //calculate pulse frm price.
+			  }
+		  }
+		 //-----------------------------------------
+		  //authorise volume...
+		  else if (change_v2 == 1)
+		  {
+			  sellPrice_max_dpp = (sellPrice_max_dpp / litre_price1);
+
+			  change_v2 = 0;      //reset the flag.
+			  index_2 = strlen(keyboard_entry2);
+
+			#if !defined(AUTO_SALE_TEST)
+
+			  if (index_2 >= 1)
+			  {
+					key_value2 = strtof(keyboard_entry2, &endPtr);
+
+			#else
+
+			  //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
+			  //======================= AUTOMATED SALES TEST ==========================//
+
+			  index_2 = 1;
+			  firstTime_idleState2 = 1;
+
+			  //UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
+
+
+			  if (index_2 >= 1)
+			  {
+					key_value2 = strtof(keyboard_entry2, &endPtr);
+//					key_value = strtod(keyboard_entry, NULL);
+
+					//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
+				    //======================= AUTOMATED SALES TEST ==========================//
+
+//					uint16_t tk_int_;
+					uint32_t tk_int;
+					uint64_t tk_;
+
+					static uint8_t salemode = 0;
+
+					if(salemode == 0)
+						salemode = 1;
+					else
+						salemode = 0;
+
+					generate_4Rand :
+
+						HAL_RNG_GenerateRandomNumber(&hrng, &tk_int);
+
+//						salemode = 1;
+
+						if(salemode == 1)
+						{
+							tk_int_2 = (uint16_t)tk_int;
+
+							if( (tk_int_2 < 10) || (tk_int_2 > 100) )
+							{
+								goto generate_4Rand;
+							}
+
+							key_value2 = (float)tk_int_2 / 10;
+
+//							key_value2 = 1.00;
+
+							sellmode2 = L;
+						}
+						else if(salemode == 0)
+						{
+							tk_int_2 = (uint16_t)tk_int;
+
+							if( (tk_int_2 < 300) || (tk_int_2 > 3000) )
+							{
+								goto generate_4Rand;
+							}
+
+							key_value2 = (float)tk_int_2 / 10;
+
+//							key_value2 = 1050.00;
+
+							sellmode2 = P;
+						}
+
+					  #if DEBUG1
+						char str2 [50] = {0};
+						sprintf(str2,
+									"Transaction [Side-B] : No. %d\n",
+									transact++);
+
+						HAL_UART_Transmit(&huart3, str2, strlen((char*)str2), HAL_MAX_DELAY);
+
+						HAL_Delay(50);
+
+						if(sellmode2 == P)
+						{
+							sprintf(str2,
+										"Programmed Sale : #%0.2f\n\n",
+										key_value2);
+						}
+						else if(sellmode2 == L)
+						{
+							sprintf(str2,
+										"Programmed Sale : %0.2f Litres\n\n",
+										key_value2);
+						}
+
+						HAL_UART_Transmit(&huart3, str2, strlen((char*)str2), HAL_MAX_DELAY);
+
+						HAL_Delay(50);
+
+				   	   #endif
+
+					//UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
+
+			 #endif //#ifndef AUTO_SALE_TEST
+
+					if (sellmode2 == P)
+					{
+						key_value_original2 = key_value2;
+
+						key_value_sellmodeP2 = 1;
+
+						//======== Convert to Volume Equivalent =======//
+						key_value2 = (key_value2 / litre_price2);
+					}
+
+				  	//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
+				  	//======= Ensure keyed value doesn't exceed the allowable sale from the controller =======//
+
+					if(key_value2 > auth_v2)
+						key_value2 = auth_v2;
+
+					//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
+
+
+					if( (key_value2 > pump_max_litres2) || (key_value2 > sellPrice_max_dpp) )
+					{
+						if(pump_max_litres2 < sellPrice_max_dpp)
+						{
+							key_value2 = pump_max_litres2;
+							pump_LitreOverflow2 = 1;
+						}
+						else if (pump_max_litres2 > sellPrice_max_dpp)
+						{
+							 key_value2 = sellPrice_max_dpp;
+							 display_overflow2 = 1;
+						}
+					}
+
+					target_pulser2 = amt2pulser2(key_value2);   //calculate pulse frm amt.
+
+					incidentRecord[1].timestamp_event = RtcToInt(2019);
+
+					if (key_value_sellmodeP2 == 1)
+					{
+						incidentRecord[1].programmed_sale = key_value_original2;
+					}
+					else
+						incidentRecord[1].programmed_sale = key_value2;
+
+					incidentRecord[1].nozzleState_change_ = NOZZLE_PICKUP;
+					save_programmedSaleEvent_fram(side_b);
+
+					programmed_sale2 = 1;
+
+				}  //End of keyboard Input Check
+
+				else
+				{
+					if( (auth_v2 > pump_max_litres2) || (auth_v2 > sellPrice_max_dpp) )
+					{
+						  if(pump_max_litres2 < sellPrice_max_dpp)
+						  {
+							  auth_v2 = pump_max_litres2;
+							  pump_LitreOverflow2 = 1;
+						  }
+
+						  else if (pump_max_litres2 > sellPrice_max_dpp)
+						  {
+							  auth_v2 = sellPrice_max_dpp;
+							  display_overflow2 = 1;
+						  }
+					}
+
+				  sprintf(keyboard_entry2,"%2f", auth_v2);
+				  key_value2 = strtof(keyboard_entry2, &endPtr);
+
+				  target_pulser2 = amt2pulser2(key_value2);   //calculate pulse frm amt.
+			   }
+		 }
+ //		 else
+ //		 {
+ //			  key_value = sellPrice_max_dpp;
+ //		      display_overflow1 = 1;
+ //			  target_pulser1 = price2pulser(key_value);  //calculate pulse frm price.
+ //		 }
+	   }
+
+//============================================================================
+//============================================================================
+//	  if (authorise_flag == 1)
+//	   {
+//		  target_pulser2 = price2pulser2(5000);
+//		  key_value2  = 5000;
+//		  authorise_flag == 0;
+//	   }
+//============================================================================
+//============================================================================
+
+	      price2  = 0.0;
+		  amt2  = 0.0;
+
+		  amt_middle2_tmin3 = 0.0;
+		  amt_middle2_tmin2 = 0.0;
+		  amt_middle2_tmin1 = 0.0;
+		  amt_middle2 = 0.0;
+
+		  amt_real2_tmin3 = 0.0;
+		  amt_real2_tmin2 = 0.0;
+		  amt_real2_tmin1 = 0.0;
+		  amt_real2 = 0.0;
+
+		  if (key_value2 == 0)
+		  {
+			   target_pulser2 = 0;
+		  }
+		  else
+			  pulser_rem2 = target_pulser2 - current_pulser2;
+
+
+		  if( (target_pulser2 == 0) || (key_value2 == 0) )
+		  {
+			  hardwareError_flag2 = 1;
+		  }
+
+//		  if(lock_clr2 == 0)  ///   to activate this section once.
+//		  {
+//				 current_pulser2 = 0;
+//				 clr_pulser2();    //clear hardware pulser
+//
+//				 //current_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);
+//				 lock_clr2 = 1;
+//				 filling2 = 1;
+//
+//				 firstTime = 1;
+//				 motor_tmr2 = 0;
+//		  }
+
+		  if(firstTime_1 == 1)
+		  {
+			motor_tmr2 = 0;
+			firstTime_1 = 0;
+		  }
+
+		  if (motor_tmr2 >= 2000)
+		  {
+				drive_motor2(ACTIVATE);
+
+				if(settings_stream1[1].pump_type_ != LAFENG)
+				{
+					 drive_slow_sole2(ACTIVATE);
+					 drive_fast_sole2(DEACTIVATE);
+				}
+				else
+				{
+					drive_slow_sole2(DEACTIVATE);     // DEACTIVATE here actually means ACTIVATE
+					drive_fast_sole2(ACTIVATE);		  // ACTIVATE here actually means DEACTIVATE
+				}
+
+
+			  if( (lock_clr2 == 0) && (firstTime_1 == 0) ) ///   to activate this section once.
+			  {
+//					 overall_currentPulser1 = 0;
+					 clr_pulser2();    //clear hardware pulser
+					 current_pulser2 = 0;
+
+					 //current_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);
+					 lock_clr2 = 1;
+					 filling2 = 1;
+
+					 firstTime = 1;
+					 firstTime_1 = 1;
+	//				 motor_tmr1 = 0;
+			  }
+		  }
+
+		 // int cnv = 0;
+	     //char temp[10] = {0};
+		 //snprintf(temp , sizeof(temp), "%.2f", price);  //lcd_print_line2_2(upper1);
+         //snprintf(middle1, sizeof(middle1), "%.2f", amt);   //lcd_print_line2_2(lower);
+
+	  	  make_string2(P, price2);
+		  make_string2(L, amt2);
+
+//		 if (t2 > 300)
+//		   {
+//				lcd_print_line1_2(upper2);
+//				lcd_print_line2_2(middle2);
+//
+//				char str__[8]= {0};
+//				snprintf(str__, sizeof(str__), "%.2f", litre_price2);
+//				lcd_print_line3_2(str__);
+//				t2 = 0;
+//
+//							//trigger first pulser...
+//
+//			#if (_USE_SOFT_PULSER == 1)
+//					 //  pulser_new += 1;
+//					   current_pulser2++;
+//			#else
+//					 // pulser_new = __HAL_TIM_GET_COUNTER(&htim5);
+//					   current_pulser2 = __HAL_TIM_GET_COUNTER(&htim2);
+//			#endif
+//
+//	 	   }
+
+
+		 if (t2 > 300)
+		 {
+			 if(settings_stream1[1].display_format == PL)
+			{
+				 lcd_print_line1_2(upper2);
+				 lcd_print_line2_2(middle2);
+			 }
+			 else if(settings_stream1[1].display_format == LP)
+			 {
+				  lcd_print_line1_2(middle2);
+				  lcd_print_line2_2(upper2);
+			 }
+
+				char str__[8]= {0};
+				snprintf(str__, sizeof(str__), "%.2f", litre_price2);
+				lcd_print_line3_2(str__);
+				t2 = 0;
+
+							//trigger first pulser...
+				if(firstTime == 1)
+				{
+					firstTime = 2;
+					#if (_USE_SOFT_PULSER == 1)
+						   current_pulser2++;
+					#endif
+
+				}
+				else if (firstTime == 2)
+				{
+					firstTime = 3;
+
+					#if (_USE_SOFT_PULSER == 1)
+							current_pulser2++;
+					#else
+							current_pulser2 = 0;
+							clr_pulser2();    //clear hardware pulser
+					#endif
+				}
+				else if (firstTime == 3)
+				{
+					#if (_USE_SOFT_PULSER == 1)
+						   current_pulser2++;
+					#else
+						   current_pulser2 = __HAL_TIM_GET_COUNTER(&htim2);
+					#endif
+				}
+		 	 }
+
+
+			#if (_USE_SOFT_PULSER == 1)
+				 pulser_new2 = current_pulser2;
+			#endif
+
+			if (firstTime == 3)
+				pulser_new2 = current_pulser2;
+
+//=====================================================================
+ 		// filling1 = 1;
+		// send_pump(ACTIVATE);  //pump on...
+
+//  if(operating_side == side_a)
+//	{
+//		working_volTotaliser2 = totaliser_vol1;
+//		working_volTotaliser2c = totaliser_vol1c;
+//	}
+//  else
+//   {
+	   while(retrieve_totaliser_fram(side_b) != OK)   //If it fails, retry 5X
+	   {
+			static uint8_t try = 0;
+			if(try++ >= 5)
+			{
+				try = 0;
+				retrieve_totaliser_eeprom(side_b);
+				break;
+			}
+		}
+
+//  		working_volTotaliser2 = totaliser_vol2;
+//
+//  		working_volTotaliser2c = totaliser_vol2c;
+//
+//  		running_volTotaliser2_tmin1 = totaliser_vol2;
+//
+// 		working_amtTotaliser2 = totaliser_amt2;
+//
+//	    running_volTotaliser2_tmin2 = totaliser_vol2;
+//
+// 		running_volTotaliser2c_tmin1 = totaliser_vol2c;
+//
+//  		working_amtTotaliser2c = totaliser_amt2c;
+//
+//  		running_volTotaliser2c_tmin2 = totaliser_vol2c;
+
+	    mechTotalizer2_ = get_fractional_part2(totaliser_vol2c);
+
+  		working_volTotaliser2 = scale_to_range2(totaliser_vol2);
+		working_volTotaliser2c = scale_to_range2(totaliser_vol2c);
+
+		working_amtTotaliser2 = totaliser_amt2;
+		working_amtTotaliser2c = totaliser_amt2c;
+
+		running_volTotaliser2 = working_volTotaliser2;
+		running_volTotaliser2_tmin1 = working_volTotaliser2;
+		running_volTotaliser2_tmin2 = working_volTotaliser2;
+		running_volTotaliser2_tmin3 = working_volTotaliser2;
+
+		running_volTotaliser2c = working_volTotaliser2c;
+		running_volTotaliser2c_tmin1 = working_volTotaliser2c;
+		running_volTotaliser2c_tmin2 = working_volTotaliser2c;
+		running_volTotaliser2c_tmin3 = working_volTotaliser2c;
+
+		price2  = 0.0;
+		amt2  = 0.0;
+
+		amt_middle2_tmin3 = 0.0;
+		amt_middle2_tmin2 = 0.0;
+		amt_middle2_tmin1 = 0.0;
+		amt_middle2 = 0.0;
+
+		amt_real2_tmin3 = 0.0;
+		amt_real2_tmin2 = 0.0;
+		amt_real2_tmin1 = 0.0;
+		amt_real2 = 0.0;
+
+
+
+//  	}
+
+  r_volTotaliser2 = floor( scale_to_original2(running_volTotaliser2c) );
+
+//  running_volTotaliser2c_tmin3 = totaliser_vol2c;
+
+  old_r_volTotaliser2 = r_volTotaliser2;
+
+//  mechTotalizer2 = (mechTotalizer2_ + amt_middle2);
+//  mech_totalizer_old2 = (int) mechTotalizer2;
+
+  mechTotalizer2 = (mechTotalizer2_ + amt_middle2);
+
+  mech_totalizer2 = (int) mechTotalizer2;
+  mech_totalizer_old2 = mech_totalizer2;
+
+//  running_volTotaliser2_tmin3 = totaliser_vol2;
+
+//  r_amtTotaliser2 = floor(working_amtTotaliser2c);
+//  old_r_amtTotaliser2 = r_amtTotaliser2;
+
+ // slow_flow1();
+
+	return authorised_nozzleup_State;
+}
+
+
 eSystemState keyup_Handler2(void)
 {
 	progg2 = 1;
@@ -8204,6 +8319,9 @@ eSystemState nozzleup_Handler2(void)
 	lcd_print_line1_2("88888888");
 	lcd_print_line2_2("88888888");
 	lcd_print_line3_2("888888");
+
+
+
 //	lcd_print_line3_2("      ");
 
 
@@ -8948,7 +9066,7 @@ eSystemState nozzledown_Handler2(void)
 	 reset_timer2(30);
 	 stop_timer2();
 
-	 if( (eLastState2 == idle_State) && (eNextState2 == idle_State) )
+	 if(  ( (eLastState2 == idle_State) && (eNextState2 == idle_State) ) || ( (eLastState2 == filledmamo_State) && (eNextState2 == filledmamo_State) ) )
 	 {
 //		  return idle_State;
 	 }
@@ -9030,6 +9148,19 @@ eSystemState nozzledown_Handler2(void)
 // 	//	 }
 // 		 send_keypad2(keyboard2);
 
+ 	if(programmed_sale2 == 1)
+	{
+		 programmed_sale2 = 0;
+
+		 incidentRecord[1].timestamp_event = RtcToInt(2019);
+
+		 incidentRecord[1].programmed_sale = key_value2;
+
+	     incidentRecord[1].nozzleState_change_ = NOZZLE_HANGUP;
+
+	     save_programmedSaleEvent_fram(side_b);
+
+	 }
 //	 if(keypad_zerorise2 == true)
 		 keypad_zerorize2();
  	//--------------------------------------------------------------------
@@ -9115,22 +9246,39 @@ eSystemState nozzledown_Handler2(void)
 
 			r_volTotaliser2 = floor( scale_to_original2(running_volTotaliser2c) );
 
-			if(r_volTotaliser2 != old_r_volTotaliser2)
-			{
-				totalizer2Timer = 0;
-		  //			then toggle the totaliser harware I/O.
-				drive_totaliser2(ACTIVATE);
-			}
-			else
-			{
-				//deactivate totaliser output...
-				if(totalizer2Timer > 200)
-				{
-					drive_totaliser2(DEACTIVATE);
-				}
+			mechTotalizer2 = (mechTotalizer2_ + amt_middle2);
 
-			}
-			old_r_volTotaliser2 = r_volTotaliser2;   //update...
+		    mech_totalizer2 = (int) mechTotalizer2;
+
+		//		if(r_volTotaliser2 != old_r_volTotaliser2)
+		//		{
+		//			totalizer2Timer = 0;
+		//	  //			then toggle the totaliser harware I/O.
+		//			drive_totaliser2(ACTIVATE);
+
+//				}
+				if(mech_totalizer2 != mech_totalizer_old2)
+				{
+			  		totalizer2Timer = 0;
+
+			        //	then toggle the totaliser harware I/O.
+			  		drive_totaliser2(ACTIVATE);
+				}
+				else
+				{
+					//deactivate totaliser output...
+					if(totalizer2Timer > 200)
+					{
+						drive_totaliser2(DEACTIVATE);
+					}
+
+				}
+				old_r_volTotaliser2 = r_volTotaliser2;   //update...
+
+				//===================// Update... //===================//
+			  	  mech_totalizer_old2 = mech_totalizer2;
+			  	//-----------------------------------------------------//
+
 
 		 //============================================================
 
@@ -9171,9 +9319,6 @@ eSystemState timeout_Handler2(void)
 	 {
 		 lcd_print_line1_2(" t out  ");
 		 lcd_print_line2_2("--------");
-
-		 nozzle_flag_key2 = 0;
-		 nozzle_flag_key_old2 = 1;
 
 		 if( ((pump_LitreOverflow2 == 1) && (pulser_rem2 > 0 )) || ((display_overflow2 == 1) && (pulser_rem2 > 0 )) )
 		 {
@@ -9894,25 +10039,39 @@ void do_calcs2 ()
 
 				r_volTotaliser2 	  = floor( scale_to_original2(running_volTotaliser2c) );
 
-				if(r_volTotaliser2 != old_r_volTotaliser2)
-				{
-					totalizer2Timer = 0;
+				mechTotalizer2 = (mechTotalizer2_ + amt_middle2);
 
-			  //			then toggle the totaliser harware I/O.
+			    mech_totalizer2 = (int) mechTotalizer2;
 
-					drive_totaliser2(ACTIVATE);
-				}
-				else
-				{
-					//deactivate totaliser output...
+			//		if(r_volTotaliser2 != old_r_volTotaliser2)
+			//		{
+			//			totalizer2Timer = 0;
+			//	  //			then toggle the totaliser harware I/O.
+			//			drive_totaliser2(ACTIVATE);
 
-					if(totalizer2Timer > 200)
+	//				}
+					if(mech_totalizer2 != mech_totalizer_old2)
 					{
-						drive_totaliser2(DEACTIVATE);
-					}
+				  		totalizer2Timer = 0;
 
-				}
-				  old_r_volTotaliser2 = r_volTotaliser2;   //update...
+				        //	then toggle the totaliser harware I/O.
+				  		drive_totaliser2(ACTIVATE);
+					}
+					else
+					{
+						//deactivate totaliser output...
+						if(totalizer2Timer > 200)
+						{
+							drive_totaliser2(DEACTIVATE);
+						}
+
+					}
+					old_r_volTotaliser2 = r_volTotaliser2;   //update...
+
+					//===================// Update... //===================//
+				  	  mech_totalizer_old2 = mech_totalizer2;
+				  	//-----------------------------------------------------//
+
 
 			//-------------------------------------------------------------------
 
@@ -10213,7 +10372,8 @@ void states2(void)
            	  //int yiuyu = 0;
             }
           //...   scan through the allowed  events of the state if its among them..
-	    for (int i = 0; i < max_events_per_state; i++)
+//	    for (int i = 0; i < max_events_per_state; i++)
+	    for (uint8_t i = 0; i < 12; i++)
 		 {
 		   ev2 = (asStateEventMachine2[eNextState2].states2[i]);  //
 		   if (ev2 == 0)

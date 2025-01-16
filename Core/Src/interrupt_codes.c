@@ -77,6 +77,16 @@ extern uint8_t mamo_reached_flag1 = 0,
 extern uint32_t  r_volTotaliser2,
 		  	     old_r_volTotaliser2,
 				 old_r_volTotaliser2_0;
+
+uint32_t mech_totalizer1 CCRAM = 0,
+		 mech_totalizer2 CCRAM = 0,
+		 mech_totalizer_old1 CCRAM = 0,
+		 mech_totalizer_old2 CCRAM = 0;
+
+float mechTotalizer1 CCRAM = 0.0,
+	  mechTotalizer2 CCRAM = 0.0,
+	  mechTotalizer1_ CCRAM = 0.0,
+	  mechTotalizer2_ CCRAM = 0.0;
 //===============================================
 
 extern int tot_buttonpress_tmr2;
@@ -280,6 +290,7 @@ void check_flow(void)
 	  {
 //		  if (ttt1 > 1)
 		  if ( (t > 50) && (t < 99) )
+//		  if ( (t > 50) && (t < 56) )
 		  {
 			 if(filling1 == 1)
 			 {
@@ -290,7 +301,7 @@ void check_flow(void)
 	  }
 	  else
 	  {
-		  if ( (t > 50) && (t < 54) ) // 200
+		  if ( (t > 50) && (t < 56) ) // 200
 		  {
 			 if(filling1 == 1)
 			 {
@@ -382,13 +393,20 @@ void check_flow(void)
 //	  	  r_volTotaliser1 	  = floor( running_volTotaliser1c );
 //	  	  r_amtTotaliser 	  = floor(running_amtTotaliser1c);
 
-	  	if(r_volTotaliser1 != old_r_volTotaliser1)
-	  	{
+//	  	if(r_volTotaliser1 != old_r_volTotaliser1)
+//	  	{
+//	  		totalizer1Timer = 0;
+//	  //			then toggle the totaliser harware I/O.
+//	  		drive_totaliser1(ACTIVATE);
+//	  		countar++;
+//	  	}
+	  	if(mech_totalizer1 != mech_totalizer_old1)
+		{
 	  		totalizer1Timer = 0;
-	  //			then toggle the totaliser harware I/O.
+
+	        //	then toggle the totaliser harware I/O.
 	  		drive_totaliser1(ACTIVATE);
-	  		countar++;
-	  	}
+		}
 	  	else
 	  	{
 	  		//deactivate totaliser output...
@@ -399,7 +417,11 @@ void check_flow(void)
 	  		}
 
 	  	}
-	  	  old_r_volTotaliser1 = r_volTotaliser1;   //update...
+//	  	  old_r_volTotaliser1 = r_volTotaliser1;   //update...
+
+	  	//===================// Update... //===================//
+	  	  mech_totalizer_old1 = mech_totalizer1;
+	  	//-----------------------------------------------------//
 	 }
 	 else
 	 {
@@ -432,12 +454,14 @@ void check_flow(void)
 
 		  if(fastFlow2 == 1)
 		  {
-			  if (ttt2 > 1)
+//			  if (ttt2 > 1)
+			  if ( (t2 > 50) && (t2 < 99) )
+//			  if ( (t2 > 50) && (t2 < 54) )
 			  {
 				 if(filling2 == 1)
 				 {
 					current_pulser2++;   //transfer this to the interrupt routine..
-					ttt2 = 0;
+//					ttt2 = 0;
 				 }
 			  }
 		  }
@@ -523,35 +547,43 @@ void check_flow(void)
 		//	  	  r_volTotaliser1 	  = floor( running_volTotaliser1c );
 		//	  	  r_amtTotaliser 	  = floor(running_amtTotaliser1c);
 
-			  	if(r_volTotaliser2 != old_r_volTotaliser2)
-			  	{
-//			  		int differential = r_volTotaliser2 - old_r_volTotaliser2;
-//			  		if( (differential > 1) || (differential < -1) )
-//			  		{
+//			  mechTotalizer2 = (mechTotalizer2_ + amt_middle2);
 //
-//			  		}
+//		      mech_totalizer2 = (int)mechTotalizer2;
+
+		//		if(r_volTotaliser2 != old_r_volTotaliser2)
+		//		{
+		//			totalizer2Timer = 0;
+		//	  //			then toggle the totaliser harware I/O.
+		//			drive_totaliser2(ACTIVATE);
+
+//				}
+				if(mech_totalizer2 != mech_totalizer_old2)
+				{
 			  		totalizer2Timer = 0;
-			  //			then toggle the totaliser harware I/O.
+
+			        //	then toggle the totaliser harware I/O.
 			  		drive_totaliser2(ACTIVATE);
-		//	  		countar++;
-			  	}
-			  	else
-			  	{
-			  		//deactivate totaliser output...
-			  		if(totalizer2Timer > 200)
-			  		{
-			  			drive_totaliser2(DEACTIVATE);
-		//	  			countar2++;
-			  		}
+				}
+				else
+				{
+					//deactivate totaliser output...
+					if(totalizer2Timer > 200)
+					{
+						drive_totaliser2(DEACTIVATE);
+					}
 
-			  	}
+				}
+				old_r_volTotaliser2 = r_volTotaliser2;   //update...
 
-//			  	old_r_volTotaliser2_0 = old_r_volTotaliser2;
-			  	old_r_volTotaliser2 = r_volTotaliser2;   //update...
+				//===================// Update... //===================//
+			  	  mech_totalizer_old2 = mech_totalizer2;
+			  	//-----------------------------------------------------//
+
 			 }
 			 else
 			 {
-				  //not filling1
+				  //not filling2
 				  pulser_complete2 = 0;
 
 				  //deactivate totaliser output...

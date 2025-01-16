@@ -246,12 +246,16 @@ float battery_sense(void)
 //=================================================================================
 ///                           HARDWARE  PERIPHERALS.
 //=================================================================================
-int readNozzle1(void)
+//uint8_t readNozzle1(void)
+//{
+//    return(  (HAL_GPIO_ReadPin(nozzleSW_GPIO_Port, nozzleSW_Pin ) == 1)? 0:1  );
+//}
+bool readNozzle1(void)
 {
-    return(  (HAL_GPIO_ReadPin(nozzleSW_GPIO_Port, nozzleSW_Pin ) == 1)? 0:1  );
+    return(  (HAL_GPIO_ReadPin(nozzleSW_GPIO_Port, nozzleSW_Pin ) == 1)? false:true  );
 }
 
-int readNozzle2(void)
+uint8_t readNozzle2(void)
 {
     return(  (HAL_GPIO_ReadPin(nozzleSW2_GPIO_Port, nozzleSW2_Pin ) == 1)? 0:1  );
 }

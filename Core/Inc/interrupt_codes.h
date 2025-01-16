@@ -13,6 +13,7 @@ extern "C" {
 #endif
 
 #include "stm32f4xx_hal.h"
+#include "settings.h"
 
 extern UART_HandleTypeDef huart3;
 extern float price_upper1,
@@ -125,6 +126,9 @@ extern uint16_t countar,
 
 extern float r_amtTotaliser,
 	         old_r_amtTotaliser;
+
+extern float amt_middle1,
+			 amt_middle2;
 
 static int rcv_count = 0;
 

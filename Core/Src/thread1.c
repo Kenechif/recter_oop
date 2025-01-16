@@ -179,6 +179,9 @@ uint8_t keyPress1 = 0,
 KeyState state1 = KEY_IDLE,
 		 state2 = KEY_IDLE;
 
+SwitchState switch_state1 = SWITCH_IDLE,
+		    switch_state2 = SWITCH_IDLE;
+
 uint32_t lastDebounceTime1 = 0,
 		 lastDebounceTime2 = 0,
 		 keyPressStartTime1 = 0,
@@ -417,11 +420,15 @@ uint8_t tot_longpress_flag2,
 		key_longpress_flag2 = 0,
 		progExit_longpress_flag2 = 0;
 
-extern operatorfxn_  operatorfxn, operatorfxn2;
+extern operatorfxn_  operatorfxn,
+					 operatorfxn2;
 
  extern float original_pulse,
  	 	 	  original_pulse2;
+
  extern int operating_side;
+
+ unsigned char bcd_[6] = {0};  // Array to hold the BCD result
 
  void compose_printer();
 
@@ -1813,6 +1820,11 @@ tmmm:
 	  clear_online_calibFlag_fram(side_b);
 
 
+	  //============ Incident Test ==============//
+	  clear_incidentNextLoc_fram(side_a);
+	  clear_incidentNextLoc_fram(side_b);
+
+
 //	  clear_ctSettings(side_a);
 //	  clear_ctSettings(side_b);
 
@@ -2386,6 +2398,9 @@ skip_test:
 
 //    retrieve_lastSale(side_a);
 //    retrieve_lastSale(side_b);
+
+//    clear_incidentNextLoc_fram(side_a);
+//    clear_incidentNextLoc_fram(side_b);
 
 
     while(retrieve_totaliser_fram(side_a) != OK)   //If it fails, retry 5X
@@ -3338,27 +3353,32 @@ int  read_event2()
 
 	          key_flag2 =  readsettingskey2_state();
 
-	          nozzle_flag2 = readNozzle2();
+//	          nozzle_flag2 = readNozzle2();
+	          bool redundantHolder = nozzleSwitch_read2();
+
+			#if defined(AUTO_SALE_TEST)
 
 	          //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
 			  //======================= AUTOMATED SALES TEST ==========================//
 	          if(settings_stream1[1].mode == AUTO_MODE)
 	          {
-//	        	  if(eNextState2 != idle_State)
-//	        	  {
-//	        		  autoSale_timer2 = 0;
-//	        	  }
-//	        	  if( (autoSale_timer2 >= 5000) && (eNextState2 == idle_State) )
-//				  {
-////					  nozzle_flag2 = 1;
-////					  nozzle_flag_old2 = 0;
-//					  nozzle_flag_key2 = 1;
-////					  nozzle_flag_key_old2 = 0;
-//					  autoSale_timer2 = 0;
-//				  }
+	        	  if(eNextState2 != idle_State)
+	        	  {
+	        		  autoSale_timer2 = 0;
+	        	  }
+	        	  if( (autoSale_timer2 >= 8555) && (eNextState2 == idle_State) )
+				  {
+//					  nozzle_flag2 = 1;
+//					  nozzle_flag_old2 = 0;
+					  nozzle_flag_key2 = 1;
+//					  nozzle_flag_key_old2 = 0;
+					  autoSale_timer2 = 0;
+				  }
 	          }
 
 			  //UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
+
+			#endif //#ifdef AUTO_SALE_TEST
 
    			  keypress_2 = keynew2;  //key flag is also set...
 
@@ -4112,25 +4132,28 @@ uint8_t read_event1_1(void)
 
 	  key_flag =  readsettingskey_state();
 
-	  nozzle_flag = readNozzle1();
+//	  nozzle_flag = readNozzle1();
+	  bool redundantHolder = nozzleSwitch_read1();
 
-
+    #if defined(AUTO_SALE_TEST)
 	  //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
 	  //======================= AUTOMATED SALES TEST ==========================//
 	  if(settings_stream1[0].mode == AUTO_MODE)
 	  {
-//		  if(eNextState1 != idle_State)
-//		  {
-//			  autoSale_timer1 = 0;
-//		  }
-//		  if( (autoSale_timer1 >= 7000) && (eNextState1 == idle_State) )
-//		  {
-//			  nozzle_flag_key1 = 1;
-//			  autoSale_timer1 = 0;
-//		  }
+		  if(eNextState1 != idle_State)
+		  {
+			  autoSale_timer1 = 0;
+		  }
+		  if( (autoSale_timer1 >= 5000) && (eNextState1 == idle_State) )
+		  {
+			  nozzle_flag_key1 = 1;
+			  autoSale_timer1 = 0;
+		  }
 	  }
 
 	  //UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
+
+	#endif //#ifdef AUTO_SALE_TEST
 
 	  keypress_ = keynew;  //key flag is also set...
 
@@ -4399,6 +4422,12 @@ uint8_t read_event1_1(void)
 
 	   				nozzle_out1 = true;
 
+//	   				uint32_t timestamp_event = RtcToInt(2019);
+////	   				int_to_bcd_(timestamp_event, bcd_, sizeof(bcd_));
+//	   				int_to_bcd(timestamp_event, bcd_);
+//
+////	   				NOZZLE_PICKUP;
+
 	   				return _nozzleup_Event;
 	   //			}
 	   //			else 		// NozzlezUp, awaiting authorisation
@@ -4525,6 +4554,101 @@ uint8_t read_event1_1(void)
 	  return _no_Event;
 }
 
+
+bool nozzleSwitch_read1(void)
+{
+	static bool switchState = false;
+	static bool lastSwitchState = false;
+
+    static uint32_t lastDebounceTime = 0;
+
+    bool currentState = readNozzle1();
+
+    uint32_t currentTime = HAL_GetTick(); // Get the current system tick
+
+    if (currentState != lastSwitchState)
+    {
+    	lastDebounceTime = currentTime;
+    }
+
+    if ((currentTime - lastDebounceTime) > NOZZLESWITCH_DEBOUNCE_DELAY)
+    { // Update the actual switch state if the reading has been stable for the debounce delay
+    	if (currentState != switchState)
+    	{
+    		switchState = currentState;
+    		if(switchState == true)
+			{
+    			nozzle_flag = 1;
+			}
+			else
+			{
+				nozzle_flag = 0;
+			}
+    	}
+    }
+
+    lastSwitchState = currentState;
+
+    return false;
+}
+
+bool nozzleSwitch_read2(void)
+{
+	static bool switchState = false;
+	static bool lastSwitchState = false;
+
+    static uint32_t lastDebounceTime = 0;
+
+    bool currentState = readNozzle2();
+
+    uint32_t currentTime = HAL_GetTick(); // Get the current system tick
+
+    if (currentState != lastSwitchState)
+    {
+    	lastDebounceTime = currentTime;
+    }
+
+    if ((currentTime - lastDebounceTime) > NOZZLESWITCH_DEBOUNCE_DELAY)
+    { // Update the actual switch state if the reading has been stable for the debounce delay
+    	if (currentState != switchState)
+    	{
+    		switchState = currentState;
+    		if(switchState == true)
+			{
+    			nozzle_flag2 = 1;
+			}
+			else
+			{
+				nozzle_flag2 = 0;
+			}
+    	}
+    }
+
+    lastSwitchState = currentState;
+
+    return false;
+}
+
+//bool switchState = false;
+//bool lastSwitchState = false;
+//unsigned long lastDebounceTime = 0;
+//unsigned long currentTime;
+//
+//if (reading != lastSwitchState)
+//{
+//	lastDebounceTime = currentTime; // Reset the debounce timer
+//}
+//if ((currentTime - lastDebounceTime) > DEBOUNCE_DELAY) { // Update the actual switch state if the reading has been stable for the debounce delay
+//	if (reading != switchState)
+//	{
+//		switchState = reading; // Here you can add code to handle the switch state change
+//		printf("Switch state changed to: %d\n", switchState);
+//	}
+//}
+//lastSwitchState = reading;
+//}
+//	}
+//}
 
 //uint8_t debounceKey1(void)
 //{

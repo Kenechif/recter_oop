@@ -91,6 +91,9 @@ uint8_t delay_nonBlocking2(uint32_t delayTime);
 
 void sendStructData(void);
 
+bool nozzleSwitch_read1(void);
+bool nozzleSwitch_read2(void);
+
 
 #ifdef __cplusplus
 }

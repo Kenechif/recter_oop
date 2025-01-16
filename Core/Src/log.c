@@ -440,7 +440,7 @@ eSystemState write_flash_State_Handler(void)
 //	    strncpy(log_b_new.session_id, session_id2, strlen(session_id2));
 
 
-		W25qxx_WritePage(&log_b_new,  pg, 0, sizeof(log_b_new));
+		W25qxx_WritePage(&log_b_new, pg, 0, sizeof(log_b_new));
 	}
 
 		//-----------------------------------------------------------------------------------
@@ -524,103 +524,106 @@ eSystemState write_flash_State_Handler(void)
 		w25qxx.Lock = 0;       // unlock the flash memory.
 		flshw = 0;             // reset the sub state.
 
-		if(settings_stream1[0].mode == AUTO_MODE)
+		if( (settings_stream1[0].mode == AUTO_MODE) || (settings_stream1[1].mode == AUTO_MODE) )
 		{
-			if(stopFlag_source1 == 1)
+			if(operating_side == side_a)
 			{
-				stopFlag_source1 = 0;
+				if(stopFlag_source1 == 1)
+				{
+					stopFlag_source1 = 0;
 
-				pump_status_1 = STATUS_FILLING_COMP;
+					pump_status_1 = STATUS_FILLING_COMP;
 
-				status_change_noz1 = 1;
+					status_change_noz1 = 1;
 
-				return idle_State;
+					return idle_State;
+				}
+				else if(nozzleDown_source1 == 1)
+				{
+					nozzleDown_source1 = 0;
+
+					pump_status_1 = STATUS_FILLING_COMP;
+
+					status_change_noz1 = 1;
+					status_change_pump1 = 1;
+
+					return idle_State;
+				}
+				else if (mamo_reached_flag1_1 == 1)
+				{
+					mamo_reached_flag1_1 = 0;
+
+					mamo_fillingInfo_send1 = 1;
+
+					filling_mamo_flag1 = 1;  //Ensures Routine in the filling state is not on repeat
+
+					return filling_State;
+				}
+				else if (hardwareErrorFlag_source1 == 1)
+				{
+					hardwareErrorFlag_source1 = 0;
+					hardwareError_flag1 = 1;
+
+					return filling_State;
+				}
+				else if(go_timeOut1 == 1)
+				{
+					go_timeOut1 = 0;
+
+					pump_status_1 = STATUS_PNP;
+					return pnp_State;
+				}
 			}
-			else if(nozzleDown_source1 == 1)
+
+			else if(operating_side == side_b)
 			{
-				nozzleDown_source1 = 0;
+				if(stopFlag_source2 == 1)
+				{
+					stopFlag_source2 = 0;
 
-				pump_status_1 = STATUS_FILLING_COMP;
+					pump_status_2 = STATUS_FILLING_COMP;
 
-				status_change_noz1 = 1;
-				status_change_pump1 = 1;
+					status_change_noz2 = 1;
 
-				return idle_State;
-			}
-			else if (mamo_reached_flag1_1 == 1)
-			{
-				mamo_reached_flag1_1 = 0;
+					return idle_State;
+				}
+				else if(nozzleDown_source2 == 1)
+				{
+					nozzleDown_source2 = 0;
 
-				mamo_fillingInfo_send1 = 1;
+					pump_status_2 = STATUS_FILLING_COMP;
 
-				filling_mamo_flag1 = 1;  //Ensures Routine in the filling state is not on repeat
+					status_change_noz2 = 1;
+					status_change_pump2 = 1;
 
-				return filling_State;
-			}
-			else if (hardwareErrorFlag_source1 == 1)
-			{
-				hardwareErrorFlag_source1 = 0;
-				hardwareError_flag1 = 1;
+					return idle_State;
+				}
+				else if (mamo_reached_flag2_1 == 1)
+				{
+					mamo_reached_flag2_1 = 0;
+					mamo_fillingInfo_send2 = 1;
+					filling_mamo_flag2 = 1;  //Ensures Routine in the filling state is not on repeat
 
-				return filling_State;
-			}
-			else if(go_timeOut1 == 1)
-			{
-				go_timeOut1 = 0;
+					return filling_State;
+				}
+				else if (hardwareErrorFlag_source2 == 1)
+				{
+					hardwareErrorFlag_source2 = 0;
+					hardwareError_flag2 = 1;
 
-				pump_status_1 = STATUS_PNP;
-				return pnp_State;
+					return filling_State;
+				}
+				else if(go_timeOut2 == 1)
+				{
+					go_timeOut2 = 0;
+
+					pump_status_2 = STATUS_PNP;
+					return pnp_State;
+				}
 			}
 		}
 
-		else if(settings_stream1[1].mode == AUTO_MODE)
-		{
-			if(stopFlag_source2 == 1)
-			{
-				stopFlag_source2 = 0;
-
-				pump_status_2 = STATUS_FILLING_COMP;
-
-				status_change_noz2 = 1;
-
-				return idle_State;
-			}
-			else if(nozzleDown_source2 == 1)
-			{
-				nozzleDown_source2 = 0;
-
-				pump_status_2 = STATUS_FILLING_COMP;
-
-				status_change_noz2 = 1;
-				status_change_pump2 = 1;
-
-				return idle_State;
-			}
-			else if (mamo_reached_flag2_1 == 1)
-			{
-				mamo_reached_flag2_1 = 0;
-				mamo_fillingInfo_send2 = 1;
-				filling_mamo_flag2 = 1;  //Ensures Routine in the filling state is not on repeat
-
-				return filling_State;
-			}
-			else if (hardwareErrorFlag_source2 == 1)
-			{
-				hardwareErrorFlag_source2 = 0;
-				hardwareError_flag2 = 1;
-
-				return filling_State;
-			}
-			else if(go_timeOut2 == 1)
-			{
-				go_timeOut2 = 0;
-
-				pump_status_2 = STATUS_PNP;
-				return pnp_State;
-			}
-		}
-
-		if( (settings_stream1[0].mode == MANUAL_MODE) || (settings_stream1[1].mode == MANUAL_MODE) )
+		else if( (settings_stream1[0].mode == MANUAL_MODE) || (settings_stream1[1].mode == MANUAL_MODE) )
 		{
 			if (operating_side == side_a)
 			{

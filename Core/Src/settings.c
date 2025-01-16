@@ -399,6 +399,22 @@ float amt_real1_array[4] CCRAM = {0},
  const uint16_t online_calibFlag1_loc_fram = 728,
 		 	 	online_calibFlag2_loc_fram = 729;
 
+ const uint16_t nextLoc_A_fram = 730,					  //size => 2 Bytes
+ 	 	 	 	nextLoc_B_fram = 732;    			  	  //732 --> 733
+
+
+
+ ///////////////////////////////////////////////////////////////////////
+ //                  (1992 / 12 Bytes) = 166 events
+ ///////////////////////////////////////////////////////////////////////
+ const uint16_t fram_beginA = 0x1071;   // 4,209
+ const uint16_t fram_endA   = 0x1838;   //fram_endA => 0x1838 --> 6,200
+
+ const uint16_t fram_beginB = 0x1839;   //fram_beginB => 0x1839 --> 6,201
+ const uint16_t fram_endB   = 0x2000;   //fram_endB => 0x2000 --> 8,192
+ ///////////////////////////////////////////////////////////////////////
+
+
 
  //YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY//
 
@@ -3801,6 +3817,222 @@ void clear_configChange_trackNum_fram(pump_sid side)
 //==============================================
 
 
+
+
+void save_programmedSaleEvent_fram(pump_sid side)
+{
+	uint8_t sz = sizeof(incidentRecord[0]);
+
+	if (side == side_a)
+	{
+		retrieve_incidentNextLoc_fram(side_a);
+
+		FRAM_Write((nextLoc_A), &incidentRecord[0], sz);
+
+		nextLoc_A = nextLoc_A + 12;
+		if(nextLoc_A > fram_endA)
+		{
+			nextLoc_A = fram_beginA;
+		}
+
+		save_incidentNextLoc_fram(side_a);
+	}
+	else if (side == side_b)
+	{
+		retrieve_incidentNextLoc_fram(side_b);
+
+		FRAM_Write((nextLoc_B), &incidentRecord[1], sz);
+
+		nextLoc_B = nextLoc_B + 12;
+		if(nextLoc_B > fram_endB)
+		{
+			nextLoc_B = fram_beginB;
+		}
+
+		save_incidentNextLoc_fram(side_b);
+	}
+}
+
+//uint8_t retrieve_programmedSaleEvent_fram(pump_sid side)
+//{
+//	uint8_t sz = sizeof(totaliser_storeA);
+//	uint8_t buffer[sz + sizeof(uint16_t)];
+//	uint16_t retrieved_crc,
+//			 crc;
+//
+//	if (side == side_a)
+//	{
+//		FRAM_Read(lastSale1_loc_fram, &buffer, sizeof(buffer));
+//
+//		// Extract data and CRC
+//		memcpy(&totaliser_storeA, buffer, sz);
+//		memcpy(&retrieved_crc, (buffer + sz), sizeof(uint16_t));
+//
+//
+//		// Recompute CRC and compare
+//		crc = crc_16(&lastSale_storeA, sz);
+//
+//		if(retrieved_crc == crc)
+//		{
+//			lastVolumeSale1 = lastSale_storeA.lastVolumeSale_real;
+//			lastVolumeSale1c =  lastSale_storeA.lastVolumeSale_cal;
+//
+//			lastAmountSale1 = lastSale_storeA.lastAmountSale_real;
+//			lastAmountSale1c =  lastSale_storeA.lastAmountSale_cal;
+//
+//			if(isnan(lastVolumeSale1)) lastVolumeSale1 = 0.0;
+//			if(isnan(lastVolumeSale1c)) lastVolumeSale1c = 0.0;
+//			if(isnan(lastAmountSale1)) lastAmountSale1 = 0.0;
+//			if(isnan(lastAmountSale1c)) lastAmountSale1c = 0.0;
+//
+//			return OK;
+//
+//		}
+//		else
+//		{
+//			return FAIL;
+//		}
+//
+//	}
+//	else if (side == side_b)
+//	{
+//	  	FRAM_Read(lastSale2_loc_fram, &buffer, sizeof(buffer));
+//
+//		// Extract data and CRC
+//		memcpy(&lastSale_storeB, buffer, sz);
+//		memcpy(&retrieved_crc, (buffer + sz), sizeof(uint16_t));
+//
+//
+//		// Recompute CRC and compare
+//		crc = crc_16(&lastSale_storeB, sz);
+//
+//		if(retrieved_crc == crc)
+//		{
+//			lastVolumeSale2  = lastSale_storeB.lastVolumeSale_real;
+//			lastVolumeSale2c = lastSale_storeB.lastVolumeSale_cal;
+//
+//			lastAmountSale2  = lastSale_storeB.lastAmountSale_real;
+//			lastAmountSale2c = lastSale_storeB.lastAmountSale_cal;
+//
+//			if(isnan(lastVolumeSale2)) lastVolumeSale2 = 0.0;
+//			if(isnan(lastVolumeSale2c)) lastVolumeSale2c = 0.0;
+//			if(isnan(lastAmountSale2)) lastAmountSale2 = 0.0;
+//			if(isnan(lastAmountSale2c)) lastAmountSale2c = 0.0;
+//
+//			return OK;
+//
+//		}
+//		else
+//		{
+//			return FAIL;
+//		}
+//	}
+//}
+//
+//void clear_programmedSaleEvent_fram(pump_sid side)
+//{
+//	uint8_t sz = sizeof(lastSale_storeA);
+//	uint8_t buffer[sz + sizeof(uint16_t)];
+//	uint16_t crc;
+//
+//	if (side == side_a)
+//	{
+//		lastSale_storeA.lastVolumeSale_real = 0.00;   //    log_a_new.vol_ = amt_real1;
+//
+//		lastSale_storeA.lastVolumeSale_cal = 0.00;   //log_a_new.vol__ = amt;   //calibrated
+//
+//		lastSale_storeA.lastAmountSale_real = 0.00;  //log_a_new.pr_ = price_real1;  //real
+//
+//		lastSale_storeA.lastAmountSale_cal = 0.00;  //log_a_new.pr__ = price;  //calibrated
+//
+//
+//		memcpy(buffer, &lastSale_storeA, sz);
+//		crc = crc_16(buffer, sz);
+//
+//		memcpy( (buffer + sz), &crc, sizeof(uint16_t));
+//
+//		FRAM_Write(lastSale1_loc_fram, &buffer, sizeof(buffer));
+//	}
+//	else if (side == side_b)
+//	{
+//		lastSale_storeB.lastVolumeSale_real = 0.00;   //    log_b_new.vol_ = amt_real2;
+//
+//		lastSale_storeB.lastVolumeSale_cal = 0.00;   //log_b_new.vol__ = amt2;   //calibrated
+//
+//		lastSale_storeB.lastAmountSale_real = 0.00;   // log_b_new.pr_ = price_real2;  //real
+//
+//		lastSale_storeB.lastAmountSale_cal = 0.00;  // log_b_new.pr__ = price2;  //calibrated
+//
+//		memcpy(buffer, &lastSale_storeB, sz);
+//		crc = crc_16(buffer, sz);
+//
+//		memcpy( (buffer + sz), &crc, sizeof(uint16_t));
+//
+//		FRAM_Write(lastSale2_loc_fram, &buffer, sizeof(buffer));
+//	}
+//}
+//==============================================
+
+//==============================================
+/*
+ * save nextLoc A & B
+ */
+void save_incidentNextLoc_fram(pump_sid side)
+{
+	uint8_t sz = sizeof(nextLoc_A);
+
+	if (side == side_a)
+	{
+	  	FRAM_Write(nextLoc_A_fram, &nextLoc_A, sz);
+	}
+	else if (side == side_b)
+	{
+	  	FRAM_Write(nextLoc_B_fram, &nextLoc_B, sz);
+	}
+}
+
+//==============================================
+/*
+ * retrieve nextLoc A & B
+ */
+void retrieve_incidentNextLoc_fram(pump_sid side)
+{
+	uint8_t sz = sizeof(nextLoc_A);
+
+	if (side == side_a)
+	{
+		FRAM_Read(nextLoc_A_fram, &nextLoc_A, sz);
+	}
+	else if (side == side_b)
+	{
+		FRAM_Read(nextLoc_B_fram, &nextLoc_B, sz);
+	}
+}
+
+//==============================================
+/*
+ * clear nextLoc A & B
+ */
+void clear_incidentNextLoc_fram(pump_sid side)
+{
+	uint8_t sz = sizeof(nextLoc_A);
+
+	if (side == side_a)
+	{
+		nextLoc_A = fram_beginA;
+		FRAM_Write(nextLoc_A_fram, &nextLoc_A, sz);
+	}
+	else if (side == side_b)
+	{
+		nextLoc_B = fram_beginB;
+		FRAM_Write(nextLoc_B_fram, &nextLoc_B, sz);
+	}
+}
+//==============================================
+
+
+
+
 /*
  *  copy settings to the structure to be used for prog.
  */
@@ -4110,4 +4342,32 @@ double round_off2(float value, int decimalPlaces)
 {
     double factor = pow(10, decimalPlaces);
     return ceil(value * factor) / factor;
+}
+
+
+void int_to_bcd(int num, unsigned char *bcd)
+{
+    int index = 0;
+    while (num > 0) {
+        unsigned char digit = num % 10;
+        if (index % 2 == 0)
+        {
+            bcd[index / 2] = digit;
+        }
+        else
+        {
+            bcd[index / 2] |= (digit << 4);
+        }
+        num /= 10;
+        index++;
+    }
+}
+
+void int_to_bcd_(int num, unsigned char *bcd, uint8_t bcd_size)
+{
+    for (int8_t i = bcd_size - 1; i >= 0; i--)
+    {
+        bcd[i] = (num % 10) | ((num / 10 % 10) << 4);
+        num /= 100;
+    }
 }

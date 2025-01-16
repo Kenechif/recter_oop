@@ -1285,7 +1285,7 @@ void parse_decode2(void)
 								//===========================================================================//
 								//==========================   SET PUMP PARAMETERS   ========================//
 								//===========================================================================//
-								else if( (r_raw_data2[i] == 0x09) && (r_raw_data1[i+1] == 0x33) ) //51 Data Bytes
+								else if( (r_raw_data2[i] == 0x09) && (r_raw_data2[i+1] == 0x33) ) //51 Data Bytes
 								{
 									crc_original = r_raw_data2[i+56];
 									crc_original = (crc_original << 8);
@@ -1423,7 +1423,7 @@ void parse_decode2(void)
 									}
 									else
 									{
-										resp = CRC_ERROR;
+										resp2 = CRC_ERROR;
 									}
 									//=================== DONE, VALIDATING THE CRC =================//
 									//==============================================================//
@@ -2053,7 +2053,7 @@ void process_response2(response_enum response)
 void _process_response1(response_enum response)
 {
 
-	unsigned char status_;
+	unsigned char status_1;
 	uint16_t crc;
 
 	static uint8_t check = 0;
@@ -2247,17 +2247,17 @@ void _process_response1(response_enum response)
 					switch (pump_status_1)
 					{
 						//for the Pump-Status Commands
-						case STATUS_PNP		      				:	{status_ = 0x00; break;}
-						case STATUS_RESET 						:	{status_ = 0x01; break;}
-						case STATUS_AUTH 						:	{status_ = 0x02; break;}
-						case STATUS_FILLING						:	{status_ = 0x04; break;}
-						case STATUS_FILLING_COMP				:	{status_ = 0x05; break;}
-						case STATUS_MAMO_REACHED				:	{status_ = 0x06; break;}   //MAX_AMOUNTVOLUME_REACHED
-						case STATUS_SWITCHED_OFF				:	{status_ = 0x07; break;}
+						case STATUS_PNP		      				:	{status_1 = 0x00; break;}
+						case STATUS_RESET 						:	{status_1 = 0x01; break;}
+						case STATUS_AUTH 						:	{status_1 = 0x02; break;}
+						case STATUS_FILLING						:	{status_1 = 0x04; break;}
+						case STATUS_FILLING_COMP				:	{status_1 = 0x05; break;}
+						case STATUS_MAMO_REACHED				:	{status_1 = 0x06; break;}   //MAX_AMOUNTVOLUME_REACHED
+						case STATUS_SWITCHED_OFF				:	{status_1 = 0x07; break;}
 						default									: 	break;
 					}
 
-					DART_BUFF1[4] = status_;
+					DART_BUFF1[4] = status_1;
 
 
 					//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
@@ -3428,7 +3428,7 @@ void _process_response2(response_enum response)
 
 				roundedNum = round_off2(fillingPrice, decimalPlaces);
 //				roundedNum = roundedNum * 10;
-				roundedNum = roundedNum * powerOfTen(dp_unitprice2);
+				roundedNum = roundedNum * powerOfTen2(dp_unitprice2);
 				num_ = (int)(roundedNum);
 
 				memset(bcd_, 0, sizeof(bcd_));
@@ -3518,7 +3518,7 @@ void _process_response2(response_enum response)
 
 				roundedNum = round_off2(vol_, decimalPlaces);
 //				roundedNum = roundedNum * 100;
-				roundedNum = roundedNum * powerOfTen(dp_vol2);
+				roundedNum = roundedNum * powerOfTen2(dp_vol2);
 				num_ = (int)(roundedNum);
 
 				int_to_bcd(num_, bcd_);
@@ -3533,7 +3533,7 @@ void _process_response2(response_enum response)
 
 				roundedNum = round_off2(amo_, decimalPlaces);
 //				roundedNum = roundedNum * 100;
-				roundedNum = roundedNum * powerOfTen(dp_amount2);
+				roundedNum = roundedNum * powerOfTen2(dp_amount2);
 				num_ = (int)(roundedNum);
 
 				memset(bcd_, 0, sizeof(bcd_));
@@ -3571,7 +3571,7 @@ void _process_response2(response_enum response)
 
 				roundedNum = round_off2(fillingPrice, decimalPlaces);
 //				roundedNum = roundedNum * 10;
-				roundedNum = roundedNum * powerOfTen(dp_unitprice2);
+				roundedNum = roundedNum * powerOfTen2(dp_unitprice2);
 				num_ = (int)(roundedNum);
 
 				memset(bcd_, 0, sizeof(bcd_));
@@ -3813,7 +3813,7 @@ void _process_response2(response_enum response)
 
 			roundedNum = round_off2(tot_vol, decimalPlaces);
 //			roundedNum = roundedNum * 1000;
-			roundedNum = roundedNum * powerOfTen(dp_vol2);
+			roundedNum = roundedNum * powerOfTen2(dp_vol2);
 			num_ = (int)(roundedNum);
 
 			int_to_bcd(num_, bcd_);
@@ -3825,7 +3825,7 @@ void _process_response2(response_enum response)
 
 			roundedNum = round_off2(tot_vol1, decimalPlaces);
 //			roundedNum = roundedNum * 1000;
-			roundedNum = roundedNum * powerOfTen(dp_vol2);
+			roundedNum = roundedNum * powerOfTen2(dp_vol2);
 			num_ = (int)(roundedNum);
 
 			memset(bcd_, 0, sizeof(bcd_));
@@ -4928,32 +4928,32 @@ uint16_t calculate_crc(uint8_t *data, size_t length) {
 //     return bcd;
 // }
 
-void int_to_bcd(int num, unsigned char *bcd)
-{
-    int index = 0;
-    while (num > 0) {
-        unsigned char digit = num % 10;
-        if (index % 2 == 0)
-        {
-            bcd[index / 2] = digit;
-        }
-        else
-        {
-            bcd[index / 2] |= (digit << 4);
-        }
-        num /= 10;
-        index++;
-    }
-}
+//void int_to_bcd(int num, unsigned char *bcd)
+//{
+//    int index = 0;
+//    while (num > 0) {
+//        unsigned char digit = num % 10;
+//        if (index % 2 == 0)
+//        {
+//            bcd[index / 2] = digit;
+//        }
+//        else
+//        {
+//            bcd[index / 2] |= (digit << 4);
+//        }
+//        num /= 10;
+//        index++;
+//    }
+//}
 
-void int_to_bcd_(int num, unsigned char *bcd, uint8_t bcd_size)
-{
-    for (int8_t i = bcd_size - 1; i >= 0; i--)
-    {
-        bcd[i] = (num % 10) | ((num / 10 % 10) << 4);
-        num /= 100;
-    }
-}
+//void int_to_bcd_(int num, unsigned char *bcd, uint8_t bcd_size)
+//{
+//    for (int8_t i = bcd_size - 1; i >= 0; i--)
+//    {
+//        bcd[i] = (num % 10) | ((num / 10 % 10) << 4);
+//        num /= 100;
+//    }
+//}
 
 
 int8_t countDigits(int number)
@@ -4974,6 +4974,24 @@ int8_t countDigits(int number)
 }
 
 int powerOfTen(uint8_t exponent)
+{
+    static const int powers[] =
+    {
+        1,
+		10,
+		100,
+		1000,
+		10000,
+		100000,
+		1000000,
+		10000000,
+		100000000
+    };
+
+    return powers[exponent];
+}
+
+int powerOfTen2(uint8_t exponent)
 {
     static const int powers[] =
     {
@@ -5291,7 +5309,7 @@ void send_nozzleStatus2(uint8_t buff_index)
 
 				roundedNum = round_off2(fillingPrice, decimalPlaces);
 //				roundedNum = roundedNum * 10;
-				roundedNum = roundedNum * powerOfTen(dp_unitprice2);
+				roundedNum = roundedNum * powerOfTen2(dp_unitprice2);
 				num_ = (int)(roundedNum);
 
 				memset(bcd_, 0, sizeof(bcd_));
@@ -5947,7 +5965,7 @@ void send_fillingInfo2(uint8_t buff_index)
 
 	roundedNum = round_off2(vol_, decimalPlaces);
 //	roundedNum = roundedNum * 100;
-	roundedNum = roundedNum * powerOfTen(dp_vol2);
+	roundedNum = roundedNum * powerOfTen2(dp_vol2);
 	num_ = (int)(roundedNum);
 
 //	int_to_bcd(num_, bcd_);
@@ -5985,7 +6003,7 @@ void send_fillingInfo2(uint8_t buff_index)
 
 	roundedNum = round_off2(amo_, decimalPlaces);
 //	roundedNum = roundedNum * 100;
-	roundedNum = roundedNum * powerOfTen(dp_amount2);
+	roundedNum = roundedNum * powerOfTen2(dp_amount2);
 	num_ = (int)(roundedNum);
 
 	memset(bcd_, 0, sizeof(bcd_));
@@ -8695,7 +8713,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 								memset(bcd_, 0, sizeof(bcd_));
 
 								decimalPlaces = 4;
-								roundedNum = round_off(settings_original_stream2[1].startUp_suppressVol, decimalPlaces);
+								roundedNum = round_off2(settings_original_stream2[1].startUp_suppressVol, decimalPlaces);
 								roundedNum = roundedNum * 10000;
 								num_ = (int)(roundedNum);
 
@@ -8711,7 +8729,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 								memset(bcd_, 0, sizeof(bcd_));
 
 								decimalPlaces = 4;
-								roundedNum = round_off(settings_stream2[1].startUp_suppressVol, decimalPlaces);
+								roundedNum = round_off2(settings_stream2[1].startUp_suppressVol, decimalPlaces);
 								roundedNum = roundedNum * 10000;
 								num_ = (int)(roundedNum);
 
@@ -9025,7 +9043,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								roundedNum = round_off(settings_original_stream2[1].valve_salesStart, decimalPlaces);
+								roundedNum = round_off2(settings_original_stream2[1].valve_salesStart, decimalPlaces);
 								roundedNum = roundedNum * 100;
 								num_ = (int)(roundedNum);
 
@@ -9040,7 +9058,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								roundedNum = round_off(settings_stream2[1].valve_salesStart, decimalPlaces);
+								roundedNum = round_off2(settings_stream2[1].valve_salesStart, decimalPlaces);
 								roundedNum = roundedNum * 100;
 								num_ = (int)(roundedNum);
 
@@ -9062,7 +9080,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								roundedNum = round_off(settings_original_stream2[1].valve_salesStart, decimalPlaces);
+								roundedNum = round_off2(settings_original_stream2[1].valve_salesStart, decimalPlaces);
 								roundedNum = roundedNum * 100;
 								num_ = (int)(roundedNum);
 
@@ -9077,7 +9095,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								roundedNum = round_off(settings_stream2[1].valve_salesStart, decimalPlaces);
+								roundedNum = round_off2(settings_stream2[1].valve_salesStart, decimalPlaces);
 								roundedNum = roundedNum * 100;
 								num_ = (int)(roundedNum);
 
@@ -9106,7 +9124,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								roundedNum = round_off(settings_original_stream2[1].valve_salesEnd, decimalPlaces);
+								roundedNum = round_off2(settings_original_stream2[1].valve_salesEnd, decimalPlaces);
 								roundedNum = roundedNum * 100;
 								num_ = (int)(roundedNum);
 
@@ -9121,7 +9139,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								roundedNum = round_off(settings_stream2[1].valve_salesEnd, decimalPlaces);
+								roundedNum = round_off2(settings_stream2[1].valve_salesEnd, decimalPlaces);
 								roundedNum = roundedNum * 100;
 								num_ = (int)(roundedNum);
 
@@ -9143,7 +9161,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								roundedNum = round_off(settings_original_stream2[1].valve_salesEnd, decimalPlaces);
+								roundedNum = round_off2(settings_original_stream2[1].valve_salesEnd, decimalPlaces);
 								roundedNum = roundedNum * 100;
 								num_ = (int)(roundedNum);
 
@@ -9158,7 +9176,7 @@ uint8_t configChange_notify_build2(uint8_t track_num)
 
 								memset(bcd_, 0, sizeof(bcd_));
 
-								roundedNum = round_off(settings_stream2[1].valve_salesEnd, decimalPlaces);
+								roundedNum = round_off2(settings_stream2[1].valve_salesEnd, decimalPlaces);
 								roundedNum = roundedNum * 100;
 								num_ = (int)(roundedNum);
 

@@ -369,12 +369,13 @@ void go_read(void);
 void go_write(void);
 void go_write2(void);
 
-void int_to_bcd(int num, unsigned char *bcd);
-void int_to_bcd_(int num, unsigned char *bcd, uint8_t bcd_size);
+//void int_to_bcd(int num, unsigned char *bcd);
+//void int_to_bcd_(int num, unsigned char *bcd, uint8_t bcd_size);
 uint8_t bcd_to_int(unsigned char bcd);
 uint32_t bcdArray_to_int(unsigned char bcd[], uint8_t length);
 int8_t countDigits(int number);
 int powerOfTen(uint8_t exponent);
+int powerOfTen2(uint8_t exponent);
 
 //double round_off(float value, int decimalPlaces);
 

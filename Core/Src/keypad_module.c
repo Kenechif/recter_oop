@@ -128,7 +128,7 @@ int scankey(void)
  //-----------------------------------------------------------------------
    HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
 
-	for(int i=2;i<22;i++)
+	for(int i = 2; i < 22; i++)
 	{
 		    _Delay(1);
 			HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);             //shift the rest 20 bits.
@@ -140,7 +140,8 @@ int scankey(void)
 
 					  if(settings_stream2[0].keypress_tone == Yes)
 					  {
-						  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);_Delay(100);
+						  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+						  _Delay(100);
 					  }
 
 					  goto keyfound;    //return i;
@@ -197,6 +198,13 @@ int scankey2(void)
 			  if( checkkey2() == 1)
 			  {
 					  keynumber2 = i;
+
+					  if(settings_stream2[1].keypress_tone == Yes)
+					  {
+						  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+						  _Delay(100);
+					  }
+
 					  goto keyfound;    //return i;
 			   }
 	}

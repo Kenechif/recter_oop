@@ -36,17 +36,21 @@ extern "C" {
 #define _AGO      					2
 #define _DPK      					3
 
-#define TIMEOUT_GO					8000       //5 sec
+#define TIMEOUT_GO					8000       //8 sec
 
 //:::::::::::::::::::::::::::::::::::::::::::://
 
-	  #define DEBUG 1
+//	  #define DEBUG 1
+
+//	  #define DEBUG1 1
 
 	  #define PRODUCT_TYPE _DPK
 
-//      #define DEV_MODE
+      #define DEV_MODE
 
 	  #define OTP_ENABLE
+
+//	  #define AUTO_SALE_TEST
 
 //:::::::::::::::::::::::::::::::::::::::::::://
 
@@ -65,7 +69,6 @@ extern "C" {
 //	#define sense_battery 				1
 	#define sense_battery 				0
 	#define sense_power  				1
-//	#define TIMEOUT_GO					5       //5sec
 #endif
 
 #define use_internal_rtc			0
@@ -121,6 +124,8 @@ extern "C" {
 #define DEBOUNCE_DELAY DEBOUNCE_TIME_MS
 #define LONG_PRESS_DELAY 500  // Long press delay
 
+#define NOZZLESWITCH_DEBOUNCE_DELAY 600
+
 #define RX_BUFFER_SIZE 100
 
 //typedef enum {
@@ -136,6 +141,14 @@ typedef enum {
     KEY_LONG_PRESS
 } KeyState;
 
+
+// Switch states
+typedef enum {
+    SWITCH_IDLE,
+    SWITCH_DEBOUNCE,
+    SWITCH_SHORT_PRESS,
+    SWITCH_LONG_PRESS
+} SwitchState;
 
 //// Define timing thresholds (in milliseconds)
 //#define DEBOUNCE_DELAY 50    // Debounce delay
@@ -211,6 +224,13 @@ typedef enum
 	SF1,	// Start Slow-Flow Width										// index ==> 0x17
 	SF2		// Closing Slow-Flow Width                       				// index ==> 0x18  ==>0d24
 }config_change;
+
+
+typedef enum
+{
+	NOZZLE_HANGUP,
+	NOZZLE_PICKUP
+}nozzleState_change;
 
   enum
   {
@@ -743,6 +763,14 @@ typedef enum
 //   				       settings_original_stream3[2],
 //  					   copy_stream3[2];
 
+ typedef struct
+ {
+ 	 uint32_t timestamp_event;    // 4 Bytes
+ 	 float programmed_sale;       // 4 Bytes
+ 	 uint8_t nozzleState_change_; // 1 Byte + 3 Byte-padding
+ }incident_record;
+
+ incident_record incidentRecord[2];
 
 bool nozzle_out1,
 	 nozzle_out2;
@@ -1160,6 +1188,28 @@ uint8_t track_num1,
 uint16_t otp_seed1,
 		 otp_seed2;
 
+int8_t dpFlag,
+	   dpCount,
+	   dpFlag2,
+	   dpCount2;
+
+uint16_t nextLoc_A,
+		 nextLoc_B;
+
+char rx_buf[pump_rx_bufsize];
+
+// The shared secret is FdelOnwuka
+extern uint8_t hmacKey[]; // = {0x46, 0x64, 0x65, 0x6C, 0x4F, 0x6E, 0x77, 0x75, 0x6B, 0x61};
+
+extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim5;
+
+extern uint16_t pump_SN;
+
+char otp_code1[7],
+	 otp_code2[7];
+
+
 
 //float running_volTotaliser1_tmin1,
 //	  running_volTotaliser1_tmin2,
@@ -1363,6 +1413,12 @@ void save_configChange_trackNum_fram(pump_sid side);
 void retrieve_configChange_trackNum_fram(pump_sid side);
 void clear_configChange_trackNum_fram(pump_sid side);
 
+void save_incidentNextLoc_fram(pump_sid side);
+void retrieve_incidentNextLoc_fram(pump_sid side);
+void clear_incidentNextLoc_fram(pump_sid side);
+
+void save_programmedSaleEvent_fram(pump_sid side);
+
 void copy_settings(copy_dir dir);
 void load_settings(pump_sid side);
 
@@ -1375,23 +1431,8 @@ void make_settings(pump_sid side);
 float sellPrice_max_dp(int8_t amount_dp);
 float sellPrice_max_dp2(int8_t amount_dp);
 
-int8_t dpFlag,
-	   dpCount,
-	   dpFlag2,
-	   dpCount2;
-
-char rx_buf[pump_rx_bufsize];
-
-// The shared secret is FdelOnwuka
-extern uint8_t hmacKey[]; // = {0x46, 0x64, 0x65, 0x6C, 0x4F, 0x6E, 0x77, 0x75, 0x6B, 0x61};
-
-extern TIM_HandleTypeDef htim2;
-extern TIM_HandleTypeDef htim5;
-
-extern uint16_t pump_SN;
-
-char otp_code1[7],
-	 otp_code2[7];
+void int_to_bcd(int num, unsigned char *bcd);
+void int_to_bcd_(int num, unsigned char *bcd, uint8_t bcd_size);
 
 
 

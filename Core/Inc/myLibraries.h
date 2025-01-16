@@ -14,6 +14,7 @@ extern "C" {
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef enum{
 	LSB_FIRST,
@@ -82,7 +83,8 @@ uint8_t readkey192_state(void);
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 //hardware  routines.
-int readNozzle1(void);
+//uint8_t readNozzle1(void);
+bool readNozzle1(void);
 int readtotaliser1_state(void);
 int readsettingskey_state(void);
 
@@ -95,7 +97,7 @@ void fast_flow1(void);
 void stop_flow1(void);
 
 //=================================
-int readNozzle2(void);
+uint8_t readNozzle2(void);
 int readtotaliser2_state(void);
 int readsettingske2_state(void);
 

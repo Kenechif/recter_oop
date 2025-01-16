@@ -268,6 +268,16 @@ extern UART_HandleTypeDef huart2;
 extern DMA_HandleTypeDef hdma_usart2_rx,
 						 hdma_usart2_tx;
 
+extern uint32_t mech_totalizer1,
+		 	    mech_totalizer2,
+				mech_totalizer_old1,
+				mech_totalizer_old2;
+
+extern float mechTotalizer1,
+	  	  	 mechTotalizer2,
+			 mechTotalizer1_,
+	  	  	 mechTotalizer2_;
+
 void state_ini2(void);
 void states2(void);
 void reset_timer2(int tm);
@@ -306,6 +316,8 @@ void correctArray2(float v[4], corrected_sid sid);
 float scale_to_range2(float value);
 
 float scale_to_original2(float scaled_value);
+
+float get_fractional_part2(float num);
 
 
 #ifdef __cplusplus

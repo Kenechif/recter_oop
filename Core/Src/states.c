@@ -100,6 +100,8 @@ uint8_t dummyData = 0;
 
 bool keypad_zerorise1 = true;
 
+uint16_t tk_int_;
+
 //===========================================
 
 
@@ -234,6 +236,8 @@ float amt_ CCRAM = 0.0,
 
 uint8_t key_value_sellmodeP1 = 0,
 		key_value_sellmodeL1 = 0;
+
+uint8_t programmed_sale1 = 0;
 
 //=====================================================
 int flow_coeff = 0;
@@ -1087,6 +1091,8 @@ eSystemState nozzleup_Handler(void)
 	lcd_print_line1("88888888");
 	lcd_print_line2("88888888");
 	lcd_print_line3("888888");
+
+
 //	lcd_print_line3("      ");
 
 
@@ -1222,9 +1228,10 @@ eSystemState nozzledown_Handler(void)
 	 reset_timer(30);
 	 stop_timer();
 
-	 if( (eLastState1 == idle_State) && (eNextState1 == idle_State) )
+	 if(  ( (eLastState1 == idle_State) && (eNextState1 == idle_State) ) || ( (eLastState1 == filledmamo_State) && (eNextState1 == filledmamo_State) ) )
 	 {
 //		  return idle_State;
+		 ;
 	 }
 	 else
 	 {
@@ -1322,6 +1329,24 @@ eSystemState nozzledown_Handler(void)
 //	 }
 	 //
 
+	 if(programmed_sale1 == 1)
+	 {
+		 programmed_sale1 = 0;
+
+		 incidentRecord[0].timestamp_event = RtcToInt(2019);
+
+//		if (key_value_sellmodeP1 == 1)
+//		{
+//			incidentRecord[0].programmed_sale = key_value_original1;
+//		}
+//		else
+			incidentRecord[0].programmed_sale = key_value;
+
+	   incidentRecord[0].nozzleState_change_ = NOZZLE_HANGUP;
+	   save_programmedSaleEvent_fram(side_a);
+
+	 }
+
 //	 if(keypad_zerorise1 == true)
 		 keypad_zerorize();
   //---------------------------------------------------------------------
@@ -1404,12 +1429,22 @@ eSystemState nozzledown_Handler(void)
 
 		r_volTotaliser1 = floor( scale_to_original1(running_volTotaliser1c) );
 
-		if(r_volTotaliser1 != old_r_volTotaliser1)
-		{
-			totalizer1Timer = 0;
-	  //			then toggle the totaliser harware I/O.
-			drive_totaliser1(ACTIVATE);
+		mechTotalizer1 = (mechTotalizer1_ + amt_middle1);
+		mech_totalizer1 = (int) mechTotalizer1;
 
+//		if(r_volTotaliser1 != old_r_volTotaliser1)
+//		{
+//			totalizer1Timer = 0;
+//	  //			then toggle the totaliser harware I/O.
+//			drive_totaliser1(ACTIVATE);
+
+//		}
+		if(mech_totalizer1 != mech_totalizer_old1)
+		{
+	  		totalizer1Timer = 0;
+
+	        //	then toggle the totaliser harware I/O.
+	  		drive_totaliser1(ACTIVATE);
 		}
 		else
 		{
@@ -1421,6 +1456,10 @@ eSystemState nozzledown_Handler(void)
 
 		}
 		old_r_volTotaliser1 = r_volTotaliser1;   //update...
+
+		//===================// Update... //===================//
+	  	  mech_totalizer_old1 = mech_totalizer1;
+	  	//-----------------------------------------------------//
 
 
 	 //============================================================
@@ -1462,9 +1501,6 @@ eSystemState timeout_Handler(void)
 	 {
 		 lcd_print_line1(" t out  ");
 		 lcd_print_line2("--------");
-
-		 nozzle_flag_key1 = 0;
-		 nozzle_flag_key_old1 = 1;
 
 		 if( ((pump_LitreOverflow == 1) && (pulser_rem1 > 0 )) || ((display_overflow1 == 1) && (pulser_rem1 > 0 )) )
 		 {
@@ -3203,7 +3239,14 @@ eSystemState error_clear_Handler(void)
 //
 //			}
 
+		//FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF//
+		//=============== NOZZLE DOWN CLEARING ROUTINE ==================//
+		//RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR//
 
+		 nozzle_flag_key1 = 0;
+		 nozzle_flag_key_old1 = 1;
+
+		 //FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF//
 
 		return idle_State;
 	}
@@ -7546,6 +7589,7 @@ eSystemState idleState_Handler(void)
 
 
 	pump1_status_4G = STATUS_IDLE;
+//	pump_status_1 = STATUS_FILLING_COMP;
 
 	stop_fueling_bit = 1;
 
@@ -8232,6 +8276,38 @@ eSystemState  nozzleup_waitingforauthState_Handler(void)
    		// AUTO mode...
    		if (controller_authorise())    // authed by controller...
    		{
+
+   			//[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+
+   			//Amount, Vol., and Alarm cleared
+			//Light switched on
+			//Preset-Vol Cleared to default value
+			//Display cleared
+
+   			//]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
+
+   			if(t > 2400) t = 0;
+
+//   			 if ( ((t > 400) && (t <= 900)) && (nozzleup_awaitingauth_state_not_timedOut == 1) )
+   			 if ( (t > 400) && (t <= 900) ) //&& (nozzleup_awaitingauth_state_not_timedOut == 1) )
+			 {
+				 clr_screen1();
+				 lcd_print_line1("auth    ");
+			 }
+			 else if ( (t > 900) && (t <= 1400) ) //&& (nozzleup_awaitingauth_state_not_timedOut == 1) )
+			 {
+				lcd_print_line1("auth_ ");
+			 }
+			 else if ( (t > 1400) && (t <= 1900) ) //&& (nozzleup_awaitingauth_state_not_timedOut == 1) )
+			 {
+				lcd_print_line1("auth__ ");
+			 }
+			 else if ( (t > 1900) && (t <= 2400) ) //&& (nozzleup_awaitingauth_state_not_timedOut == 1) )
+			 {
+				lcd_print_line1("auth___ ");
+			 }
+
+
 //   			return  authorised_nozzleup_State;
    		}
    		else
@@ -8283,6 +8359,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 	char *endPtr;
 
+	static uint16_t transact = 0;
 
 	int8_t pkey = 0;
 
@@ -8423,6 +8500,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 //			  half_litre1 = (0.5 * litre_price1);
 
 //		  //initialise the fuel and price variables
+
 //		  //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
 //		  //======================= AUTOMATED SALES TEST ==========================//
 //
@@ -8646,70 +8724,111 @@ eSystemState authorised_nozzleup_State_Handler(void)
 			  change_v1 = 0;      //reset tbe flag.
 			  index_ = strlen(keyboard_entry);
 
+			#if !defined(AUTO_SALE_TEST)
 
-//			  //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
-//			  //======================= AUTOMATED SALES TEST ==========================//
-//
-//			  index_ = 1;
-//			  firstTime_idleState1 = 1;
-//
-//			  //UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
-//
-//
 			  if (index_ >= 1)
 			  {
 					key_value = strtof(keyboard_entry, &endPtr);
-////					key_value = strtod(keyboard_entry, NULL);
-//
-//					//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
-//				    //======================= AUTOMATED SALES TEST ==========================//
-//
-//					uint16_t tk_int_;
-//					uint32_t tk_int;
-//					uint64_t tk_;
-//
-//					static uint8_t salemode = 0;
-//
-//					if(salemode == 0)
-//						salemode = 1;
-//					else
-//						salemode = 0;
-//
-//					generate_4Rand1 :
-//
-//						HAL_RNG_GenerateRandomNumber(&hrng, &tk_int);
-//
-//						if(salemode == 1)
-//						{
-//							tk_int_ = (uint16_t)tk_int;
-//
-//							if( (tk_int_ < 10) || (tk_int_ > 100) )
-//							{
-//								goto generate_4Rand1;
-//							}
-//
-//							key_value = (float)tk_int_ / 10;
-//
-////							key_value = 1.0;
-//
-//							sellmode = L;
-//						}
-//						else if(salemode == 0)
-//						{
-//							if( (tk_int < 1000) || (tk_int > 10000) )
-//							{
-//								goto generate_4Rand;
-//							}
-//
-//							key_value = (float)tk_int / 10;
-//
-////							key_value = 1050.0;
-//
-//							sellmode = P;
-//						}
-//
-//					//UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
 
+		   #else
+
+			  //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
+			  //======================= AUTOMATED SALES TEST ==========================//
+
+			  index_ = 1;
+			  firstTime_idleState1 = 1;
+
+			  //UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
+
+
+			  if (index_ >= 1)
+			  {
+					key_value = strtof(keyboard_entry, &endPtr);
+//					key_value = strtod(keyboard_entry, NULL);
+
+					//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
+				    //======================= AUTOMATED SALES TEST ==========================//
+
+//					uint16_t tk_int_;
+					uint32_t tk_int;
+					uint64_t tk_;
+
+					static uint8_t salemode = 0;
+
+					if(salemode == 0)
+						salemode = 1;
+					else
+						salemode = 0;
+
+					generate_4Rand1 :
+
+						HAL_RNG_GenerateRandomNumber(&hrng, &tk_int);
+
+						if(salemode == 1)
+						{
+							tk_int_ = (uint16_t)tk_int;
+
+							if( (tk_int_ < 10) || (tk_int_ > 100) )
+							{
+								goto generate_4Rand1;
+							}
+
+							key_value = (float)tk_int_ / 10;
+
+//							key_value = 1.0;
+
+							sellmode = L;
+						}
+						else if(salemode == 0)
+						{
+//							if( (tk_int < 1000) || (tk_int > 10000) )
+
+							tk_int_ = (uint16_t)tk_int;
+
+							if( (tk_int_ < 300) || (tk_int_ > 3000) )
+							{
+								goto generate_4Rand1;
+							}
+
+							key_value = (float)tk_int_ / 10;
+
+//							key_value = 1050.0;
+
+							sellmode = P;
+						}
+
+					   #if DEBUG1
+						char str1 [50] = {0};
+						sprintf(str1,
+								    "Transaction [Side-A] : #%d\n\n",
+									transact++);
+
+						HAL_UART_Transmit(&huart3, str1, strlen((char*)str1), HAL_MAX_DELAY);
+
+						HAL_Delay(50);
+
+						if(sellmode == P)
+						{
+							sprintf(str1,
+										"Programmed Sale : #%0.2f\n\n",
+										key_value);
+						}
+						else if(sellmode == L)
+						{
+							sprintf(str1,
+										"Programmed Sale : %0.2f Litres\n\n",
+										key_value);
+						}
+
+						HAL_UART_Transmit(&huart3, str1, strlen((char*)str1), HAL_MAX_DELAY);
+
+						HAL_Delay(50);
+
+				   	   #endif
+
+					//UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
+
+				#endif //#ifndef AUTO_SALE_TEST
 
 				  	if (sellmode == P)
 					{
@@ -8720,8 +8839,13 @@ eSystemState authorised_nozzleup_State_Handler(void)
 						key_value = (key_value / litre_price1);
 					}
 
+				  	//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
+				  	//======= Ensure keyed value doesn't exceed the allowable sale from the controller =======//
+
 					if(key_value > auth_v1)
 						key_value = auth_v1;
+
+					//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
 
 					if( (key_value > pump_max_litres1) || (key_value > sellPrice_max_dpp) )
 					{
@@ -8738,6 +8862,20 @@ eSystemState authorised_nozzleup_State_Handler(void)
 					}
 
 					target_pulser1 = amt2pulser(key_value);   //calculate pulse frm amt.
+
+				    incidentRecord[0].timestamp_event = RtcToInt(2019);
+
+					if (key_value_sellmodeP1 == 1)
+					{
+						incidentRecord[0].programmed_sale = key_value_original1;
+					}
+					else
+						incidentRecord[0].programmed_sale = key_value;
+
+				   incidentRecord[0].nozzleState_change_ = NOZZLE_PICKUP;
+				   save_programmedSaleEvent_fram(side_a);
+
+				   programmed_sale1 = 1;
 
 				}  //End of keyboard Input Check
 
@@ -8764,6 +8902,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 				  target_pulser1 = amt2pulser(key_value);   //calculate pulse frm amt.
 			   }
+
 		 }
 //		 else
 //		 {
@@ -9031,7 +9170,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 //		running_volTotaliser1c_tmin2 = totaliser_vol1c;
 //		running_volTotaliser1c_tmin3 = totaliser_vol1c;
 
-
+	    mechTotalizer1_ = get_fractional_part1(totaliser_vol1c);
 		working_volTotaliser1 = scale_to_range1(totaliser_vol1);
 		working_volTotaliser1c = scale_to_range1(totaliser_vol1c);
 
@@ -9072,6 +9211,11 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 
 		r_volTotaliser1 = floor(scale_to_original1(working_volTotaliser1c));
+
+		mechTotalizer1 = (mechTotalizer1_ + amt_middle1);
+
+		mech_totalizer1 = (int) mechTotalizer1;
+		mech_totalizer_old1 = mech_totalizer1;
 
 //		running_volTotaliser1c_tmin3 = totaliser_vol1c;
 
@@ -9629,6 +9773,11 @@ eSystemState filling_State_Handler(void)
 ////============================================================
 //         for totaliser toggle.
 	  r_volTotaliser1 	  = floor(scale_to_original1(running_volTotaliser1c) );
+
+	  mechTotalizer1 = (mechTotalizer1_ + amt_middle1);
+
+	  mech_totalizer1 = (int)mechTotalizer1;
+
 //	  r_amtTotaliser 	  = floor(running_amtTotaliser1c);
 //
 //	if(r_volTotaliser1 != old_r_volTotaliser1)
@@ -10256,7 +10405,7 @@ void do_calcs ()
 				running_volTotaliser1c_tmin2 = running_volTotaliser1c_array[2];
 				running_volTotaliser1c_tmin3 = running_volTotaliser1c_array[3];
 
-				totaliser_vol1c = scale_to_original1(running_volTotaliser1c);
+//				totaliser_vol1c = scale_to_original1(running_volTotaliser1c);
 
 				//============================================================================//
 
@@ -10286,29 +10435,42 @@ void do_calcs ()
 
 			   //         for totaliser toggle.
 
-				r_volTotaliser1 	  = floor( scale_to_original1(running_volTotaliser1c) );
+				r_volTotaliser1 = floor( scale_to_original1(running_volTotaliser1c) );
 
-				if(r_volTotaliser1 != old_r_volTotaliser1)
+
+				mechTotalizer1 = (mechTotalizer1_ + amt_middle1);
+
+				mech_totalizer1 = (int) mechTotalizer1;
+
+		//		if(r_volTotaliser1 != old_r_volTotaliser1)
+		//		{
+		//			totalizer1Timer = 0;
+		//	  //			then toggle the totaliser harware I/O.
+		//			drive_totaliser1(ACTIVATE);
+
+//				}
+				if(mech_totalizer1 != mech_totalizer_old1)
 				{
-					totalizer1Timer = 0;
+			  		totalizer1Timer = 0;
 
-			  //			then toggle the totaliser harware I/O.
-
-					drive_totaliser1(ACTIVATE);
-
-					countar++;
+			        //	then toggle the totaliser harware I/O.
+			  		drive_totaliser1(ACTIVATE);
 				}
 				else
 				{
 					//deactivate totaliser output...
-
 					if(totalizer1Timer > 200)
 					{
 						drive_totaliser1(DEACTIVATE);
 					}
 
 				}
-				  old_r_volTotaliser1 = r_volTotaliser1;   //update...
+				old_r_volTotaliser1 = r_volTotaliser1;   //update...
+
+				//===================// Update... //===================//
+			  	  mech_totalizer_old1 = mech_totalizer1;
+			  	//-----------------------------------------------------//
+
 
 			//-------------------------------------------------------------------
 
@@ -10912,10 +11074,10 @@ void states_1(void)
 				   eNewEvent1 = _no_Event;
 				   // int ty = 0;
 
-				   if( (pump_status_1 == STATUS_RESET) && (eNextState1 == idle_State) )
-				   {
-					   dummyData = 0;
-				   }
+//				   if( (pump_status_1 == STATUS_RESET) && (eNextState1 == idle_State) )
+//				   {
+//					   dummyData = 0;
+//				   }
 
 			   }
 		   } // if (eNewEvent1 == ev)
@@ -10926,10 +11088,10 @@ void states_1(void)
 	     eNextState1 = (*asStateEventMachine_1[eNextState1].pfStateMachineHandler)(); //switch to state handler.
 	    // int yy = 56;
 
-	     if( (pump_status_1 == STATUS_RESET) && (eNextState1 == idle_State) )
-		   {
-			   dummyData = 0;
-		   }
+//	     if( (pump_status_1 == STATUS_RESET) && (eNextState1 == idle_State) )
+//		   {
+//			   dummyData = 0;
+//		   }
 
 	  }
 	 else
@@ -11419,7 +11581,8 @@ float scale_to_original1(float scaled_value)
 }
 
 // Function to extract the fractional part of a float
-float get_fractional_part(float num) {
+float get_fractional_part1(float num)
+{
     // Get the integer part using floorf
     float int_part = floorf(num);
 

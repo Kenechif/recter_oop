@@ -333,6 +333,16 @@ extern uint8_t nozzle_flag,
 extern uint16_t timer_go;
 uint8_t go_timeOut1;
 
+extern uint32_t mech_totalizer1,
+		 	    mech_totalizer2,
+				mech_totalizer_old1,
+				mech_totalizer_old2;
+
+extern float mechTotalizer1,
+			 mechTotalizer1_,
+	  	  	 mechTotalizer2,
+			 mechTotalizer2_;
+
 // state Handlers definition...
 eSystemState progState_Handler(void);
 eSystemState idleState_Handler(void);
@@ -440,6 +450,8 @@ void correctArray1(float v[4], corrected_sid sid);
 float scale_to_range1(float value);
 
 float scale_to_original1(float scaled_value);
+
+float get_fractional_part1(float num);
 
 #ifdef __cplusplus
 }
