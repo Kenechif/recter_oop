@@ -476,8 +476,19 @@ void my_error_handler(void)
 	extern TIM_HandleTypeDef htim2;
 	extern TIM_HandleTypeDef htim5;
 
-	uint32_t recovered_count1 = __HAL_TIM_GET_COUNTER(&htim2);
-	uint32_t recovered_count2 = __HAL_TIM_GET_COUNTER(&htim5);
+//	uint32_t recovered_count1 = __HAL_TIM_GET_COUNTER(&htim2);
+//	uint32_t recovered_count2 = __HAL_TIM_GET_COUNTER(&htim5);
+
+	if(pump_status_1 == STATUS_FILLING)
+	{
+		save_recoveredPulserCount_fram(side_a);
+	}
+
+	if(pump_status_2 == STATUS_FILLING)
+	{
+		save_recoveredPulserCount_fram(side_b);
+	}
+
 	NVIC_SystemReset();
 }
 

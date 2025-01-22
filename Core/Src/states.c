@@ -1246,7 +1246,17 @@ eSystemState nozzledown_Handler(void)
 			  static uint8_t try = 0;
 				if(try++ >= 5)
 				{
-					retrieve_totaliser_eeprom_check(side_a);
+					while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+					{
+						if(try++ >= 10)
+						{
+							clear_totaliser_fram(operating_side);
+							clear_totaliser_eeprom(operating_side);
+							try = 0;
+							break;
+						}
+
+					}
 					try = 0;
 					break;
 				}
@@ -5363,7 +5373,17 @@ eSystemState progState_Handler(void)
 						  static uint8_t try = 0;
 							if(try++ >= 5)
 							{
-								retrieve_totaliser_eeprom_check(operating_side);
+								while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+								{
+									if(try++ >= 10)
+									{
+										clear_totaliser_fram(operating_side);
+										clear_totaliser_eeprom(operating_side);
+										try = 0;
+										break;
+									}
+
+								}
 								try = 0;
 								break;
 							}
@@ -5401,7 +5421,17 @@ eSystemState progState_Handler(void)
 						  static uint8_t try = 0;
 							if(try++ >= 5)
 							{
-								retrieve_totaliser_eeprom_check(operating_side);
+								while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+								{
+									if(try++ >= 10)
+									{
+										clear_totaliser_fram(operating_side);
+										clear_totaliser_eeprom(operating_side);
+										try = 0;
+										break;
+									}
+
+								}
 								try = 0;
 								break;
 							}
@@ -5449,7 +5479,17 @@ eSystemState progState_Handler(void)
 							  static uint8_t try = 0;
 								if(try++ >= 5)
 								{
-									retrieve_totaliser_eeprom_check(operating_side);
+									while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+									{
+										if(try++ >= 10)
+										{
+											clear_totaliser_fram(operating_side);
+											clear_totaliser_eeprom(operating_side);
+											try = 0;
+											break;
+										}
+
+									}
 									try = 0;
 									break;
 								}
@@ -5479,7 +5519,17 @@ eSystemState progState_Handler(void)
 							  static uint8_t try = 0;
 								if(try++ >= 5)
 								{
-									retrieve_totaliser_eeprom_check(operating_side);
+									while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+									{
+										if(try++ >= 10)
+										{
+											clear_totaliser_fram(operating_side);
+											clear_totaliser_eeprom(operating_side);
+											try = 0;
+											break;
+										}
+
+									}
 									try = 0;
 									break;
 								}
@@ -5545,7 +5595,17 @@ eSystemState progState_Handler(void)
 					  static uint8_t try = 0;
 						if(try++ >= 5)
 						{
-							retrieve_totaliser_eeprom_check(operating_side);
+							while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+							{
+								if(try++ >= 10)
+								{
+									clear_totaliser_fram(operating_side);
+									clear_totaliser_eeprom(operating_side);
+									try = 0;
+									break;
+								}
+
+							}
 							try = 0;
 							break;
 						}
@@ -7614,6 +7674,7 @@ eSystemState idleState_Handler(void)
 		   if (shutdown_timer1 > 120)
 		   {
 			   displayandkeypad_power(DEACTIVATE);   //shutdown... after  2 minutes
+			   mcu_power(DEACTIVATE);
 		   }
 	  }
 	  else
@@ -7629,11 +7690,36 @@ eSystemState idleState_Handler(void)
 	#if !defined (DEV_MODE)
 		if(batteryStatus == LOW_BATTERY)
 		{
-			lcd_print_line1("  Louu   ");
-			lcd_print_line2("Battery  ");
-			lcd_print_line3(" Err70 ");
+			if ( (t >= 300) && (t <= 700) )
+			{
+				lcd_print_line1("  Louu   ");
+				lcd_print_line2("Battery  ");
+				lcd_print_line3(" Err70 ");
+			}
+			else if ( (t > 700) && (t <= 2000) )
+			{
+				  if(settings_stream1[0].display_format == PL)
+				  {
+					 lcd_print_line1(upper1);
+					 lcd_print_line2(middle1);
+				  }
+				  else if(settings_stream1[0].display_format == LP)
+				  {
+					  lcd_print_line1(middle1);
+					  lcd_print_line2(upper1);
+				  }
+				 lcd_print_line3("        ");
+				 char str__[8] = {0};
+				 snprintf(str__, sizeof(str__), "%.2f", litre_price);
+				 lcd_print_line3(str__);
+			}
 
-			return inactive_State;
+			if(t > 2000)
+			{
+				t = 0;
+			}
+
+//			return inactive_State;
 		}
 		else if(batteryStatus == NO_BATTERY)
 		{
@@ -9144,8 +9230,18 @@ eSystemState authorised_nozzleup_State_Handler(void)
 			static uint8_t try = 0;
 			if(try++ >= 5)
 			{
+				while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+				{
+					if(try++ >= 10)
+					{
+						clear_totaliser_fram(operating_side);
+						clear_totaliser_eeprom(operating_side);
+						try = 0;
+						break;
+					}
+
+				}
 				try = 0;
-				retrieve_totaliser_eeprom(side_a);
 				break;
 			}
 		}
@@ -9318,7 +9414,17 @@ eSystemState filling_State_Handler(void)
 			  static uint8_t try = 0;
 				if(try++ >= 5)
 				{
-					retrieve_totaliser_eeprom_check(operating_side);
+					while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+					{
+						if(try++ >= 10)
+						{
+							clear_totaliser_fram(operating_side);
+							clear_totaliser_eeprom(operating_side);
+							try = 0;
+							break;
+						}
+
+					}
 					try = 0;
 					break;
 				}
@@ -9360,7 +9466,17 @@ eSystemState filling_State_Handler(void)
 				  static uint8_t try = 0;
 					if(try++ >= 5)
 					{
-						retrieve_totaliser_eeprom_check(operating_side);
+						while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+						{
+							if(try++ >= 10)
+							{
+								clear_totaliser_fram(operating_side);
+								clear_totaliser_eeprom(operating_side);
+								try = 0;
+								break;
+							}
+
+						}
 						try = 0;
 						break;
 					}
@@ -9404,7 +9520,17 @@ eSystemState filling_State_Handler(void)
 				static uint8_t try = 0;
 				if(try++ >= 5)
 				{
-					retrieve_totaliser_eeprom_check(operating_side);
+					while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+					{
+						if(try++ >= 10)
+						{
+							clear_totaliser_fram(operating_side);
+							clear_totaliser_eeprom(operating_side);
+							try = 0;
+							break;
+						}
+
+					}
 					try = 0;
 					break;
 				}
@@ -9440,7 +9566,17 @@ eSystemState filling_State_Handler(void)
         	static uint8_t try = 0;
 			if(try++ >= 5)
 			{
-				retrieve_totaliser_eeprom_check(operating_side);
+				while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+				{
+					if(try++ >= 10)
+					{
+						clear_totaliser_fram(operating_side);
+						clear_totaliser_eeprom(operating_side);
+						try = 0;
+						break;
+					}
+
+				}
 				try = 0;
 				break;
 			}
@@ -9518,7 +9654,17 @@ eSystemState filling_State_Handler(void)
 			static uint8_t try = 0;
 			if(try++ >= 5)
 			{
-				retrieve_totaliser_eeprom_check(operating_side);
+				while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+				{
+					if(try++ >= 10)
+					{
+						clear_totaliser_fram(operating_side);
+						clear_totaliser_eeprom(operating_side);
+						try = 0;
+						break;
+					}
+
+				}
 				try = 0;
 				break;
 			}
@@ -9560,7 +9706,17 @@ eSystemState filling_State_Handler(void)
 			static uint8_t try = 0;
 			if(try++ >= 5)
 			{
-				retrieve_totaliser_eeprom_check(operating_side);
+				while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+				{
+					if(try++ >= 10)
+					{
+						clear_totaliser_fram(operating_side);
+						clear_totaliser_eeprom(operating_side);
+						try = 0;
+						break;
+					}
+
+				}
 				try = 0;
 				break;
 			}
@@ -9856,7 +10012,17 @@ eSystemState filling_State_Handler(void)
 					static uint8_t try = 0;
 					if(try++ >= 5)
 					{
-						retrieve_totaliser_eeprom_check(operating_side);
+						while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+						{
+							if(try++ >= 10)
+							{
+								clear_totaliser_fram(operating_side);
+								clear_totaliser_eeprom(operating_side);
+								try = 0;
+								break;
+							}
+
+						}
 						try = 0;
 						break;
 					}
@@ -9943,7 +10109,17 @@ eSystemState filling_State_Handler(void)
 					static uint8_t try = 0;
 					if(try++ >= 5)
 					{
-						retrieve_totaliser_eeprom_check(operating_side);
+						while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+						{
+							if(try++ >= 10)
+							{
+								clear_totaliser_fram(operating_side);
+								clear_totaliser_eeprom(operating_side);
+								try = 0;
+								break;
+							}
+
+						}
 						try = 0;
 						break;
 					}
@@ -10414,17 +10590,17 @@ void do_calcs ()
 
 			  running_amtTotaliser1c = working_amtTotaliser1c + price_upper1;
 
-			  float pricecheck = running_amtTotaliser1c - priceOld1;
-
-				if (pricecheck >= 1000.00)
-				{
-				   priceOld1 = running_amtTotaliser1c;
-				   save_amountSend(side_a);
-
-				   char str[65];
-				   sprintf(str, "[Side-A]... #%0.2f intermittent worth of sales made now!", pricecheck);
-				   server_write(str);
-				}
+//			  float pricecheck = running_amtTotaliser1c - priceOld1;
+//
+//				if (pricecheck >= 1000.00)
+//				{
+//				   priceOld1 = running_amtTotaliser1c;
+//				   save_amountSend(side_a);
+//
+//				   char str[65];
+//				   sprintf(str, "[Side-A]... #%0.2f intermittent worth of sales made now!", pricecheck);
+//				   server_write(str);
+//				}
 
 			   totaliser_vol1 = scale_to_original1(running_volTotaliser1);    // update totaliser
 			   totaliser_vol1c = scale_to_original1(running_volTotaliser1c);  // update totaliser
@@ -10479,8 +10655,10 @@ void do_calcs ()
 	   else
 	   {
 		  //programmed but still dispensing @ stop pt.
-			 temp = pulser2amt(current_pulser1);  amt   = dp(temp,dp_vol1);
-			 temp = amt2price(amt);   			price = dp(temp,dp_amount1);
+			 temp = pulser2amt(current_pulser1);
+			 amt   = dp(temp,dp_vol1);
+			 temp = amt2price(amt);
+			 price = dp(temp,dp_amount1);
 
 			  make_string(P, dp(price, dp_amount1));
 			  make_string(L, dp(amt, dp_vol1));
@@ -10560,17 +10738,17 @@ void do_calcs ()
 
 			  running_amtTotaliser1c = working_amtTotaliser1c + price_upper1;
 
-			  float pricecheck = running_amtTotaliser1c - priceOld1;
-
-				if (pricecheck >= 1000.00)
-				{
-				   priceOld1 = running_amtTotaliser1c;
-				   save_amountSend(side_a);
-
-				   char str[65];
-				   sprintf(str, "[Side-A]... #%0.2f intermittent worth of sales made now!", pricecheck);
-				   server_write(str);
-				}
+//			  float pricecheck = running_amtTotaliser1c - priceOld1;
+//
+//				if (pricecheck >= 1000.00)
+//				{
+//				   priceOld1 = running_amtTotaliser1c;
+//				   save_amountSend(side_a);
+//
+//				   char str[65];
+//				   sprintf(str, "[Side-A]... #%0.2f intermittent worth of sales made now!", pricecheck);
+//				   server_write(str);
+//				}
 
 			   totaliser_vol1 = scale_to_original1(running_volTotaliser1);    // update totaliser
 			   totaliser_vol1c = scale_to_original1(running_volTotaliser1c);  // update totaliser
@@ -10682,17 +10860,17 @@ void do_calcs ()
 
 			  running_amtTotaliser1c = working_amtTotaliser1c + price_upper1;
 
-			  float pricecheck = running_amtTotaliser1c - priceOld1;
-
-				if (pricecheck >= 1000.00)
-				{
-				   priceOld1 = running_amtTotaliser1c;
-				   save_amountSend(side_a);
-
-				   char str[65];
-				   sprintf(str, "[Side-A]... #%0.2f intermittent worth of sales made now!", pricecheck);
-				   server_write(str);
-				}
+//			  float pricecheck = running_amtTotaliser1c - priceOld1;
+//
+//				if (pricecheck >= 1000.00)
+//				{
+//				   priceOld1 = running_amtTotaliser1c;
+//				   save_amountSend(side_a);
+//
+//				   char str[65];
+//				   sprintf(str, "[Side-A]... #%0.2f intermittent worth of sales made now!", pricecheck);
+//				   server_write(str);
+//				}
 
 			   totaliser_vol1 = scale_to_original1(running_volTotaliser1);    // update totaliser
 			   totaliser_vol1c = scale_to_original1(running_volTotaliser1c);  // update totaliser

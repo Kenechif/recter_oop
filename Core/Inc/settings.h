@@ -40,13 +40,16 @@ extern "C" {
 
 //:::::::::::::::::::::::::::::::::::::::::::://
 
-//	  #define DEBUG 1
+	  #define DEBUG 0
 
-//	  #define DEBUG1 1
+	  #define DEBUG1 0
+
+//	  #define DEBUG2 0
+	  #define DEBUG2 1
 
 	  #define PRODUCT_TYPE _DPK
 
-      #define DEV_MODE
+//	  #define DEV_MODE
 
 	  #define OTP_ENABLE
 
@@ -118,6 +121,9 @@ extern "C" {
 
 #define MIN_VAL						0.0f
 #define MAX_VAL						99999999.0f
+
+#define RECOVERED                   1
+#define NO_RECOVERY                 0
 
 /***********************************************************************/
 #define DEBOUNCE_TIME_MS 5  //10  //20 // Debounce period in milliseconds
@@ -486,6 +492,15 @@ typedef struct
 	uint32_t current_loc;
 	uint32_t number_logs;   // 8 Bytes
 }flash_store_info;
+
+typedef struct
+{
+	  uint32_t recovered_count;         //4
+	  uint8_t recovered_countFlag;	    //4
+}recovered_pulser_count;
+
+recovered_pulser_count recovered_pulserCount[2];
+
 
 typedef struct
 {
@@ -1289,16 +1304,20 @@ void retrieve_settings_fram(void);
 void save_settings_original_fram(pump_sid side);
 void retrieve_settings_original_fram(pump_sid side);
 
-void save_totaliser_eeprom(pump_sid side);
-void retrieve_totaliser_eeprom(pump_sid side);
+uint8_t save_totaliser_eeprom(pump_sid side);
+uint8_t retrieve_totaliser_eeprom(pump_sid side);
 void clear_totaliser_eeprom(pump_sid side);
 
-uint8_t retrieve_totaliser_fram_check(pump_sid side);
-void retrieve_totaliser_eeprom_check(pump_sid side);
+uint8_t save_totaliser_eeprom_check(pump_sid side);
 
-void save_totaliser_fram(pump_sid side);
+uint8_t retrieve_totaliser_fram_check(pump_sid side);
+uint8_t retrieve_totaliser_eeprom_check(pump_sid side);
+
+uint8_t save_totaliser_fram(pump_sid side);
 uint8_t retrieve_totaliser_fram(pump_sid side);
 void clear_totaliser_fram(pump_sid side);
+
+uint8_t save_totaliser_fram_check(pump_sid side);
 
 void saver_Totaliser_startShift_fram(pump_sid side);
 void retrieve_Totaliser_startShift_fram(pump_sid side);
@@ -1418,6 +1437,9 @@ void retrieve_incidentNextLoc_fram(pump_sid side);
 void clear_incidentNextLoc_fram(pump_sid side);
 
 void save_programmedSaleEvent_fram(pump_sid side);
+
+uint8_t save_recoveredPulserCount_fram_check(pump_sid side);
+uint8_t save_recoveredPulserCount_fram(pump_sid side);
 
 void copy_settings(copy_dir dir);
 void load_settings(pump_sid side);

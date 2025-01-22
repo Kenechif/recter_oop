@@ -168,6 +168,9 @@ float battery_sense(void)
 
 			batt_v = ( (digital_reading * 3.3 ) / 4095 );   //BATTERY : Fully-charged => 2.22V (@ 8.4V) low_cutoff => 1.98 (@ 6.4V); 1.91 (@ 6.0V)
 															//	1.88V (@ 5.90V)  1.8V (@5.5V)
+
+			HAL_GPIO_WritePin(batt_check_GPIO_Port, batt_check_Pin, GPIO_PIN_SET);
+
 			return batt_v;
 		}
 	}

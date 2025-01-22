@@ -2333,7 +2333,7 @@ skip_test:
 //	settings_stream2[1].startUp_suppressVol = 0.12;
 
 //    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
-//    settings_stream1[0].mode = AUTO_MODE;    //AUTO_MODE;
+//    settings_stream1[0].mode = AUTO_MODE;      //AUTO_MODE;
 //
 //    settings_stream1[0].noz = nooverride;  //nooveride
 //    settings_stream1[0].noz_override = override;  //nooveride
@@ -2408,8 +2408,18 @@ skip_test:
     	static uint8_t try = 0;
     	if(try++ >= 5)
     	{
+    		while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+			{
+				if(try++ >= 10)
+				{
+					clear_totaliser_fram(operating_side);
+					clear_totaliser_eeprom(operating_side);
+					try = 0;
+					break;
+				}
+
+			}
     		try = 0;
-    		retrieve_totaliser_eeprom(side_a);
     		break;
     	}
     }
@@ -2419,7 +2429,17 @@ skip_test:
 		static uint8_t try = 0;
 		if(try++ >= 5)
 		{
-			retrieve_totaliser_eeprom(side_b);
+			while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+			{
+				if(try++ >= 10)
+				{
+					clear_totaliser_fram(operating_side);
+					clear_totaliser_eeprom(operating_side);
+					try = 0;
+					break;
+				}
+
+			}
 			try = 0;
 			break;
 		}
@@ -2472,13 +2492,19 @@ skip_test:
 //    totaliser_vol1 = 21474836.00;
 //    totaliser_vol1c = 3828.17;  //161.69;
 //    totaliser_vol1 = 3828.17;
+
+//    totaliser_vol1c = 0.0;  //161.69;
+//    totaliser_vol1 = 0.0;
 //    totaliser_amt1c = 0.00;
 //	totaliser_amt1 = 0.00;
 //	save_totaliser_fram(side_a);
 //	save_totaliser_eeprom(side_a);
 //
-//	totaliser_vol2c = 14221.48;   //8060.52;
-//	totaliser_vol2 = 14221.48;
+////	totaliser_vol2c = 14221.48;   //8060.52;
+////	totaliser_vol2 = 14221.48;
+//
+//	totaliser_vol2c = 0.0;  //161.69;
+//	totaliser_vol2 = 0.0;
 //	totaliser_amt2c = 0.00;
 //    totaliser_amt2 = 0.00;
 //	save_totaliser_fram(side_b);
@@ -2927,14 +2953,16 @@ void run()
 //	t_exec7 = t_exec6 - t_exec4;
 
 #if (sense_battery == 1)
+
 //	if( (batt_val < 2.00) && (batt_val >= 1.95) )
-	if( (batt_val < 1.8) && (batt_val >= 1.5) )
+//	if( (batt_val < 1.8) && (batt_val >= 1.5) )
+	if( (batt_val < 1.48) && (batt_val >= 1.47) )   //6.0V & 6.1V
 	{
-//		batteryStatus = LOWBATTERY;
-		batteryStatus = BATTERYOK;
+		batteryStatus = LOWBATTERY;
 	}
 //	else if(batt_val < 1.5)
-	else if(batt_val < 1.0)
+//	else if(batt_val < 1.0)
+	else if(batt_val < 1.47)
 	{
 		batteryStatus = NOBATTERY;
 	}
@@ -2942,6 +2970,7 @@ void run()
 	{
 		batteryStatus = BATTERYOK;
 	}
+
 #endif     //#if (sense_battery == 1)
 
 //	if(server_message_found == 1)
@@ -4579,10 +4608,12 @@ bool nozzleSwitch_read1(void)
     		if(switchState == true)
 			{
     			nozzle_flag = 1;
+//    			HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 			}
 			else
 			{
 				nozzle_flag = 0;
+//				HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 			}
     	}
     }
@@ -4616,10 +4647,12 @@ bool nozzleSwitch_read2(void)
     		if(switchState == true)
 			{
     			nozzle_flag2 = 1;
+//    			HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 			}
 			else
 			{
 				nozzle_flag2 = 0;
+//				HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 			}
     	}
     }
