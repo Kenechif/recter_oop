@@ -49,7 +49,7 @@ extern "C" {
 
 	  #define PRODUCT_TYPE _DPK
 
-//	  #define DEV_MODE
+	  #define DEV_MODE
 
 	  #define OTP_ENABLE
 
@@ -61,16 +61,16 @@ extern "C" {
 //============================================
 
 #ifdef DEV_MODE
-//	#define _USE_SOFT_PULSER            1
-	#define _USE_SOFT_PULSER            0
+	#define _USE_SOFT_PULSER            1
+//	#define _USE_SOFT_PULSER            0
 	#define sense_battery 				0
 //	#define sense_power  				0
 //	#define sense_battery 				1
 	#define sense_power  				1
 #else
 	#define _USE_SOFT_PULSER            0
-//	#define sense_battery 				1
-	#define sense_battery 				0
+	#define sense_battery 				1
+//	#define sense_battery 				0
 	#define sense_power  				1
 #endif
 
@@ -86,6 +86,8 @@ extern "C" {
 
 #define LCD_UPDATE_RATE             100
 #define keypad_delay				70
+
+#define MAX_EVENTS_PER_STATE 		13
 
 #define pump_rx_bufsize  			1000
 
@@ -124,6 +126,13 @@ extern "C" {
 
 #define RECOVERED                   1
 #define NO_RECOVERY                 0
+
+#define TONE_DURATION 				1
+
+#define THRESHOLD_TV 				0.5
+
+#define SAVED_TO_MAIN_TOTALIZER     0
+#define UNSAVED_TO_MAIN_TOTALIZER   1
 
 /***********************************************************************/
 #define DEBOUNCE_TIME_MS 5  //10  //20 // Debounce period in milliseconds
@@ -431,6 +440,17 @@ typedef struct{
 	  float totaliserAmount_real;   //4
 	  float totaliserAmount_cal;	//4  -->16
  }totaliser_store;
+
+typedef struct
+{
+  float totaliserVol_real;      		  //4
+  float totaliserVol_cal;	    		  //4
+  float totaliserAmount_real;   		  //4
+  float totaliserAmount_cal;			  //4
+  float lastVolumeSale_cal;               //4
+  float lastAmountSale_cal;				  //4
+  uint8_t totalizer_save_status;  //1  + 3  -->28
+}totaliser_store_frequent;
 
 typedef struct
 {
@@ -1309,6 +1329,7 @@ uint8_t retrieve_totaliser_eeprom(pump_sid side);
 void clear_totaliser_eeprom(pump_sid side);
 
 uint8_t save_totaliser_eeprom_check(pump_sid side);
+uint8_t save_totaliser_fram_check(pump_sid side);
 
 uint8_t retrieve_totaliser_fram_check(pump_sid side);
 uint8_t retrieve_totaliser_eeprom_check(pump_sid side);
@@ -1317,7 +1338,16 @@ uint8_t save_totaliser_fram(pump_sid side);
 uint8_t retrieve_totaliser_fram(pump_sid side);
 void clear_totaliser_fram(pump_sid side);
 
-uint8_t save_totaliser_fram_check(pump_sid side);
+uint8_t save_totaliserFrequent_fram(pump_sid side);
+uint8_t retrieve_totaliserFrequent_fram(pump_sid side);
+uint8_t clear_totaliserFrequent_fram(pump_sid side);
+
+uint8_t save_totaliserFrequent_fram_check(pump_sid side);
+uint8_t save_totaliserFrequent_eeprom_check(pump_sid side);
+
+uint8_t save_totaliserFrequent_eeprom(pump_sid side);
+uint8_t retrieve_totaliserFrequent_eeprom(pump_sid side);
+uint8_t clear_totaliserFrequent_eeprom(pump_sid side);
 
 void saver_Totaliser_startShift_fram(pump_sid side);
 void retrieve_Totaliser_startShift_fram(pump_sid side);

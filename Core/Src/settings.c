@@ -199,6 +199,15 @@ float price_upper1,
 	  price_upper2,
 	  amt_middle2 CCRAM = 0.000;
 
+float previous_totaliserVol1c CCRAM = 0.0,
+      currentValue_tv1 CCRAM = 0.0;
+
+uint8_t totalizer_saveStatus1 CCRAM = SAVED_TO_MAIN_TOTALIZER,
+		totalizer_saveStatus2 CCRAM = SAVED_TO_MAIN_TOTALIZER;
+
+float previous_totaliserVol2c CCRAM = 0.0,
+      currentValue_tv2 CCRAM = 0.0;
+
 float running_volTotaliser1_tmin1 CCRAM = 0.00,
 	  running_volTotaliser1_tmin2 CCRAM = 0.00,
 	  running_volTotaliser1_tmin3 CCRAM = 0.00,
@@ -413,6 +422,10 @@ float amt_real1_array[4] CCRAM = {0},
  const uint16_t recov1_loc_fram = 734, 					  //size => 8 Bytes
 		        recov2_loc_fram = 742;					  //742 --> 749
 
+ const uint16_t totFreq1_loc_fram = 750, 				  //size => 28 Bytes
+		 	    totFreq2_loc_fram = 778; 				  //778 --> 805
+
+
 
 
  ///////////////////////////////////////////////////////////////////////
@@ -477,6 +490,9 @@ const int flash_stoB =  1225; //+ ( 1 + (32 * 2));    	 //1225 --> 1232   //1233
  const int16_t lastSale_loc = 36;
  const int16_t lastSale1_loc = 0;
  const int16_t lastSale2_loc = (lastSale1_loc + 2 + (4 * 4) );   // 54 -> 71
+
+ const int16_t totFreq1_loc = 72,               // 28 Bytes
+ 	 	 	   totFreq2_loc = 100;   			// 100 -> 127
 
  //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH//
 
@@ -616,6 +632,12 @@ totaliser_store totaliser_storeA CCRAM,
 				startShiftTotaliser_storeB,
 				totaliser_storeA_check,
 				totaliser_storeB_check;
+
+totaliser_store_frequent totaliserFrequent_storeA CCRAM,
+						 totaliserFrequent_storeB CCRAM,
+						 totaliserFrequent_storeA_check,
+						 totaliserFrequent_storeB_check;
+
 
 firstTotaliser_store firstTotaliser_vol_storeA,
 					 firstTotaliser_vol_storeB,
@@ -1298,6 +1320,115 @@ uint8_t save_totaliser_eeprom(pump_sid side)
 	}
 }
 
+
+uint8_t save_totaliserFrequent_eeprom(pump_sid side)
+{
+	uint8_t sz = sizeof(totaliserFrequent_storeA);
+	uint8_t buffer[sz + sizeof(uint16_t)];
+	uint16_t crc;
+
+	uint8_t try = 0;
+
+	if (side == side_a)
+	{
+		totaliserFrequent_storeA.totaliserVol_cal = totaliser_vol1c;
+		totaliserFrequent_storeA.totaliserVol_real = totaliser_vol1;
+		totaliserFrequent_storeA.totaliserAmount_cal = totaliser_amt1c;
+		totaliserFrequent_storeA.totaliserAmount_real = totaliser_amt1;
+		totaliserFrequent_storeA.totalizer_save_status = totalizer_saveStatus1;
+		totaliserFrequent_storeA.lastVolumeSale_cal = amt_middle1;
+		totaliserFrequent_storeA.lastAmountSale_cal = price_upper1;
+
+		memcpy(buffer, &totaliserFrequent_storeA, sz);
+		crc = crc_16(buffer, sz);
+
+		memcpy( (buffer + sz), &crc, sizeof(uint16_t));
+
+		EEPROM_Write(totFreq1_loc, 0, &buffer, sizeof(buffer));
+
+		while(try++ < 2)   //If it fails, retry 2X
+	    {
+			save_totaliserFrequent_fram_check(side_a);
+
+			float totaliser_vol1c_ = totaliser_vol1c - totaliser_vol1c_check;
+
+			if(fabs(totaliser_vol1c_) >= 0.2)
+			{
+				totaliserFrequent_storeA.totaliserVol_cal = totaliser_vol1c;
+				totaliserFrequent_storeA.totaliserVol_real = totaliser_vol1;
+				totaliserFrequent_storeA.totaliserAmount_cal = totaliser_amt1c;
+				totaliserFrequent_storeA.totaliserAmount_real = totaliser_amt1;
+				totaliserFrequent_storeA.totalizer_save_status = totalizer_saveStatus1;
+				totaliserFrequent_storeA.lastVolumeSale_cal = amt_middle1;
+				totaliserFrequent_storeA.lastAmountSale_cal = price_upper1;
+
+				memcpy(buffer, &totaliserFrequent_storeA, sz);
+				crc = crc_16(buffer, sz);
+
+				memcpy( (buffer + sz), &crc, sizeof(uint16_t));
+
+				EEPROM_Write(totFreq1_loc, 0, &buffer, sizeof(buffer));
+			}
+			else
+			{
+				return OK;
+			}
+		}
+
+		return FAIL;
+	}
+
+	else if (side == side_b)
+	{
+		totaliserFrequent_storeB.totaliserVol_cal = totaliser_vol2c;
+		totaliserFrequent_storeB.totaliserVol_real = totaliser_vol2;
+		totaliserFrequent_storeB.totaliserAmount_cal = totaliser_amt2c;
+		totaliserFrequent_storeB.totaliserAmount_real = totaliser_amt2;
+		totaliserFrequent_storeB.totalizer_save_status = totalizer_saveStatus2;
+		totaliserFrequent_storeB.lastVolumeSale_cal = amt_middle2;
+		totaliserFrequent_storeB.lastAmountSale_cal = price_upper2;
+
+		memcpy(buffer, &totaliserFrequent_storeB, sz);
+		crc = crc_16(buffer, sz);
+
+		memcpy( (buffer + sz), &crc, sizeof(uint16_t) );
+
+		EEPROM_Write(totFreq2_loc, 0, &buffer, sizeof(buffer));
+
+		while(try++ < 2)   //If it fails, retry 2X
+	    {
+			save_totaliserFrequent_fram_check(side_b);
+
+			float totaliser_vol2c_ = totaliser_vol2c - totaliser_vol2c_check;
+
+			if(fabs(totaliser_vol2c_) >= 0.2)
+			{
+				totaliserFrequent_storeB.totaliserVol_cal = totaliser_vol2c;
+				totaliserFrequent_storeB.totaliserVol_real = totaliser_vol2;
+				totaliserFrequent_storeB.totaliserAmount_cal = totaliser_amt2c;
+				totaliserFrequent_storeB.totaliserAmount_real = totaliser_amt2;
+				totaliserFrequent_storeB.totalizer_save_status = totalizer_saveStatus2;
+				totaliserFrequent_storeB.lastVolumeSale_cal = amt_middle2;
+				totaliserFrequent_storeB.lastAmountSale_cal = price_upper2;
+
+				memcpy(buffer, &totaliserFrequent_storeB, sz);
+				crc = crc_16(buffer, sz);
+
+				memcpy( (buffer + sz), &crc, sizeof(uint16_t) );
+
+				EEPROM_Write(totFreq2_loc, 0, &buffer, sizeof(buffer));
+			}
+			else
+			{
+				return OK;
+			}
+		}
+
+		return FAIL;
+	}
+}
+
+
 //void save_totaliser_fram(pump_sid side)
 //{
 //	uint8_t sz = sizeof(totaliser_storeA);
@@ -1329,7 +1460,7 @@ uint8_t save_totaliser_eeprom_check(pump_sid side)
 
 	if (side == side_a)
 	{
-		FRAM_Read(tot1_loc_fram, &buffer, sizeof(buffer));
+		EEPROM_Read(totVol_loc, totVol1_loc, &buffer, sizeof(buffer));
 
 		// Extract data and CRC
 		memcpy(&totaliser_storeA, buffer, sz);
@@ -1357,7 +1488,7 @@ uint8_t save_totaliser_eeprom_check(pump_sid side)
 	}
 	else if (side == side_b)
 	{
-	  	FRAM_Read(tot2_loc_fram, &buffer, sizeof(buffer));
+	  	EEPROM_Read(totVol_loc, totVol2_loc, &buffer, sizeof(buffer));
 
 		// Extract data and CRC
 		memcpy(&totaliser_storeB, buffer, sz);
@@ -1385,6 +1516,74 @@ uint8_t save_totaliser_eeprom_check(pump_sid side)
 	}
 }
 
+
+uint8_t save_totaliserFrequent_eeprom_check(pump_sid side)
+{
+	uint8_t sz = sizeof(totaliserFrequent_storeA);
+	uint8_t buffer[sz + sizeof(uint16_t)];
+	uint16_t retrieved_crc,
+			 crc;
+
+	if (side == side_a)
+	{
+		EEPROM_Read(totFreq1_loc, 0, &buffer, sizeof(buffer));
+
+		// Extract data and CRC
+		memcpy(&totaliserFrequent_storeA, buffer, sz);
+		memcpy(&retrieved_crc, (buffer + sz), sizeof(uint16_t));
+
+
+		// Recompute CRC and compare
+		crc = crc_16(&totaliserFrequent_storeA, sz);
+
+		if(retrieved_crc == crc)
+		{
+			totaliser_vol1c_check = totaliserFrequent_storeA.totaliserVol_cal;
+			totaliser_vol1_check = totaliserFrequent_storeA.totaliserVol_real;
+
+			if(isnan(totaliser_vol1c_check)) totaliser_vol1c_check = 0.0;
+			if(isnan(totaliser_vol1_check)) totaliser_vol1_check = 0.0;
+
+			return OK;
+		}
+		else
+		{
+			return FAIL;
+		}
+
+	}
+	else if (side == side_b)
+	{
+	  	EEPROM_Read(totFreq2_loc, 0, &buffer, sizeof(buffer));
+
+		// Extract data and CRC
+		memcpy(&totaliserFrequent_storeB, buffer, sz);
+		memcpy(&retrieved_crc, (buffer + sz), sizeof(uint16_t));
+
+
+		// Recompute CRC and compare
+		crc = crc_16(&totaliserFrequent_storeB, sz);
+
+		if(retrieved_crc == crc)
+		{
+			totaliser_vol2c_check = totaliserFrequent_storeB.totaliserVol_cal;
+			totaliser_vol2_check = totaliserFrequent_storeB.totaliserVol_real;
+
+			if(isnan(totaliser_vol2c_check)) totaliser_vol2c_check = 0.0;
+			if(isnan(totaliser_vol2_check)) totaliser_vol2_check = 0.0;
+
+			return OK;
+
+		}
+		else
+		{
+			return FAIL;
+		}
+	}
+}
+
+
+
 uint8_t save_totaliser_fram(pump_sid side)
 {
 	uint8_t sz = sizeof(totaliser_storeA);
@@ -1407,7 +1606,7 @@ uint8_t save_totaliser_fram(pump_sid side)
 
 		FRAM_Write(tot1_loc_fram, &buffer, sizeof(buffer));
 
-		while(try++ <= 5)   //If it fails, retry 5X
+		while(try++ < 5)   //If it fails, retry 5X
 	    {
 			save_totaliser_fram_check(side_a);
 
@@ -1450,7 +1649,7 @@ uint8_t save_totaliser_fram(pump_sid side)
 
 		FRAM_Write(tot2_loc_fram, &buffer, sizeof(buffer));
 
-		while(try++ <= 5)   //If it fails, retry 5X
+		while(try++ < 5)   //If it fails, retry 5X
 	    {
 			save_totaliser_fram_check(side_b);
 
@@ -1522,6 +1721,115 @@ uint8_t save_totaliser_fram(pump_sid side)
 //	}
 //}
 
+
+uint8_t save_totaliserFrequent_fram(pump_sid side)
+{
+	uint8_t sz = sizeof(totaliserFrequent_storeA);
+	uint8_t buffer[sz + sizeof(uint16_t)];
+	uint16_t crc;
+
+	uint8_t try = 0;
+
+	if (side == side_a)
+	{
+		totaliserFrequent_storeA.totaliserVol_cal = totaliser_vol1c;
+		totaliserFrequent_storeA.totaliserVol_real = totaliser_vol1;
+		totaliserFrequent_storeA.totaliserAmount_cal = totaliser_amt1c;
+		totaliserFrequent_storeA.totaliserAmount_real = totaliser_amt1;
+		totaliserFrequent_storeA.totalizer_save_status = totalizer_saveStatus1;
+		totaliserFrequent_storeA.lastVolumeSale_cal = amt_middle1;
+		totaliserFrequent_storeA.lastAmountSale_cal = price_upper1;
+
+		memcpy(buffer, &totaliserFrequent_storeA, sz);
+		crc = crc_16(buffer, sz);
+
+		memcpy( (buffer + sz), &crc, sizeof(uint16_t));
+
+		FRAM_Write(totFreq1_loc_fram, &buffer, sizeof(buffer));
+
+		while(try++ < 2)   //If it fails, retry 2X
+	    {
+			save_totaliserFrequent_fram_check(side_a);
+
+			float totaliser_vol1c_ = totaliser_vol1c - totaliser_vol1c_check;
+
+			if(fabs(totaliser_vol1c_) >= 0.2)
+			{
+				totaliserFrequent_storeA.totaliserVol_cal = totaliser_vol1c;
+				totaliserFrequent_storeA.totaliserVol_real = totaliser_vol1;
+				totaliserFrequent_storeA.totaliserAmount_cal = totaliser_amt1c;
+				totaliserFrequent_storeA.totaliserAmount_real = totaliser_amt1;
+				totaliserFrequent_storeA.totalizer_save_status = totalizer_saveStatus1;
+				totaliserFrequent_storeA.lastVolumeSale_cal = amt_middle1;
+				totaliserFrequent_storeA.lastAmountSale_cal = price_upper1;
+
+				memcpy(buffer, &totaliserFrequent_storeA, sz);
+				crc = crc_16(buffer, sz);
+
+				memcpy( (buffer + sz), &crc, sizeof(uint16_t));
+
+				FRAM_Write(totFreq1_loc_fram, &buffer, sizeof(buffer));
+			}
+			else
+			{
+				return OK;
+			}
+		}
+
+		return FAIL;
+	}
+
+	else if (side == side_b)
+	{
+		totaliserFrequent_storeB.totaliserVol_cal = totaliser_vol2c;
+		totaliserFrequent_storeB.totaliserVol_real = totaliser_vol2;
+		totaliserFrequent_storeB.totaliserAmount_cal = totaliser_amt2c;
+		totaliserFrequent_storeB.totaliserAmount_real = totaliser_amt2;
+		totaliserFrequent_storeB.totalizer_save_status = totalizer_saveStatus2;
+		totaliserFrequent_storeB.lastVolumeSale_cal = amt_middle2;
+		totaliserFrequent_storeB.lastAmountSale_cal = price_upper2;
+
+		memcpy(buffer, &totaliserFrequent_storeB, sz);
+		crc = crc_16(buffer, sz);
+
+		memcpy( (buffer + sz), &crc, sizeof(uint16_t) );
+
+		FRAM_Write(totFreq2_loc_fram, &buffer, sizeof(buffer));
+
+		while(try++ < 2)   //If it fails, retry 2X
+	    {
+			save_totaliserFrequent_fram_check(side_b);
+
+			float totaliser_vol2c_ = totaliser_vol2c - totaliser_vol2c_check;
+
+			if(fabs(totaliser_vol2c_) >= 0.2)
+			{
+				totaliserFrequent_storeB.totaliserVol_cal = totaliser_vol2c;
+				totaliserFrequent_storeB.totaliserVol_real = totaliser_vol2;
+				totaliserFrequent_storeB.totaliserAmount_cal = totaliser_amt2c;
+				totaliserFrequent_storeB.totaliserAmount_real = totaliser_amt2;
+				totaliserFrequent_storeB.totalizer_save_status = totalizer_saveStatus2;
+				totaliserFrequent_storeB.lastVolumeSale_cal = amt_middle2;
+				totaliserFrequent_storeB.lastAmountSale_cal = price_upper2;
+
+				memcpy(buffer, &totaliserFrequent_storeB, sz);
+				crc = crc_16(buffer, sz);
+
+				memcpy( (buffer + sz), &crc, sizeof(uint16_t) );
+
+				FRAM_Write(totFreq2_loc_fram, &buffer, sizeof(buffer));
+			}
+			else
+			{
+				return OK;
+			}
+		}
+
+		return FAIL;
+	}
+}
+
+
 uint8_t save_totaliser_fram_check(pump_sid side)
 {
 	uint8_t sz = sizeof(totaliser_storeA);
@@ -1573,6 +1881,71 @@ uint8_t save_totaliser_fram_check(pump_sid side)
 		{
 			totaliser_vol2c_check = totaliser_storeB.totaliserVol_cal;
 			totaliser_vol2_check = totaliser_storeB.totaliserVol_real;
+
+			if(isnan(totaliser_vol2c_check)) totaliser_vol2c_check = 0.0;
+			if(isnan(totaliser_vol2_check)) totaliser_vol2_check = 0.0;
+
+			return OK;
+
+		}
+		else
+		{
+			return FAIL;
+		}
+	}
+}
+
+uint8_t save_totaliserFrequent_fram_check(pump_sid side)
+{
+	uint8_t sz = sizeof(totaliserFrequent_storeA);
+	uint8_t buffer[sz + sizeof(uint16_t)];
+	uint16_t retrieved_crc,
+			 crc;
+
+	if (side == side_a)
+	{
+		FRAM_Read(totFreq1_loc_fram, &buffer, sizeof(buffer));
+
+		// Extract data and CRC
+		memcpy(&totaliserFrequent_storeA, buffer, sz);
+		memcpy(&retrieved_crc, (buffer + sz), sizeof(uint16_t));
+
+
+		// Recompute CRC and compare
+		crc = crc_16(&totaliserFrequent_storeA, sz);
+
+		if(retrieved_crc == crc)
+		{
+			totaliser_vol1c_check = totaliserFrequent_storeA.totaliserVol_cal;
+			totaliser_vol1_check = totaliserFrequent_storeA.totaliserVol_real;
+
+			if(isnan(totaliser_vol1c_check)) totaliser_vol1c_check = 0.0;
+			if(isnan(totaliser_vol1_check)) totaliser_vol1_check = 0.0;
+
+			return OK;
+		}
+		else
+		{
+			return FAIL;
+		}
+
+	}
+	else if (side == side_b)
+	{
+	  	FRAM_Read(totFreq2_loc_fram, &buffer, sizeof(buffer));
+
+		// Extract data and CRC
+		memcpy(&totaliserFrequent_storeB, buffer, sz);
+		memcpy(&retrieved_crc, (buffer + sz), sizeof(uint16_t));
+
+
+		// Recompute CRC and compare
+		crc = crc_16(&totaliserFrequent_storeB, sz);
+
+		if(retrieved_crc == crc)
+		{
+			totaliser_vol2c_check = totaliserFrequent_storeB.totaliserVol_cal;
+			totaliser_vol2_check = totaliserFrequent_storeB.totaliserVol_real;
 
 			if(isnan(totaliser_vol2c_check)) totaliser_vol2c_check = 0.0;
 			if(isnan(totaliser_vol2_check)) totaliser_vol2_check = 0.0;
@@ -1895,6 +2268,107 @@ uint8_t retrieve_totaliser_eeprom_check(pump_sid side)
 //	}
 //}
 
+uint8_t retrieve_totaliserFrequent_eeprom(pump_sid side)
+{
+	uint8_t sz = sizeof(totaliser_storeA);
+	uint8_t buffer[sz + sizeof(uint16_t)];
+	uint16_t retrieved_crc,
+			 crc;
+
+	if (side == side_a)
+	{
+		EEPROM_Read(totFreq1_loc, 0, &buffer, sizeof(buffer));
+
+		// Extract data and CRC
+		memcpy(&totaliserFrequent_storeA, buffer, sz);
+		memcpy(&retrieved_crc, (buffer + sz), sizeof(uint16_t));
+
+
+		// Recompute CRC and compare
+		crc = crc_16(&totaliserFrequent_storeA, sz);
+
+		if(retrieved_crc == crc)
+		{
+			if(totaliserFrequent_storeA.totalizer_save_status == UNSAVED_TO_MAIN_TOTALIZER)
+			{
+				totaliser_vol1c = totaliserFrequent_storeA.totaliserVol_cal;
+				totaliser_vol1 = totaliserFrequent_storeA.totaliserVol_real;
+
+				totaliser_amt1c = totaliserFrequent_storeA.totaliserAmount_cal;
+				totaliser_amt1 = totaliserFrequent_storeA.totaliserAmount_real;
+
+				lastVolumeSale1c = totaliserFrequent_storeA.lastVolumeSale_cal;
+				lastAmountSale1c = totaliserFrequent_storeA.lastAmountSale_cal;
+
+
+				if(isnan(totaliser_vol1c)) totaliser_vol1c = 0.0;
+				if(isnan(totaliser_vol1)) totaliser_vol1 = 0.0;
+				if(isnan(totaliser_amt1c)) totaliser_amt1c = 0.0;
+				if(isnan(totaliser_amt1)) totaliser_amt1 = 0.0;
+				if(isnan(lastVolumeSale1c)) lastVolumeSale1c = 0.0;
+				if(isnan(lastAmountSale1c)) lastAmountSale1c = 0.0;
+
+				save_totaliser_fram(side_a);
+				save_totaliser_eeprom(side_a);
+			}
+
+			return OK;
+
+		}
+		else
+		{
+			return FAIL;
+		}
+
+	}
+	else if (side == side_b)
+	{
+		EEPROM_Read(totFreq2_loc, 0, &buffer, sizeof(buffer));
+
+		// Extract data and CRC
+		memcpy(&totaliser_storeB, buffer, sz);
+		memcpy(&retrieved_crc, (buffer + sz), sizeof(uint16_t));
+
+
+		// Recompute CRC and compare
+		crc = crc_16(&totaliser_storeB, sz);
+
+		if(retrieved_crc == crc)
+		{
+
+			if(totaliserFrequent_storeB.totalizer_save_status == UNSAVED_TO_MAIN_TOTALIZER)
+			{
+				totaliser_vol2c = totaliserFrequent_storeB.totaliserVol_cal;
+				totaliser_vol2 = totaliserFrequent_storeB.totaliserVol_real;
+
+				totaliser_amt2c = totaliserFrequent_storeB.totaliserAmount_cal;
+				totaliser_amt2 = totaliserFrequent_storeB.totaliserAmount_real;
+
+				lastVolumeSale2c = totaliserFrequent_storeB.lastVolumeSale_cal;
+				lastAmountSale2c = totaliserFrequent_storeB.lastAmountSale_cal;
+
+
+				if(isnan(totaliser_vol2c)) totaliser_vol2c = 0.0;
+				if(isnan(totaliser_vol2)) totaliser_vol2 = 0.0;
+				if(isnan(totaliser_amt2c)) totaliser_amt2c = 0.0;
+				if(isnan(totaliser_amt2)) totaliser_amt2 = 0.0;
+				if(isnan(lastVolumeSale2c)) lastVolumeSale2c = 0.0;
+				if(isnan(lastAmountSale2c)) lastAmountSale2c = 0.0;
+
+				save_totaliser_fram(side_b);
+				save_totaliser_eeprom(side_b);
+			}
+
+			return OK;
+
+		}
+		else
+		{
+			return FAIL;
+		}
+	}
+}
+
 
 uint8_t retrieve_totaliser_fram(pump_sid side)
 {
@@ -1972,7 +2446,111 @@ uint8_t retrieve_totaliser_fram(pump_sid side)
 	}
 }
 
+uint8_t retrieve_totaliserFrequent_fram(pump_sid side)
+{
+	uint8_t sz = sizeof(totaliser_storeA);
+	uint8_t buffer[sz + sizeof(uint16_t)];
+	uint16_t retrieved_crc,
+			 crc;
 
+	float recov_lastSale;
+
+	if (side == side_a)
+	{
+		FRAM_Read(totFreq1_loc_fram, &buffer, sizeof(buffer));
+
+		// Extract data and CRC
+		memcpy(&totaliserFrequent_storeA, buffer, sz);
+		memcpy(&retrieved_crc, (buffer + sz), sizeof(uint16_t));
+
+
+		// Recompute CRC and compare
+		crc = crc_16(&totaliserFrequent_storeA, sz);
+
+		if(retrieved_crc == crc)
+		{
+			if(totaliserFrequent_storeA.totalizer_save_status == UNSAVED_TO_MAIN_TOTALIZER)
+			{
+				totaliser_vol1c = totaliserFrequent_storeA.totaliserVol_cal;
+				totaliser_vol1 = totaliserFrequent_storeA.totaliserVol_real;
+
+				totaliser_amt1c = totaliserFrequent_storeA.totaliserAmount_cal;
+				totaliser_amt1 = totaliserFrequent_storeA.totaliserAmount_real;
+
+				lastVolumeSale1c = totaliserFrequent_storeA.lastVolumeSale_cal;
+				lastAmountSale1c = totaliserFrequent_storeA.lastAmountSale_cal;
+
+
+				if(isnan(totaliser_vol1c)) totaliser_vol1c = 0.0;
+				if(isnan(totaliser_vol1)) totaliser_vol1 = 0.0;
+				if(isnan(totaliser_amt1c)) totaliser_amt1c = 0.0;
+				if(isnan(totaliser_amt1)) totaliser_amt1 = 0.0;
+				if(isnan(lastVolumeSale1c)) lastVolumeSale1c = 0.0;
+				if(isnan(lastAmountSale1c)) lastAmountSale1c = 0.0;
+
+				save_totaliser_fram(side_a);
+				save_totaliser_eeprom(side_a);
+			}
+
+			return OK;
+
+		}
+		else
+		{
+			return FAIL;
+		}
+
+	}
+	else if (side == side_b)
+	{
+	  	FRAM_Read(tot2_loc_fram, &buffer, sizeof(buffer));
+
+		// Extract data and CRC
+		memcpy(&totaliser_storeB, buffer, sz);
+		memcpy(&retrieved_crc, (buffer + sz), sizeof(uint16_t));
+
+
+		// Recompute CRC and compare
+		crc = crc_16(&totaliser_storeB, sz);
+
+		if(retrieved_crc == crc)
+		{
+			if(totaliserFrequent_storeB.totalizer_save_status == UNSAVED_TO_MAIN_TOTALIZER)
+			{
+				totaliser_vol2c = totaliserFrequent_storeB.totaliserVol_cal;
+				totaliser_vol2 = totaliserFrequent_storeB.totaliserVol_real;
+
+				totaliser_amt2c = totaliserFrequent_storeB.totaliserAmount_cal;
+				totaliser_amt2 = totaliserFrequent_storeB.totaliserAmount_real;
+
+				lastVolumeSale2c = totaliserFrequent_storeB.lastVolumeSale_cal;
+				lastAmountSale2c = totaliserFrequent_storeB.lastAmountSale_cal;
+
+
+				if(isnan(totaliser_vol2c)) totaliser_vol2c = 0.0;
+				if(isnan(totaliser_vol2)) totaliser_vol2 = 0.0;
+				if(isnan(totaliser_amt2c)) totaliser_amt2c = 0.0;
+				if(isnan(totaliser_amt2)) totaliser_amt2 = 0.0;
+				if(isnan(lastVolumeSale2c)) lastVolumeSale2c = 0.0;
+				if(isnan(lastAmountSale2c)) lastAmountSale2c = 0.0;
+
+				save_totaliser_fram(side_b);
+				save_totaliser_eeprom(side_b);
+			}
+
+			return OK;
+
+		}
+		else
+		{
+			return FAIL;
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+//Checks for the veracity of the Totalizer, before overwriting it, at the end of a transaction
+////////////////////////////////////////////////////////////////////////////////////////////////
 uint8_t retrieve_totaliser_fram_check(pump_sid side)
 {
 	uint8_t sz = sizeof(totaliser_storeA);
@@ -2217,6 +2795,228 @@ void clear_totaliser_fram(pump_sid side)
 
 //==============================================
 /*
+ * clear totaliserFrequent EEPROM
+ */
+uint8_t clear_totaliserFrequent_eeprom(pump_sid side)
+{
+	uint8_t sz = sizeof(totaliserFrequent_storeA);
+	uint8_t buffer[sz + sizeof(uint16_t)];
+	uint16_t crc;
+
+	uint8_t try = 0;
+
+	if (side == side_a)
+	{
+		totaliserFrequent_storeA.totaliserVol_cal = 0.0;
+		totaliserFrequent_storeA.totaliserVol_real = 0.0;
+		totaliserFrequent_storeA.totaliserAmount_cal = 0.0;
+		totaliserFrequent_storeA.totaliserAmount_real = 0.0;
+		totaliserFrequent_storeA.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
+		totaliserFrequent_storeA.lastVolumeSale_cal = 0.0;
+		totaliserFrequent_storeA.lastAmountSale_cal = 0.0;
+
+		memcpy(buffer, &totaliserFrequent_storeA, sz);
+		crc = crc_16(buffer, sz);
+
+		memcpy( (buffer + sz), &crc, sizeof(uint16_t));
+
+		EEPROM_Write(totFreq1_loc, 0, &buffer, sizeof(buffer));
+
+		while(try++ < 2)   //If it fails, retry 2X
+	    {
+			save_totaliserFrequent_fram_check(side_a);
+
+			float totaliser_vol1c_ = 0 - totaliser_vol1c_check;
+
+			if(fabs(totaliser_vol1c_) >= 0.2)
+			{
+				totaliserFrequent_storeA.totaliserVol_cal = 0.0;
+				totaliserFrequent_storeA.totaliserVol_real = 0.0;
+				totaliserFrequent_storeA.totaliserAmount_cal = 0.0;
+				totaliserFrequent_storeA.totaliserAmount_real = 0.0;
+				totaliserFrequent_storeA.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
+				totaliserFrequent_storeA.lastVolumeSale_cal = 0.0;
+				totaliserFrequent_storeA.lastAmountSale_cal = 0.0;
+
+				memcpy(buffer, &totaliserFrequent_storeA, sz);
+				crc = crc_16(buffer, sz);
+
+				memcpy( (buffer + sz), &crc, sizeof(uint16_t));
+
+				EEPROM_Write(totFreq1_loc, 0, &buffer, sizeof(buffer));
+			}
+			else
+			{
+				return OK;
+			}
+		}
+
+		return FAIL;
+	}
+
+	else if (side == side_b)
+	{
+		totaliserFrequent_storeB.totaliserVol_cal = 0.0;
+		totaliserFrequent_storeB.totaliserVol_real = 0.0;
+		totaliserFrequent_storeB.totaliserAmount_cal = 0.0;
+		totaliserFrequent_storeB.totaliserAmount_real = 0.0;
+		totaliserFrequent_storeB.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
+		totaliserFrequent_storeB.lastVolumeSale_cal = 0.0;
+		totaliserFrequent_storeB.lastAmountSale_cal = 0.0;
+
+		memcpy(buffer, &totaliserFrequent_storeB, sz);
+		crc = crc_16(buffer, sz);
+
+		memcpy( (buffer + sz), &crc, sizeof(uint16_t) );
+
+		EEPROM_Write(totFreq2_loc, 0, &buffer, sizeof(buffer));
+
+		while(try++ < 2)   //If it fails, retry 2X
+	    {
+			save_totaliserFrequent_fram_check(side_b);
+
+			float totaliser_vol2c_ = 0 - totaliser_vol2c_check;
+
+			if(fabs(totaliser_vol2c_) >= 0.2)
+			{
+				totaliserFrequent_storeB.totaliserVol_cal = 0.0;
+				totaliserFrequent_storeB.totaliserVol_real = 0.0;
+				totaliserFrequent_storeB.totaliserAmount_cal = 0.0;
+				totaliserFrequent_storeB.totaliserAmount_real = 0.0;
+				totaliserFrequent_storeB.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
+				totaliserFrequent_storeB.lastVolumeSale_cal = 0.0;
+				totaliserFrequent_storeB.lastAmountSale_cal = 0.0;
+
+				memcpy(buffer, &totaliserFrequent_storeB, sz);
+				crc = crc_16(buffer, sz);
+
+				memcpy( (buffer + sz), &crc, sizeof(uint16_t) );
+
+				EEPROM_Write(totFreq2_loc, 0, &buffer, sizeof(buffer));
+			}
+			else
+			{
+				return OK;
+			}
+		}
+
+		return FAIL;
+	}
+}
+
+//==============================================
+/*
+ * clear totaliserFrequent FRAM
+ */
+uint8_t clear_totaliserFrequent_fram(pump_sid side)
+{
+	uint8_t sz = sizeof(totaliserFrequent_storeA);
+	uint8_t buffer[sz + sizeof(uint16_t)];
+	uint16_t crc;
+
+	uint8_t try = 0;
+
+	if (side == side_a)
+	{
+		totaliserFrequent_storeA.totaliserVol_cal = 0.0;
+		totaliserFrequent_storeA.totaliserVol_real = 0.0;
+		totaliserFrequent_storeA.totaliserAmount_cal = 0.0;
+		totaliserFrequent_storeA.totaliserAmount_real = 0.0;
+		totaliserFrequent_storeA.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
+		totaliserFrequent_storeA.lastVolumeSale_cal = 0.0;
+		totaliserFrequent_storeA.lastAmountSale_cal = 0.0;
+
+		memcpy(buffer, &totaliserFrequent_storeA, sz);
+		crc = crc_16(buffer, sz);
+
+		memcpy( (buffer + sz), &crc, sizeof(uint16_t));
+
+		FRAM_Write(totFreq1_loc_fram, &buffer, sizeof(buffer));
+
+		while(try++ < 2)   //If it fails, retry 2X
+	    {
+			save_totaliserFrequent_fram_check(side_a);
+
+			float totaliser_vol1c_ = 0 - totaliser_vol1c_check;
+
+			if(fabs(totaliser_vol1c_) >= 0.2)
+			{
+				totaliserFrequent_storeA.totaliserVol_cal = 0.0;
+				totaliserFrequent_storeA.totaliserVol_real = 0.0;
+				totaliserFrequent_storeA.totaliserAmount_cal = 0.0;
+				totaliserFrequent_storeA.totaliserAmount_real = 0.0;
+				totaliserFrequent_storeA.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
+				totaliserFrequent_storeA.lastVolumeSale_cal = 0.0;
+				totaliserFrequent_storeA.lastAmountSale_cal = 0.0;
+
+				memcpy(buffer, &totaliserFrequent_storeA, sz);
+				crc = crc_16(buffer, sz);
+
+				memcpy( (buffer + sz), &crc, sizeof(uint16_t));
+
+				FRAM_Write(totFreq1_loc_fram, &buffer, sizeof(buffer));
+			}
+			else
+			{
+				return OK;
+			}
+		}
+
+		return FAIL;
+	}
+
+	else if (side == side_b)
+	{
+		totaliserFrequent_storeB.totaliserVol_cal = 0.0;
+		totaliserFrequent_storeB.totaliserVol_real = 0.0;
+		totaliserFrequent_storeB.totaliserAmount_cal = 0.0;
+		totaliserFrequent_storeB.totaliserAmount_real = 0.0;
+		totaliserFrequent_storeB.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
+		totaliserFrequent_storeB.lastVolumeSale_cal = 0.0;
+		totaliserFrequent_storeB.lastAmountSale_cal = 0.0;
+
+		memcpy(buffer, &totaliserFrequent_storeB, sz);
+		crc = crc_16(buffer, sz);
+
+		memcpy( (buffer + sz), &crc, sizeof(uint16_t) );
+
+		FRAM_Write(totFreq2_loc_fram, &buffer, sizeof(buffer));
+
+		while(try++ < 2)   //If it fails, retry 2X
+	    {
+			save_totaliserFrequent_fram_check(side_b);
+
+			float totaliser_vol2c_ = 0 - totaliser_vol2c_check;
+
+			if(fabs(totaliser_vol2c_) >= 0.2)
+			{
+				totaliserFrequent_storeB.totaliserVol_cal = 0.0;
+				totaliserFrequent_storeB.totaliserVol_real = 0.0;
+				totaliserFrequent_storeB.totaliserAmount_cal = 0.0;
+				totaliserFrequent_storeB.totaliserAmount_real = 0.0;
+				totaliserFrequent_storeB.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
+				totaliserFrequent_storeB.lastVolumeSale_cal = 0.0;
+				totaliserFrequent_storeB.lastAmountSale_cal = 0.0;
+
+				memcpy(buffer, &totaliserFrequent_storeB, sz);
+				crc = crc_16(buffer, sz);
+
+				memcpy( (buffer + sz), &crc, sizeof(uint16_t) );
+
+				FRAM_Write(totFreq2_loc_fram, &buffer, sizeof(buffer));
+			}
+			else
+			{
+				return OK;
+			}
+		}
+
+		return FAIL;
+	}
+}
+
+//==============================================
+/*
  * save Recovered Pulser Count FRAM
  */
 uint8_t save_recoveredPulserCount_fram(pump_sid side)
@@ -2373,6 +3173,97 @@ uint8_t save_recoveredPulserCount_fram_check(pump_sid side)
 		}
 	}
 }
+
+////==============================================
+///*
+// * save Recovered Pulser Count FRAM
+// */
+//uint8_t save_recoveredPulserCount_fram(pump_sid side)
+//{
+//	uint8_t sz = sizeof(recovered_pulserCount[0]);
+//	uint8_t buffer[sz + sizeof(uint16_t)];
+//	uint16_t crc;
+//
+//	uint8_t try = 0;
+//
+//	if (side == side_a)
+//	{
+//		recovered_pulserCount[0].recovered_count = __HAL_TIM_GET_COUNTER(&htim5);
+//		recovered_pulserCount[0].recovered_countFlag = RECOVERED;
+//
+//		memcpy(buffer, &recovered_pulserCount[0], sz);
+//		crc = crc_16(buffer, sz);
+//
+//		memcpy( (buffer + sz), &crc, sizeof(uint16_t));
+//
+//		FRAM_Write(recov1_loc_fram, &buffer, sizeof(buffer));
+//
+//		while(try++ <= 5)   //If it fails, retry 5X
+//	    {
+//			save_recoveredPulserCount_fram_check(side_a);
+//
+//			float totaliser_vol1c_ = recovered_pulserCount[0].recovered_count - recovered_count1_check;
+//
+//			if(fabs(totaliser_vol1c_) >= 0.2)
+//			{
+//				recovered_pulserCount[0].recovered_count = __HAL_TIM_GET_COUNTER(&htim5);
+//				recovered_pulserCount[0].recovered_countFlag = RECOVERED;
+//
+//				memcpy(buffer, &recovered_pulserCount[0], sz);
+//				crc = crc_16(buffer, sz);
+//
+//				memcpy( (buffer + sz), &crc, sizeof(uint16_t));
+//
+//				FRAM_Write(recov1_loc_fram, &buffer, sizeof(buffer));
+//			}
+//			else
+//			{
+//				return OK;
+//			}
+//		}
+//
+//		return FAIL;
+//	}
+//
+//	else if (side == side_b)
+//	{
+//		recovered_pulserCount[1].recovered_count = __HAL_TIM_GET_COUNTER(&htim2);
+//		recovered_pulserCount[1].recovered_countFlag = RECOVERED;
+//
+//		memcpy(buffer, &recovered_pulserCount[1], sz);
+//		crc = crc_16(buffer, sz);
+//
+//		memcpy( (buffer + sz), &crc, sizeof(uint16_t));
+//
+//		FRAM_Write(recov2_loc_fram, &buffer, sizeof(buffer));
+//
+//		while(try++ <= 5)   //If it fails, retry 5X
+//	    {
+//			save_recoveredPulserCount_fram_check(side_b);
+//
+//			float totaliser_vol2c_ = recovered_pulserCount[1].recovered_count - recovered_count2_check;
+//
+//			if(fabs(totaliser_vol2c_) >= 0.2)
+//			{
+//				recovered_pulserCount[1].recovered_count = __HAL_TIM_GET_COUNTER(&htim2);
+//				recovered_pulserCount[1].recovered_countFlag = RECOVERED;
+//
+//				memcpy(buffer, &recovered_pulserCount[1], sz);
+//				crc = crc_16(buffer, sz);
+//
+//				memcpy( (buffer + sz), &crc, sizeof(uint16_t));
+//
+//				FRAM_Write(recov2_loc_fram, &buffer, sizeof(buffer));
+//			}
+//			else
+//			{
+//				return OK;
+//			}
+//		}
+//
+//		return FAIL;
+//	}
+//}
 
 
 //==============================================

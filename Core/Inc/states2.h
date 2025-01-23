@@ -42,7 +42,8 @@ typedef enum
 	_pnpState_Handler2,
 	_fillingcompleteState_Handler2,
 	_resetState_Handler2,
-	_filledmamo_State_Handler2
+	_filledmamo_State_Handler2,
+	_tone_entry_State_Handler2
 }eSystemStateHandler2;
 
 //Different type events
@@ -130,6 +131,7 @@ eSystemState switchedoffState_Handler2(void);
 
 ///////////////////////////////////////////////////////////
 
+eSystemState tone_entry_State_Handler2(void);
 
 
 //eSystemState read_flash_state_Handler(void);  //moved to log.h
@@ -249,6 +251,8 @@ extern float lastVolumeSale2,
 			 lastAmountSale2,
 			 lastAmountSale2c;
 
+extern uint8_t totalizer_saveStatus2;
+
 extern uint8_t ctTimed_day2;
 
 extern ctTimed_settings ctTimed_settingsB;
@@ -283,6 +287,11 @@ void states2(void);
 void reset_timer2(int tm);
 void stop_timer2(void);
 void start_timer2(int tm);
+
+void resetTimer_tone2(int tm);
+void startTimer_tone2(int tm);
+void decTimer_tone2(void);
+void stopTimer_tone2(void);
 
 uint32_t price2pulser2(float price);
 uint32_t amt2pulser2(float amt);

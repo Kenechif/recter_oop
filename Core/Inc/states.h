@@ -65,6 +65,7 @@ typedef enum
 //    fillingcomplete_State,
 //	reset_State,
 	filledmamo_State,
+	tone_entry_State,
 	last_State,
 } eSystemState;
 
@@ -108,7 +109,8 @@ typedef enum
 	_pnpState_Handler,
 	_fillingcompletestate_Handler,
 	_resetState_Handler,
-	_filledmamo_State_Handler
+	_filledmamo_State_Handler,
+	_tone_entry_State_Handler
 }eSystemStateHandler;
 
 
@@ -169,6 +171,7 @@ typedef enum
 	_auth_resumecommand_Event,
 	_filling_resumecommand_Event,
 	_mamo_Event,
+	_tone_Event,
     _no_Event
 } eSystemEvent;
 
@@ -298,6 +301,8 @@ extern float lastVolumeSale1,
 			 lastAmountSale1,
 			 lastAmountSale1c;
 
+extern float previous_totaliserVol1c;
+
 extern uint8_t ctTimed_day1;
 
 extern uint8_t overflow_count1;
@@ -343,6 +348,8 @@ extern float mechTotalizer1,
 	  	  	 mechTotalizer2,
 			 mechTotalizer2_;
 
+extern uint8_t totalizer_saveStatus1;
+
 // state Handlers definition...
 eSystemState progState_Handler(void);
 eSystemState idleState_Handler(void);
@@ -372,6 +379,12 @@ eSystemState switchedoffState_Handler(void);
 
 ///////////////////////////////////////////////////////////
 
+
+/*********************************************************
+ |
+ |
+ ********************************************************/
+eSystemState tone_entry_State_Handler(void);
 
 
 
@@ -414,6 +427,8 @@ eSystemState filling_resumecommand_Handler(void);
 eSystemState mamo_Handler(void);
 ///////////////////////////////////////////////////////////
 
+eSystemState tone_Handler(void);
+
 
 void state_ini(void);
 //void states(void);
@@ -421,6 +436,11 @@ void states_1(void);
 void reset_timer(int tm);
 void stop_timer(void);
 void start_timer(int tm);
+
+void resetTimer_tone1(int tm);
+void startTimer_tone1(int tm);
+void decTimer_tone1(void);
+void stopTimer_tone1(void);
 
 uint32_t price2pulser(float price);
 uint32_t amt2pulser(float amt);

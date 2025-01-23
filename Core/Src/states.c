@@ -142,6 +142,10 @@ extern uint8_t pwr1 = NOPOWERINTERRUPTION;
 extern float price_upper1 = 0.000,
 			 amt_middle1;
 
+extern float previousValue_tv1,
+      	  	 currentValue_tv1;
+
+
 float display_minimumPulser = 0.00;
 
 extern uint8_t ep1a_priceChangeFlag1 = 0;
@@ -180,6 +184,11 @@ static int time_e ;
 static int st = 0;
 int timer_flag = 0;
 int timer_flag_old = 0;
+
+static int time_tone1;
+static uint8_t st_tone1 = 0;
+uint8_t timerFlag_tone1 = 0;
+uint8_t timerFlagOld_tone1 = 0;
 
 int tot_buttonpress_tmr = 0;
 int log_buttonpress_tmr = 0;
@@ -674,6 +683,7 @@ void write_v(int i, char lcd_[9])
 		}
 	}
 }
+
 //--------------------------------------------
 void reset_timer(int tm)
 {
@@ -688,6 +698,7 @@ void start_timer(int tm)
 	time_e = tm;
 	st = 1;
 }
+
 //=======================================
 void dec_timer(void)
 {
@@ -711,6 +722,57 @@ void stop_timer(void)
 	time_e = 0;
 	st = 0;
 }
+//=======================================
+
+//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+//--------------------------------------------
+void resetTimer_tone1(int tm)
+{
+	time_tone1 = tm;
+    timerFlag_tone1 = 0;
+    timerFlagOld_tone1 = 1;
+    st_tone1 = 0;
+}
+
+void startTimer_tone1(int tm)
+{
+	time_tone1 = tm;
+	timerFlag_tone1 = 1;
+	timerFlagOld_tone1 = 1;
+	st_tone1 = 1;
+}
+
+//=======================================
+void decTimer_tone1(void)
+{
+  if(st_tone1 == 1)
+	{
+	   if (time_tone1 > 0)
+		  time_tone1--;
+
+	   if(time_tone1 == 0)
+	   {
+		   timerFlag_tone1 = 0;
+		   timerFlagOld_tone1 = 1;
+		   st_tone1 = 0;
+	   }
+//	   else
+//	   {
+//		   timerFlag_tone1 = 0;
+//	   }
+	}
+}
+//=======================================
+void stopTimer_tone1(void)
+{
+	timerFlagOld_tone1 = 1;
+	time_tone1 = 0;
+	st_tone1 = 0;
+}
+//4444444444444444444444444444444444444444444444444444444
+
+//YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+
 //=======================================
 int8_t read_keypad(void);
 //int long_press_log();
@@ -813,6 +875,7 @@ sEventMachine asEventMachine_1 [] =
 	{_auth_resumecommand_Event, auth_resumecommand_Handler},
 	{_filling_resumecommand_Event, filling_resumecommand_Handler},
 	{_mamo_Event, mamo_Handler},
+	{_tone_Event, tone_Handler},
 	{_no_Event, 0},
 };
 
@@ -823,26 +886,27 @@ sEventMachine asEventMachine_1 [] =
 // { <state>,<handler>,{<allowed event1>,<allowed event2>,..,<allowed eventn>}}
 sStateEventMachine asStateEventMachine_1 [] =
 {
-	{prog_State, progState_Handler,{_keydown_Event,_keypress_Event}},
-	{idle_State, idleState_Handler, {_operator_Event,_keyup_Event,_tot_error_Event, _keypress_Event,_nozzleup_Event, _auth_command_Event, _nozzledown_Event, _resetcommand_Event, _switchoffcommand_Event}},
-	{inactive_State, inactiveState_Handler,{_error_clear_Event, _keyup_Event, _keypress_Event}},
-	{nozzleup_waitingforauth_State, nozzleup_waitingforauthState_Handler, {_authorise_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _authorisecommand_Event, _stopcommand_Event, _switchoffcommand_Event, _hardwarereset_Event, _hardwareerror_Event}},
-	{authorised_nozzledown_State, authorised_nozzledown_State_Handler,{_nozzleup_Event,_timeout_Event,_nozzledown_Event,_keypress_Event}},
-	{authorised_nozzleup_State, authorised_nozzleup_State_Handler, {_filling_pulse_Event,_pause_Event,_timeout_Event,_nozzledown_Event,_keypress_Event,_function_key_Event, _stopcommand_Event, _auth_suspendcommand_Event, _hardwarereset_Event, _hardwareerror_Event}},
-	{authorisation_paused_State, authorisation_paused_State_Handler, {_resume_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _auth_resumecommand_Event,  _stopcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _switchoffcommand_Event}},
+	{prog_State, progState_Handler,{_keydown_Event,_keypress_Event, _tone_Event}},
+	{idle_State, idleState_Handler, {_operator_Event,_keyup_Event,_tot_error_Event, _keypress_Event,_nozzleup_Event, _auth_command_Event, _nozzledown_Event, _resetcommand_Event, _switchoffcommand_Event, _tone_Event}},
+	{inactive_State, inactiveState_Handler,{_error_clear_Event, _keyup_Event, _keypress_Event, _tone_Event}},
+	{nozzleup_waitingforauth_State, nozzleup_waitingforauthState_Handler, {_authorise_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _authorisecommand_Event, _stopcommand_Event, _switchoffcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _tone_Event}},
+	{authorised_nozzledown_State, authorised_nozzledown_State_Handler,{_nozzleup_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _tone_Event}},
+	{authorised_nozzleup_State, authorised_nozzleup_State_Handler, {_filling_pulse_Event,_pause_Event,_timeout_Event,_nozzledown_Event,_keypress_Event,_function_key_Event, _stopcommand_Event, _auth_suspendcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _tone_Event}},
+	{authorisation_paused_State, authorisation_paused_State_Handler, {_resume_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _auth_resumecommand_Event,  _stopcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _switchoffcommand_Event, _tone_Event}},
 	{authorisation_resumed_State, authorisation_resumed_State_Handler, {}},
-	{filling_State, filling_State_Handler, {_filling_paused_Event, _keypress_Event, _timeout_Event,_nozzledown_Event, _stopcommand_Event, _filling_suspendcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _mamo_Event, _switchoffcommand_Event}},
-	{filling_paused_State, filling_paused_State_Handler, {_filling_resumed_Event, _keypress_Event, _timeout_Event,_nozzledown_Event, _filling_resumecommand_Event, _stopcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _switchoffcommand_Event}},
+	{filling_State, filling_State_Handler, {_filling_paused_Event, _keypress_Event, _timeout_Event,_nozzledown_Event, _stopcommand_Event, _filling_suspendcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _mamo_Event, _switchoffcommand_Event, _tone_Event}},
+	{filling_paused_State, filling_paused_State_Handler, {_filling_resumed_Event, _keypress_Event, _timeout_Event,_nozzledown_Event, _filling_resumecommand_Event, _stopcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _switchoffcommand_Event, _tone_Event}},
 	{filling_resumed_State, filling_resumed_State_Handler, {}},
 	{keypad_entry_State, keypad_entry_State_Handler, {}},
-	{operator_State, operator_State_Handler, {_keypress_Event}},
-	{savesettings_State, savesettings_State_Handler, {_keypress_Event}},
+	{operator_State, operator_State_Handler, {_keypress_Event, _tone_Event}},
+	{savesettings_State, savesettings_State_Handler, {_keypress_Event, _tone_Event}},
 	{read_flash_State, read_flash_State_Handler, {}},
 	{write_flash_State, write_flash_State_Handler, {}},
-	{switchedoff_State, switchedoffState_Handler, {_stopcommand_Event, _resetcommand_Event}},
-    {pnp_State, pnpState_Handler, {_keyup_Event, _fillingcomplete_Event}},
-	{filledmamo_State, filledmamo_State_Handler, {_keypress_Event, _nozzledown_Event, _resetcommand_Event, _stopcommand_Event, _switchoffcommand_Event}},
-    {last_State, 0, {}}
+	{switchedoff_State, switchedoffState_Handler, {_stopcommand_Event, _resetcommand_Event, _tone_Event}},
+    {pnp_State, pnpState_Handler, {_keyup_Event, _fillingcomplete_Event, _tone_Event}},
+	{filledmamo_State, filledmamo_State_Handler, {_keypress_Event, _nozzledown_Event, _resetcommand_Event, _stopcommand_Event, _switchoffcommand_Event, _tone_Event}},
+	{tone_entry_State, tone_entry_State_Handler, {}},
+	{last_State, 0, {}}
 };
 
 
@@ -1268,6 +1332,13 @@ eSystemState nozzledown_Handler(void)
 		  save_lastSale_fram(side_a);
 		  save_lastSale_eeprom(side_a);
 
+		  ////////////////////////////////////////////////
+		  //---------------------------------------------
+		  totalizer_saveStatus1 = SAVED_TO_MAIN_TOTALIZER;
+		  save_totaliserFrequent_fram(side_a);
+		  save_totaliserFrequent_eeprom(side_a);
+		  ////////////////////////////////////////////////
+
 		  nozzle_bit = 0;
 	 }
 /*
@@ -1471,7 +1542,13 @@ eSystemState nozzledown_Handler(void)
 	  	  mech_totalizer_old1 = mech_totalizer1;
 	  	//-----------------------------------------------------//
 
+	  	if (totaliser_vol1c - previous_totaliserVol1c >= THRESHOLD_TV)
+		{
+			previous_totaliserVol1c = totaliser_vol1c;
 
+			save_totaliserFrequent_fram(side_a);
+			save_totaliserFrequent_eeprom(side_a);
+		}
 	 //============================================================
 
 		if(settings_stream1[0].mode == AUTO_MODE)
@@ -1625,6 +1702,20 @@ eSystemState timeout_Handler(void)
 	 return inactive_State;
    // return idle_State;
 }
+
+//-----------------------------------
+eSystemState tone_Handler(void)
+{
+//	resetTimer_tone1(TONE_DURATION);
+	startTimer_tone1(TONE_DURATION);
+
+	HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+
+	ePrevState = eNextState1;
+
+	return tone_entry_State;
+}
+
 
 //----------------------------------------
 eSystemState tot_error_Handler(void)
@@ -5395,6 +5486,13 @@ eSystemState progState_Handler(void)
 					  save_lastSale_fram(operating_side);
 					  save_lastSale_eeprom(operating_side);
 
+					  ////////////////////////////////////////////////
+					  //---------------------------------------------
+					  totalizer_saveStatus1 = SAVED_TO_MAIN_TOTALIZER;
+					  save_totaliserFrequent_fram(operating_side);
+					  save_totaliserFrequent_eeprom(operating_side);
+					  ////////////////////////////////////////////////
+
 //					  pwr1 = POWERINTERRUPTION;
 //					  save_calibrationData(side_a);
 				  }
@@ -5442,6 +5540,14 @@ eSystemState progState_Handler(void)
 
 					  save_lastSale_fram(operating_side);
 					  save_lastSale_eeprom(operating_side);
+
+					  ////////////////////////////////////////////////
+					  //---------------------------------------------
+					  totalizer_saveStatus1 = SAVED_TO_MAIN_TOTALIZER;
+					  save_totaliserFrequent_fram(operating_side);
+					  save_totaliserFrequent_eeprom(operating_side);
+					  ////////////////////////////////////////////////
+
 				  }
 
 				  return write_flash_State;
@@ -5501,6 +5607,14 @@ eSystemState progState_Handler(void)
 						  save_lastSale_fram(operating_side);
 						  save_lastSale_eeprom(operating_side);
 
+						  ////////////////////////////////////////////////
+						  //---------------------------------------------
+						  totalizer_saveStatus1 = SAVED_TO_MAIN_TOTALIZER;
+						  save_totaliserFrequent_fram(operating_side);
+						  save_totaliserFrequent_eeprom(operating_side);
+						  ////////////////////////////////////////////////
+
+
 					}
 					else if(calibration_flag1 == UNCALIBRATED)
 					{
@@ -5540,6 +5654,14 @@ eSystemState progState_Handler(void)
 
 						  save_lastSale_fram(operating_side);
 						  save_lastSale_eeprom(operating_side);
+
+						  ////////////////////////////////////////////////
+						  //---------------------------------------------
+						  totalizer_saveStatus1 = SAVED_TO_MAIN_TOTALIZER;
+						  save_totaliserFrequent_fram(operating_side);
+						  save_totaliserFrequent_eeprom(operating_side);
+						  ////////////////////////////////////////////////
+
 					}
 
 					return write_flash_State;
@@ -5616,6 +5738,14 @@ eSystemState progState_Handler(void)
 
 				  save_lastSale_fram(operating_side);
 				  save_lastSale_eeprom(operating_side);
+
+				  ////////////////////////////////////////////////
+				  //---------------------------------------------
+				  totalizer_saveStatus1 = SAVED_TO_MAIN_TOTALIZER;
+				  save_totaliserFrequent_fram(operating_side);
+				  save_totaliserFrequent_eeprom(operating_side);
+				  ////////////////////////////////////////////////
+
 
 
   //				  calib_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);  //use hardware counter
@@ -9308,10 +9438,24 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 		r_volTotaliser1 = floor(scale_to_original1(working_volTotaliser1c));
 
+		currentValue_tv1 = amt_middle1;
+//		previousValue_tv1 = currentValue_tv1;
+		previous_totaliserVol1c = totaliser_vol1c;
+
 		mechTotalizer1 = (mechTotalizer1_ + amt_middle1);
 
 		mech_totalizer1 = (int) mechTotalizer1;
 		mech_totalizer_old1 = mech_totalizer1;
+
+
+
+//		if (totaliser_vol1c - previous_totaliserVol1c >= THRESHOLD_TV)
+//		{
+//			previous_totaliserVol1c = totaliser_vol1c;
+//
+//			save_totaliserFrequent_fram(side_a);
+//			save_totaliserFrequent_eeprom(side_a);
+//		}
 
 //		running_volTotaliser1c_tmin3 = totaliser_vol1c;
 
@@ -9436,6 +9580,14 @@ eSystemState filling_State_Handler(void)
 		  save_lastSale_fram(side_a);
 		  save_lastSale_eeprom(operating_side);
 
+		  ////////////////////////////////////////////////
+		  //---------------------------------------------
+		  totalizer_saveStatus1 = SAVED_TO_MAIN_TOTALIZER;
+		  save_totaliserFrequent_fram(operating_side);
+		  save_totaliserFrequent_eeprom(operating_side);
+		  ////////////////////////////////////////////////
+
+
 		  if(settings_stream1[0].mode == AUTO_MODE)
 		  {
 			 //////////////////////////////////////////////////////////////
@@ -9486,6 +9638,14 @@ eSystemState filling_State_Handler(void)
 			  save_totaliser_eeprom(operating_side);
 			  save_lastSale_fram(operating_side);
 			  save_lastSale_eeprom(operating_side);
+
+			  ////////////////////////////////////////////////
+			  //---------------------------------------------
+			  totalizer_saveStatus1 = SAVED_TO_MAIN_TOTALIZER;
+			  save_totaliserFrequent_fram(operating_side);
+			  save_totaliserFrequent_eeprom(operating_side);
+			  ////////////////////////////////////////////////
+
 
 			  if(settings_stream1[0].mode == AUTO_MODE)
 			  {
@@ -9542,6 +9702,14 @@ eSystemState filling_State_Handler(void)
 			save_lastSale_fram(side_a);
 			save_lastSale_eeprom(operating_side);
 
+		  ////////////////////////////////////////////////
+		  //---------------------------------------------
+		  totalizer_saveStatus1 = SAVED_TO_MAIN_TOTALIZER;
+		  save_totaliserFrequent_fram(operating_side);
+		  save_totaliserFrequent_eeprom(operating_side);
+		  ////////////////////////////////////////////////
+
+
 			return write_flash_State;
 		}
 	}
@@ -9587,6 +9755,14 @@ eSystemState filling_State_Handler(void)
 
         save_lastSale_fram(side_a);
         save_lastSale_eeprom(operating_side);
+
+          ////////////////////////////////////////////////
+		  //---------------------------------------------
+		  totalizer_saveStatus1 = SAVED_TO_MAIN_TOTALIZER;
+		  save_totaliserFrequent_fram(operating_side);
+		  save_totaliserFrequent_eeprom(operating_side);
+		  ////////////////////////////////////////////////
+
 
         //--------------------------------------------------------
 //        	dpFlag = 0;
@@ -9677,6 +9853,14 @@ eSystemState filling_State_Handler(void)
 		save_lastSale_fram(side_a);
 		save_lastSale_eeprom(operating_side);
 
+		  ////////////////////////////////////////////////
+		  //---------------------------------------------
+		  totalizer_saveStatus1 = SAVED_TO_MAIN_TOTALIZER;
+		  save_totaliserFrequent_fram(operating_side);
+		  save_totaliserFrequent_eeprom(operating_side);
+		  ////////////////////////////////////////////////
+
+
 		_litre_price1 = 1;
 
 		  if(settings_stream1[0].mode == AUTO_MODE)
@@ -9728,6 +9912,14 @@ eSystemState filling_State_Handler(void)
 
 		save_lastSale_fram(side_a);
 		save_lastSale_eeprom(operating_side);
+
+	  ////////////////////////////////////////////////
+	  //---------------------------------------------
+	  totalizer_saveStatus1 = SAVED_TO_MAIN_TOTALIZER;
+	  save_totaliserFrequent_fram(operating_side);
+	  save_totaliserFrequent_eeprom(operating_side);
+	  ////////////////////////////////////////////////
+
 
 		_pump_max_litres1 = 1;
 
@@ -10035,6 +10227,14 @@ eSystemState filling_State_Handler(void)
 				save_lastSale_fram(side_a);
 				save_lastSale_eeprom(operating_side);
 
+				  ////////////////////////////////////////////////
+				  //---------------------------------------------
+				  totalizer_saveStatus1 = SAVED_TO_MAIN_TOTALIZER;
+				  save_totaliserFrequent_fram(operating_side);
+				  save_totaliserFrequent_eeprom(operating_side);
+				  ////////////////////////////////////////////////
+
+
 //				pump_status_1 = STATUS_MAMO_REACHED;
 
 //				target_pulser1 = 0;
@@ -10131,6 +10331,14 @@ eSystemState filling_State_Handler(void)
 
 				save_lastSale_fram(side_a);
 				save_lastSale_eeprom(operating_side);
+
+				  ////////////////////////////////////////////////
+				  //---------------------------------------------
+				  totalizer_saveStatus1 = SAVED_TO_MAIN_TOTALIZER;
+				  save_totaliserFrequent_fram(operating_side);
+				  save_totaliserFrequent_eeprom(operating_side);
+				  ////////////////////////////////////////////////
+
 
 				keypad_zerorize();
 
@@ -10442,6 +10650,11 @@ eSystemState keypad_entry_State_Handler(void)
 	//return keypad_entry_State;
 }
 
+eSystemState tone_entry_State_Handler(void)
+{
+    return  ePrevState;
+}
+
 //----------------------------------------
 
 
@@ -10648,6 +10861,13 @@ void do_calcs ()
 			  	//-----------------------------------------------------//
 
 
+			  	if (totaliser_vol1c - previous_totaliserVol1c >= THRESHOLD_TV)
+				{
+					previous_totaliserVol1c = totaliser_vol1c;
+
+					save_totaliserFrequent_fram(side_a);
+					save_totaliserFrequent_eeprom(side_a);
+				}
 			//-------------------------------------------------------------------
 
 			   return;
@@ -11218,7 +11438,7 @@ void states_1(void)
 	}
 
 	eSystemEvent ev;
-	  if( (eNewEvent1 < _no_Event)  )  //if event occured, check if the current state is sensitive to it..
+	  if( (eNewEvent1 < _no_Event)  )  //if event occurred, check if the current state is sensitive to it..
 	  {
 		  eLastState1 = eNextState1;   // store state...
            if(eNewEvent1   == _auth_command_Event) //_nozzleup_Event) //_filling_pulse_Event  _nozzleup_Event)
@@ -11226,8 +11446,7 @@ void states_1(void)
            	  uint8_t yiuyu = 0;
             }
           //...   scan through the allowed  events of the state if its among them..
-//	    for (uint8_t i = 0; i < max_events_per_state; i++)
-	    for (uint8_t i = 0; i < 12; i++)
+	    for (uint8_t i = 0; i < MAX_EVENTS_PER_STATE; i++)
 		 {
 		   ev = (asStateEventMachine_1[eNextState1].states[i]);  //
 		   if (ev == 0)

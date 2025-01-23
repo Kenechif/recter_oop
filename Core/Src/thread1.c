@@ -370,10 +370,10 @@ int retn;
 
  extern int auth;      //first set this to
  extern int side;      //pump side selected.
- extern int level ;
-extern int _index , _index2;
+ extern int level;
+extern int _index, _index2;
 
-extern char sc1[10] , sc12[10];
+extern char sc1[10], sc12[10];
 
 //extern float totaliser_vol1;
 //extern float totaliser_vol1c;
@@ -419,6 +419,11 @@ uint8_t tot_longpress_flag2,
 		log_longpress_flag2,
 		key_longpress_flag2 = 0,
 		progExit_longpress_flag2 = 0;
+
+extern uint8_t timerFlag_tone1,
+ 	 	 	   timerFlagOld_tone1,
+			   timerFlag_tone2,
+ 	 	 	   timerFlagOld_tone2;
 
 extern operatorfxn_  operatorfxn,
 					 operatorfxn2;
@@ -2402,18 +2407,90 @@ skip_test:
 //    clear_incidentNextLoc_fram(side_a);
 //    clear_incidentNextLoc_fram(side_b);
 
+//    clear_totaliserFrequent_fram(side_a);
+//    clear_totaliserFrequent_eeprom(side_a);
+//    clear_totaliserFrequent_fram(side_b);
+//    clear_totaliserFrequent_eeprom(side_b);
+
+    while(retrieve_lastSale_fram(side_a) != OK)   //If it fails, retry 5X
+       {
+   		static uint8_t try = 0;
+   		if(try++ >= 5)
+   		{
+   			retrieve_lastSale_eeprom(side_a);
+   			try = 0;
+   			break;
+   		}
+       }
+       while(retrieve_lastSale_fram(side_b) != OK)   //If it fails, retry 5X
+       {
+       	static uint8_t try = 0;
+       	if(try++ >= 5)
+       	{
+       		retrieve_lastSale_eeprom(side_b);
+       		try = 0;
+       		break;
+       	}
+       }
+
+
+    while(retrieve_totaliserFrequent_fram(side_a) != OK)   //If it fails, retry 5X
+    {
+    	static uint8_t try = 0;
+    	if(try++ >= 5)
+    	{
+    		while(retrieve_totaliserFrequent_eeprom(side_a) != OK)
+			{
+				if(try++ >= 10)
+				{
+					clear_totaliserFrequent_fram(side_a);
+					clear_totaliserFrequent_eeprom(side_a);
+					try = 0;
+					break;
+				}
+
+			}
+    		try = 0;
+    		break;
+    	}
+    }
+
+    while(retrieve_totaliserFrequent_fram(side_b) != OK)   //If it fails, retry 5X
+    {
+		static uint8_t try = 0;
+		if(try++ >= 5)
+		{
+			while(retrieve_totaliserFrequent_eeprom(side_b) != OK)
+			{
+				if(try++ >= 10)
+				{
+					clear_totaliserFrequent_fram(side_b);
+					clear_totaliserFrequent_eeprom(side_b);
+					try = 0;
+					break;
+				}
+
+			}
+			try = 0;
+			break;
+		}
+    }
+
+//    retrieve_amountTotaliser_fram(side_a);
+//    retrieve_amountTotaliser_fram(side_b);
+
 
     while(retrieve_totaliser_fram(side_a) != OK)   //If it fails, retry 5X
     {
     	static uint8_t try = 0;
     	if(try++ >= 5)
     	{
-    		while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+    		while(retrieve_totaliser_eeprom(side_a) != OK)
 			{
 				if(try++ >= 10)
 				{
-					clear_totaliser_fram(operating_side);
-					clear_totaliser_eeprom(operating_side);
+					clear_totaliser_fram(side_a);
+					clear_totaliser_eeprom(side_a);
 					try = 0;
 					break;
 				}
@@ -2429,12 +2506,12 @@ skip_test:
 		static uint8_t try = 0;
 		if(try++ >= 5)
 		{
-			while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+			while(retrieve_totaliser_eeprom(side_b) != OK)
 			{
 				if(try++ >= 10)
 				{
-					clear_totaliser_fram(operating_side);
-					clear_totaliser_eeprom(operating_side);
+					clear_totaliser_fram(side_b);
+					clear_totaliser_eeprom(side_b);
 					try = 0;
 					break;
 				}
@@ -2445,29 +2522,6 @@ skip_test:
 		}
     }
 
-//    retrieve_amountTotaliser_fram(side_a);
-//    retrieve_amountTotaliser_fram(side_b);
-
-    while(retrieve_lastSale_fram(side_a) != OK)   //If it fails, retry 5X
-    {
-		static uint8_t try = 0;
-		if(try++ >= 5)
-		{
-			retrieve_lastSale_eeprom(side_a);
-			try = 0;
-			break;
-		}
-    }
-    while(retrieve_lastSale_fram(side_b) != OK)   //If it fails, retry 5X
-    {
-    	static uint8_t try = 0;
-    	if(try++ >= 5)
-    	{
-    		retrieve_lastSale_eeprom(side_b);
-    		try = 0;
-    		break;
-    	}
-    }
 
 //    retrieve_totaliser_fram(side_a);
 //    totaliser_vol1c = 0;
@@ -3411,6 +3465,23 @@ int  read_event2()
 
    			  keypress_2 = keynew2;  //key flag is also set...
 
+   			//////////////////////////////////////////////////////////
+			//                 tone event capture...
+			//////////////////////////////////////////////////////////
+
+			if( (timerFlagOld_tone2 == 0) && (timerFlag_tone2 == 1) )
+			{
+				return _tone_Event;
+			}
+			else if( (timerFlagOld_tone2 == 1) && (timerFlag_tone2 == 0) )
+			{
+				HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+			}
+
+			timerFlagOld_tone2 = timerFlag_tone2;
+
+			//////////////////////////////////////////////////////////
+
 #ifndef DEV_MODE
    			//--------------------------------------------------
 			  //  totaliser error.
@@ -3782,7 +3853,7 @@ int  read_event2()
 
 	  //--------------------------------------------------
 			  // timeout   event capture...
-		if( (timer_flag_old2 == 0)&&(timer_flag2 == 1) )
+		if( (timer_flag_old2 == 0) && (timer_flag2 == 1) )
 		{
 				  timer_flag_old2 = 1;
 
@@ -4185,6 +4256,25 @@ uint8_t read_event1_1(void)
 	#endif //#ifdef AUTO_SALE_TEST
 
 	  keypress_ = keynew;  //key flag is also set...
+
+	//--------------------------------------------------
+
+	//////////////////////////////////////////////////////////
+	//                 tone event capture...
+	//////////////////////////////////////////////////////////
+
+	if( (timerFlagOld_tone1 == 0) && (timerFlag_tone1 == 1) )
+	{
+		return _tone_Event;
+	}
+	else if( (timerFlagOld_tone1 == 1) && (timerFlag_tone1 == 0) )
+	{
+		HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+	}
+
+	timerFlagOld_tone1 = timerFlag_tone1;
+
+	//////////////////////////////////////////////////////////
 
 #ifndef DEV_MODE
    			 //--------------------------------------------------
@@ -4608,11 +4698,16 @@ bool nozzleSwitch_read1(void)
     		if(switchState == true)
 			{
     			nozzle_flag = 1;
+
+    			if(eLastState1 != pnp_State)
+    				timerFlag_tone1 = 1;
 //    			HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 			}
 			else
 			{
 				nozzle_flag = 0;
+				if(eLastState1 != pnp_State)
+					timerFlag_tone1 = 1;
 //				HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 			}
     	}
@@ -4647,12 +4742,16 @@ bool nozzleSwitch_read2(void)
     		if(switchState == true)
 			{
     			nozzle_flag2 = 1;
-//    			HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+
+    			if(eLastState2 != pnp_State)
+    				timerFlag_tone2 = 1;
 			}
 			else
 			{
 				nozzle_flag2 = 0;
-//				HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+
+				if(eLastState2 != pnp_State)
+    				timerFlag_tone2 = 1;
 			}
     	}
     }

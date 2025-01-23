@@ -130,6 +130,17 @@ extern float r_amtTotaliser,
 extern float amt_middle1,
 			 amt_middle2;
 
+extern float previousValue_tv1,
+      	  	 currentValue_tv1;
+
+extern float previousValue_tv2,
+      	  	 currentValue_tv2;
+
+extern float previous_totaliserVol1c,
+			 previous_totaliserVol2c,
+			 totaliser_vol1c,
+			 totaliser_vol2c;
+
 static int rcv_count = 0;
 
 //uint8_t rx_[25];

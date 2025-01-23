@@ -147,13 +147,15 @@ void toggle_led(void)
 		 // seperate these timer later into another routine
 
 		 dec_timer();   //decrement the events timer.
+		 decTimer_tone1();   //decrement the tone event timer
 	     tot_buttonpress_tmr++;
 	     log_buttonpress_tmr++;
 	     key_buttonpress_tmr++;
 	     progExit_buttonpress_tmr1++;
 
 	     dec_timer2();   //decrement the events timer.
-		 tot_buttonpress_tmr2++;
+	     decTimer_tone2();   //decrement the tone event timer
+	     tot_buttonpress_tmr2++;
 		 log_buttonpress_tmr2++;
 		 key_buttonpress_tmr2++;
 		 progExit_buttonpress_tmr2++;

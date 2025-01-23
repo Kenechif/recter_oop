@@ -422,6 +422,14 @@ void check_flow(void)
 	  	//===================// Update... //===================//
 	  	  mech_totalizer_old1 = mech_totalizer1;
 	  	//-----------------------------------------------------//
+
+	  	if (totaliser_vol1c - previous_totaliserVol1c >= THRESHOLD_TV)
+		{
+			previous_totaliserVol1c = totaliser_vol1c;
+
+			save_totaliserFrequent_fram(side_a);
+			save_totaliserFrequent_eeprom(side_a);
+		}
 	 }
 	 else
 	 {
@@ -580,6 +588,13 @@ void check_flow(void)
 			  	  mech_totalizer_old2 = mech_totalizer2;
 			  	//-----------------------------------------------------//
 
+			  	if (totaliser_vol2c - previous_totaliserVol2c >= THRESHOLD_TV)
+				{
+					previous_totaliserVol2c = totaliser_vol2c;
+
+					save_totaliserFrequent_fram(side_b);
+					save_totaliserFrequent_eeprom(side_b);
+				}
 			 }
 			 else
 			 {
