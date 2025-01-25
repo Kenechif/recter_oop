@@ -1542,13 +1542,13 @@ eSystemState nozzledown_Handler(void)
 	  	  mech_totalizer_old1 = mech_totalizer1;
 	  	//-----------------------------------------------------//
 
-	  	if (totaliser_vol1c - previous_totaliserVol1c >= THRESHOLD_TV)
-		{
-			previous_totaliserVol1c = totaliser_vol1c;
-
-			save_totaliserFrequent_fram(side_a);
-			save_totaliserFrequent_eeprom(side_a);
-		}
+//	  	if (totaliser_vol1c - previous_totaliserVol1c >= THRESHOLD_TV)
+//		{
+//			previous_totaliserVol1c = totaliser_vol1c;
+//
+//			save_totaliserFrequent_fram(side_a);
+//			save_totaliserFrequent_eeprom(side_a);
+//		}
 	 //============================================================
 
 		if(settings_stream1[0].mode == AUTO_MODE)
@@ -9508,7 +9508,7 @@ eSystemState filling_State_Handler(void)
 
 //	#if !defined (DEV_MODE)
 	#if sense_battery == 1
-	  	if(batteryStatus == NOBATTERY)
+	  	if(batteryStatus == NO_BATTERY)
 		{
 			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 			  HAL_Delay(200);
@@ -9518,10 +9518,19 @@ eSystemState filling_State_Handler(void)
 			  get_time();
 			  do_calcs();
 			  update_info();
-			  save_volumeTotaliser(operating_side);
-			  save_amountTotaliser(operating_side);
-//			  save_lastSale(operating_side);
+
+			  save_totaliser_fram(operating_side);
+			  save_totaliser_eeprom(operating_side);
+
 			  save_lastSale_fram(operating_side);
+			  save_lastSale_eeprom(operating_side);
+
+			  ////////////////////////////////////////////////
+			  //---------------------------------------------
+			  totalizer_saveStatus1 = SAVED_TO_MAIN_TOTALIZER;
+			  save_totaliserFrequent_fram(operating_side);
+			  save_totaliserFrequent_eeprom(operating_side);
+			  ////////////////////////////////////////////////
 
 			  if(settings_stream1[0].mode == AUTO_MODE)
 			  {
@@ -10107,17 +10116,17 @@ eSystemState filling_State_Handler(void)
 		running_amtTotaliser1c = working_amtTotaliser1c + price_upper1;
 
 
-	   	float pricecheck = running_amtTotaliser1c - priceOld1;
-
-	    if (pricecheck >= 1000.00)
-	    {
-		   priceOld1 = running_amtTotaliser1c;
-		   save_amountSend(side_a);
-
-		   char str[65];
-		   sprintf(str, "[Side-A]... #%0.2f intermittent worth of sales made now!", pricecheck);
-		   server_write(str);
-	    }
+//	   	float pricecheck = running_amtTotaliser1c - priceOld1;
+//
+//	    if (pricecheck >= 1000.00)
+//	    {
+//		   priceOld1 = running_amtTotaliser1c;
+//		   save_amountSend(side_a);
+//
+//		   char str[65];
+//		   sprintf(str, "[Side-A]... #%0.2f intermittent worth of sales made now!", pricecheck);
+//		   server_write(str);
+//	    }
 ////============================================================
 //         for totaliser toggle.
 	  r_volTotaliser1 	  = floor(scale_to_original1(running_volTotaliser1c) );
@@ -10147,6 +10156,14 @@ eSystemState filling_State_Handler(void)
 //	}
 //	  old_r_volTotaliser1 = r_volTotaliser1;   //update...
 //	  old_r_amtTotaliser = r_amtTotaliser;
+
+	  if (totaliser_vol1c - previous_totaliserVol1c >= THRESHOLD_TV)
+	  {
+			previous_totaliserVol1c = totaliser_vol1c;
+
+			save_totaliserFrequent_fram(side_a);
+			save_totaliserFrequent_eeprom(side_a);
+	  }
 //============================================================
 	  if (t > LCD_UPDATE_RATE)
 	  {
@@ -10861,13 +10878,13 @@ void do_calcs ()
 			  	//-----------------------------------------------------//
 
 
-			  	if (totaliser_vol1c - previous_totaliserVol1c >= THRESHOLD_TV)
-				{
-					previous_totaliserVol1c = totaliser_vol1c;
-
-					save_totaliserFrequent_fram(side_a);
-					save_totaliserFrequent_eeprom(side_a);
-				}
+//			  	if (totaliser_vol1c - previous_totaliserVol1c >= THRESHOLD_TV)
+//				{
+//					previous_totaliserVol1c = totaliser_vol1c;
+//
+//					save_totaliserFrequent_fram(side_a);
+//					save_totaliserFrequent_eeprom(side_a);
+//				}
 			//-------------------------------------------------------------------
 
 			   return;
@@ -11615,6 +11632,7 @@ eSystemState pnpState_Handler(void)
 		   if (shutdown_timer1 > 120)
 		   {
 			   displayandkeypad_power(DEACTIVATE);   //shutdown... after  2 minutes
+			   mcu_power(DEACTIVATE);
 		   }
 	  }
 	  else
@@ -11628,22 +11646,22 @@ eSystemState pnpState_Handler(void)
 	#endif
 
 	#if !defined (DEV_MODE)
-		if(batteryStatus == LOW_BATTERY)
-		{
-			lcd_print_line1("  Louu   ");
-			lcd_print_line2("Battery  ");
-			lcd_print_line3(" Err70 ");
-
-			return inactive_State;
-		}
-		else if(batteryStatus == NO_BATTERY)
-		{
-			lcd_print_line1("Battery ");
-			lcd_print_line2(" Error  ");
-			lcd_print_line3(" Err71 ");
-
-			return inactive_State;
-		}
+//		if(batteryStatus == LOW_BATTERY)
+//		{
+//			lcd_print_line1("  Louu   ");
+//			lcd_print_line2("Battery  ");
+//			lcd_print_line3(" Err70 ");
+//
+////			return inactive_State;
+//		}
+//		else if(batteryStatus == NO_BATTERY)
+//		{
+//			lcd_print_line1("Battery ");
+//			lcd_print_line2(" Error  ");
+//			lcd_print_line3(" Err71 ");
+//
+//			return inactive_State;
+//		}
 
 		if(HAL_GPIO_ReadPin(pulser1_detect_GPIO_Port, pulser1_detect_Pin) == 1 )
 		{

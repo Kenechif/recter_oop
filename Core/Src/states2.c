@@ -10932,6 +10932,7 @@ eSystemState pnpState_Handler2(void)
 		   if (shutdown_timer2 > 120)
 		   {
 			   displayandkeypad_power(DEACTIVATE);   //shutdown... after  2 minutes
+			   mcu_power(DEACTIVATE);
 		   }
 	  }
 	  else
@@ -10945,22 +10946,22 @@ eSystemState pnpState_Handler2(void)
 	#endif
 
 	#if !defined (DEV_MODE)
-		if(batteryStatus == LOW_BATTERY)
-		{
-			lcd_print_line1_2("  Louu   ");
-			lcd_print_line2_2("Battery  ");
-			lcd_print_line3_2(" Err70 ");
-
-			return inactive_State;
-		}
-		else if(batteryStatus == NO_BATTERY)
-		{
-			lcd_print_line1_2("Battery ");
-			lcd_print_line2_2(" Error  ");
-			lcd_print_line3_2(" Err71 ");
-
-			return inactive_State;
-		}
+//		if(batteryStatus == LOW_BATTERY)
+//		{
+//			lcd_print_line1_2("  Louu   ");
+//			lcd_print_line2_2("Battery  ");
+//			lcd_print_line3_2(" Err70 ");
+//
+////			return inactive_State;
+//		}
+//		else if(batteryStatus == NO_BATTERY)
+//		{
+//			lcd_print_line1_2("Battery ");
+//			lcd_print_line2_2(" Error  ");
+//			lcd_print_line3_2(" Err71 ");
+//
+//			return inactive_State;
+//		}
 
 		if(HAL_GPIO_ReadPin(pulser2_detect_GPIO_Port, pulser2_detect_Pin) == 1 )
 		{

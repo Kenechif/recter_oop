@@ -127,7 +127,7 @@ extern "C" {
 #define RECOVERED                   1
 #define NO_RECOVERY                 0
 
-#define TONE_DURATION 				1
+#define TONE_DURATION 				2
 
 #define THRESHOLD_TV 				0.5
 
@@ -1243,6 +1243,8 @@ extern uint16_t pump_SN;
 
 char otp_code1[7],
 	 otp_code2[7];
+
+uint8_t batteryVoltage_ready;
 
 
 

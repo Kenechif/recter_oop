@@ -202,8 +202,8 @@ float price_upper1,
 float previous_totaliserVol1c CCRAM = 0.0,
       currentValue_tv1 CCRAM = 0.0;
 
-uint8_t totalizer_saveStatus1 CCRAM = SAVED_TO_MAIN_TOTALIZER,
-		totalizer_saveStatus2 CCRAM = SAVED_TO_MAIN_TOTALIZER;
+uint8_t totalizer_saveStatus1 CCRAM = UNSAVED_TO_MAIN_TOTALIZER,
+		totalizer_saveStatus2 CCRAM = UNSAVED_TO_MAIN_TOTALIZER;
 
 float previous_totaliserVol2c CCRAM = 0.0,
       currentValue_tv2 CCRAM = 0.0;
@@ -355,7 +355,7 @@ float amt_real1_array[4] CCRAM = {0},
 // const uint16_t totAmount1_loc_fram  =  228;
 // const uint16_t totAmount2_loc_fram =  totAmount1_loc_fram + (2+(2*4));  // 238 -> 247
 
- const uint16_t tot1_loc_fram = 212;   //16 Bytes + 2 Bytes = 18 Bytes
+ const uint16_t tot1_loc_fram = 212;   //16 Bytes + 2 CRC Bytes = 18 Bytes
  const uint16_t tot2_loc_fram = 230;   // 230 -> 247
 
  const uint16_t save_pumpType_loc_fram = 248,
@@ -419,11 +419,11 @@ float amt_real1_array[4] CCRAM = {0},
  const uint16_t nextLoc_A_fram = 730,					  //size => 2 Bytes
  	 	 	 	nextLoc_B_fram = 732;    			  	  //732 --> 733
 
- const uint16_t recov1_loc_fram = 734, 					  //size => 8 Bytes
-		        recov2_loc_fram = 742;					  //742 --> 749
+ const uint16_t recov1_loc_fram = 734, 					  //8 + 2 CRC Bytes = 10 Bytes
+		        recov2_loc_fram = 744;					  //744 --> 753
 
- const uint16_t totFreq1_loc_fram = 750, 				  //size => 28 Bytes
-		 	    totFreq2_loc_fram = 778; 				  //778 --> 805
+ const uint16_t totFreq1_loc_fram = 754, 				  //size => 28 + 2 CRC Bytes = 30 Bytes
+		 	    totFreq2_loc_fram = 784; 				  //784 --> 813
 
 
 
@@ -491,8 +491,8 @@ const int flash_stoB =  1225; //+ ( 1 + (32 * 2));    	 //1225 --> 1232   //1233
  const int16_t lastSale1_loc = 0;
  const int16_t lastSale2_loc = (lastSale1_loc + 2 + (4 * 4) );   // 54 -> 71
 
- const int16_t totFreq1_loc = 72,               // 28 Bytes
- 	 	 	   totFreq2_loc = 100;   			// 100 -> 127
+ const int16_t totFreq1_loc = 72,               // 28 Bytes + 2 CRC Bytes = 30 Bytes
+ 	 	 	   totFreq2_loc = 102;   			// 102 -> 131
 
  //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH//
 
@@ -1247,7 +1247,7 @@ uint8_t save_totaliser_eeprom(pump_sid side)
 
 		EEPROM_Write(totVol_loc, totVol1_loc, &buffer, sizeof(buffer));
 
-		while(try++ <= 5)   //If it fails, retry 5X
+		while(try++ < 5)   //If it fails, retry 5X
 	    {
 			save_totaliser_eeprom_check(side_a);
 
@@ -1290,7 +1290,7 @@ uint8_t save_totaliser_eeprom(pump_sid side)
 
 		EEPROM_Write(totVol_loc, totVol2_loc, &buffer, sizeof(buffer));
 
-		while(try++ <= 5)   //If it fails, retry 5X
+		while(try++ < 5)   //If it fails, retry 5X
 	    {
 			save_totaliser_eeprom_check(side_b);
 
@@ -2109,6 +2109,22 @@ uint8_t retrieve_totaliser_eeprom_check(pump_sid side)
 				totaliser_vol1c = totaliser_storeA_check.totaliserVol_cal + amt_middle1;
 				totaliser_vol1 = totaliser_storeA_check.totaliserVol_real + amt_real1;
 
+				////////////////////////////////////////////////////////////////////
+				//HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
+				////////////////////////////////////////////////////////////////////
+				running_volTotaliser1c_tmin3 = scale_to_range1(totaliser_vol1c);
+				running_volTotaliser1c_tmin2 = scale_to_range1(totaliser_vol1c);
+				running_volTotaliser1c_tmin1 = scale_to_range1(totaliser_vol1c);
+				running_volTotaliser1c = scale_to_range1(totaliser_vol1c);
+				working_volTotaliser1c = scale_to_range1(totaliser_storeA_check.totaliserVol_cal);
+
+				running_volTotaliser1_tmin3 = scale_to_range1(totaliser_vol1);
+				running_volTotaliser1_tmin2 = scale_to_range1(totaliser_vol1);
+				running_volTotaliser1_tmin1 = scale_to_range1(totaliser_vol1);
+				running_volTotaliser1 = scale_to_range1(totaliser_vol1);
+				working_volTotaliser1 = scale_to_range1(totaliser_storeA_check.totaliserVol_real);
+				/////////////////////////////////////////////////////////////////////
+
 				//NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN//
 
 				#if DEBUG2
@@ -2119,7 +2135,7 @@ uint8_t retrieve_totaliser_eeprom_check(pump_sid side)
 
 					HAL_UART_Transmit(&huart3, str_tot, strlen((char*)str_tot), HAL_MAX_DELAY);
 
-					HAL_Delay(5);
+					HAL_Delay(1);
 
 					memset(str_tot, '\0', sizeof(str_tot));
 
@@ -2129,7 +2145,7 @@ uint8_t retrieve_totaliser_eeprom_check(pump_sid side)
 
 					HAL_UART_Transmit(&huart3, str_tot, strlen((char*)str_tot), HAL_MAX_DELAY);
 
-					HAL_Delay(5);
+					HAL_Delay(1);
 
 					memset(str_tot, '\0', sizeof(str_tot));
 
@@ -2181,6 +2197,23 @@ uint8_t retrieve_totaliser_eeprom_check(pump_sid side)
 				totaliser_vol2c = totaliser_storeB_check.totaliserVol_cal + amt_middle2;
 				totaliser_vol2 = totaliser_storeB_check.totaliserVol_real + amt_real2;
 
+
+				////////////////////////////////////////////////////////////////////
+				//HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
+				////////////////////////////////////////////////////////////////////
+				running_volTotaliser2c_tmin3 = scale_to_range2(totaliser_vol2c);
+				running_volTotaliser2c_tmin2 = scale_to_range2(totaliser_vol2c);
+				running_volTotaliser2c_tmin1 = scale_to_range2(totaliser_vol2c);
+				running_volTotaliser2c = scale_to_range2(totaliser_vol2c);
+				working_volTotaliser2c = scale_to_range2(totaliser_storeB_check.totaliserVol_cal);
+
+				running_volTotaliser2_tmin3 = scale_to_range2(totaliser_vol2);
+				running_volTotaliser2_tmin2 = scale_to_range2(totaliser_vol2);
+				running_volTotaliser2_tmin1 = scale_to_range2(totaliser_vol2);
+				running_volTotaliser2 = scale_to_range2(totaliser_vol2);
+				working_volTotaliser2 = scale_to_range2(totaliser_storeB_check.totaliserVol_real);
+				/////////////////////////////////////////////////////////////////////
+
 				//NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN//
 
 				#if DEBUG2
@@ -2191,7 +2224,7 @@ uint8_t retrieve_totaliser_eeprom_check(pump_sid side)
 
 					HAL_UART_Transmit(&huart3, str_tot, strlen((char*)str_tot), HAL_MAX_DELAY);
 
-					HAL_Delay(5);
+					HAL_Delay(1);
 
 					memset(str_tot, '\0', sizeof(str_tot));
 
@@ -2201,7 +2234,7 @@ uint8_t retrieve_totaliser_eeprom_check(pump_sid side)
 
 					HAL_UART_Transmit(&huart3, str_tot, strlen((char*)str_tot), HAL_MAX_DELAY);
 
-					HAL_Delay(5);
+					HAL_Delay(1);
 
 					memset(str_tot, '\0', sizeof(str_tot));
 
@@ -2270,7 +2303,7 @@ uint8_t retrieve_totaliser_eeprom_check(pump_sid side)
 
 uint8_t retrieve_totaliserFrequent_eeprom(pump_sid side)
 {
-	uint8_t sz = sizeof(totaliser_storeA);
+	uint8_t sz = sizeof(totaliserFrequent_storeA);
 	uint8_t buffer[sz + sizeof(uint16_t)];
 	uint16_t retrieved_crc,
 			 crc;
@@ -2326,12 +2359,12 @@ uint8_t retrieve_totaliserFrequent_eeprom(pump_sid side)
 		EEPROM_Read(totFreq2_loc, 0, &buffer, sizeof(buffer));
 
 		// Extract data and CRC
-		memcpy(&totaliser_storeB, buffer, sz);
+		memcpy(&totaliserFrequent_storeB, buffer, sz);
 		memcpy(&retrieved_crc, (buffer + sz), sizeof(uint16_t));
 
 
 		// Recompute CRC and compare
-		crc = crc_16(&totaliser_storeB, sz);
+		crc = crc_16(&totaliserFrequent_storeB, sz);
 
 		if(retrieved_crc == crc)
 		{
@@ -2448,7 +2481,7 @@ uint8_t retrieve_totaliser_fram(pump_sid side)
 
 uint8_t retrieve_totaliserFrequent_fram(pump_sid side)
 {
-	uint8_t sz = sizeof(totaliser_storeA);
+	uint8_t sz = sizeof(totaliserFrequent_storeA);
 	uint8_t buffer[sz + sizeof(uint16_t)];
 	uint16_t retrieved_crc,
 			 crc;
@@ -2506,12 +2539,12 @@ uint8_t retrieve_totaliserFrequent_fram(pump_sid side)
 	  	FRAM_Read(tot2_loc_fram, &buffer, sizeof(buffer));
 
 		// Extract data and CRC
-		memcpy(&totaliser_storeB, buffer, sz);
+		memcpy(&totaliserFrequent_storeB, buffer, sz);
 		memcpy(&retrieved_crc, (buffer + sz), sizeof(uint16_t));
 
 
 		// Recompute CRC and compare
-		crc = crc_16(&totaliser_storeB, sz);
+		crc = crc_16(&totaliserFrequent_storeB, sz);
 
 		if(retrieved_crc == crc)
 		{
@@ -2584,7 +2617,24 @@ uint8_t retrieve_totaliser_fram_check(pump_sid side)
 				totaliser_vol1c = totaliser_storeA_check.totaliserVol_cal + amt_middle1;
 				totaliser_vol1 = totaliser_storeA_check.totaliserVol_real + amt_real1;
 
+				////////////////////////////////////////////////////////////////////
+				//HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
+				////////////////////////////////////////////////////////////////////
+				running_volTotaliser1c_tmin3 = scale_to_range1(totaliser_vol1c);
+				running_volTotaliser1c_tmin2 = scale_to_range1(totaliser_vol1c);
+				running_volTotaliser1c_tmin1 = scale_to_range1(totaliser_vol1c);
+				running_volTotaliser1c = scale_to_range1(totaliser_vol1c);
+				working_volTotaliser1c = scale_to_range1(totaliser_storeA_check.totaliserVol_cal);
+
+				running_volTotaliser1_tmin3 = scale_to_range1(totaliser_vol1);
+				running_volTotaliser1_tmin2 = scale_to_range1(totaliser_vol1);
+				running_volTotaliser1_tmin1 = scale_to_range1(totaliser_vol1);
+				running_volTotaliser1 = scale_to_range1(totaliser_vol1);
+				working_volTotaliser1 = scale_to_range1(totaliser_storeA_check.totaliserVol_real);
+				/////////////////////////////////////////////////////////////////////
+
 				//NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN//
+
 
 				#if DEBUG2
 
@@ -2594,7 +2644,7 @@ uint8_t retrieve_totaliser_fram_check(pump_sid side)
 
 					HAL_UART_Transmit(&huart3, str_tot, strlen((char*)str_tot), HAL_MAX_DELAY);
 
-					HAL_Delay(5);
+					HAL_Delay(1);
 
 					memset(str_tot, '\0', sizeof(str_tot));
 
@@ -2604,7 +2654,7 @@ uint8_t retrieve_totaliser_fram_check(pump_sid side)
 
 					HAL_UART_Transmit(&huart3, str_tot, strlen((char*)str_tot), HAL_MAX_DELAY);
 
-					HAL_Delay(5);
+					HAL_Delay(1);
 
 					memset(str_tot, '\0', sizeof(str_tot));
 
@@ -2656,6 +2706,22 @@ uint8_t retrieve_totaliser_fram_check(pump_sid side)
 				totaliser_vol2c = totaliser_storeB_check.totaliserVol_cal + amt_middle2;
 				totaliser_vol2 = totaliser_storeB_check.totaliserVol_real + amt_real2;
 
+				////////////////////////////////////////////////////////////////////
+				//HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH
+				////////////////////////////////////////////////////////////////////
+				running_volTotaliser2c_tmin3 = scale_to_range2(totaliser_vol2c);
+				running_volTotaliser2c_tmin2 = scale_to_range2(totaliser_vol2c);
+				running_volTotaliser2c_tmin1 = scale_to_range2(totaliser_vol2c);
+				running_volTotaliser2c = scale_to_range2(totaliser_vol2c);
+				working_volTotaliser2c = scale_to_range2(totaliser_storeB_check.totaliserVol_cal);
+
+				running_volTotaliser2_tmin3 = scale_to_range2(totaliser_vol2);
+				running_volTotaliser2_tmin2 = scale_to_range2(totaliser_vol2);
+				running_volTotaliser2_tmin1 = scale_to_range2(totaliser_vol2);
+				running_volTotaliser2 = scale_to_range2(totaliser_vol2);
+				working_volTotaliser2 = scale_to_range2(totaliser_storeB_check.totaliserVol_real);
+				/////////////////////////////////////////////////////////////////////
+
 				//NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN//
 
 				#if DEBUG2
@@ -2666,7 +2732,7 @@ uint8_t retrieve_totaliser_fram_check(pump_sid side)
 
 					HAL_UART_Transmit(&huart3, str_tot, strlen((char*)str_tot), HAL_MAX_DELAY);
 
-					HAL_Delay(5);
+					HAL_Delay(1);
 
 					memset(str_tot, '\0', sizeof(str_tot));
 
@@ -2676,7 +2742,7 @@ uint8_t retrieve_totaliser_fram_check(pump_sid side)
 
 					HAL_UART_Transmit(&huart3, str_tot, strlen((char*)str_tot), HAL_MAX_DELAY);
 
-					HAL_Delay(5);
+					HAL_Delay(1);
 
 					memset(str_tot, '\0', sizeof(str_tot));
 
@@ -2811,7 +2877,7 @@ uint8_t clear_totaliserFrequent_eeprom(pump_sid side)
 		totaliserFrequent_storeA.totaliserVol_real = 0.0;
 		totaliserFrequent_storeA.totaliserAmount_cal = 0.0;
 		totaliserFrequent_storeA.totaliserAmount_real = 0.0;
-		totaliserFrequent_storeA.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
+		totaliserFrequent_storeA.totalizer_save_status = UNSAVED_TO_MAIN_TOTALIZER;
 		totaliserFrequent_storeA.lastVolumeSale_cal = 0.0;
 		totaliserFrequent_storeA.lastAmountSale_cal = 0.0;
 
@@ -2834,7 +2900,7 @@ uint8_t clear_totaliserFrequent_eeprom(pump_sid side)
 				totaliserFrequent_storeA.totaliserVol_real = 0.0;
 				totaliserFrequent_storeA.totaliserAmount_cal = 0.0;
 				totaliserFrequent_storeA.totaliserAmount_real = 0.0;
-				totaliserFrequent_storeA.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
+				totaliserFrequent_storeA.totalizer_save_status = UNSAVED_TO_MAIN_TOTALIZER;
 				totaliserFrequent_storeA.lastVolumeSale_cal = 0.0;
 				totaliserFrequent_storeA.lastAmountSale_cal = 0.0;
 
@@ -2860,7 +2926,7 @@ uint8_t clear_totaliserFrequent_eeprom(pump_sid side)
 		totaliserFrequent_storeB.totaliserVol_real = 0.0;
 		totaliserFrequent_storeB.totaliserAmount_cal = 0.0;
 		totaliserFrequent_storeB.totaliserAmount_real = 0.0;
-		totaliserFrequent_storeB.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
+		totaliserFrequent_storeB.totalizer_save_status = UNSAVED_TO_MAIN_TOTALIZER;
 		totaliserFrequent_storeB.lastVolumeSale_cal = 0.0;
 		totaliserFrequent_storeB.lastAmountSale_cal = 0.0;
 
@@ -2883,7 +2949,7 @@ uint8_t clear_totaliserFrequent_eeprom(pump_sid side)
 				totaliserFrequent_storeB.totaliserVol_real = 0.0;
 				totaliserFrequent_storeB.totaliserAmount_cal = 0.0;
 				totaliserFrequent_storeB.totaliserAmount_real = 0.0;
-				totaliserFrequent_storeB.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
+				totaliserFrequent_storeB.totalizer_save_status = UNSAVED_TO_MAIN_TOTALIZER;
 				totaliserFrequent_storeB.lastVolumeSale_cal = 0.0;
 				totaliserFrequent_storeB.lastAmountSale_cal = 0.0;
 
@@ -2922,7 +2988,7 @@ uint8_t clear_totaliserFrequent_fram(pump_sid side)
 		totaliserFrequent_storeA.totaliserVol_real = 0.0;
 		totaliserFrequent_storeA.totaliserAmount_cal = 0.0;
 		totaliserFrequent_storeA.totaliserAmount_real = 0.0;
-		totaliserFrequent_storeA.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
+		totaliserFrequent_storeA.totalizer_save_status = UNSAVED_TO_MAIN_TOTALIZER;
 		totaliserFrequent_storeA.lastVolumeSale_cal = 0.0;
 		totaliserFrequent_storeA.lastAmountSale_cal = 0.0;
 
@@ -2945,7 +3011,7 @@ uint8_t clear_totaliserFrequent_fram(pump_sid side)
 				totaliserFrequent_storeA.totaliserVol_real = 0.0;
 				totaliserFrequent_storeA.totaliserAmount_cal = 0.0;
 				totaliserFrequent_storeA.totaliserAmount_real = 0.0;
-				totaliserFrequent_storeA.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
+				totaliserFrequent_storeA.totalizer_save_status = UNSAVED_TO_MAIN_TOTALIZER;
 				totaliserFrequent_storeA.lastVolumeSale_cal = 0.0;
 				totaliserFrequent_storeA.lastAmountSale_cal = 0.0;
 
@@ -2971,7 +3037,7 @@ uint8_t clear_totaliserFrequent_fram(pump_sid side)
 		totaliserFrequent_storeB.totaliserVol_real = 0.0;
 		totaliserFrequent_storeB.totaliserAmount_cal = 0.0;
 		totaliserFrequent_storeB.totaliserAmount_real = 0.0;
-		totaliserFrequent_storeB.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
+		totaliserFrequent_storeB.totalizer_save_status = UNSAVED_TO_MAIN_TOTALIZER;
 		totaliserFrequent_storeB.lastVolumeSale_cal = 0.0;
 		totaliserFrequent_storeB.lastAmountSale_cal = 0.0;
 
@@ -2994,7 +3060,7 @@ uint8_t clear_totaliserFrequent_fram(pump_sid side)
 				totaliserFrequent_storeB.totaliserVol_real = 0.0;
 				totaliserFrequent_storeB.totaliserAmount_cal = 0.0;
 				totaliserFrequent_storeB.totaliserAmount_real = 0.0;
-				totaliserFrequent_storeB.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
+				totaliserFrequent_storeB.totalizer_save_status = UNSAVED_TO_MAIN_TOTALIZER;
 				totaliserFrequent_storeB.lastVolumeSale_cal = 0.0;
 				totaliserFrequent_storeB.lastAmountSale_cal = 0.0;
 

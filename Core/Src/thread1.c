@@ -113,6 +113,7 @@ extern drive drive1,
 extern uint8_t hmacKey[];
 
 uint8_t batteryStatus = BATTERY_OK;
+volatile float batt_val = 0.0;
 
 //===================================================
 #define DEV_ADDR 0xa0
@@ -170,6 +171,8 @@ extern unsigned long t_exec1,
 					 t_exec9;
 
 int checkk = 0;
+
+extern uint8_t batteryVoltage_ready = 0;
 
 uint8_t keyPress1 = 0,
 	    nonKeyPress1 = 0,
@@ -1829,6 +1832,11 @@ tmmm:
 	  clear_incidentNextLoc_fram(side_a);
 	  clear_incidentNextLoc_fram(side_b);
 
+	  clear_totaliserFrequent_fram(side_a);
+	  clear_totaliserFrequent_eeprom(side_a);
+	  clear_totaliserFrequent_fram(side_b);
+	  clear_totaliserFrequent_eeprom(side_b);
+
 
 //	  clear_ctSettings(side_a);
 //	  clear_ctSettings(side_b);
@@ -2406,11 +2414,17 @@ skip_test:
 
 //    clear_incidentNextLoc_fram(side_a);
 //    clear_incidentNextLoc_fram(side_b);
-
+//
 //    clear_totaliserFrequent_fram(side_a);
 //    clear_totaliserFrequent_eeprom(side_a);
 //    clear_totaliserFrequent_fram(side_b);
 //    clear_totaliserFrequent_eeprom(side_b);
+//
+//    clear_totaliser_fram(side_a);
+//    clear_totaliser_eeprom(side_a);
+//    clear_totaliser_fram(side_b);
+//    clear_totaliser_eeprom(side_b);
+
 
     while(retrieve_lastSale_fram(side_a) != OK)   //If it fails, retry 5X
        {
@@ -2954,6 +2968,8 @@ void run()
 
 //	t_exec5 = DWT->CYCCNT;
 
+//	static float batt_val = 0.0;
+
 	if(go_message == true)
 	{
 	//		server_rx_parse();
@@ -3001,31 +3017,34 @@ void run()
 
 	HAL_GPIO_WritePin(batt_check_GPIO_Port, batt_check_Pin, GPIO_PIN_RESET);
 
-	float batt_val = battery_sense();
+	float batt_val_ = battery_sense();
 
-//	t_exec6 = DWT->CYCCNT;
-//	t_exec7 = t_exec6 - t_exec4;
-
-#if (sense_battery == 1)
-
-//	if( (batt_val < 2.00) && (batt_val >= 1.95) )
-//	if( (batt_val < 1.8) && (batt_val >= 1.5) )
-	if( (batt_val < 1.48) && (batt_val >= 1.47) )   //6.0V & 6.1V
+//	if( (batteryVoltage_ready == 1) && ( (eLastState1 != pnp_State) || (eLastState2 != pnp_State) ) )
+	if(batteryVoltage_ready == 1)
 	{
-		batteryStatus = LOWBATTERY;
-	}
-//	else if(batt_val < 1.5)
-//	else if(batt_val < 1.0)
-	else if(batt_val < 1.47)
-	{
-		batteryStatus = NOBATTERY;
-	}
-	else
-	{
-		batteryStatus = BATTERYOK;
-	}
+		batt_val = batt_val_;
 
-#endif     //#if (sense_battery == 1)
+		#if (sense_battery == 1)
+
+		//	if( (batt_val < 2.00) && (batt_val >= 1.95) )
+		//	if( (batt_val < 1.8) && (batt_val >= 1.5) )
+			if( (batt_val < 1.48) && (batt_val >= 1.47) )   //6.0V & 6.1V
+			{
+				batteryStatus = LOW_BATTERY;
+			}
+		//	else if(batt_val < 1.5)
+		//	else if(batt_val < 1.0)
+			else if(batt_val < 1.47)
+			{
+				batteryStatus = NO_BATTERY;
+			}
+			else
+			{
+				batteryStatus = BATTERY_OK;
+			}
+
+		#endif     //#if (sense_battery == 1)
+	}
 
 //	if(server_message_found == 1)
 //	{

@@ -27,6 +27,8 @@ drive drive1,
 
 extern ADC_ChannelConfTypeDef sConfig;
 
+extern uint8_t batteryVoltage_ready;
+
 //extern  displaytype  disp_type1;
 //extern  displaytype  disp_type2;
 extern pump disp_type1,
@@ -136,6 +138,7 @@ float battery_sense(void)
 
 	if(firstTime_battSense == 1)
 	{
+		HAL_Delay(1);
 		ADC_ChannelConfTypeDef sConfig = {0};
 
 		/** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
@@ -158,6 +161,8 @@ float battery_sense(void)
 		previousMillis = millis;
 
 		firstTime_battSense = 0;
+
+		batteryVoltage_ready = 0;
 	}
 
 	if(firstTime_battSense == 0)
@@ -170,10 +175,12 @@ float battery_sense(void)
 															//	1.88V (@ 5.90V)  1.8V (@5.5V)
 
 			HAL_GPIO_WritePin(batt_check_GPIO_Port, batt_check_Pin, GPIO_PIN_SET);
+			batteryVoltage_ready = 1;
 
 			return batt_v;
 		}
 	}
+	return 0;
 }
 
 //float battery_sense(void)
