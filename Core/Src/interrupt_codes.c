@@ -588,13 +588,13 @@ void check_flow(void)
 			  	  mech_totalizer_old2 = mech_totalizer2;
 			  	//-----------------------------------------------------//
 
-			  	if (totaliser_vol2c - previous_totaliserVol2c >= THRESHOLD_TV)
-				{
-					previous_totaliserVol2c = totaliser_vol2c;
-
-					save_totaliserFrequent_fram(side_b);
-					save_totaliserFrequent_eeprom(side_b);
-				}
+//			  	if (totaliser_vol2c - previous_totaliserVol2c >= THRESHOLD_TV)
+//				{
+//					previous_totaliserVol2c = totaliser_vol2c;
+//
+//					save_totaliserFrequent_fram(side_b);
+//					save_totaliserFrequent_eeprom(side_b);
+//				}
 			 }
 			 else
 			 {

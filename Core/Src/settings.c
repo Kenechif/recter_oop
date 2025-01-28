@@ -236,7 +236,7 @@ float running_amtTotaliser2_tmin1 CCRAM = 0.00,
 	 running_amtTotaliser2c_tmin2 CCRAM = 0.00,
 	 running_amtTotaliser2c_tmin3 CCRAM = 0.00;
 
-double running_volTotaliser1_array[4] CCRAM = {0},
+float running_volTotaliser1_array[4] CCRAM = {0},
 	  running_volTotaliser1c_array[4] CCRAM = {0},
 	  running_volTotaliser2_array[4] CCRAM = {0},
 	  running_volTotaliser2c_array[4] CCRAM = {0};
@@ -2504,11 +2504,11 @@ uint8_t retrieve_totaliserFrequent_fram(pump_sid side)
 		{
 			if(totaliserFrequent_storeA.totalizer_save_status == UNSAVED_TO_MAIN_TOTALIZER)
 			{
-				totaliser_vol1c = totaliserFrequent_storeA.totaliserVol_cal;
-				totaliser_vol1 = totaliserFrequent_storeA.totaliserVol_real;
-
-				totaliser_amt1c = totaliserFrequent_storeA.totaliserAmount_cal;
-				totaliser_amt1 = totaliserFrequent_storeA.totaliserAmount_real;
+//				totaliser_vol1c = totaliserFrequent_storeA.totaliserVol_cal;
+//				totaliser_vol1 = totaliserFrequent_storeA.totaliserVol_real;
+//
+//				totaliser_amt1c = totaliserFrequent_storeA.totaliserAmount_cal;
+//				totaliser_amt1 = totaliserFrequent_storeA.totaliserAmount_real;
 
 				lastVolumeSale1c = totaliserFrequent_storeA.lastVolumeSale_cal;
 				lastAmountSale1c = totaliserFrequent_storeA.lastAmountSale_cal;
@@ -2520,6 +2520,8 @@ uint8_t retrieve_totaliserFrequent_fram(pump_sid side)
 				if(isnan(totaliser_amt1)) totaliser_amt1 = 0.0;
 				if(isnan(lastVolumeSale1c)) lastVolumeSale1c = 0.0;
 				if(isnan(lastAmountSale1c)) lastAmountSale1c = 0.0;
+
+				totaliser_vol1c = (totaliser_vol1c + lastVolumeSale1c);
 
 				save_totaliser_fram(side_a);
 				save_totaliser_eeprom(side_a);
@@ -2536,7 +2538,7 @@ uint8_t retrieve_totaliserFrequent_fram(pump_sid side)
 	}
 	else if (side == side_b)
 	{
-	  	FRAM_Read(tot2_loc_fram, &buffer, sizeof(buffer));
+	  	FRAM_Read(totFreq2_loc_fram, &buffer, sizeof(buffer));
 
 		// Extract data and CRC
 		memcpy(&totaliserFrequent_storeB, buffer, sz);
@@ -2550,11 +2552,11 @@ uint8_t retrieve_totaliserFrequent_fram(pump_sid side)
 		{
 			if(totaliserFrequent_storeB.totalizer_save_status == UNSAVED_TO_MAIN_TOTALIZER)
 			{
-				totaliser_vol2c = totaliserFrequent_storeB.totaliserVol_cal;
-				totaliser_vol2 = totaliserFrequent_storeB.totaliserVol_real;
-
-				totaliser_amt2c = totaliserFrequent_storeB.totaliserAmount_cal;
-				totaliser_amt2 = totaliserFrequent_storeB.totaliserAmount_real;
+//				totaliser_vol2c = totaliserFrequent_storeB.totaliserVol_cal;
+//				totaliser_vol2 = totaliserFrequent_storeB.totaliserVol_real;
+//
+//				totaliser_amt2c = totaliserFrequent_storeB.totaliserAmount_cal;
+//				totaliser_amt2 = totaliserFrequent_storeB.totaliserAmount_real;
 
 				lastVolumeSale2c = totaliserFrequent_storeB.lastVolumeSale_cal;
 				lastAmountSale2c = totaliserFrequent_storeB.lastAmountSale_cal;
@@ -2566,6 +2568,8 @@ uint8_t retrieve_totaliserFrequent_fram(pump_sid side)
 				if(isnan(totaliser_amt2)) totaliser_amt2 = 0.0;
 				if(isnan(lastVolumeSale2c)) lastVolumeSale2c = 0.0;
 				if(isnan(lastAmountSale2c)) lastAmountSale2c = 0.0;
+
+				totaliser_vol2c = (totaliser_vol2c + lastVolumeSale2c);
 
 				save_totaliser_fram(side_b);
 				save_totaliser_eeprom(side_b);

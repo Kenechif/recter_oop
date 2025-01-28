@@ -41,11 +41,13 @@ extern "C" {
 //:::::::::::::::::::::::::::::::::::::::::::://
 
 	  #define DEBUG 0
+//	  #define DEBUG 1
 
 	  #define DEBUG1 0
+//	  #define DEBUG1 1
 
-//	  #define DEBUG2 0
-	  #define DEBUG2 1
+	  #define DEBUG2 0
+//	  #define DEBUG2 1
 
 	  #define PRODUCT_TYPE _DPK
 
@@ -61,8 +63,8 @@ extern "C" {
 //============================================
 
 #ifdef DEV_MODE
-	#define _USE_SOFT_PULSER            1
-//	#define _USE_SOFT_PULSER            0
+//	#define _USE_SOFT_PULSER            1
+	#define _USE_SOFT_PULSER            0
 	#define sense_battery 				0
 //	#define sense_power  				0
 //	#define sense_battery 				1

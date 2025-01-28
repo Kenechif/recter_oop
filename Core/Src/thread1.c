@@ -2448,47 +2448,6 @@ skip_test:
        }
 
 
-    while(retrieve_totaliserFrequent_fram(side_a) != OK)   //If it fails, retry 5X
-    {
-    	static uint8_t try = 0;
-    	if(try++ >= 5)
-    	{
-    		while(retrieve_totaliserFrequent_eeprom(side_a) != OK)
-			{
-				if(try++ >= 10)
-				{
-					clear_totaliserFrequent_fram(side_a);
-					clear_totaliserFrequent_eeprom(side_a);
-					try = 0;
-					break;
-				}
-
-			}
-    		try = 0;
-    		break;
-    	}
-    }
-
-    while(retrieve_totaliserFrequent_fram(side_b) != OK)   //If it fails, retry 5X
-    {
-		static uint8_t try = 0;
-		if(try++ >= 5)
-		{
-			while(retrieve_totaliserFrequent_eeprom(side_b) != OK)
-			{
-				if(try++ >= 10)
-				{
-					clear_totaliserFrequent_fram(side_b);
-					clear_totaliserFrequent_eeprom(side_b);
-					try = 0;
-					break;
-				}
-
-			}
-			try = 0;
-			break;
-		}
-    }
 
 //    retrieve_amountTotaliser_fram(side_a);
 //    retrieve_amountTotaliser_fram(side_b);
@@ -2535,6 +2494,48 @@ skip_test:
 			break;
 		}
     }
+
+   while(retrieve_totaliserFrequent_fram(side_a) != OK)   //If it fails, retry 5X
+   {
+	static uint8_t try = 0;
+	if(try++ >= 5)
+	{
+		while(retrieve_totaliserFrequent_eeprom(side_a) != OK)
+		{
+			if(try++ >= 10)
+			{
+				clear_totaliserFrequent_fram(side_a);
+				clear_totaliserFrequent_eeprom(side_a);
+				try = 0;
+				break;
+			}
+
+		}
+		try = 0;
+		break;
+	}
+   }
+
+   while(retrieve_totaliserFrequent_fram(side_b) != OK)   //If it fails, retry 5X
+   {
+	static uint8_t try = 0;
+	if(try++ >= 5)
+	{
+		while(retrieve_totaliserFrequent_eeprom(side_b) != OK)
+		{
+			if(try++ >= 10)
+			{
+				clear_totaliserFrequent_fram(side_b);
+				clear_totaliserFrequent_eeprom(side_b);
+				try = 0;
+				break;
+			}
+
+		}
+		try = 0;
+		break;
+	}
+   }
 
 
 //    retrieve_totaliser_fram(side_a);

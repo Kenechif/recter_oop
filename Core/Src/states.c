@@ -387,7 +387,7 @@ extern float working_amtTotaliser2,
 			working_amtTotaliser2c,
 			running_amtTotaliser2c;
 
-extern double running_volTotaliser1_array[4],
+extern float running_volTotaliser1_array[4],
 			 running_volTotaliser1c_array[4],
 			 running_volTotaliser2_array[4],
 			 running_volTotaliser2c_array[4];
@@ -1445,7 +1445,7 @@ eSystemState nozzledown_Handler(void)
 	    running_volTotaliser1_tmin3 = running_volTotaliser1_tmin2;
 	    running_volTotaliser1_tmin2 = running_volTotaliser1_tmin1;
 		running_volTotaliser1_tmin1 = running_volTotaliser1;
-		running_volTotaliser1 = working_volTotaliser1 + amt_real1;
+		running_volTotaliser1 = (working_volTotaliser1 + amt_real1);
 
 
 		running_volTotaliser1_array[0] = running_volTotaliser1;
@@ -1470,7 +1470,7 @@ eSystemState nozzledown_Handler(void)
 		running_volTotaliser1c_tmin3 = running_volTotaliser1c_tmin2;
 		running_volTotaliser1c_tmin2 = running_volTotaliser1c_tmin1;
 		running_volTotaliser1c_tmin1 = running_volTotaliser1c;
-		running_volTotaliser1c = working_volTotaliser1c + scale_to_range1(amt_middle1);
+		running_volTotaliser1c = (working_volTotaliser1c + scale_to_range1(amt_middle1));
 
 		running_volTotaliser1c_array[0] = running_volTotaliser1c;
 		running_volTotaliser1c_array[1] = running_volTotaliser1c_tmin1;
@@ -1489,24 +1489,24 @@ eSystemState nozzledown_Handler(void)
 		//============================================================================//
 
 
-		running_amtTotaliser1 = working_amtTotaliser1 + price_real1;
+		running_amtTotaliser1 = (working_amtTotaliser1 + price_real1);
 
-		running_amtTotaliser1c = working_amtTotaliser1c + price_upper1;
+		running_amtTotaliser1c = (working_amtTotaliser1c + price_upper1);
 
 		//============================================================================//
 
 
-		float pricecheck = running_amtTotaliser1c - priceOld1;
-
-		if (pricecheck >= 1000.00)
-		{
-		   priceOld1 = running_amtTotaliser1c;
-		   save_amountSend(side_a);
-
-		   char str[65];
-		   sprintf(str, "[Side-A]... #%0.2f intermittent worth of sales made now!", pricecheck);
-		   server_write(str);
-		}
+//		float pricecheck = running_amtTotaliser1c - priceOld1;
+//
+//		if (pricecheck >= 1000.00)
+//		{
+//		   priceOld1 = running_amtTotaliser1c;
+//		   save_amountSend(side_a);
+//
+//		   char str[65];
+//		   sprintf(str, "[Side-A]... #%0.2f intermittent worth of sales made now!", pricecheck);
+//		   server_write(str);
+//		}
 
 		r_volTotaliser1 = floor( scale_to_original1(running_volTotaliser1c) );
 
@@ -9355,12 +9355,15 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
  // slow_flow1();
 
-	   while(retrieve_totaliser_fram(side_a) != OK)   //If it fails, retry 5X
+	   ////////////////////////////////////////////////////////////////////////////////////////////////////////
+	   // DO A TOTALIZER DATA RETRIEVAL TO GUARD AGAINST WORKING WITH ANY POSSIBLE CORRUPT TOTALIZER RAM VALUE
+	   ////////////////////////////////////////////////////////////////////////////////////////////////////////
+	   while(retrieve_totaliser_fram(operating_side) != OK)   //If it fails, retry 5X
 	   {
 			static uint8_t try = 0;
 			if(try++ >= 5)
 			{
-				while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+				while(retrieve_totaliser_eeprom(operating_side) != OK)
 				{
 					if(try++ >= 10)
 					{
@@ -9438,9 +9441,11 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 		r_volTotaliser1 = floor(scale_to_original1(working_volTotaliser1c));
 
-		currentValue_tv1 = amt_middle1;
+//		currentValue_tv1 = amt_middle1;
 //		previousValue_tv1 = currentValue_tv1;
-		previous_totaliserVol1c = totaliser_vol1c;
+//		previous_totaliserVol1c = totaliser_vol1c;
+
+		previous_totaliserVol1c = amt_middle1;
 
 		mechTotalizer1 = (mechTotalizer1_ + amt_middle1);
 
@@ -10014,7 +10019,7 @@ eSystemState filling_State_Handler(void)
 	    running_volTotaliser1_tmin3 = running_volTotaliser1_tmin2;
 	    running_volTotaliser1_tmin2 = running_volTotaliser1_tmin1;
 		running_volTotaliser1_tmin1 = running_volTotaliser1;
-		running_volTotaliser1 = working_volTotaliser1 + amt_real1;
+		running_volTotaliser1 = (working_volTotaliser1 + amt_real1);
 
 		running_volTotaliser1_array[0] = running_volTotaliser1;
 		running_volTotaliser1_array[1] = running_volTotaliser1_tmin1;
@@ -10039,7 +10044,7 @@ eSystemState filling_State_Handler(void)
 		running_volTotaliser1c_tmin3 = running_volTotaliser1c_tmin2;
 		running_volTotaliser1c_tmin2 = running_volTotaliser1c_tmin1;
 		running_volTotaliser1c_tmin1 = running_volTotaliser1c;
-		running_volTotaliser1c = working_volTotaliser1c + scale_to_range1(amt_middle1);
+		running_volTotaliser1c = (working_volTotaliser1c + scale_to_range1(amt_middle1));
 
 		running_volTotaliser1c_array[0] = running_volTotaliser1c;
 		running_volTotaliser1c_array[1] = running_volTotaliser1c_tmin1;
@@ -10058,9 +10063,9 @@ eSystemState filling_State_Handler(void)
 		//============================================================================//
 
 
-		running_amtTotaliser1 = working_amtTotaliser1 + price_real1;
+		running_amtTotaliser1 = (working_amtTotaliser1 + price_real1);
 
-	   	running_amtTotaliser1c = working_amtTotaliser1c + price_upper1;
+	   	running_amtTotaliser1c = (working_amtTotaliser1c + price_upper1);
 
 
 
@@ -10069,7 +10074,7 @@ eSystemState filling_State_Handler(void)
 	   	running_volTotaliser1_tmin3 = running_volTotaliser1_tmin2;
 		running_volTotaliser1_tmin2 = running_volTotaliser1_tmin1;
 		running_volTotaliser1_tmin1 = running_volTotaliser1;
-		running_volTotaliser1 = working_volTotaliser1 + amt_real1;
+		running_volTotaliser1 = (working_volTotaliser1 + amt_real1);
 
 		running_volTotaliser1_array[0] = running_volTotaliser1;
 		running_volTotaliser1_array[1] = running_volTotaliser1_tmin1;
@@ -10091,7 +10096,7 @@ eSystemState filling_State_Handler(void)
 		running_volTotaliser1c_tmin3 = running_volTotaliser1c_tmin2;
 		running_volTotaliser1c_tmin2 = running_volTotaliser1c_tmin1;
 		running_volTotaliser1c_tmin1 = running_volTotaliser1c;
-		running_volTotaliser1c = working_volTotaliser1c + scale_to_range1(amt_middle1);
+		running_volTotaliser1c = (working_volTotaliser1c + scale_to_range1(amt_middle1));
 
 		running_volTotaliser1c_array[0] = running_volTotaliser1c;
 		running_volTotaliser1c_array[1] = running_volTotaliser1c_tmin1;
@@ -10111,9 +10116,9 @@ eSystemState filling_State_Handler(void)
 		//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//
 
 
-		running_amtTotaliser1  = working_amtTotaliser1  + price_real1;
+		running_amtTotaliser1  = (working_amtTotaliser1  + price_real1);
 
-		running_amtTotaliser1c = working_amtTotaliser1c + price_upper1;
+		running_amtTotaliser1c = (working_amtTotaliser1c + price_upper1);
 
 
 //	   	float pricecheck = running_amtTotaliser1c - priceOld1;
@@ -10157,10 +10162,13 @@ eSystemState filling_State_Handler(void)
 //	  old_r_volTotaliser1 = r_volTotaliser1;   //update...
 //	  old_r_amtTotaliser = r_amtTotaliser;
 
-	  if (totaliser_vol1c - previous_totaliserVol1c >= THRESHOLD_TV)
+//	  if (totaliser_vol1c - previous_totaliserVol1c >= THRESHOLD_TV)
+	  if (amt_middle1 - previous_totaliserVol1c >= THRESHOLD_TV)
 	  {
-			previous_totaliserVol1c = totaliser_vol1c;
+//			previous_totaliserVol1c = totaliser_vol1c;
+			previous_totaliserVol1c = amt_middle1;
 
+			totalizer_saveStatus1 = UNSAVED_TO_MAIN_TOTALIZER;
 			save_totaliserFrequent_fram(side_a);
 			save_totaliserFrequent_eeprom(side_a);
 	  }
@@ -10772,7 +10780,7 @@ void do_calcs ()
 			    running_volTotaliser1_tmin3 = running_volTotaliser1_tmin2;
 			    running_volTotaliser1_tmin2 = running_volTotaliser1_tmin1;
 				running_volTotaliser1_tmin1 = running_volTotaliser1;
-				running_volTotaliser1 = working_volTotaliser1 + amt_real1;
+				running_volTotaliser1 = (working_volTotaliser1 + amt_real1);
 
 				running_volTotaliser1_array[0] = running_volTotaliser1;
 				running_volTotaliser1_array[1] = running_volTotaliser1_tmin1;
@@ -10797,7 +10805,7 @@ void do_calcs ()
 				running_volTotaliser1c_tmin3 = running_volTotaliser1c_tmin2;
 				running_volTotaliser1c_tmin2 = running_volTotaliser1c_tmin1;
 				running_volTotaliser1c_tmin1 = running_volTotaliser1c;
-				running_volTotaliser1c = working_volTotaliser1c + scale_to_range1(amt_middle1);
+				running_volTotaliser1c = (working_volTotaliser1c + scale_to_range1(amt_middle1));
 
 				running_volTotaliser1c_array[0] = running_volTotaliser1c;
 				running_volTotaliser1c_array[1] = running_volTotaliser1c_tmin1;
@@ -10816,9 +10824,9 @@ void do_calcs ()
 				//============================================================================//
 
 
-			  running_amtTotaliser1 = working_amtTotaliser1 + price_real1;
+			  running_amtTotaliser1 = (working_amtTotaliser1 + price_real1);
 
-			  running_amtTotaliser1c = working_amtTotaliser1c + price_upper1;
+			  running_amtTotaliser1c = (working_amtTotaliser1c + price_upper1);
 
 //			  float pricecheck = running_amtTotaliser1c - priceOld1;
 //
@@ -10927,7 +10935,7 @@ void do_calcs ()
 			    running_volTotaliser1_tmin3 = running_volTotaliser1_tmin2;
 			    running_volTotaliser1_tmin2 = running_volTotaliser1_tmin1;
 				running_volTotaliser1_tmin1 = running_volTotaliser1;
-				running_volTotaliser1 = working_volTotaliser1 + amt_real1;
+				running_volTotaliser1 = (working_volTotaliser1 + amt_real1);
 
 				running_volTotaliser1_array[0] = running_volTotaliser1;
 				running_volTotaliser1_array[1] = running_volTotaliser1_tmin1;
@@ -10952,7 +10960,7 @@ void do_calcs ()
 				running_volTotaliser1c_tmin3 = running_volTotaliser1c_tmin2;
 				running_volTotaliser1c_tmin2 = running_volTotaliser1c_tmin1;
 				running_volTotaliser1c_tmin1 = running_volTotaliser1c;
-				running_volTotaliser1c = working_volTotaliser1c + scale_to_range1(amt_middle1);
+				running_volTotaliser1c = (working_volTotaliser1c + scale_to_range1(amt_middle1));
 
 				running_volTotaliser1c_array[0] = running_volTotaliser1c;
 				running_volTotaliser1c_array[1] = running_volTotaliser1c_tmin1;
@@ -10971,9 +10979,9 @@ void do_calcs ()
 				//============================================================================//
 
 
-			  running_amtTotaliser1 = working_amtTotaliser1 + price_real1;
+			  running_amtTotaliser1 = (working_amtTotaliser1 + price_real1);
 
-			  running_amtTotaliser1c = working_amtTotaliser1c + price_upper1;
+			  running_amtTotaliser1c = (working_amtTotaliser1c + price_upper1);
 
 //			  float pricecheck = running_amtTotaliser1c - priceOld1;
 //
@@ -11050,7 +11058,7 @@ void do_calcs ()
 			    running_volTotaliser1_tmin3 = running_volTotaliser1_tmin2;
 			    running_volTotaliser1_tmin2 = running_volTotaliser1_tmin1;
 				running_volTotaliser1_tmin1 = running_volTotaliser1;
-				running_volTotaliser1 = working_volTotaliser1 + amt_real1;
+				running_volTotaliser1 = (working_volTotaliser1 + amt_real1);
 
 				running_volTotaliser1_array[0] = running_volTotaliser1;
 				running_volTotaliser1_array[1] = running_volTotaliser1_tmin1;
@@ -11074,7 +11082,7 @@ void do_calcs ()
 				running_volTotaliser1c_tmin3 = running_volTotaliser1c_tmin2;
 				running_volTotaliser1c_tmin2 = running_volTotaliser1c_tmin1;
 				running_volTotaliser1c_tmin1 = running_volTotaliser1c;
-				running_volTotaliser1c = working_volTotaliser1c + scale_to_range1(amt_middle1);
+				running_volTotaliser1c = (working_volTotaliser1c + scale_to_range1(amt_middle1));
 
 				running_volTotaliser1c_array[0] = running_volTotaliser1c;
 				running_volTotaliser1c_array[1] = running_volTotaliser1c_tmin1;
@@ -11093,9 +11101,9 @@ void do_calcs ()
 				//============================================================================//
 
 
-			  running_amtTotaliser1 = working_amtTotaliser1 + price_real1;
+			  running_amtTotaliser1 = (working_amtTotaliser1 + price_real1);
 
-			  running_amtTotaliser1c = working_amtTotaliser1c + price_upper1;
+			  running_amtTotaliser1c = (working_amtTotaliser1c + price_upper1);
 
 //			  float pricecheck = running_amtTotaliser1c - priceOld1;
 //
@@ -11904,11 +11912,14 @@ void correctArray1(float v[4], corrected_sid sid)
     bool corrected;
     char str[200];
 
+    //v[0] is the current value
+
     do {
         corrected = false;
 
         // Check if v[3] <= v[2] <= v[1] <= v[0] with differences <= 0.9
-        for (int8_t i = 3; i > 0; i--) {
+        for (int8_t i = 3; i > 0; i--)
+        {
             if (v[i - 1] < v[i] || fabs(v[i - 1] - v[i]) > 0.9)
             {
 			  #if DEBUG

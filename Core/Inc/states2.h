@@ -176,7 +176,7 @@ eSystemState filling_resumecommand_Handler2(void);
 eSystemState mamo_Handler2(void);
 ///////////////////////////////////////////////////////////
 
-
+eSystemState tone_Handler2(void);
 
 
 //typedef enum

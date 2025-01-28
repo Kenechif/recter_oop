@@ -361,7 +361,7 @@ extern float working_amtTotaliser2,
 			working_amtTotaliser2c,
 			running_amtTotaliser2c;
 
-extern double running_volTotaliser1_array[4],
+extern float running_volTotaliser1_array[4],
 			 running_volTotaliser1c_array[4],
 			 running_volTotaliser2_array[4],
 			 running_volTotaliser2c_array[4];
@@ -804,6 +804,7 @@ sEventMachine2 asEventMachine2 [] =
 	{_auth_resumecommand_Event, auth_resumecommand_Handler2},
 	{_filling_resumecommand_Event, filling_resumecommand_Handler2},
 	{_mamo_Event, mamo_Handler2},
+	{_tone_Event, tone_Handler2},
 	{_no_Event, 0},
 };
 
@@ -7392,7 +7393,7 @@ eSystemState filling_State_Handler2(void)
 	    running_volTotaliser2_tmin3 = running_volTotaliser2_tmin2;
 	    running_volTotaliser2_tmin2 = running_volTotaliser2_tmin1;
 		running_volTotaliser2_tmin1 = running_volTotaliser2;
-		running_volTotaliser2 = working_volTotaliser2 + amt_real2;
+		running_volTotaliser2 = (working_volTotaliser2 + amt_real2);
 
 		running_volTotaliser2_array[0] = running_volTotaliser2;
 		running_volTotaliser2_array[1] = running_volTotaliser2_tmin1;
@@ -7478,29 +7479,29 @@ eSystemState filling_State_Handler2(void)
 
 		//----------------------------------------------------------------------------//
 
-		running_amtTotaliser2  = working_amtTotaliser2  + price_real2;
+		running_amtTotaliser2  = (working_amtTotaliser2  + price_real2);
 
 		//============================================================================//
 
 		//----------------------------------------------------------------------------//
-		running_amtTotaliser2c = working_amtTotaliser2c + price_upper2;
+		running_amtTotaliser2c = (working_amtTotaliser2c + price_upper2);
 
 		//============================================================================//
 
 		//----------------------------------------------------------------------------//
 
 
-		   float pricecheck = running_amtTotaliser2c - priceOld2;
-
-		   if (pricecheck >= 1000.00)
-		   {
-			   priceOld2 = running_amtTotaliser2c;
-			   save_amountSend(side_b);
-
-			   char str[65];
-			   sprintf(str, "[Side-B]... #%0.2f intermittent worth of sales made now!", pricecheck);
-			   server_write(str);
-		   }
+//		   float pricecheck = running_amtTotaliser2c - priceOld2;
+//
+//		   if (pricecheck >= 1000.00)
+//		   {
+//			   priceOld2 = running_amtTotaliser2c;
+//			   save_amountSend(side_b);
+//
+//			   char str[65];
+//			   sprintf(str, "[Side-B]... #%0.2f intermittent worth of sales made now!", pricecheck);
+//			   server_write(str);
+//		   }
 
 
 //	    running_volTotaliser2  = working_volTotaliser2  + amt_real2;
@@ -7538,6 +7539,17 @@ eSystemState filling_State_Handler2(void)
 //	  old_r_volTotaliser2 = r_volTotaliser2;   //update...
 //
 //	  old_r_amtTotaliser2 = r_amtTotaliser2;   //update...
+
+//	  if (totaliser_vol2c - previous_totaliserVol2c >= THRESHOLD_TV)
+	  if (amt_middle2 - previous_totaliserVol2c >= THRESHOLD_TV)
+	  {
+//			previous_totaliserVol2c = totaliser_vol2c;
+			previous_totaliserVol2c = amt_middle2;
+
+			totalizer_saveStatus2 = UNSAVED_TO_MAIN_TOTALIZER;
+			save_totaliserFrequent_fram(side_b);
+			save_totaliserFrequent_eeprom(side_b);
+	  }
 
 //============================================================
 	  if (t2 > LCD_UPDATE_RATE)
@@ -8387,12 +8399,16 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 //	}
 //  else
 //   {
-	   while(retrieve_totaliser_fram(side_b) != OK)   //If it fails, retry 5X
+
+	   ////////////////////////////////////////////////////////////////////////////////////////////////////////
+	   // DO A TOTALIZER DATA RETRIEVAL TO GUARD AGAINST WORKING WITH ANY POSSIBLE CORRUPT TOTALIZER RAM VALUE
+	   ////////////////////////////////////////////////////////////////////////////////////////////////////////
+	   while(retrieve_totaliser_fram(operating_side) != OK)   //If it fails, retry 5X
 	   {
 			static uint8_t try = 0;
 			if(try++ >= 5)
 			{
-				while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+				while(retrieve_totaliser_eeprom(operating_side) != OK)
 				{
 					if(try++ >= 10)
 					{
@@ -8474,8 +8490,8 @@ eSystemState authorised_nozzleup_State_Handler2(void)
   mech_totalizer2 = (int) mechTotalizer2;
   mech_totalizer_old2 = mech_totalizer2;
 
-  previous_totaliserVol2c = totaliser_vol2c;
-
+//  previous_totaliserVol2c = totaliser_vol2c;
+  previous_totaliserVol2c = amt_middle2;
 
 //  running_volTotaliser2_tmin3 = totaliser_vol2;
 
@@ -9515,7 +9531,7 @@ eSystemState nozzledown_Handler2(void)
 		    running_volTotaliser2_tmin3 = running_volTotaliser2_tmin2;
 		    running_volTotaliser2_tmin2 = running_volTotaliser2_tmin1;
 			running_volTotaliser2_tmin1 = running_volTotaliser2;
-			running_volTotaliser2 = working_volTotaliser2 + amt_real2;
+			running_volTotaliser2 = (working_volTotaliser2 + amt_real2);
 
 			running_volTotaliser2_array[0] = running_volTotaliser2;
 			running_volTotaliser2_array[1] = running_volTotaliser2_tmin1;
@@ -9559,24 +9575,24 @@ eSystemState nozzledown_Handler2(void)
 			//============================================================================//
 
 
-			running_amtTotaliser2 = working_amtTotaliser2 + price_real2;
+			running_amtTotaliser2 = (working_amtTotaliser2 + price_real2);
 
-			running_amtTotaliser2c = working_amtTotaliser2c + price_upper2;
+			running_amtTotaliser2c = (working_amtTotaliser2c + price_upper2);
 			//----------------------------------------------------------------------------//
 
 			//============================================================================//
 
-		   float pricecheck = running_amtTotaliser2c - priceOld2;
-
-		   if (pricecheck >= 1000.00)
-		   {
-			   priceOld2 = running_amtTotaliser2c;
-			   save_amountSend(side_b);
-
-			   char str[65];
-			   sprintf(str, "[Side-B]... #%0.2f intermittent worth of sales made now!", pricecheck);
-			   server_write(str);
-		   }
+//		   float pricecheck = running_amtTotaliser2c - priceOld2;
+//
+//		   if (pricecheck >= 1000.00)
+//		   {
+//			   priceOld2 = running_amtTotaliser2c;
+//			   save_amountSend(side_b);
+//
+//			   char str[65];
+//			   sprintf(str, "[Side-B]... #%0.2f intermittent worth of sales made now!", pricecheck);
+//			   server_write(str);
+//		   }
 
 
 			r_volTotaliser2 = floor( scale_to_original2(running_volTotaliser2c) );
@@ -9614,13 +9630,13 @@ eSystemState nozzledown_Handler2(void)
 			  	  mech_totalizer_old2 = mech_totalizer2;
 			  	//-----------------------------------------------------//
 
-			  	if (totaliser_vol2c - previous_totaliserVol2c >= THRESHOLD_TV)
-				{
-					previous_totaliserVol2c = totaliser_vol2c;
-
-					save_totaliserFrequent_fram(side_b);
-					save_totaliserFrequent_eeprom(side_b);
-				}
+//			  	if (totaliser_vol2c - previous_totaliserVol2c >= THRESHOLD_TV)
+//				{
+//					previous_totaliserVol2c = totaliser_vol2c;
+//
+//					save_totaliserFrequent_fram(side_b);
+//					save_totaliserFrequent_eeprom(side_b);
+//				}
 
 		 //============================================================
 
@@ -10317,7 +10333,7 @@ void do_calcs2 ()
 		    running_volTotaliser2_tmin3 = running_volTotaliser2_tmin2;
 		    running_volTotaliser2_tmin2 = running_volTotaliser2_tmin1;
 			running_volTotaliser2_tmin1 = running_volTotaliser2;
-			running_volTotaliser2 = working_volTotaliser2 + amt_real2;
+			running_volTotaliser2 = (working_volTotaliser2 + amt_real2);
 
 			running_volTotaliser2_array[0] = running_volTotaliser2;
 			running_volTotaliser2_array[1] = running_volTotaliser2_tmin1;
@@ -10362,25 +10378,25 @@ void do_calcs2 ()
 			//============================================================================//
 
 
-		  running_amtTotaliser2  = working_amtTotaliser2  + price_real2;
+		  running_amtTotaliser2  = (working_amtTotaliser2  + price_real2);
 
-		  running_amtTotaliser2c = working_amtTotaliser2c + price_upper2;
+		  running_amtTotaliser2c = (working_amtTotaliser2c + price_upper2);
 		  //----------------------------------------------------------------------------//
 
 			//============================================================================//
 
 
-		  float pricecheck = running_amtTotaliser2c - priceOld2;
-
-		   if (pricecheck >= 1000.00)
-		   {
-			   priceOld2 = running_amtTotaliser2c;
-			   save_amountSend(side_b);
-
-			   char str[65];
-			   sprintf(str, "[Side-B]... #%0.2f intermittent worth of sales made now!", pricecheck);
-			   server_write(str);
-		   }
+//		  float pricecheck = running_amtTotaliser2c - priceOld2;
+//
+//		   if (pricecheck >= 1000.00)
+//		   {
+//			   priceOld2 = running_amtTotaliser2c;
+//			   save_amountSend(side_b);
+//
+//			   char str[65];
+//			   sprintf(str, "[Side-B]... #%0.2f intermittent worth of sales made now!", pricecheck);
+//			   server_write(str);
+//		   }
 
 		   totaliser_vol2 = scale_to_original2(running_volTotaliser2);   // update totaliser
 		   totaliser_vol2c = scale_to_original2(running_volTotaliser2c); // update totaliser
@@ -10429,13 +10445,13 @@ void do_calcs2 ()
 				  	  mech_totalizer_old2 = mech_totalizer2;
 				  	//-----------------------------------------------------//
 
-				  	if (totaliser_vol2c - previous_totaliserVol2c >= THRESHOLD_TV)
-					{
-						previous_totaliserVol2c = totaliser_vol2c;
-
-						save_totaliserFrequent_fram(side_b);
-						save_totaliserFrequent_eeprom(side_b);
-					}
+//				  	if (totaliser_vol2c - previous_totaliserVol2c >= THRESHOLD_TV)
+//					{
+//						previous_totaliserVol2c = totaliser_vol2c;
+//
+//						save_totaliserFrequent_fram(side_b);
+//						save_totaliserFrequent_eeprom(side_b);
+//					}
 
 			//-------------------------------------------------------------------
 
@@ -10499,9 +10515,9 @@ void do_calcs2 ()
 
 
 
-		  running_amtTotaliser2  = working_amtTotaliser2  + price_real2;
+		  running_amtTotaliser2  = (working_amtTotaliser2  + price_real2);
 		  //----------------------------------------------------------------------------//
-		  running_amtTotaliser2c = working_amtTotaliser2c + price_upper2;
+		  running_amtTotaliser2c = (working_amtTotaliser2c + price_upper2);
 		  //----------------------------------------------------------------------------//
 
 		  //============================================================================//
@@ -10607,23 +10623,23 @@ void do_calcs2 ()
 
 
 
-		  running_amtTotaliser2  = working_amtTotaliser2  + price_real2;
+		  running_amtTotaliser2  = (working_amtTotaliser2  + price_real2);
 		  //----------------------------------------------------------------------------//
-		  running_amtTotaliser2c = working_amtTotaliser2c + price_upper2;
+		  running_amtTotaliser2c = (working_amtTotaliser2c + price_upper2);
 		  //----------------------------------------------------------------------------//
 
 
-		  float pricecheck = running_amtTotaliser2c - priceOld2;
-
-		  if (pricecheck >= 1000.00)
-		  {
-			   priceOld2 = running_amtTotaliser2c;
-			   save_amountSend(side_b);
-
-			   char str[65];
-			   sprintf(str, "[Side-B]... #%0.2f intermittent worth of sales made now!", pricecheck);
-			   server_write(str);
-		  }
+//		  float pricecheck = running_amtTotaliser2c - priceOld2;
+//
+//		  if (pricecheck >= 1000.00)
+//		  {
+//			   priceOld2 = running_amtTotaliser2c;
+//			   save_amountSend(side_b);
+//
+//			   char str[65];
+//			   sprintf(str, "[Side-B]... #%0.2f intermittent worth of sales made now!", pricecheck);
+//			   server_write(str);
+//		  }
 
 		   totaliser_vol2 = scale_to_original2(running_volTotaliser2);   // update totaliser
 		   totaliser_vol2c = scale_to_original2(running_volTotaliser2c); // update totaliser
@@ -11203,10 +11219,17 @@ void correctArray2(float v[4], corrected_sid sid)
         corrected = false;
 
         // Check if v[3] <= v[2] <= v[1] <= v[0] with differences <= 0.9
-        for (int8_t i = 3; i > 0; i--) {
-            if (v[i - 1] < v[i] || fabs(v[i - 1] - v[i]) > 0.9)
+        for (int8_t i = 3; i > 0; i--)
+        {
+//            if (v[i - 1] < v[i] || fabs(v[i - 1] - v[i]) > 0.9)
+        	if ( (v[i - 1] < v[i]) || (fabs(v[i - 1] - v[i]) > 0.9) )
             {
 //                printf("Error detected at v[%d]: %.2f\n", i - 1, v[i - 1]);
+
+        		float v0 = v[i - 1];
+        		float v1 = v[i];
+        		float v01 = fabs(v[i - 1] - v[i]);
+
 
                 #if DEBUG
             	if(sid == tot_b)
