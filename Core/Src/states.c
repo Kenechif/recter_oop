@@ -1292,12 +1292,13 @@ eSystemState nozzledown_Handler(void)
 	 reset_timer(30);
 	 stop_timer();
 
-	 if(  ( (eLastState1 == idle_State) && (eNextState1 == idle_State) ) || ( (eLastState1 == filledmamo_State) && (eNextState1 == filledmamo_State) ) )
-	 {
-//		  return idle_State;
-		 ;
-	 }
-	 else
+//	 if(  ( (eLastState1 == idle_State) && (eNextState1 == idle_State) ) || ( (eLastState1 == filledmamo_State) && (eNextState1 == filledmamo_State) ) )
+//	 {
+////		  return idle_State;
+//		 ;
+//	 }
+//	 else
+	 if( (eLastState1 == filling_State) && (eNextState1 == filling_State) )
 	 {
 		  do_calcs();
 		  get_time();
@@ -9443,9 +9444,10 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 //		currentValue_tv1 = amt_middle1;
 //		previousValue_tv1 = currentValue_tv1;
-//		previous_totaliserVol1c = totaliser_vol1c;
 
-		previous_totaliserVol1c = amt_middle1;
+		previous_totaliserVol1c = totaliser_vol1c;
+
+//		previous_totaliserVol1c = amt_middle1;
 
 		mechTotalizer1 = (mechTotalizer1_ + amt_middle1);
 
@@ -10162,11 +10164,11 @@ eSystemState filling_State_Handler(void)
 //	  old_r_volTotaliser1 = r_volTotaliser1;   //update...
 //	  old_r_amtTotaliser = r_amtTotaliser;
 
-//	  if (totaliser_vol1c - previous_totaliserVol1c >= THRESHOLD_TV)
-	  if (amt_middle1 - previous_totaliserVol1c >= THRESHOLD_TV)
+	  if (totaliser_vol1c - previous_totaliserVol1c >= THRESHOLD_TV)
+//	  if (amt_middle1 - previous_totaliserVol1c >= THRESHOLD_TV)
 	  {
-//			previous_totaliserVol1c = totaliser_vol1c;
-			previous_totaliserVol1c = amt_middle1;
+			previous_totaliserVol1c = totaliser_vol1c;
+//			previous_totaliserVol1c = amt_middle1;
 
 			totalizer_saveStatus1 = UNSAVED_TO_MAIN_TOTALIZER;
 			save_totaliserFrequent_fram(side_a);
@@ -11926,17 +11928,28 @@ void correctArray1(float v[4], corrected_sid sid)
             	if(sid == tot_a)
             	{
 					sprintf(str,
-							"Totalizer1 Error detected @ v[%d]: %.2f\n",
+							"\n\nTotalizer1 Error detected @ v[%d]: %.2f\n",
 							i - 1, v[i - 1]);
             	}
             	else if(sid == amt_a)
             	{
 					sprintf(str,
-							"Litre-Transaction1 Error detected @ v[%d]: %.2f\n",
+							"\n\nLitre-Transaction1 Error detected @ v[%d]: %.2f\n",
 							i - 1, v[i - 1]);
             	}
 
 				HAL_UART_Transmit(&huart3, str, strlen((char*)str), HAL_MAX_DELAY);
+
+				HAL_Delay(1);
+
+				memset(str, '\0', sizeof(str));
+				sprintf(str,
+						"Pump-1 Status : [ %d ]\n",
+						pump_status_1);
+				HAL_UART_Transmit(&huart3, str, strlen((char*)str), HAL_MAX_DELAY);
+
+				HAL_Delay(1);
+
 			  #endif
 
                 // Correct the error based on the more recent or older value
@@ -11953,13 +11966,13 @@ void correctArray1(float v[4], corrected_sid sid)
                 if(sid == tot_a)
 				{
 					sprintf(str,
-							"Corrected Totalizer1 @ v[%d] to: %.2f\n\n",
+							"Corrected Totalizer1 @ v[%d] to: %.2f\n",
 							i - 1, v[i - 1]);
 				}
 				else if(sid == amt_a)
 				{
 					sprintf(str,
-							"Corrected Litre-Transaction1 @ v[%d] to: %.2f\n\n",
+							"Corrected Litre-Transaction1 @ v[%d] to: %.2f\n",
 							i - 1, v[i - 1]);
 				}
 

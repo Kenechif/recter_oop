@@ -40,14 +40,14 @@ extern "C" {
 
 //:::::::::::::::::::::::::::::::::::::::::::://
 
-	  #define DEBUG 0
-//	  #define DEBUG 1
+//	  #define DEBUG 0
+	  #define DEBUG 1
 
-	  #define DEBUG1 0
-//	  #define DEBUG1 1
+//	  #define DEBUG1 0
+	  #define DEBUG1 1
 
-	  #define DEBUG2 0
-//	  #define DEBUG2 1
+//	  #define DEBUG2 0
+	  #define DEBUG2 1
 
 	  #define PRODUCT_TYPE _DPK
 
@@ -131,7 +131,7 @@ extern "C" {
 
 #define TONE_DURATION 				2
 
-#define THRESHOLD_TV 				0.5
+#define THRESHOLD_TV 				0.1    //0.1L
 
 #define SAVED_TO_MAIN_TOTALIZER     0
 #define UNSAVED_TO_MAIN_TOTALIZER   1
