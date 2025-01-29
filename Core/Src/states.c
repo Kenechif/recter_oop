@@ -1511,8 +1511,16 @@ eSystemState nozzledown_Handler(void)
 
 		r_volTotaliser1 = floor( scale_to_original1(running_volTotaliser1c) );
 
-		mechTotalizer1 = (mechTotalizer1_ + amt_middle1);
+
+		#ifdef PULSER_BASED_TV
+				mechTotalizer1 = (mechTotalizer1_ + pulser2amt(current_pulser1));
+		#else
+				mechTotalizer1 = (mechTotalizer1_ + amt_middle1);
+		#endif
+
 		mech_totalizer1 = (int) mechTotalizer1;
+
+//		pulser2amt(current_pulser1);
 
 //		if(r_volTotaliser1 != old_r_volTotaliser1)
 //		{
@@ -9449,7 +9457,13 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 //		previous_totaliserVol1c = amt_middle1;
 
-		mechTotalizer1 = (mechTotalizer1_ + amt_middle1);
+//		mechTotalizer1 = (mechTotalizer1_ + amt_middle1);
+
+		#ifdef PULSER_BASED_TV
+				mechTotalizer1 = (mechTotalizer1_ + pulser2amt(current_pulser1));
+		#else
+				mechTotalizer1 = (mechTotalizer1_ + amt_middle1);
+		#endif
 
 		mech_totalizer1 = (int) mechTotalizer1;
 		mech_totalizer_old1 = mech_totalizer1;
@@ -10138,7 +10152,13 @@ eSystemState filling_State_Handler(void)
 //         for totaliser toggle.
 	  r_volTotaliser1 	  = floor(scale_to_original1(running_volTotaliser1c) );
 
-	  mechTotalizer1 = (mechTotalizer1_ + amt_middle1);
+//	  mechTotalizer1 = (mechTotalizer1_ + amt_middle1);
+
+		#ifdef PULSER_BASED_TV
+				mechTotalizer1 = (mechTotalizer1_ + pulser2amt(current_pulser1));
+		#else
+				mechTotalizer1 = (mechTotalizer1_ + amt_middle1);
+		#endif
 
 	  mech_totalizer1 = (int)mechTotalizer1;
 
@@ -10854,7 +10874,13 @@ void do_calcs ()
 				r_volTotaliser1 = floor( scale_to_original1(running_volTotaliser1c) );
 
 
-				mechTotalizer1 = (mechTotalizer1_ + amt_middle1);
+//				mechTotalizer1 = (mechTotalizer1_ + amt_middle1);
+
+				#ifdef PULSER_BASED_TV
+						mechTotalizer1 = (mechTotalizer1_ + pulser2amt(current_pulser1));
+				#else
+						mechTotalizer1 = (mechTotalizer1_ + amt_middle1);
+				#endif
 
 				mech_totalizer1 = (int) mechTotalizer1;
 

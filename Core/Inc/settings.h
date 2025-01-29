@@ -55,6 +55,8 @@ extern "C" {
 
 	  #define OTP_ENABLE
 
+//	  #define PULSER_BASED_TV
+
 //	  #define AUTO_SALE_TEST
 
 //:::::::::::::::::::::::::::::::::::::::::::://
