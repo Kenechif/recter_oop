@@ -102,6 +102,8 @@ bool keypad_zerorise1 = true;
 
 uint16_t tk_int_;
 
+extern int tone_duration1 = 0;
+
 //===========================================
 
 
@@ -1716,7 +1718,7 @@ eSystemState timeout_Handler(void)
 eSystemState tone_Handler(void)
 {
 //	resetTimer_tone1(TONE_DURATION);
-	startTimer_tone1(TONE_DURATION);
+	startTimer_tone1(tone_duration1);
 
 	HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 
@@ -2535,14 +2537,16 @@ uint8_t long_press_log()
 	{
         pressed_ = 0;
         log_buttonpress_tmr = 0;   //clr timer.
-        HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+//        HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 	}
 	else if (ky == 1)
 	{
 		if(settings_stream2[0].keypress_tone == Yes)
 		{
-			HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-			HAL_Delay(10);
+//			HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+//			HAL_Delay(10);
+			timerFlag_tone1 = 1;
+			tone_duration1 = 10;
 		}
 
 	}
@@ -2552,11 +2556,11 @@ uint8_t long_press_log()
 	   log_buttonpress_tmr = 3;
 		pressed_ = 1;
 
-		HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+//		HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 		return 1;
 	 }
 
-	 HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+//	 HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 	 return 0;
 }
 /////////////////////////////////////////////////////////////////
@@ -2586,14 +2590,16 @@ uint8_t long_press_tot()
 
 			if(settings_stream2[0].keypress_tone == Yes)
 			{
-				  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-				  HAL_Delay(10);
+//				  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+//				  HAL_Delay(10);
+				  timerFlag_tone1 = 1;
+				  tone_duration1 = 10;
 			}
 		}
 
 		 else if (key19State == 0)   // Key19 is released
 		 {
-			   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+//			   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 		 }
 
 
@@ -2611,8 +2617,10 @@ uint8_t long_press_tot()
 
 				 if(settings_stream2[0].keypress_tone == Yes)
 				 {
-					 HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-					 HAL_Delay(10);
+//					 HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+//					 HAL_Delay(10);
+					 timerFlag_tone1 = 1;
+					 tone_duration1 = 10;
 				 }
 		  }
 
@@ -5440,7 +5448,7 @@ eSystemState progState_Handler(void)
 			  if( (readpwr() == 0)||(read_p_pwr() == 0) )
 			  {
 				  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-				  HAL_Delay(200);
+				  HAL_Delay(100);
 				  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 				  stop_flow1();
 
@@ -5572,7 +5580,7 @@ eSystemState progState_Handler(void)
 					go_timeOut1 = 1;
 
 					HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-					HAL_Delay(200);
+					HAL_Delay(100);
 					HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 					stop_flow1();
 
@@ -7806,7 +7814,7 @@ eSystemState idleState_Handler(void)
 		   modem_power(DEACTIVATE);
 
 		   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-		   HAL_Delay(200);
+		   HAL_Delay(100);
 		   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 
 		   //count time elapsed
@@ -9571,7 +9579,7 @@ eSystemState filling_State_Handler(void)
 	  if( (readpwr() == 0)||(read_p_pwr() == 0) )
 	  {
 		  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-		  HAL_Delay(200);
+		  HAL_Delay(100);
 		  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 		  filling1 = 0;
 		  stop_flow1();
@@ -9697,7 +9705,7 @@ eSystemState filling_State_Handler(void)
 			go_timeOut1 = 1;
 
 			HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-			HAL_Delay(200);
+			HAL_Delay(100);
 			HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 			filling1 = 0;
 			stop_flow1();
@@ -11661,7 +11669,7 @@ eSystemState pnpState_Handler(void)
 		   modem_power(DEACTIVATE);
 
 		   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-		   HAL_Delay(200);
+		   HAL_Delay(100);
 		   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 
 		   //count time elapsed

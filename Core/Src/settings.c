@@ -2885,7 +2885,7 @@ uint8_t clear_totaliserFrequent_eeprom(pump_sid side)
 		totaliserFrequent_storeA.totaliserVol_real = 0.0;
 		totaliserFrequent_storeA.totaliserAmount_cal = 0.0;
 		totaliserFrequent_storeA.totaliserAmount_real = 0.0;
-		totaliserFrequent_storeA.totalizer_save_status = UNSAVED_TO_MAIN_TOTALIZER;
+		totaliserFrequent_storeA.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
 		totaliserFrequent_storeA.lastVolumeSale_cal = 0.0;
 		totaliserFrequent_storeA.lastAmountSale_cal = 0.0;
 
@@ -2908,7 +2908,7 @@ uint8_t clear_totaliserFrequent_eeprom(pump_sid side)
 				totaliserFrequent_storeA.totaliserVol_real = 0.0;
 				totaliserFrequent_storeA.totaliserAmount_cal = 0.0;
 				totaliserFrequent_storeA.totaliserAmount_real = 0.0;
-				totaliserFrequent_storeA.totalizer_save_status = UNSAVED_TO_MAIN_TOTALIZER;
+				totaliserFrequent_storeA.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
 				totaliserFrequent_storeA.lastVolumeSale_cal = 0.0;
 				totaliserFrequent_storeA.lastAmountSale_cal = 0.0;
 
@@ -2934,7 +2934,7 @@ uint8_t clear_totaliserFrequent_eeprom(pump_sid side)
 		totaliserFrequent_storeB.totaliserVol_real = 0.0;
 		totaliserFrequent_storeB.totaliserAmount_cal = 0.0;
 		totaliserFrequent_storeB.totaliserAmount_real = 0.0;
-		totaliserFrequent_storeB.totalizer_save_status = UNSAVED_TO_MAIN_TOTALIZER;
+		totaliserFrequent_storeB.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
 		totaliserFrequent_storeB.lastVolumeSale_cal = 0.0;
 		totaliserFrequent_storeB.lastAmountSale_cal = 0.0;
 
@@ -2957,7 +2957,7 @@ uint8_t clear_totaliserFrequent_eeprom(pump_sid side)
 				totaliserFrequent_storeB.totaliserVol_real = 0.0;
 				totaliserFrequent_storeB.totaliserAmount_cal = 0.0;
 				totaliserFrequent_storeB.totaliserAmount_real = 0.0;
-				totaliserFrequent_storeB.totalizer_save_status = UNSAVED_TO_MAIN_TOTALIZER;
+				totaliserFrequent_storeB.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
 				totaliserFrequent_storeB.lastVolumeSale_cal = 0.0;
 				totaliserFrequent_storeB.lastAmountSale_cal = 0.0;
 
@@ -2996,7 +2996,7 @@ uint8_t clear_totaliserFrequent_fram(pump_sid side)
 		totaliserFrequent_storeA.totaliserVol_real = 0.0;
 		totaliserFrequent_storeA.totaliserAmount_cal = 0.0;
 		totaliserFrequent_storeA.totaliserAmount_real = 0.0;
-		totaliserFrequent_storeA.totalizer_save_status = UNSAVED_TO_MAIN_TOTALIZER;
+		totaliserFrequent_storeA.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
 		totaliserFrequent_storeA.lastVolumeSale_cal = 0.0;
 		totaliserFrequent_storeA.lastAmountSale_cal = 0.0;
 
@@ -3019,7 +3019,7 @@ uint8_t clear_totaliserFrequent_fram(pump_sid side)
 				totaliserFrequent_storeA.totaliserVol_real = 0.0;
 				totaliserFrequent_storeA.totaliserAmount_cal = 0.0;
 				totaliserFrequent_storeA.totaliserAmount_real = 0.0;
-				totaliserFrequent_storeA.totalizer_save_status = UNSAVED_TO_MAIN_TOTALIZER;
+				totaliserFrequent_storeA.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
 				totaliserFrequent_storeA.lastVolumeSale_cal = 0.0;
 				totaliserFrequent_storeA.lastAmountSale_cal = 0.0;
 
@@ -3045,7 +3045,7 @@ uint8_t clear_totaliserFrequent_fram(pump_sid side)
 		totaliserFrequent_storeB.totaliserVol_real = 0.0;
 		totaliserFrequent_storeB.totaliserAmount_cal = 0.0;
 		totaliserFrequent_storeB.totaliserAmount_real = 0.0;
-		totaliserFrequent_storeB.totalizer_save_status = UNSAVED_TO_MAIN_TOTALIZER;
+		totaliserFrequent_storeB.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
 		totaliserFrequent_storeB.lastVolumeSale_cal = 0.0;
 		totaliserFrequent_storeB.lastAmountSale_cal = 0.0;
 
@@ -3068,7 +3068,7 @@ uint8_t clear_totaliserFrequent_fram(pump_sid side)
 				totaliserFrequent_storeB.totaliserVol_real = 0.0;
 				totaliserFrequent_storeB.totaliserAmount_cal = 0.0;
 				totaliserFrequent_storeB.totaliserAmount_real = 0.0;
-				totaliserFrequent_storeB.totalizer_save_status = UNSAVED_TO_MAIN_TOTALIZER;
+				totaliserFrequent_storeB.totalizer_save_status = SAVED_TO_MAIN_TOTALIZER;
 				totaliserFrequent_storeB.lastVolumeSale_cal = 0.0;
 				totaliserFrequent_storeB.lastAmountSale_cal = 0.0;
 

@@ -250,6 +250,8 @@ int8_t val;
 
 int t, t2 = 0;
 
+uint8_t key__ = 0;
+
 uint16_t _tt1 = 0,
 		 _tt2 = 0,
 //		 timer_ep = 0,
@@ -2425,6 +2427,21 @@ skip_test:
 //    clear_totaliser_fram(side_b);
 //    clear_totaliser_eeprom(side_b);
 
+//    totaliser_vol1c = 4795.750;  //161.69;
+//    totaliser_vol1 = 4795.750;
+//    totaliser_amt1c = 0.00;
+//   	totaliser_amt1 = 0.00;
+//   	save_totaliser_fram(side_a);
+//   	save_totaliser_eeprom(side_a);
+//
+//    totaliser_vol2c = 16106.770;  //161.69;
+//    totaliser_vol2 = 16106.770;
+//    totaliser_amt2c = 0.00;
+//	totaliser_amt2 = 0.00;
+//	save_totaliser_fram(side_b);
+//	save_totaliser_eeprom(side_b);
+
+
 
     while(retrieve_lastSale_fram(side_a) != OK)   //If it fails, retry 5X
        {
@@ -3496,6 +3513,7 @@ int  read_event2()
 			else if( (timerFlagOld_tone2 == 1) && (timerFlag_tone2 == 0) )
 			{
 				HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+				tone_duration2 = 0;
 			}
 
 			timerFlagOld_tone2 = timerFlag_tone2;
@@ -4290,6 +4308,7 @@ uint8_t read_event1_1(void)
 	else if( (timerFlagOld_tone1 == 1) && (timerFlag_tone1 == 0) )
 	{
 		HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+		tone_duration1 = 0;
 	}
 
 	timerFlagOld_tone1 = timerFlag_tone1;
@@ -4720,14 +4739,20 @@ bool nozzleSwitch_read1(void)
     			nozzle_flag = 1;
 
     			if(eLastState1 != pnp_State)
+    			{
     				timerFlag_tone1 = 1;
+    				tone_duration1 = 300;
+    			}
 //    			HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 			}
 			else
 			{
 				nozzle_flag = 0;
 				if(eLastState1 != pnp_State)
+				{
 					timerFlag_tone1 = 1;
+					tone_duration1 = 300;
+				}
 //				HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 			}
     	}
@@ -4764,14 +4789,20 @@ bool nozzleSwitch_read2(void)
     			nozzle_flag2 = 1;
 
     			if(eLastState2 != pnp_State)
+    			{
     				timerFlag_tone2 = 1;
+    				tone_duration2 = 300;
+    			}
 			}
 			else
 			{
 				nozzle_flag2 = 0;
 
 				if(eLastState2 != pnp_State)
+				{
     				timerFlag_tone2 = 1;
+    				tone_duration2 = 300;
+				}
 			}
     	}
     }
@@ -4915,6 +4946,8 @@ uint8_t debounceKey1(void)
 
       uint8_t key = keypad_lcd(0, key_lcd);  //write lcd and read keypad.
 
+      key__ = key;
+
       uint32_t currentTime = HAL_GetTick(); // Get the current system tick
 
       switch (state1)
@@ -4938,7 +4971,7 @@ uint8_t debounceKey1(void)
         	  	  	  	  	 else
         	  	  	  	  		 nonKeyPress1++;
 
-							 if (duration > DEBOUNCE_TIME_MS)
+							 if(duration > DEBOUNCE_TIME_MS)
 							 {
 								if (key != 0)
 								{
@@ -4956,7 +4989,7 @@ uint8_t debounceKey1(void)
 			   	   	   	   	   	{
 			   	   	   	   	   		if ( (delay_nonBlocking1(keypad_delay)) == 1)
 									{
-										HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+//										HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 
 										// Key released before long press delay
 										state1 = KEY_IDLE;
@@ -4984,10 +5017,12 @@ uint8_t debounceKey1(void)
 
 										   if(settings_stream2[0].keypress_tone == Yes)
 										   {
-											  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+//											  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+											  timerFlag_tone1 = 1;
+											  tone_duration1 = 70;
 										   }
 
-										   HAL_Delay(keypad_delay);
+//										   HAL_Delay(keypad_delay);
 
 										   keyPress = true;
 
@@ -5109,7 +5144,7 @@ uint8_t debounceKey1(void)
 			   	   	   	   	   	{
 			   	   	   	   	   		if ( (delay_nonBlocking2(keypad_delay)) == 1)
 									{
-										HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+//										HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 
 										// Key released before long press delay
 										state2 = KEY_IDLE;
@@ -5137,7 +5172,9 @@ uint8_t debounceKey1(void)
 
 										   if(settings_stream2[1].keypress_tone == Yes)
 										   {
-											  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+//											  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+											  timerFlag_tone2 = 1;
+											  tone_duration2 = 70;
 										   }
 
 //										   HAL_Delay(keypad_delay);

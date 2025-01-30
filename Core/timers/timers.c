@@ -127,6 +127,10 @@ void toggle_led(void)
 
 	 static int count;
 	 dec_var();
+
+	 decTimer_tone1();   //decrement the tone event timer
+	 decTimer_tone2();   //decrement the tone event timer
+
 	 count++;
 	 if(count >= 1000)  //1 sec
 	 {
@@ -147,14 +151,12 @@ void toggle_led(void)
 		 // seperate these timer later into another routine
 
 		 dec_timer();   //decrement the events timer.
-		 decTimer_tone1();   //decrement the tone event timer
 	     tot_buttonpress_tmr++;
 	     log_buttonpress_tmr++;
 	     key_buttonpress_tmr++;
 	     progExit_buttonpress_tmr1++;
 
 	     dec_timer2();   //decrement the events timer.
-	     decTimer_tone2();   //decrement the tone event timer
 	     tot_buttonpress_tmr2++;
 		 log_buttonpress_tmr2++;
 		 key_buttonpress_tmr2++;

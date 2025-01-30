@@ -40,18 +40,18 @@ extern "C" {
 
 //:::::::::::::::::::::::::::::::::::::::::::://
 
-//	  #define DEBUG 0
-	  #define DEBUG 1
+	  #define DEBUG 0
+//	  #define DEBUG 1
 
-//	  #define DEBUG1 0
-	  #define DEBUG1 1
+	  #define DEBUG1 0
+//	  #define DEBUG1 1
 
-//	  #define DEBUG2 0
-	  #define DEBUG2 1
+	  #define DEBUG2 0
+//	  #define DEBUG2 1
 
 	  #define PRODUCT_TYPE _DPK
 
-	  #define DEV_MODE
+//	  #define DEV_MODE
 
 	  #define OTP_ENABLE
 
@@ -131,7 +131,7 @@ extern "C" {
 #define RECOVERED                   1
 #define NO_RECOVERY                 0
 
-#define TONE_DURATION 				2
+#define TONE_DURATION 				1
 
 #define THRESHOLD_TV 				0.1    //0.1L
 
@@ -834,7 +834,8 @@ uint8_t status_change_pump2,
 		hardwareErrorFlag_source2,
 		mamo_fillingInfo_send2;
 
-
+int tone_duration1,
+	tone_duration2;
 ////==================================
 ////structure for settings
 //typedef struct
