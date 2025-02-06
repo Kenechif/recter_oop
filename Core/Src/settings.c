@@ -846,7 +846,7 @@ void make_settings(pump_sid side)
 	    settings_stream1[sdd].dp_vol    = 2;
 	    settings_stream1[sdd].dp_unitprice = 2;
 
-	    settings_stream1[sdd].noz_override = override;  //nooveride;
+	    settings_stream1[sdd].noz_override = nooverride;  //override;
 	    settings_stream1[sdd].max_amt_ = 999999999;   //Maximum pump litres
 
 	    settings_stream2[sdd].noz_count = 2;   // 1/2    ==> default : 2   // Level 2

@@ -138,8 +138,11 @@ extern "C" {
 #define SAVED_TO_MAIN_TOTALIZER     0
 #define UNSAVED_TO_MAIN_TOTALIZER   1
 
+
+#define BATTERY_DELAY 				2000
+
 /***********************************************************************/
-#define DEBOUNCE_TIME_MS 5  //10  //20 // Debounce period in milliseconds
+#define DEBOUNCE_TIME_MS 20  //5  //10  //20 // Debounce period in milliseconds
 #define DEBOUNCE_DELAY DEBOUNCE_TIME_MS
 #define LONG_PRESS_DELAY 500  // Long press delay
 

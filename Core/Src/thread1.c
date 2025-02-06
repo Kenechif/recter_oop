@@ -113,7 +113,8 @@ extern drive drive1,
 extern uint8_t hmacKey[];
 
 uint8_t batteryStatus = BATTERY_OK;
-volatile float batt_val = 0.0;
+//volatile float batt_val = 0.0;
+float CCRAM batt_val = 0.0;
 
 //===================================================
 #define DEV_ADDR 0xa0
@@ -264,7 +265,12 @@ uint16_t _tt1 = 0,
 		 timer_config1 = 0,
 		 timer_config2 = 0,
 		 key19Timer1 = 0,
-		 key19Timer2 = 0;
+		 key19Timer2 = 0,
+		 timer_noBatt = 0,
+		 timer_lowBatt = 0,
+		 delay_active = 0,
+		 delay_active1 = 0;
+		 ;
 //		 ep2_timer = 0;
 
 uint32_t timer_ep1,
@@ -2759,6 +2765,9 @@ skip_test:
 //	settings_stream2[0].pulser_type_ = non_quadrature;   //quadrature;
 //	settings_stream2[1].pulser_type_ = non_quadrature;   //quadrature;
 
+//	settings_stream1[0].noz_override = nooverride;
+//	settings_stream1[1].noz_override = nooverride;
+
     day = DS1307_GetDate();
 
 	if(settings_stream2[0].totalizer_day != day)
@@ -3048,13 +3057,67 @@ void run()
 		//	if( (batt_val < 1.8) && (batt_val >= 1.5) )
 			if( (batt_val < 1.48) && (batt_val >= 1.47) )   //6.0V & 6.1V
 			{
-				batteryStatus = LOW_BATTERY;
+				// Non-blocking delay function
+//				static uint32_t start_time = 0;
+//				static uint8_t delay_active = 0;
+//				uint32_t currentTime = HAL_GetTick(); // Get the current system tick
+
+				if (!delay_active) {
+					// Start the delay
+//					start_time = currentTime;
+					timer_lowBatt = 0;
+					delay_active = 1;
+				}
+				else
+				{
+					// Check if the delay has expired
+//					if ((currentTime - start_time) >= 2000)
+					if (timer_lowBatt >= 2000)
+					{
+						// Delay is over
+						delay_active = 0;
+						timer_lowBatt = 0;
+						batteryStatus = LOW_BATTERY;
+					}
+					else
+					{
+						// Delay is still active
+					}
+				}
+//				batteryStatus = LOW_BATTERY;
 			}
 		//	else if(batt_val < 1.5)
 		//	else if(batt_val < 1.0)
 			else if(batt_val < 1.47)
 			{
-				batteryStatus = NO_BATTERY;
+				// Non-blocking delay function
+//				static uint32_t start_time1 = 0;
+//				static uint8_t delay_active1 = 0;
+//				uint32_t currentTime1 = HAL_GetTick(); // Get the current system tick
+
+				if (!delay_active1) {
+					// Start the delay
+//					start_time1 = currentTime1;
+					timer_noBatt = 0;
+					delay_active1 = 1;
+				}
+				else
+				{
+					// Check if the delay has expired
+//					if ((currentTime1 - start_time1) >= 2000)
+					if (timer_noBatt >= BATTERY_DELAY)
+					{
+						// Delay is over
+						delay_active1 = 0;
+						timer_noBatt = 0;
+						batteryStatus = NO_BATTERY;
+					}
+					else
+					{
+						// Delay is still active
+					}
+				}
+//				batteryStatus = NO_BATTERY;
 			}
 			else
 			{
@@ -3211,12 +3274,12 @@ void run()
 //			 send_line3("Err5 ");
 //	}
 
-	#if sense_battery == 1
-		if( battery_read() < 1.81 )   //1.81V @ 6.4V Low_cutOff
-		{
-
-		}
-	#endif    //#if sense_battery
+//	#if sense_battery == 1
+//		if( battery_read() < 1.81 )   //1.81V @ 6.4V Low_cutOff
+//		{
+//
+//		}
+//	#endif    //#if sense_battery
 
 
 //	pulsercheck = oldPulser1 - newPulser;
@@ -4264,11 +4327,11 @@ uint8_t read_event1_1(void)
 	 //  keypress_flag = 0;
 
 	//READ STATES OF INPUTS PIN AND KEYPAD...
-	  totaliser_flag =  readtotaliser1_state();
+	  totaliser_flag = readtotaliser1_state();
 
 	  //key19_flag =  readkey19_state();
 
-	  key_flag =  readsettingskey_state();
+	  key_flag = readsettingskey_state();
 
 //	  nozzle_flag = readNozzle1();
 	  bool redundantHolder = nozzleSwitch_read1();
@@ -4398,7 +4461,7 @@ uint8_t read_event1_1(void)
 		 }
 	  //--------------------------------------------------
 			 // authorise  event capture.
-	   else if (auth_flag  == 1)
+	   else if (auth_flag == 1)
 		{
 			auth_flag = 0;
 			return _authorise_Event;
@@ -4406,7 +4469,7 @@ uint8_t read_event1_1(void)
 
 		//--------------------------------------------------
 				// authorise  command event.
-	   else if (auth_cmd_flag  == 1)
+	   else if (auth_cmd_flag == 1)
 		{
 		  //if(settings[operating_side-1].mode == offline_)
 		  //{

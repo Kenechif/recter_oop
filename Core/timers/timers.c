@@ -38,7 +38,11 @@ extern uint16_t _tt1,
 				timer_config1,
 				timer_config2,
 				key19Timer1,
-				key19Timer2;
+				key19Timer2,
+				timer_noBatt,
+				timer_lowBatt,
+				delay_active,
+				delay_active1;
 //				ep2_timer;
 
 extern uint32_t timer_ep,
@@ -107,6 +111,20 @@ void dec_var()
 
 		autoSale_timer1++;
 		autoSale_timer2++;
+
+		timer_noBatt++;
+		if (timer_noBatt >= (BATTERY_DELAY + 500) )
+		{
+			delay_active = 0;
+			timer_noBatt = 0;
+		}
+
+		timer_lowBatt++;
+		if (timer_lowBatt >= (BATTERY_DELAY + 500))
+		{
+			delay_active1 = 0;
+			timer_lowBatt = 0;
+		}
 
 	}
 //------------------------------------------------------

@@ -479,6 +479,7 @@ eSystemState write_flash_State_Handler(void)
 //			}
 
 //			 if(pump_status_1 != STATUS_MAMO_REACHED)
+			 if(settings_stream1[0].noz_override == override)
 				 keypad_zerorize();
 
 			//============================================//
@@ -515,6 +516,7 @@ eSystemState write_flash_State_Handler(void)
 //			}
 
 //			 if(pump_status_2 != STATUS_MAMO_REACHED)
+			 if(settings_stream1[1].noz_override == override)
 				 keypad_zerorize2();
 
 			//============================================//

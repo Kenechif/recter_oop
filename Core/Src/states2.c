@@ -1884,6 +1884,461 @@ eSystemState operator_State_Handler2(void)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+eSystemState keypress_Handler2(void)
+{
+
+	static allowed_xters = 6;
+	extern uint8_t error_clr_flag2;
+	extern uint8_t keyEntry2_len;
+
+//	 if(pump_type == lafeng)
+//	 if(pump_type == DN_LAFNG17K)
+	 if(settings_stream1[1].keypad__ == LAFNG17_K)
+	 {
+	   kkey2 =  lafeng_keypad[keypress_2];
+	   allowed_xters = 6;
+	 }
+	 else if (settings_stream1[1].keypad__ == LAFNG18_K)
+	 {
+	   kkey2 =  lafeng_keypad_18K[keypress_2];
+	   allowed_xters = 7;
+	 }
+	 else if (settings_stream1[1].keypad__ == LAFNG18_K_V2)
+	 {
+	   kkey2 =  lafeng_keypad_18K_V2[keypress_2];
+	   allowed_xters = 7;
+	 }
+//	 else if(pump_type == bluesky)
+//	 else if( (pump_type == DN_BLSKY18K) || (pump_type == DN_BLSKY22) )
+	 else if( (settings_stream1[1].keypad__ == BLSKY18_K) || (settings_stream1[1].keypad__ == BLSKY22) )
+	 {
+	    kkey2 =  bluesky_keypad[keypress_2];
+	    allowed_xters = 7;
+	 }
+
+   ePrevState2 = eLastState2;
+
+ /*  if (progg == 1)
+	 {
+	    return keypad_entry_State;
+	 }  */
+
+	//if (progg == 1) //if in programming mode return.
+
+	//char prc[7] = {'p'};
+	//char amt[7] = {'l'};
+	//char keyboard[6] = {0};
+	//char keyboard_screen[6] = {0};
+
+   int space = allowed_xters - index_2; //int space = 6 - index_;
+	int ind = 1;
+
+//-----------------------------------------------------------
+//If only 0 - 9 is pressed.....
+if(
+	(kkey2 != 'A') && (kkey2 != 'B') &&
+	(kkey2 != 'C') && (kkey2 != 'D') &&
+	(kkey2 != 'F') && (kkey2 != '-') &&
+	(kkey2 != 'G') && (kkey2 != 'J')  //&&(index_2 < 6)
+  )
+    {
+	 if(index_2 <= allowed_xters)    //only allow 6 xters...
+	  {
+		keyboard_entry2[index_2] = kkey2;
+		keyboard_entry2[index_2+1] = 0;         //NULL;
+		index_2++;
+	  }
+	}
+//-----------------------------------------------------------
+		  if (kkey2 == 'F')      //'clear' key.
+		  	{
+			  //ePrevState = eLastState1;
+			  //set the error clear flag..
+			    dpFlag2 = 0;
+			    error_clr_flag2 = 1;
+                 index_2 = 0;
+                 _index2 = 0;
+                 for(int i = 0;i<9;i++)
+				 {
+				   keypad_pw_xter2[i] = 0;
+				   upper2[i] = 0;
+				   middle2[i] = 0;
+				 }
+
+                 for(int i = 0; i <= 6; i++)
+				 {
+					 keyboard_entry2[i] = 0;   //clear the buffer
+					 keyboard2[i]= 0;
+				 }
+
+                 if(settings_stream1[1].display_format == PL)
+				  {
+					 upper2[0]  = 'P';
+					 middle2[0] = 'L';
+				  }
+				  else if(settings_stream1[1].display_format == LP)
+				  {
+					 upper2[0]  = 'L';
+					 middle2[0] = 'P';
+				  }
+		  	}
+//--------------------------------------------------------------------
+		  if (progg2 == 1)
+		  {
+			    keypad_print2("       ");
+			    if (auth2 == not_auth)
+			    {
+//			    	if(keypad_pw_xter2[0] != '\0')
+			    	keypad_print2(keypad_pw_xter2);
+			    }
+			    else
+			    {
+					 int8_t keyBoard_len = strlen(keyboard_entry2);
+					 strncpy(keyboard2, keyboard_entry2, sizeof(keyboard2));
+					 if(strchr(keyboard2, '.') )
+					 {
+						 if(keyboard2[keyBoard_len - 1] == '.')
+						 {
+							 keyboard2[keyBoard_len] = '0';
+
+							 if(keyboard2[0] == '.')
+							 {
+								 keyboard2[0] = '0';
+								 keyboard2[1] = '.';
+								 keyboard2[2] = '0';
+							 }
+
+						 }
+					 }
+					 keypad_print2(keyboard2);
+				}
+
+		  	    return keypad_entry_State;
+		  	 }
+
+      if ( ((kkey2 == 'D') && (progg2 == 0)) && (eNextState2 != filling_State) )   //fueling key.
+	  {
+
+    	  //ePrevState = eLastState1;
+
+          if(settings_stream1[1].mode == MANUAL_MODE)
+     	  {
+ 			   auth_cmd_flag2 = 1;  //activate auth2 cmd.
+
+ 			   return keypad_entry_State;
+     	  }
+     	  else if(settings_stream1[1].mode == AUTO_MODE)
+     	  {
+     		  nozzle_flag_key2 = 1;
+
+     		  return keypad_entry_State;
+     	  }
+	 }
+
+//      if ( (kkey2 == 'A') && (progg2 == 0)&&( (eNextState2 == filling_State) || (eNextState2 == authorised_nozzleup_State)) ) //stop sales.
+	  if ( (kkey2 == 'A') && (progg2 == 0) )
+	  {
+		   stop_flag2 = 1;  //deactivate auth2 cmd.
+
+		   nozzle_flag_key2 = 0;
+		   nozzle_flag_key_old2 = 1;
+
+//		   keypad_zerorise2 = true;
+		}
+
+//====================================================
+	if ( (kkey2 == 'C') && (progg2 == 0) )  //if change sales mode
+	{
+	   if(sellmode2 == L)
+	   {
+	       sellmode2 = P;
+	   }
+	   else
+	   {
+		   sellmode2 = L;
+	   }
+	}
+//--------------------------------------------------------------------
+ int8_t space2,
+ 	 	b;
+
+ keyEntry2_len = strlen(keyboard_entry2);
+ if( (strchr(keyboard_entry2, '.')) && (keyboard_entry2[keyEntry2_len - 1] != '.') )
+ {
+	 space2 = 7 + ( -index_2 + 1);
+	 dpFlag2 = 1;
+
+	 b = 0;
+	 dpCount2 = 0;
+	 while( *(keyboard_entry2 + b) != '\0')
+	 {
+		 if( (keyboard_entry2[b] == '.') || (dpCount2 != 0) )
+		 {
+			dpCount2++;
+		 }
+		 b++;
+	 }
+	 dpCount2--;
+  }
+  else
+  {
+	 space2 = 7 - index_2;     //6 - index_;
+  }
+
+// int space2 = 7 - index_2;   //6 - index_2;
+ if ((sellmode2 == L) && (progg2 == 0) )
+ {
+	   memset(middle2, '\0', sizeof(middle2));
+	   middle2[0] = 'L';     //Append price to display.
+	// if((index_-1) >= 6) space = 2;
+		while (space2 > 0) //write spaces first..
+		{
+		   middle2[ind++] = ' ';
+		   space2--;
+		}
+	  space2 = index_2;     //reload with len of actual number
+	   while(space2 > 0)
+		 {
+			 middle2[ind++] = keyboard_entry2[index_2 - space2];
+			 space2--;
+		 }
+	  //  lcd_print_line2_2("p       ");
+
+	  write_v2(1,"        ");
+	  if(index_2 == 0)
+			middle2[7] = '0';
+
+	  //  lcd_print_line2_2(middle1);
+   }
+//--------------------------------------------------------------------
+
+       if ( (sellmode2 == P)&&(progg2 == 0) )
+	   {
+    	   memset(upper2, '\0', sizeof(upper2));
+    	   upper2[0] = 'p';       // append price to display
+ 		// if((index_-1) >= 6) space = 2;
+ 		   while (space2 > 0)     //write spaces first..
+ 		   {
+ 			   upper2[ind++] = ' ';
+ 			   space2--;
+ 		   }
+ 		 space2 = index_2 ;          //reload with len of actual number
+ 		    while(space2 > 0)
+ 			 {
+ 				 upper2[ind++] = keyboard_entry2[index_2 - space2];
+ 				 space2--;
+ 			 }
+ 			//lcd_print_line2_2(upper1);  //clear the price
+ 			//lcd_print_line2_2("l       ");
+ 		   write_v2(2,"        ");
+
+ 		   if(index_2 == 0)
+ 			   upper2[7] = '0';
+         }
+//----------------------------------------------------------------
+//                            write to the keypad
+	   static int lcd_size = 5;
+
+//	   if(disp_type2 == LAFNG885)
+//	   if(disp_type2 == DN_LAFNG17K)
+	   if(settings_stream1[1].keypad__  == LAFNG17_K)
+	   {
+		    lcd_size = 5; //change this latter to accomodate other lcds.
+	   }
+	   else if( (settings_stream1[1].keypad__  == LAFNG18_K) || (settings_stream1[1].keypad__ == LAFNG18_K_V2) )
+	   {
+		    lcd_size = 7; //change this latter to accomodate other lcds.
+	   }
+//	   else if(disp_type2 == BLSKY886_N)
+//	   else if( (disp_type2 == DN_BLSKY18K) ||  (disp_type2 == DN_BLSKY22) )
+	   else if( (settings_stream1[1].keypad__  == BLSKY18_K) || (settings_stream1[1].keypad__  == BLSKY22) )
+	   {
+		    lcd_size = 7;   //6;
+	   }
+//================================================================
+ int8_t size = lcd_size - 1;   // 1 xter to display 'P/L'
+
+ int8_t k_index = 0;
+ ind = 1;
+
+	  if (sellmode2 == P)
+	  {
+		 keyboard2[0] = 'p';
+		 if( (index_2 <= size) || ((index_2 <= 6) && (dpFlag2 == 1)) )
+		 {
+			if(dpFlag2 == 1)
+			{
+				space = size + (-index_2 + 1);
+//		    		dpFlag = 0;
+			}
+			else
+			{
+				space = size - index_2;
+			}
+		 }
+		 else
+			 space = 0;  //full size of xters.
+
+		 while (space > 0) //write spaces first..
+		   {
+			 keyboard2[ind++] = ' ';
+
+			 if( (index_2 == 0) && (space == 1) )
+				 keyboard2[ind - 1] = '0';
+
+			   space--;
+		   }
+	  //---------------------------------
+		if( (index_2 <= size) || ((index_2 <= 6) && (dpFlag2 == 1)) )
+			  space = index_2;
+		else
+		{
+			if(dpFlag2 == 1)
+			{
+				space = 6;
+			}
+			else
+				space = size;
+		}
+
+		if( (strchr(keyboard_entry2, '.')) && (index_2 > 6) ) space = 7;
+		while(space > 0)
+		 {
+		   keyboard2[ind++] = keyboard_entry2[index_2 - space];
+		   space--;
+		 }
+		if(keyboard2[ind - 1] == '.') keyboard2[ind] = '0';
+
+	   }
+
+	  //	  	  	 keyboard2[0] = 'p';
+//		     if(index_2 <= size)
+//		    	   space = size - index_2;
+//		     else
+//		    	   space = 0;  //full size of xters.
+//
+//		      while (space > 0) //write spaces first..
+//			   {
+//		    	 keyboard2[ind++] = ' ';
+//				   space--;
+//			   }
+//            //---------------------------------
+//				if(index_2 <= size)
+//					  space = index_2;
+//				else
+//					  space = size;
+//
+//			    while(space > 0)
+//				 {
+//				   keyboard2[ind++] = keyboard_entry2[index_2 - space];
+//				   space--;
+//				 }
+//
+//	 	   }
+//----------------------------------------------------------------
+	  if (sellmode2 == L)
+	  {
+
+		 keyboard2[0] = 'L';
+		 if( (index_2 <= size) || ((index_2 <= 6) && (dpFlag2 == 1)) )
+		 {
+			if(dpFlag2 == 1)
+			{
+				space = size + (-index_2 + 1);
+ //		    		dpFlag = 0;
+			}
+			else
+			{
+				space = size - index_2;
+			}
+		 }
+		 else
+			 space = 0;  //full size of xters.
+
+		 while (space > 0) //write spaces first..
+		   {
+			 keyboard2[ind++] = ' ';
+
+			 if( (index_2 == 0) && (space == 1) )
+				 keyboard2[ind - 1] = '0';
+
+			   space--;
+		   }
+		  //---------------------------------
+			if( (index_2 <= size) || ((index_2 <= 6) && (dpFlag2 == 1)) )
+				  space = index_2;
+			else
+			{
+				if(dpFlag2 == 1)
+				{
+					space = 6;
+				}
+				else
+					space = size;
+			}
+
+			if( (strchr(keyboard_entry2, '.')) && (index_2 > 6) ) space = 7;
+			while(space > 0)
+			 {
+			   keyboard2[ind++] = keyboard_entry2[index_2 - space];
+			   space--;
+			 }
+			if(keyboard2[ind - 1] == '.') keyboard2[ind] = '0';
+
+		    }
+
+
+//		  keyboard2[0] = 'l';
+//		 if(index_2 <= size)
+//			   space = size - index_2;
+//		 else
+//			   space = 0;  //full size of xters.
+//
+//		 while (space > 0) //write spaces first..
+//		   {
+//			 keyboard2[ind++] = ' ';
+//			   space--;
+//		   }
+//	   //---------------------------------
+//			if(index_2 <= size)
+//				  space = index_2;
+//			else
+//				  space = size;
+//
+//			while(space > 0)
+//			 {
+//			   keyboard2[ind++] = keyboard_entry2[index_2 - space];
+//			   space--;
+//			 }
+//	   }
+
+	           if (progg2 == 1)
+	 		   {
+	        	    keypad_print2("      ");
+	 			    if (auth2 == not_auth)
+	 			    	keypad_print2(keypad_pw_xter2);
+	 			    else
+				    {
+						 int8_t keyBoard_len = strlen(keyboard_entry2);
+						 strncpy(keyboard2, keyboard_entry2, sizeof(keyboard2));
+						 if(strchr(keyboard2, '.') )
+						 {
+							 if(keyboard2[keyBoard_len - 1] == '.')
+							 {
+								 keyboard2[keyBoard_len] = '0';
+							 }
+						 }
+						 keypad_print2(keyboard2);
+					}
+	 		  	    return keypad_entry_State;
+	 		  	 }
+
+	           keypad_print2(keyboard2);
+//----------------------------------------------------------------
+      //send_keypad(keyboard);
+
+         return keypad_entry_State;
+}
 eSystemState error_clear_Handler2(void)
 {
 	if(irrecov_flag2 == 0)
@@ -1934,6 +2389,436 @@ eSystemState error_clear_Handler2(void)
 }
 //============================================================================================================
 //========================================================================
+eSystemState nozzleup_Handler2(void)
+{
+	pump2_status_4G = STATUS_NOZZLE_UP;
+
+	reset_timer2(timeout_picknozzle);
+	start_timer2(timeout_picknozzle);
+
+	//set the motor on and solenoid off.
+	get_auth2();
+
+	if(opmode2 == AUTO_MODE)
+	{
+		 nozzle_out2 = true;
+		 status_change_noz2 = 1;
+
+		 if(pump_status_2 == STATUS_FILLING_COMP)
+		 {
+			 return idle_State;
+		 }
+	}
+
+	lcd_print_line1_2("88888888");
+	lcd_print_line2_2("88888888");
+	lcd_print_line3_2("888888");
+
+
+
+//	lcd_print_line3_2("      ");
+
+
+//	send_solenoid(0);
+//	send_pump(1);      //turn on pump.
+
+	if (eLastState2 == authorised_nozzledown_State)
+	{
+		 clr_pulser2();    //clear hardware pulser
+		 current_pulser2 = 0;
+		 return authorised_nozzleup_State;
+	}
+
+	return nozzleup_waitingforauth_State;
+}
+eSystemState nozzledown_Handler2(void)
+{
+	filling2 = 0;
+	nozzle_bit2 = 0;
+	stop_flow2();
+
+	pump2_status_4G = STATUS_NOZZLE_DOWN;
+
+	 if(nozzleup_awaitingauth_state_not_timedOut2 == 1)
+	 {
+		 nozzleup_awaitingauth_state_not_timedOut2 = 0;
+		 clr_screen2();
+	 }
+
+	 if(nonValid_sale2 == 1)
+	 {
+		 return idle_State;
+	 }
+
+	//lcd_print_line2_2("nos dn");
+	 reset_timer2(30);
+	 stop_timer2();
+
+//	 if(  ( (eLastState2 == idle_State) && (eNextState2 == idle_State) ) || ( (eLastState2 == filledmamo_State) && (eNextState2 == filledmamo_State) ) || (eNextState2 == nozzleup_waitingforauth_State) )
+//	 {
+////		  return idle_State;
+//	 }
+//	 else
+//	 if( (eLastState2 == filling_State) && (eNextState2 == filling_State) )
+//	 if(eNextState2 == filling_State)
+	 if( (eLastState2 == filling_State) && (eNextState2 == filling_State) && (filling_mamo_flag2 == 0) )
+	 {
+		  do_calcs2();
+		  get_time();
+		  update_info();
+//		  save_volumeTotaliser(operating_side);
+//		  save_amountTotaliser(operating_side);
+//		  save_lastSale(operating_side);
+
+		  while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
+		  {
+			  static uint8_t try = 0;
+				if(try++ >= 5)
+				{
+					while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+					{
+						if(try++ >= 10)
+						{
+							clear_totaliser_fram(operating_side);
+							clear_totaliser_eeprom(operating_side);
+							try = 0;
+							break;
+						}
+
+					}
+					try = 0;
+					break;
+				}
+		  }
+
+		  save_totaliser_fram(operating_side);
+		  save_totaliser_eeprom(operating_side);
+
+		  save_lastSale_fram(operating_side);
+		  save_lastSale_eeprom(operating_side);
+
+		  ////////////////////////////////////////////////
+		  //---------------------------------------------
+		  totalizer_saveStatus2 = SAVED_TO_MAIN_TOTALIZER;
+		  save_totaliserFrequent_fram(operating_side);
+		  save_totaliserFrequent_eeprom(operating_side);
+		  ////////////////////////////////////////////////
+	 }
+/*
+		 char str__[8]= {0};
+         snprintf(str__, sizeof(str__), " %.2f", litre_price);
+		 lcd_print_line3_2(str__);   */
+
+	char str__[10]= {0};
+	snprintf(str__, sizeof(str__), "%.2f", litre_price2);
+	lcd_print_line3_2(str__);
+
+ 	 if( ((pump_LitreOverflow2 == 1) && (pulser_rem2 > 0 )) || (display_overflow2 == 1) )    //|| ((display_overflow2 == 1) && (pulser_rem2 > 0 )) )
+ 	 {
+ 		  if(pump_LitreOverflow2 == 1)
+ 			  pump_LitreOverflow2 = 0;
+ 		  if(display_overflow2 == 1)
+ 		  {
+ 			  display_overflow2 = 0;
+ 			  firstTime_display_overflow2 = 0;
+ 		  }
+
+ 		 clr_screen2();
+ 	 }
+
+ 	//--------------------------------------------------------
+// 		dpFlag2 = 0;
+// 		error_clr_flag2 = 1;
+// 		 index_2 = 0;
+// 		 _index2 = 0;
+// 		 for(int i = 0; i < 9; i++)
+// 		 {
+// 		   keypad_pw_xter2[i] = 0;
+// 		   keyboard_entry2[i] = 0;   //clear the buffer
+// 		 }
+//
+// 		 for(int i = 0; i <= 8; i++)
+// 		 {
+// 			 keyboard2[i] = 0;
+// 		 }
+// 		 //--------------------------------------------------------------------
+// 		 if (sellmode2 == P)
+// 		 {
+// 			  write_v2(3, "P     0");  //send_keypad("p    ");  //5 xters  lafeng..
+// 		 }
+// 		 else if(sellmode2 == L)
+// 		 {
+// 			  write_v2(3, "L     0");  //send_keypad("l    ");  //5 xters lafeng
+// 		 }
+// 	//	 else if(sellmode2 == V)
+// 	//	 {
+// 	//		  write_v2(3, "v    0");  //send_keypad("p    ");  //5 xters  lafeng..
+// 	//	 }
+// 		 send_keypad2(keyboard2);
+
+ 	if(programmed_sale2 == 1)
+	{
+		 programmed_sale2 = 0;
+
+		 incidentRecord[1].timestamp_event = RtcToInt(2019);
+
+		 incidentRecord[1].programmed_sale = key_value2;
+
+	     incidentRecord[1].nozzleState_change_ = NOZZLE_HANGUP;
+
+	     save_programmedSaleEvent_fram(side_b);
+
+	 }
+//	 if(keypad_zerorise2 == true)
+		 keypad_zerorize2();
+ 	//--------------------------------------------------------------------
+
+	  //-------------------------------------------
+	  //             saving to the log
+	  if(eNextState2 == filling_State)
+	  {
+		  stop_fueling_bit2 = 0;
+
+		  //===========================================================
+		  //         for totaliser toggle.
+		  //===========================================================
+
+//			running_volTotaliser2 = working_volTotaliser2 + amt_real2;
+			//----------------------------------------------------------------------------//
+		    running_volTotaliser2_tmin3 = running_volTotaliser2_tmin2;
+		    running_volTotaliser2_tmin2 = running_volTotaliser2_tmin1;
+			running_volTotaliser2_tmin1 = running_volTotaliser2;
+			running_volTotaliser2 = (working_volTotaliser2 + amt_real2);
+
+			running_volTotaliser2_array[0] = running_volTotaliser2;
+			running_volTotaliser2_array[1] = running_volTotaliser2_tmin1;
+			running_volTotaliser2_array[2] = running_volTotaliser2_tmin2;
+			running_volTotaliser2_array[3] = running_volTotaliser2_tmin3;
+
+			correctArray2(running_volTotaliser2_array, tot_b);
+
+			running_volTotaliser2 = running_volTotaliser2_array[0];
+			running_volTotaliser2_tmin1 = running_volTotaliser2_array[1];
+			running_volTotaliser2_tmin2 = running_volTotaliser2_array[2];
+			running_volTotaliser2_tmin3 = running_volTotaliser2_array[3];
+
+			totaliser_vol2 = scale_to_original2(running_volTotaliser2);
+
+			//============================================================================//
+
+
+//			running_volTotaliser2c = working_volTotaliser2c + amt_middle2;
+			//----------------------------------------------------------------------------//
+			running_volTotaliser2c_tmin3 = running_volTotaliser2c_tmin2;
+			running_volTotaliser2c_tmin2 = running_volTotaliser2c_tmin1;
+			running_volTotaliser2c_tmin1 = running_volTotaliser2c;
+			running_volTotaliser2c = ( working_volTotaliser2c + scale_to_range2(amt_middle2) );
+
+			running_volTotaliser2c_array[0] = running_volTotaliser2c;
+			running_volTotaliser2c_array[1] = running_volTotaliser2c_tmin1;
+			running_volTotaliser2c_array[2] = running_volTotaliser2c_tmin2;
+			running_volTotaliser2c_array[3] = running_volTotaliser2c_tmin3;
+
+			correctArray2(running_volTotaliser2c_array, tot_b);
+
+			running_volTotaliser2c = running_volTotaliser2c_array[0];
+			running_volTotaliser2c_tmin1 = running_volTotaliser2c_array[1];
+			running_volTotaliser2c_tmin2 = running_volTotaliser2c_array[2];
+			running_volTotaliser2c_tmin3 = running_volTotaliser2c_array[3];
+
+			totaliser_vol2c = scale_to_original2(running_volTotaliser2c);
+
+	//		running_volTotaliser2c = ( working_volTotaliser2c + scale_to_range2(amt_middle2) );
+			//============================================================================//
+
+
+			running_amtTotaliser2 = (working_amtTotaliser2 + price_real2);
+
+			running_amtTotaliser2c = (working_amtTotaliser2c + price_upper2);
+			//----------------------------------------------------------------------------//
+
+			//============================================================================//
+
+//		   float pricecheck = running_amtTotaliser2c - priceOld2;
+//
+//		   if (pricecheck >= 1000.00)
+//		   {
+//			   priceOld2 = running_amtTotaliser2c;
+//			   save_amountSend(side_b);
+//
+//			   char str[65];
+//			   sprintf(str, "[Side-B]... #%0.2f intermittent worth of sales made now!", pricecheck);
+//			   server_write(str);
+//		   }
+
+
+			r_volTotaliser2 = floor( scale_to_original2(running_volTotaliser2c) );
+
+//			mechTotalizer2 = (mechTotalizer2_ + amt_middle2);
+
+			#ifdef PULSER_BASED_TV
+					mechTotalizer2 = (mechTotalizer2_ + pulser2amt2(current_pulser2));
+			#else
+					mechTotalizer2 = (mechTotalizer2_ + amt_middle2);
+			#endif
+
+		    mech_totalizer2 = (int) mechTotalizer2;
+
+		//		if(r_volTotaliser2 != old_r_volTotaliser2)
+		//		{
+		//			totalizer2Timer = 0;
+		//	  //			then toggle the totaliser harware I/O.
+		//			drive_totaliser2(ACTIVATE);
+
+//				}
+				if(mech_totalizer2 != mech_totalizer_old2)
+				{
+			  		totalizer2Timer = 0;
+
+			        //	then toggle the totaliser harware I/O.
+			  		drive_totaliser2(ACTIVATE);
+				}
+				else
+				{
+					//deactivate totaliser output...
+					if(totalizer2Timer > 200)
+					{
+						drive_totaliser2(DEACTIVATE);
+					}
+
+				}
+				old_r_volTotaliser2 = r_volTotaliser2;   //update...
+
+				//===================// Update... //===================//
+			  	  mech_totalizer_old2 = mech_totalizer2;
+			  	//-----------------------------------------------------//
+
+//			  	if (totaliser_vol2c - previous_totaliserVol2c >= THRESHOLD_TV)
+//				{
+//					previous_totaliserVol2c = totaliser_vol2c;
+//
+//					save_totaliserFrequent_fram(side_b);
+//					save_totaliserFrequent_eeprom(side_b);
+//				}
+
+		 //============================================================
+
+			if(settings_stream1[1].mode == AUTO_MODE)
+			{
+
+				 if( (pump_status_2 == STATUS_FILLING) || (pump_status_2 == STATUS_MAMO_REACHED) )
+				 {
+
+				 }
+
+				 //////////////////////////////////////////////////////////////
+				 ///////// SIGNALS GO-CONTROLLER ABOUT NOZZLE STATUS //////////
+
+				 status_change_noz2 = 1;
+				 nozzle_out2 = false;
+
+				 nozzleDown_source2 = 1;
+
+				 //////////////////////////////////////////////////////////////
+
+			}
+
+			return  write_flash_State;
+		 }
+
+	  //-------------------------------------------
+
+		  pump_status_2 = STATUS_FILLING_COMP;
+
+	      return idle_State;
+}
+
+eSystemState inactiveState_Handler2(void)
+{
+    //error_state = 1;
+		  // All errors land here....
+		  // Only the CLEAR  key returns pump from this state....
+          // key reception is done in the key_entry handler..
+
+	return inactive_State;
+}
+eSystemState timeout_Handler2(void)
+{
+	 if(eLastState2 != authorised_nozzleup_State)
+	 {
+		 lcd_print_line1_2(" t out  ");
+		 lcd_print_line2_2("--------");
+
+		 if( ((pump_LitreOverflow2 == 1) && (pulser_rem2 > 0 )) || ((display_overflow2 == 1) && (pulser_rem2 > 0 )) )
+		 {
+			  if(pump_LitreOverflow2 == 1)
+				  pump_LitreOverflow2 = 0;
+			  if(display_overflow2 == 1)
+				  display_overflow2 = 0;
+		 }
+	 }
+
+	  //write the commodity price...
+	  // char str__[8]= {0};
+	  // snprintf(str__, sizeof(str__), " %.2f", litre_price);
+	  // lcd_print_line3_2(str__);
+	  // lcd_print_line3_2("-----");
+
+	  //compose the kind of timeout error
+	  else if(eLastState2 == nozzleup_waitingforauth_State)
+	  {
+		 lcd_print_line3_2("Err1 ");
+		 nozzleup_awaitingauth_state_not_timedOut2 = 0;
+	  }
+
+	  else if(eLastState2 == authorised_nozzledown_State)
+	  {
+		 lcd_print_line3_2("Err2 ");
+	  }
+
+	  else if(eLastState2 == authorisation_paused_State)
+	  {
+		 lcd_print_line3_2("Err3 ");
+	  }
+
+	  else if(eLastState2 == filling_paused_State)
+	  {
+		 lcd_print_line3_2("Err4 ");
+	  }
+
+	  else if(eLastState2 == authorised_nozzleup_State)
+	  {
+		 if( ((pump_LitreOverflow2 == 1) && (pulser_rem2 > 0 )) || ((display_overflow2 == 1) && (pulser_rem2 > 0 )) )
+		 {
+			  if(pump_LitreOverflow2 == 1)
+				  pump_LitreOverflow2 = 0;
+			  if(display_overflow2 == 1)
+				  display_overflow2 = 0;
+		 }
+
+		 lcd_print_line1_2("    No ");
+		 lcd_print_line2_2("  Flouu ");
+		 lcd_print_line3_2("Err15 ");
+	 }
+
+	 pump_status_2 = STATUS_FILLING_COMP;
+
+	 return inactive_State;
+}
+
+eSystemState tot_error_Handler2(void)
+{
+   //set irrecoverable error flag.
+//	irrecov_flag2 = 1;
+
+	totalizer2_error = 1;
+
+	lcd_print_line1_2("   tot   ");
+	lcd_print_line2_2("  Error ");
+
+    return inactive_State;
+}
+
 int8_t read_keypad2()
 {
    //uint8_t ret = 0;
@@ -6764,6 +7649,68 @@ eSystemState idleState_Handler2(void)
 	  	return idle_State;
 }
 
+eSystemState authorised_nozzledown_State_Handler2(void)
+{
+	char *endPtr;
+
+	nozzle_bit2 = 0;
+	pump2_status_4G = STATUS_AUTHORIZED_NOZZLE_DOWN;
+
+	 //initialise the fuel and price variables
+
+	    if(index_2 >= 1)
+		  {
+			  key_value2 = strtof(keyboard_entry2, &endPtr);
+		  }
+		 else
+		 {
+			  key_value2 = 0.0;
+		 }
+
+	    //initialise the fuel and price variables
+	      if (sellmode2 == P)
+	    	{
+			  target_pulser2 = price2pulser(key_value2);  //calculate pulse frm price.
+	    	}
+	      else  //amt was selected.
+	      {
+	    	  target_pulser2 = amt2pulser(key_value2);   //calculate pulse frm amt.
+	      }
+
+	  price2  = 0.0;
+	  amt2 = 0.0;
+
+	  amt_middle2_tmin3 = 0.0;
+	  amt_middle2_tmin2 = 0.0;
+	  amt_middle2_tmin1 = 0.0;
+	  amt_middle2 = 0.0;
+
+	  amt_real2_tmin3 = 0.0;
+	  amt_real2_tmin2 = 0.0;
+	  amt_real2_tmin1 = 0.0;
+	  amt_real2 = 0.0;
+
+	  current_pulser2 = 0;
+
+   if(t2 > 300)
+   {
+	  lcd_print_line1_2(" Pic    ");
+	  lcd_print_line2_2("No22le  ");
+	  char str__[8]= {0};
+	  snprintf(str__, sizeof(str__), "%.2f", litre_price2); lcd_print_line3_2(str__);
+      t2 = 0;
+   }
+
+	if (display_overflow2 == 1)
+	{
+		display_overflow2 = 0;
+		firstTime_display_overflow2 = 0;
+	}
+
+	return authorised_nozzledown_State;
+}
+
+
 eSystemState  nozzleup_waitingforauthState_Handler2(void)
 {
    	if (settings_stream1[1].mode == MANUAL_MODE)
@@ -6843,901 +7790,6 @@ eSystemState  nozzleup_waitingforauthState_Handler2(void)
 	return nozzleup_waitingforauth_State;
 }
 
-eSystemState filling_State_Handler2(void)
-{
-	//extern uint32_t pulser_new;
-
-	if(filling_mamo_flag2 == 1)
-	{
-		if(mamo_fillingInfo_send2 == 0)
-		{
-			mamo_reached_flag2 = 1;
-		}
-	    return filling_State;
-	}
-
-	float temp = 0.0;
-
-	static int8_t flow_flag = 1;
-
-	static int32_t current_pulser_ = 0,
-						   old_pulser_ = 0;
-
-	pump2_status_4G = STATUS_FILLING_;
-
-	lock_clr2 = 0;
-	filling2  = 1;
-
-	firstTime_nozz2 = 1;
-
-	  if(target_pulser2 > 0)
-		{
-		 //	pulser_rem1 = target_pulser1 - current_pulser1; //now handled in
-														 //interrupt
-		}
-
-//================================================================
-#if !defined (DEV_MODE)
-		if(batteryStatus == NO_BATTERY)
-		{
-			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-			  HAL_Delay(200);
-			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
-			  filling2 = 0;
-			  stop_flow2();
-			  get_time();
-			  do_calcs2();
-			  update_info();
-
-			  while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
-			  {
-				    static uint8_t try = 0;
-					if(try++ >= 5)
-					{
-						while(retrieve_totaliser_eeprom_check(operating_side) != OK)
-						{
-							if(try++ >= 10)
-							{
-								clear_totaliser_fram(operating_side);
-								clear_totaliser_eeprom(operating_side);
-								try = 0;
-								break;
-							}
-
-						}
-						try = 0;
-						break;
-					}
-			   }
-
-			  save_totaliser_fram(operating_side);
-			  save_totaliser_eeprom(operating_side);
-			  save_lastSale_fram(operating_side);
-			  save_lastSale_eeprom(operating_side);
-
-			  ////////////////////////////////////////////////
-			  //---------------------------------------------
-			  totalizer_saveStatus2 = SAVED_TO_MAIN_TOTALIZER;
-			  save_totaliserFrequent_fram(operating_side);
-			  save_totaliserFrequent_eeprom(operating_side);
-			  ////////////////////////////////////////////////
-
-
-			  if(settings_stream1[1].mode == AUTO_MODE)
-			  {
-				 //////////////////////////////////////////////////////////////
-
-				 hardwareErrorFlag_source2 = 1;
-
-				 //////////////////////////////////////////////////////////////
-			  }
-
-			  return write_flash_State;
-		}
-
-//    power outage during filling1  end transaction...
-		#if sense_power == 1
-	  	  if(  (readpwr() == 0)||(read_p_pwr() == 0) )
-		  {
-			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-			  HAL_Delay(200);
-			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
-			  filling2 = 0;
-			  stop_flow2();
-			  get_time();
-			  do_calcs2();
-			  update_info();
-
-			  while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
-			  {
-				  static uint8_t try = 0;
-					if(try++ >= 5)
-					{
-						while(retrieve_totaliser_eeprom_check(operating_side) != OK)
-						{
-							if(try++ >= 10)
-							{
-								clear_totaliser_fram(operating_side);
-								clear_totaliser_eeprom(operating_side);
-								try = 0;
-								break;
-							}
-
-						}
-						try = 0;
-						break;
-					}
-			   }
-
-			  save_totaliser_fram(operating_side);
-			  save_totaliser_eeprom(operating_side);
-			  save_lastSale_fram(operating_side);
-			  save_lastSale_eeprom(operating_side);
-
-			  ////////////////////////////////////////////////
-			  //---------------------------------------------
-			  totalizer_saveStatus2 = SAVED_TO_MAIN_TOTALIZER;
-			  save_totaliserFrequent_fram(operating_side);
-			  save_totaliserFrequent_eeprom(operating_side);
-			  ////////////////////////////////////////////////
-
-			  if(settings_stream1[1].mode == AUTO_MODE)
-			  {
-				 //////////////////////////////////////////////////////////////
-
-				 hardwareErrorFlag_source2 = 1;
-
-				 //////////////////////////////////////////////////////////////
-			  }
-
-			  return write_flash_State;
-		  }
-		#endif
-
-	if(HAL_GPIO_ReadPin(pulser2_detect_GPIO_Port, pulser2_detect_Pin) == 1 )
-	{
-		 HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-		  HAL_Delay(200);
-		  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
-		  filling2 = 0;
-		  stop_flow2();
-		  get_time();
-		  do_calcs2();
-		  update_info();
-
-		  while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
-		  {
-			  static uint8_t try = 0;
-				if(try++ >= 5)
-				{
-					while(retrieve_totaliser_eeprom_check(operating_side) != OK)
-					{
-						if(try++ >= 10)
-						{
-							clear_totaliser_fram(operating_side);
-							clear_totaliser_eeprom(operating_side);
-							try = 0;
-							break;
-						}
-
-					}
-					try = 0;
-					break;
-				}
-		   }
-
-		  save_totaliser_fram(operating_side);
-		  save_totaliser_eeprom(operating_side);
-		  save_lastSale_fram(operating_side);
-		  save_lastSale_eeprom(operating_side);
-
-		  ////////////////////////////////////////////////
-		  //---------------------------------------------
-		  totalizer_saveStatus2 = SAVED_TO_MAIN_TOTALIZER;
-		  save_totaliserFrequent_fram(operating_side);
-		  save_totaliserFrequent_eeprom(operating_side);
-		  ////////////////////////////////////////////////
-
-		  if(settings_stream1[1].mode == AUTO_MODE)
-		  {
-			 //////////////////////////////////////////////////////////////
-
-			 hardwareErrorFlag_source2 = 1;
-
-			 //////////////////////////////////////////////////////////////
-		  }
-
-		  return write_flash_State;
-	}
-
-#endif   //#if !defined (DEV_MODE)
-
-		if(settings_stream1[1].mode == AUTO_MODE)
-		{
-			if(timer_go >= TIMEOUT_GO)   //if go's timeout is 5sec threshold
-			{
-				go_timeOut2 = 1;
-
-				HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-				HAL_Delay(100);
-				HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
-				filling2 = 0;
-				stop_flow2();
-				get_time();
-				do_calcs2();
-				update_info();
-
-				while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
-				{
-					static uint8_t try = 0;
-					if(try++ >= 5)
-					{
-						while(retrieve_totaliser_eeprom_check(operating_side) != OK)
-						{
-							if(try++ >= 10)
-							{
-								clear_totaliser_fram(operating_side);
-								clear_totaliser_eeprom(operating_side);
-								try = 0;
-								break;
-							}
-
-						}
-						try = 0;
-						break;
-					}
-				 }
-
-				save_totaliser_fram(side_b);
-				save_totaliser_eeprom(side_b);
-
-				save_lastSale_fram(side_b);
-				save_lastSale_eeprom(operating_side);
-
-				  ////////////////////////////////////////////////
-				  //---------------------------------------------
-				  totalizer_saveStatus2 = SAVED_TO_MAIN_TOTALIZER;
-				  save_totaliserFrequent_fram(operating_side);
-				  save_totaliserFrequent_eeprom(operating_side);
-				  ////////////////////////////////////////////////
-
-				return write_flash_State;
-			}
-		}
-
-	if (stop_flag2 == 1)   //if stop key pressed
-	{
-		filling2 = 0;
-		stop_flag2 = 0;
-		stop_flow2(); //send_solenoid(1);  //stop solenoid.
-		get_time();
-        do_calcs2();
-        update_info();
-//        save_volumeTotaliser(operating_side);
-//        save_amountTotaliser(operating_side);
-//        save_lastSale(operating_side);
-
-        while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
-		{
-        	static uint8_t try = 0;
-			if(try++ >= 5)
-			{
-				while(retrieve_totaliser_eeprom_check(operating_side) != OK)
-				{
-					if(try++ >= 10)
-					{
-						clear_totaliser_fram(operating_side);
-						clear_totaliser_eeprom(operating_side);
-						try = 0;
-						break;
-					}
-
-				}
-				try = 0;
-				break;
-			}
-		 }
-
-        save_totaliser_fram(operating_side);
-		save_totaliser_eeprom(operating_side);
-
-		save_lastSale_fram(operating_side);
-		save_lastSale_eeprom(operating_side);
-
-		  ////////////////////////////////////////////////
-		  //---------------------------------------------
-		  totalizer_saveStatus2 = SAVED_TO_MAIN_TOTALIZER;
-		  save_totaliserFrequent_fram(operating_side);
-		  save_totaliserFrequent_eeprom(operating_side);
-		  ////////////////////////////////////////////////
-
-      //--------------------------------------------------------
-//		dpFlag2 = 0;
-//		error_clr_flag2 = 1;
-//		 index_2 = 0;
-//		 _index2 = 0;
-//		 for(int i = 0; i < 9; i++)
-//		 {
-//		   keypad_pw_xter2[i] = 0;
-//		   keyboard_entry2[i] = 0;   //clear the buffer
-//		 }
-//
-//		 for(int i = 0; i <= 8; i++)
-//		 {
-//			 keyboard2[i] = 0;
-//		 }
-//		 //--------------------------------------------------------------------
-//		 if (sellmode2 == P)
-//		 {
-//			  write_v2(3, "P     0");  //send_keypad("p    ");  //5 xters  lafeng..
-//		 }
-//		 else if(sellmode2 == L)
-//		 {
-//			  write_v2(3, "L     0");  //send_keypad("l    ");  //5 xters lafeng
-//		 }
-//	//	 else if(sellmode2 == V)
-//	//	 {
-//	//		  write_v2(3, "v    0");  //send_keypad("p    ");  //5 xters  lafeng..
-//	//	 }
-//		 send_keypad2(keyboard2);
-
-		keypad_zerorize2();
-	//--------------------------------------------------------------------
-
-		 if(settings_stream1[1].mode == AUTO_MODE)
-		 {
-			 //////////////////////////////////////////////////////////////
-			 ///////// SIGNALS GO-CONTROLLER ABOUT NOZZLE STATUS //////////
-
-			 status_change_noz2 = 1;
-			 nozzle_out2 = false;
-
-			 stopFlag_source2 = 1;
-
-			 //////////////////////////////////////////////////////////////
-		 }
-
-       return write_flash_State;
-	}
-
-	if(litre_price2 == 0)
-		{
-			stop_flow2(); //send_solenoid(1);  //stop solenoid.
-			filling2 = 0;
-			do_calcs2();
-			get_time();
-			update_info();
-//			save_volumeTotaliser(operating_side);
-//			save_amountTotaliser(operating_side);
-//			save_lastSale(operating_side);
-
-			while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
-			{
-				static uint8_t try = 0;
-				if(try++ >= 5)
-				{
-					while(retrieve_totaliser_eeprom_check(operating_side) != OK)
-					{
-						if(try++ >= 10)
-						{
-							clear_totaliser_fram(operating_side);
-							clear_totaliser_eeprom(operating_side);
-							try = 0;
-							break;
-						}
-
-					}
-					try = 0;
-					break;
-				}
-			 }
-
-	        save_totaliser_fram(operating_side);
-			save_totaliser_eeprom(operating_side);
-
-			save_lastSale_fram(operating_side);
-			save_lastSale_eeprom(operating_side);
-
-			  ////////////////////////////////////////////////
-			  //---------------------------------------------
-			  totalizer_saveStatus2 = SAVED_TO_MAIN_TOTALIZER;
-			  save_totaliserFrequent_fram(operating_side);
-			  save_totaliserFrequent_eeprom(operating_side);
-			  ////////////////////////////////////////////////
-
-			_litre_price2 = 1;
-
-			if(settings_stream1[1].mode == AUTO_MODE)
-			  {
-				 //////////////////////////////////////////////////////////////
-
-				 hardwareErrorFlag_source2 = 1;
-
-				 //////////////////////////////////////////////////////////////
-			  }
-
-			return write_flash_State;
-		}
-
-		else if(pump_max_litres2 == 0)
-		{
-			stop_flow2(); //send_solenoid(1);  //stop solenoid.
-			filling2 = 0;
-			do_calcs2();
-			get_time();
-			update_info();
-//			save_volumeTotaliser(operating_side);
-//			save_amountTotaliser(operating_side);
-//			save_lastSale(operating_side);
-
-			while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
-			{
-				static uint8_t try = 0;
-				if(try++ >= 5)
-				{
-					while(retrieve_totaliser_eeprom_check(operating_side) != OK)
-					{
-						if(try++ >= 10)
-						{
-							clear_totaliser_fram(operating_side);
-							clear_totaliser_eeprom(operating_side);
-							try = 0;
-							break;
-						}
-
-					}
-					try = 0;
-					break;
-				}
-			 }
-
-			save_totaliser_fram(operating_side);
-			save_totaliser_eeprom(operating_side);
-
-			save_lastSale_fram(operating_side);
-			save_lastSale_eeprom(operating_side);
-
-			  ////////////////////////////////////////////////
-			  //---------------------------------------------
-			  totalizer_saveStatus2 = SAVED_TO_MAIN_TOTALIZER;
-			  save_totaliserFrequent_fram(operating_side);
-			  save_totaliserFrequent_eeprom(operating_side);
-			  ////////////////////////////////////////////////
-
-			_pump_max_litres2 = 1;
-
-			if(settings_stream1[1].mode == AUTO_MODE)
-			  {
-				 //////////////////////////////////////////////////////////////
-
-				 hardwareErrorFlag_source2 = 1;
-
-				 //////////////////////////////////////////////////////////////
-			  }
-
-			return write_flash_State;
-		}
-
-//======================== @ filling1 =============================
-	  // get_time2();
-
-	   amt_real2_tmin3 = amt_real2_tmin2;
-	   amt_real2_tmin2 = amt_real2_tmin1;
-       amt_real2_tmin1 = amt_real2;
-
-
-       //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
-
-       temp = pulser2amt_R2(current_pulser2);
-	   amt_real2 = dp2(temp, dp_vol2);
-
-	   //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
-
-	   amt_real2_array[0] = amt_real2;
-	   amt_real2_array[1] = amt_real2_tmin1;
-	   amt_real2_array[2] = amt_real2_tmin2;
-	   amt_real2_array[3] = amt_real2_tmin3;
-
-		correctArray2(amt_real2_array, amt_b);
-
-		amt_real2 = amt_real2_array[0];
-		amt_real2_tmin1 = amt_real2_array[1];
-		amt_real2_tmin2 = amt_real2_array[2];
-		amt_real2_tmin3 = amt_real2_array[3];
-
-
-
-//		amt2_tmin3 = amt2_tmin2;
-//		amt2_tmin2 = amt2_tmin1;
-//		amt2_tmin1 = amt2;
-
-		//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
-
-		temp = pulser2amt2(current_pulser2);
-	    amt2 = dp2(temp, dp_vol2);
-
-	    //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
-
-
-//	    amt2_array[0] = amt2;
-//	    amt2_array[1] = amt2_tmin1;
-//	    amt2_array[2] = amt2_tmin2;
-//	    amt2_array[3] = amt2_tmin3;
-//
-//		correctArray2(amt2_array);
-//
-//		amt2 = amt2_array[0];
-//		amt2_tmin1 = amt2_array[1];
-//		amt2_tmin2 = amt2_array[2];
-//		amt2_tmin3 = amt2_array[3];
-
-
-	   //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
-
-	   temp = amt2price2(amt2);
-	   price2 = dp2(temp, dp_amount2);
-
-	   //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&//
-
-
-	   //		temp = pulser2amt2_R(current_pulser2);
-//		amt_real2 = dp2(temp,dp_amount2);
-//
-//		temp = amt2price2(amt2);
-//		price_real2 = dp2(temp,dp_price2);
-
-	    make_string2(P, dp2(price2, dp_amount2));
-	    make_string2(L, dp2(amt2, dp_vol2));
-	    //lcd_print_line2_2(upper1);
-	    //lcd_print_line2_2(middle1);
-
-//	    amt_middle2 = atof(middle2);
-//	    amt_middle2 += 0.00011;
-//
-//		price_upper2 = atof(upper2);
-//		price_upper2 += 0.00011;
-
-	    //----------------------------------------------------------------------------//
-	    running_volTotaliser2_tmin3 = running_volTotaliser2_tmin2;
-	    running_volTotaliser2_tmin2 = running_volTotaliser2_tmin1;
-		running_volTotaliser2_tmin1 = running_volTotaliser2;
-		running_volTotaliser2 = (working_volTotaliser2 + amt_real2);
-
-		running_volTotaliser2_array[0] = running_volTotaliser2;
-		running_volTotaliser2_array[1] = running_volTotaliser2_tmin1;
-		running_volTotaliser2_array[2] = running_volTotaliser2_tmin2;
-		running_volTotaliser2_array[3] = running_volTotaliser2_tmin3;
-
-		correctArray2(running_volTotaliser2_array, tot_b);
-
-		running_volTotaliser2 = running_volTotaliser2_array[0];
-		running_volTotaliser2_tmin1 = running_volTotaliser2_array[1];
-		running_volTotaliser2_tmin2 = running_volTotaliser2_array[2];
-		running_volTotaliser2_tmin3 = running_volTotaliser2_array[3];
-
-		totaliser_vol2 = scale_to_original2(running_volTotaliser2);
-
-		//============================================================================//
-
-//		float differential = running_volTotaliser2 - running_volTotaliser2_tmin1;
-
-//		if((abs(differential)) >= 1.00)
-//		{
-////			float differential_prev = running_volTotaliser2_tmin1 - running_volTotaliser2_tmin2;
-////			float differential_curr = running_volTotaliser2 - running_volTotaliser2_tmin2;
-//			if(running_volTotaliser2_tmin1 < running_volTotaliser2)
-//			{
-//				if(running_volTotaliser2_tmin2 < running_volTotaliser2_tmin1)
-//				{
-//					if(running_volTotaliser2_tmin3 < running_volTotaliser2_tmin2)
-//					{
-//						running_volTotaliser2 = running_volTotaliser2_tmin1;
-//					}
-//				}
-//
-//			}
-//			else if(running_volTotaliser2_tmin1 > running_volTotaliser2)
-//			{
-//				if(running_volTotaliser2_tmin2 < running_volTotaliser2_tmin1)
-//				{
-//					if(running_volTotaliser2_tmin3 < running_volTotaliser2_tmin2)
-//					{
-//						running_volTotaliser2 = running_volTotaliser2_tmin1;
-//					}
-//				}
-//			}
-//			if((abs(differential_curr)) < (abs(differential_prev)))
-//			{
-//				running_volTotaliser2_tmin1 = running_volTotaliser2;
-//			}
-//			else if((abs(differential_curr)) >  (abs(differential_prev)))
-//			{
-//				running_volTotaliser2_tmin1 = running_volTotaliser2;
-//			}
-//		}
-//	   	  running_volTotaliser2c = working_volTotaliser2c + amt2;
-
-//		running_volTotaliser2c_tmin2 = running_volTotaliser2c_tmin1;
-//		running_volTotaliser2c_tmin1 = running_volTotaliser2c;
-
-		//----------------------------------------------------------------------------//
-		running_volTotaliser2c_tmin3 = running_volTotaliser2c_tmin2;
-		running_volTotaliser2c_tmin2 = running_volTotaliser2c_tmin1;
-		running_volTotaliser2c_tmin1 = running_volTotaliser2c;
-
-		float scale_to_range_middle2 = scale_to_range2(amt_middle2);
-		running_volTotaliser2c = ( working_volTotaliser2c + scale_to_range_middle2 );
-
-		running_volTotaliser2c_array[0] = running_volTotaliser2c;
-		running_volTotaliser2c_array[1] = running_volTotaliser2c_tmin1;
-		running_volTotaliser2c_array[2] = running_volTotaliser2c_tmin2;
-		running_volTotaliser2c_array[3] = running_volTotaliser2c_tmin3;
-
-		correctArray2(running_volTotaliser2c_array, tot_b);
-
-		running_volTotaliser2c = running_volTotaliser2c_array[0];
-		running_volTotaliser2c_tmin1 = running_volTotaliser2c_array[1];
-		running_volTotaliser2c_tmin2 = running_volTotaliser2c_array[2];
-		running_volTotaliser2c_tmin3 = running_volTotaliser2c_array[3];
-
-		totaliser_vol2c = scale_to_original2(running_volTotaliser2c);
-
-		//============================================================================//
-
-
-		//----------------------------------------------------------------------------//
-
-		running_amtTotaliser2  = (working_amtTotaliser2  + price_real2);
-
-		//============================================================================//
-
-		//----------------------------------------------------------------------------//
-		running_amtTotaliser2c = (working_amtTotaliser2c + price_upper2);
-
-		//============================================================================//
-
-		//----------------------------------------------------------------------------//
-
-
-//		   float pricecheck = running_amtTotaliser2c - priceOld2;
-//
-//		   if (pricecheck >= 1000.00)
-//		   {
-//			   priceOld2 = running_amtTotaliser2c;
-//			   save_amountSend(side_b);
-//
-//			   char str[65];
-//			   sprintf(str, "[Side-B]... #%0.2f intermittent worth of sales made now!", pricecheck);
-//			   server_write(str);
-//		   }
-
-
-//	    running_volTotaliser2  = working_volTotaliser2  + amt_real2;
-//	   	running_volTotaliser2c = working_volTotaliser2c + amt2;
-//
-//
-//	    running_amtTotaliser2  = working_amtTotaliser2  + price_real2;
-//	   	running_amtTotaliser2c = working_amtTotaliser2c + price2;
-
-//============================================================
-//         for totaliser toggle.
-	  r_volTotaliser2 	  = floor( scale_to_original2(running_volTotaliser2c) );
-
-//	  mechTotalizer2 = (mechTotalizer2_ + amt_middle2);
-
-		#ifdef PULSER_BASED_TV
-				mechTotalizer2 = (mechTotalizer2_ + pulser2amt2(current_pulser2));
-		#else
-				mechTotalizer2 = (mechTotalizer2_ + amt_middle2);
-		#endif
-
-	  mech_totalizer2 = (int) mechTotalizer2;
-
-//	  r_amtTotaliser2 	  = floor(running_amtTotaliser2c);
-//
-//	if(r_volTotaliser2 != old_r_volTotaliser2)
-//		{
-//			totalizer2Timer = 0;
-//			//then toggle the totaliser harware I/O.
-//			drive_totaliser2(ACTIVATE);
-//		}
-//	else
-//	{
-//		if(totalizer2Timer > 300)
-//		{
-//			//deactivate totaliser output...
-//			drive_totaliser2(DEACTIVATE);
-//		}
-//
-//	}
-//	  old_r_volTotaliser2 = r_volTotaliser2;   //update...
-//
-//	  old_r_amtTotaliser2 = r_amtTotaliser2;   //update...
-
-	  if (totaliser_vol2c - previous_totaliserVol2c >= THRESHOLD_TV)
-//	  if (amt_middle2 - previous_totaliserVol2c >= THRESHOLD_TV)
-	  {
-			previous_totaliserVol2c = totaliser_vol2c;
-//			previous_totaliserVol2c = amt_middle2;
-
-			totalizer_saveStatus2 = UNSAVED_TO_MAIN_TOTALIZER;
-			save_totaliserFrequent_fram(side_b);
-			save_totaliserFrequent_eeprom(side_b);
-	  }
-
-//============================================================
-	  if (t2 > LCD_UPDATE_RATE)
-	  {
-		    if(settings_stream1[1].display_format == PL)
-		  	{
-		  		 lcd_print_line1_2(upper2);
-		  		 lcd_print_line2_2(middle2);
-		  	}
-		  	else if(settings_stream1[1].display_format == LP)
-		  	{
-		  		  lcd_print_line1_2(middle2);
-		  		  lcd_print_line2_2(upper2);
-		  	}
-
-		  	char str__[9]= {0};
-		  	snprintf(str__, sizeof(str__), "%.2f", litre_price2);
-		  	lcd_print_line3_2(str__);
-
-		  	keypad_fillingUpdate2();
-
-			t2 = 0;
-		  }
-	  reset_timer2(timeout_dispense); //don't time out.
-//==========================pulser capture ============================
-#if (_USE_SOFT_PULSER == 1)
-	 // if ( (t > 50)&&(t < 200) )
-	 //  			{
-	 //  	    	   current_pulser1++;   //transfer this to the interrupt routine..
-	 //  			}
-#else
-	       current_pulser2 = __HAL_TIM_GET_COUNTER(&htim2);
-#endif
-//======================================================================
-	   if(target_pulser2 > 0)
-		{
-			//pulser_rem1 = target_pulser1 - current_pulser1;
-		}
-
-	 if(target_pulser2 > 0)
-       {
-		  if (pulser_rem2 <= 0 || pulser_complete2 == 1 )  //sales complete...
-		  	 {
-				stop_flow2(); //send_solenoid(1);  //stop solenoid.
-				filling2 = 0;
-		        do_calcs2();
-		    	get_time();
-		        update_info();
-//		        save_volumeTotaliser(operating_side);
-//		        save_amountTotaliser(operating_side);
-//		        save_lastSale(operating_side);
-
-		        while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
-				{
-		        	static uint8_t try = 0;
-					if(try++ >= 5)
-					{
-						while(retrieve_totaliser_eeprom_check(operating_side) != OK)
-						{
-							if(try++ >= 10)
-							{
-								clear_totaliser_fram(operating_side);
-								clear_totaliser_eeprom(operating_side);
-								try = 0;
-								break;
-							}
-
-						}
-						try = 0;
-						break;
-					}
-				 }
-
-		        save_totaliser_fram(operating_side);
-				save_totaliser_eeprom(operating_side);
-
-		        save_lastSale_fram(operating_side);
-		        save_lastSale_eeprom(operating_side);
-
-		          ////////////////////////////////////////////////
-				  //---------------------------------------------
-				  totalizer_saveStatus2 = SAVED_TO_MAIN_TOTALIZER;
-				  save_totaliserFrequent_fram(operating_side);
-				  save_totaliserFrequent_eeprom(operating_side);
-				  ////////////////////////////////////////////////
-
-
-
-//		        pump_status_2 = STATUS_MAMO_REACHED;
-
-//		        target_pulser2 = 0;
-
-				if(settings_stream1[1].mode == AUTO_MODE)
-				{
-					mamo_reached_flag2_1 = 1;
-				}
-
-		        return write_flash_State;
-		  	 }
-		  else
-		  {
-			//  slow_flow1();
-			  if (pulser_rem2 >= slowFlow_endThreshold2)
-			  {
-				    if(current_pulser2 >= slowFlow_startThreshold2)
-					{
-						fast_flow2();
-						fastFlow2 = 1;
-					}
-					else
-					{
-						slow_flow2();
-						fastFlow2 = 0;
-					}
-			  }
-			  else
-			  {
-				  slow_flow2();
-				  fastFlow2 = 0;
-			  }
-		  }
-       }
-
-	   if(flow_flag == 1)
-	   {
-			_tt2 = 0;
-	   }
-	   else if( (_tt2 > 60000) && (flow_flag == 2) )
-	   {
-			old_pulser_ = current_pulser2;
-			flow_flag = 3;
-	   }
-	   else if( (_tt2 > 65000) && (flow_flag == 3) )
-	   {
-			if(old_pulser_ > current_pulser2)
-			{
-				current_pulser2 = old_pulser_ ;
-				flow_loss2 = 1;
-				filling2 = 0,  nozzle_bit2 = 0;
-				stop_flag2 = 0;
-				stop_flow2(); //send_solenoid(1);  //stop solenoid.
-				get_time();
-				do_calcs2();
-				update_info();
-//				save_volumeTotaliser(operating_side);
-//				save_amountTotaliser(operating_side);
-//				save_lastSale(operating_side);
-
-				save_volumeTotaliser_fram(operating_side);
-				save_amountTotaliser_fram(operating_side);
-				save_lastSale_fram(operating_side);
-
-				keypad_zerorize2();
-
-				if(settings_stream1[1].mode == AUTO_MODE)
-				  {
-					 //////////////////////////////////////////////////////////////
-
-					 hardwareErrorFlag_source2 = 1;
-
-					 //////////////////////////////////////////////////////////////
-				  }
-
-				return write_flash_State;
-			}
-			flow_flag = 1;
-		}
-
-	   return filling_State;
-}
-
-
-
-//-------------------------------------
 eSystemState authorised_nozzleup_State_Handler2(void)
 {
 	float sellPrice_max_pump,
@@ -8524,6 +8576,953 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 }
 
 
+eSystemState filling_State_Handler2(void)
+{
+	//extern uint32_t pulser_new;
+
+	if(filling_mamo_flag2 == 1)
+	{
+		if(mamo_fillingInfo_send2 == 0)
+		{
+			mamo_reached_flag2 = 1;
+		}
+	    return filling_State;
+	}
+
+	float temp = 0.0;
+
+	static int8_t flow_flag = 1;
+
+	static int32_t current_pulser_ = 0,
+						   old_pulser_ = 0;
+
+	pump2_status_4G = STATUS_FILLING_;
+
+	lock_clr2 = 0;
+	filling2  = 1;
+
+	firstTime_nozz2 = 1;
+
+	  if(target_pulser2 > 0)
+		{
+		 //	pulser_rem1 = target_pulser1 - current_pulser1; //now handled in
+														 //interrupt
+		}
+
+//================================================================
+//#if !defined (DEV_MODE)
+	#if sense_battery == 1
+		if(batteryStatus == NO_BATTERY)
+		{
+			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+			  HAL_Delay(200);
+			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+			  filling2 = 0;
+			  stop_flow2();
+			  get_time();
+			  do_calcs2();
+			  update_info();
+
+			  while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
+			  {
+				    static uint8_t try = 0;
+					if(try++ >= 5)
+					{
+						while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+						{
+							if(try++ >= 10)
+							{
+								clear_totaliser_fram(operating_side);
+								clear_totaliser_eeprom(operating_side);
+								try = 0;
+								break;
+							}
+
+						}
+						try = 0;
+						break;
+					}
+			   }
+
+			  save_totaliser_fram(operating_side);
+			  save_totaliser_eeprom(operating_side);
+			  save_lastSale_fram(operating_side);
+			  save_lastSale_eeprom(operating_side);
+
+			  ////////////////////////////////////////////////
+			  //---------------------------------------------
+			  totalizer_saveStatus2 = SAVED_TO_MAIN_TOTALIZER;
+			  save_totaliserFrequent_fram(operating_side);
+			  save_totaliserFrequent_eeprom(operating_side);
+			  ////////////////////////////////////////////////
+
+
+			  if(settings_stream1[1].mode == AUTO_MODE)
+			  {
+				 //////////////////////////////////////////////////////////////
+
+				 hardwareErrorFlag_source2 = 1;
+
+				 //////////////////////////////////////////////////////////////
+			  }
+
+			  return write_flash_State;
+		}
+
+		#endif     //#if sense_battery == 1
+
+//    power outage during filling1  end transaction...
+		#if sense_power == 1
+	  	  if(  (readpwr() == 0)||(read_p_pwr() == 0) )
+		  {
+			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+			  HAL_Delay(200);
+			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+			  filling2 = 0;
+			  stop_flow2();
+			  get_time();
+			  do_calcs2();
+			  update_info();
+
+			  while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
+			  {
+				  static uint8_t try = 0;
+					if(try++ >= 5)
+					{
+						while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+						{
+							if(try++ >= 10)
+							{
+								clear_totaliser_fram(operating_side);
+								clear_totaliser_eeprom(operating_side);
+								try = 0;
+								break;
+							}
+
+						}
+						try = 0;
+						break;
+					}
+			   }
+
+			  save_totaliser_fram(operating_side);
+			  save_totaliser_eeprom(operating_side);
+			  save_lastSale_fram(operating_side);
+			  save_lastSale_eeprom(operating_side);
+
+			  ////////////////////////////////////////////////
+			  //---------------------------------------------
+			  totalizer_saveStatus2 = SAVED_TO_MAIN_TOTALIZER;
+			  save_totaliserFrequent_fram(operating_side);
+			  save_totaliserFrequent_eeprom(operating_side);
+			  ////////////////////////////////////////////////
+
+			  if(settings_stream1[1].mode == AUTO_MODE)
+			  {
+				 //////////////////////////////////////////////////////////////
+
+				 hardwareErrorFlag_source2 = 1;
+
+				 //////////////////////////////////////////////////////////////
+			  }
+
+			  return write_flash_State;
+		  }
+	#endif   //#if sense_power == 1
+
+#if !defined (DEV_MODE)
+
+	if(HAL_GPIO_ReadPin(pulser2_detect_GPIO_Port, pulser2_detect_Pin) == 1 )
+	{
+		 HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+		  HAL_Delay(200);
+		  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+		  filling2 = 0;
+		  stop_flow2();
+		  get_time();
+		  do_calcs2();
+		  update_info();
+
+		  while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
+		  {
+			  static uint8_t try = 0;
+				if(try++ >= 5)
+				{
+					while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+					{
+						if(try++ >= 10)
+						{
+							clear_totaliser_fram(operating_side);
+							clear_totaliser_eeprom(operating_side);
+							try = 0;
+							break;
+						}
+
+					}
+					try = 0;
+					break;
+				}
+		   }
+
+		  save_totaliser_fram(operating_side);
+		  save_totaliser_eeprom(operating_side);
+		  save_lastSale_fram(operating_side);
+		  save_lastSale_eeprom(operating_side);
+
+		  ////////////////////////////////////////////////
+		  //---------------------------------------------
+		  totalizer_saveStatus2 = SAVED_TO_MAIN_TOTALIZER;
+		  save_totaliserFrequent_fram(operating_side);
+		  save_totaliserFrequent_eeprom(operating_side);
+		  ////////////////////////////////////////////////
+
+		  if(settings_stream1[1].mode == AUTO_MODE)
+		  {
+			 //////////////////////////////////////////////////////////////
+
+			 hardwareErrorFlag_source2 = 1;
+
+			 //////////////////////////////////////////////////////////////
+		  }
+
+		  return write_flash_State;
+	}
+
+#endif   //#if !defined (DEV_MODE)
+
+		if(settings_stream1[1].mode == AUTO_MODE)
+		{
+			if(timer_go >= TIMEOUT_GO)   //if go's timeout is 5sec threshold
+			{
+				go_timeOut2 = 1;
+
+				HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+				HAL_Delay(100);
+				HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+				filling2 = 0;
+				stop_flow2();
+				get_time();
+				do_calcs2();
+				update_info();
+
+				while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
+				{
+					static uint8_t try = 0;
+					if(try++ >= 5)
+					{
+						while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+						{
+							if(try++ >= 10)
+							{
+								clear_totaliser_fram(operating_side);
+								clear_totaliser_eeprom(operating_side);
+								try = 0;
+								break;
+							}
+
+						}
+						try = 0;
+						break;
+					}
+				 }
+
+				save_totaliser_fram(side_b);
+				save_totaliser_eeprom(side_b);
+
+				save_lastSale_fram(side_b);
+				save_lastSale_eeprom(operating_side);
+
+				  ////////////////////////////////////////////////
+				  //---------------------------------------------
+				  totalizer_saveStatus2 = SAVED_TO_MAIN_TOTALIZER;
+				  save_totaliserFrequent_fram(operating_side);
+				  save_totaliserFrequent_eeprom(operating_side);
+				  ////////////////////////////////////////////////
+
+				return write_flash_State;
+			}
+		}
+
+	if (stop_flag2 == 1)   //if stop key pressed
+	{
+		filling2 = 0;
+		stop_flag2 = 0;
+		stop_flow2(); //send_solenoid(1);  //stop solenoid.
+		get_time();
+        do_calcs2();
+        update_info();
+//        save_volumeTotaliser(operating_side);
+//        save_amountTotaliser(operating_side);
+//        save_lastSale(operating_side);
+
+        while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
+		{
+        	static uint8_t try = 0;
+			if(try++ >= 5)
+			{
+				while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+				{
+					if(try++ >= 10)
+					{
+						clear_totaliser_fram(operating_side);
+						clear_totaliser_eeprom(operating_side);
+						try = 0;
+						break;
+					}
+
+				}
+				try = 0;
+				break;
+			}
+		 }
+
+        save_totaliser_fram(operating_side);
+		save_totaliser_eeprom(operating_side);
+
+		save_lastSale_fram(operating_side);
+		save_lastSale_eeprom(operating_side);
+
+		  ////////////////////////////////////////////////
+		  //---------------------------------------------
+		  totalizer_saveStatus2 = SAVED_TO_MAIN_TOTALIZER;
+		  save_totaliserFrequent_fram(operating_side);
+		  save_totaliserFrequent_eeprom(operating_side);
+		  ////////////////////////////////////////////////
+
+      //--------------------------------------------------------
+//		dpFlag2 = 0;
+//		error_clr_flag2 = 1;
+//		 index_2 = 0;
+//		 _index2 = 0;
+//		 for(int i = 0; i < 9; i++)
+//		 {
+//		   keypad_pw_xter2[i] = 0;
+//		   keyboard_entry2[i] = 0;   //clear the buffer
+//		 }
+//
+//		 for(int i = 0; i <= 8; i++)
+//		 {
+//			 keyboard2[i] = 0;
+//		 }
+//		 //--------------------------------------------------------------------
+//		 if (sellmode2 == P)
+//		 {
+//			  write_v2(3, "P     0");  //send_keypad("p    ");  //5 xters  lafeng..
+//		 }
+//		 else if(sellmode2 == L)
+//		 {
+//			  write_v2(3, "L     0");  //send_keypad("l    ");  //5 xters lafeng
+//		 }
+//	//	 else if(sellmode2 == V)
+//	//	 {
+//	//		  write_v2(3, "v    0");  //send_keypad("p    ");  //5 xters  lafeng..
+//	//	 }
+//		 send_keypad2(keyboard2);
+
+		keypad_zerorize2();
+	//--------------------------------------------------------------------
+
+		 if(settings_stream1[1].mode == AUTO_MODE)
+		 {
+			 //////////////////////////////////////////////////////////////
+			 ///////// SIGNALS GO-CONTROLLER ABOUT NOZZLE STATUS //////////
+
+			 status_change_noz2 = 1;
+			 nozzle_out2 = false;
+
+			 stopFlag_source2 = 1;
+
+			 //////////////////////////////////////////////////////////////
+		 }
+
+       return write_flash_State;
+	}
+
+	if(litre_price2 == 0)
+		{
+			stop_flow2(); //send_solenoid(1);  //stop solenoid.
+			filling2 = 0;
+			do_calcs2();
+			get_time();
+			update_info();
+//			save_volumeTotaliser(operating_side);
+//			save_amountTotaliser(operating_side);
+//			save_lastSale(operating_side);
+
+			while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
+			{
+				static uint8_t try = 0;
+				if(try++ >= 5)
+				{
+					while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+					{
+						if(try++ >= 10)
+						{
+							clear_totaliser_fram(operating_side);
+							clear_totaliser_eeprom(operating_side);
+							try = 0;
+							break;
+						}
+
+					}
+					try = 0;
+					break;
+				}
+			 }
+
+	        save_totaliser_fram(operating_side);
+			save_totaliser_eeprom(operating_side);
+
+			save_lastSale_fram(operating_side);
+			save_lastSale_eeprom(operating_side);
+
+			  ////////////////////////////////////////////////
+			  //---------------------------------------------
+			  totalizer_saveStatus2 = SAVED_TO_MAIN_TOTALIZER;
+			  save_totaliserFrequent_fram(operating_side);
+			  save_totaliserFrequent_eeprom(operating_side);
+			  ////////////////////////////////////////////////
+
+			_litre_price2 = 1;
+
+			if(settings_stream1[1].mode == AUTO_MODE)
+			  {
+				 //////////////////////////////////////////////////////////////
+
+				 hardwareErrorFlag_source2 = 1;
+
+				 //////////////////////////////////////////////////////////////
+			  }
+
+			return write_flash_State;
+		}
+
+		else if(pump_max_litres2 == 0)
+		{
+			stop_flow2(); //send_solenoid(1);  //stop solenoid.
+			filling2 = 0;
+			do_calcs2();
+			get_time();
+			update_info();
+//			save_volumeTotaliser(operating_side);
+//			save_amountTotaliser(operating_side);
+//			save_lastSale(operating_side);
+
+			while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
+			{
+				static uint8_t try = 0;
+				if(try++ >= 5)
+				{
+					while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+					{
+						if(try++ >= 10)
+						{
+							clear_totaliser_fram(operating_side);
+							clear_totaliser_eeprom(operating_side);
+							try = 0;
+							break;
+						}
+
+					}
+					try = 0;
+					break;
+				}
+			 }
+
+			save_totaliser_fram(operating_side);
+			save_totaliser_eeprom(operating_side);
+
+			save_lastSale_fram(operating_side);
+			save_lastSale_eeprom(operating_side);
+
+			  ////////////////////////////////////////////////
+			  //---------------------------------------------
+			  totalizer_saveStatus2 = SAVED_TO_MAIN_TOTALIZER;
+			  save_totaliserFrequent_fram(operating_side);
+			  save_totaliserFrequent_eeprom(operating_side);
+			  ////////////////////////////////////////////////
+
+			_pump_max_litres2 = 1;
+
+			if(settings_stream1[1].mode == AUTO_MODE)
+			  {
+				 //////////////////////////////////////////////////////////////
+
+				 hardwareErrorFlag_source2 = 1;
+
+				 //////////////////////////////////////////////////////////////
+			  }
+
+			return write_flash_State;
+		}
+
+//======================== @ filling1 =============================
+	  // get_time2();
+
+	   amt_real2_tmin3 = amt_real2_tmin2;
+	   amt_real2_tmin2 = amt_real2_tmin1;
+       amt_real2_tmin1 = amt_real2;
+
+
+       //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
+
+       temp = pulser2amt_R2(current_pulser2);
+	   amt_real2 = dp2(temp, dp_vol2);
+
+	   //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
+
+	   amt_real2_array[0] = amt_real2;
+	   amt_real2_array[1] = amt_real2_tmin1;
+	   amt_real2_array[2] = amt_real2_tmin2;
+	   amt_real2_array[3] = amt_real2_tmin3;
+
+		correctArray2(amt_real2_array, amt_b);
+
+		amt_real2 = amt_real2_array[0];
+		amt_real2_tmin1 = amt_real2_array[1];
+		amt_real2_tmin2 = amt_real2_array[2];
+		amt_real2_tmin3 = amt_real2_array[3];
+
+
+
+//		amt2_tmin3 = amt2_tmin2;
+//		amt2_tmin2 = amt2_tmin1;
+//		amt2_tmin1 = amt2;
+
+		//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
+
+		temp = pulser2amt2(current_pulser2);
+	    amt2 = dp2(temp, dp_vol2);
+
+	    //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
+
+
+//	    amt2_array[0] = amt2;
+//	    amt2_array[1] = amt2_tmin1;
+//	    amt2_array[2] = amt2_tmin2;
+//	    amt2_array[3] = amt2_tmin3;
+//
+//		correctArray2(amt2_array);
+//
+//		amt2 = amt2_array[0];
+//		amt2_tmin1 = amt2_array[1];
+//		amt2_tmin2 = amt2_array[2];
+//		amt2_tmin3 = amt2_array[3];
+
+
+	   //$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
+
+	   temp = amt2price2(amt2);
+	   price2 = dp2(temp, dp_amount2);
+
+	   //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&//
+
+
+	   //		temp = pulser2amt2_R(current_pulser2);
+//		amt_real2 = dp2(temp,dp_amount2);
+//
+//		temp = amt2price2(amt2);
+//		price_real2 = dp2(temp,dp_price2);
+
+	    make_string2(P, dp2(price2, dp_amount2));
+	    make_string2(L, dp2(amt2, dp_vol2));
+	    //lcd_print_line2_2(upper1);
+	    //lcd_print_line2_2(middle1);
+
+//	    amt_middle2 = atof(middle2);
+//	    amt_middle2 += 0.00011;
+//
+//		price_upper2 = atof(upper2);
+//		price_upper2 += 0.00011;
+
+	    //----------------------------------------------------------------------------//
+	    running_volTotaliser2_tmin3 = running_volTotaliser2_tmin2;
+	    running_volTotaliser2_tmin2 = running_volTotaliser2_tmin1;
+		running_volTotaliser2_tmin1 = running_volTotaliser2;
+		running_volTotaliser2 = (working_volTotaliser2 + amt_real2);
+
+		running_volTotaliser2_array[0] = running_volTotaliser2;
+		running_volTotaliser2_array[1] = running_volTotaliser2_tmin1;
+		running_volTotaliser2_array[2] = running_volTotaliser2_tmin2;
+		running_volTotaliser2_array[3] = running_volTotaliser2_tmin3;
+
+		correctArray2(running_volTotaliser2_array, tot_b);
+
+		running_volTotaliser2 = running_volTotaliser2_array[0];
+		running_volTotaliser2_tmin1 = running_volTotaliser2_array[1];
+		running_volTotaliser2_tmin2 = running_volTotaliser2_array[2];
+		running_volTotaliser2_tmin3 = running_volTotaliser2_array[3];
+
+		totaliser_vol2 = scale_to_original2(running_volTotaliser2);
+
+		//============================================================================//
+
+//		float differential = running_volTotaliser2 - running_volTotaliser2_tmin1;
+
+//		if((abs(differential)) >= 1.00)
+//		{
+////			float differential_prev = running_volTotaliser2_tmin1 - running_volTotaliser2_tmin2;
+////			float differential_curr = running_volTotaliser2 - running_volTotaliser2_tmin2;
+//			if(running_volTotaliser2_tmin1 < running_volTotaliser2)
+//			{
+//				if(running_volTotaliser2_tmin2 < running_volTotaliser2_tmin1)
+//				{
+//					if(running_volTotaliser2_tmin3 < running_volTotaliser2_tmin2)
+//					{
+//						running_volTotaliser2 = running_volTotaliser2_tmin1;
+//					}
+//				}
+//
+//			}
+//			else if(running_volTotaliser2_tmin1 > running_volTotaliser2)
+//			{
+//				if(running_volTotaliser2_tmin2 < running_volTotaliser2_tmin1)
+//				{
+//					if(running_volTotaliser2_tmin3 < running_volTotaliser2_tmin2)
+//					{
+//						running_volTotaliser2 = running_volTotaliser2_tmin1;
+//					}
+//				}
+//			}
+//			if((abs(differential_curr)) < (abs(differential_prev)))
+//			{
+//				running_volTotaliser2_tmin1 = running_volTotaliser2;
+//			}
+//			else if((abs(differential_curr)) >  (abs(differential_prev)))
+//			{
+//				running_volTotaliser2_tmin1 = running_volTotaliser2;
+//			}
+//		}
+//	   	  running_volTotaliser2c = working_volTotaliser2c + amt2;
+
+//		running_volTotaliser2c_tmin2 = running_volTotaliser2c_tmin1;
+//		running_volTotaliser2c_tmin1 = running_volTotaliser2c;
+
+		//----------------------------------------------------------------------------//
+		running_volTotaliser2c_tmin3 = running_volTotaliser2c_tmin2;
+		running_volTotaliser2c_tmin2 = running_volTotaliser2c_tmin1;
+		running_volTotaliser2c_tmin1 = running_volTotaliser2c;
+
+		float scale_to_range_middle2 = scale_to_range2(amt_middle2);
+		running_volTotaliser2c = ( working_volTotaliser2c + scale_to_range_middle2 );
+
+		running_volTotaliser2c_array[0] = running_volTotaliser2c;
+		running_volTotaliser2c_array[1] = running_volTotaliser2c_tmin1;
+		running_volTotaliser2c_array[2] = running_volTotaliser2c_tmin2;
+		running_volTotaliser2c_array[3] = running_volTotaliser2c_tmin3;
+
+		correctArray2(running_volTotaliser2c_array, tot_b);
+
+		running_volTotaliser2c = running_volTotaliser2c_array[0];
+		running_volTotaliser2c_tmin1 = running_volTotaliser2c_array[1];
+		running_volTotaliser2c_tmin2 = running_volTotaliser2c_array[2];
+		running_volTotaliser2c_tmin3 = running_volTotaliser2c_array[3];
+
+		totaliser_vol2c = scale_to_original2(running_volTotaliser2c);
+
+		//============================================================================//
+
+
+		//----------------------------------------------------------------------------//
+
+		running_amtTotaliser2  = (working_amtTotaliser2  + price_real2);
+
+		//============================================================================//
+
+		//----------------------------------------------------------------------------//
+		running_amtTotaliser2c = (working_amtTotaliser2c + price_upper2);
+
+		//============================================================================//
+
+		//----------------------------------------------------------------------------//
+
+
+//		   float pricecheck = running_amtTotaliser2c - priceOld2;
+//
+//		   if (pricecheck >= 1000.00)
+//		   {
+//			   priceOld2 = running_amtTotaliser2c;
+//			   save_amountSend(side_b);
+//
+//			   char str[65];
+//			   sprintf(str, "[Side-B]... #%0.2f intermittent worth of sales made now!", pricecheck);
+//			   server_write(str);
+//		   }
+
+
+//	    running_volTotaliser2  = working_volTotaliser2  + amt_real2;
+//	   	running_volTotaliser2c = working_volTotaliser2c + amt2;
+//
+//
+//	    running_amtTotaliser2  = working_amtTotaliser2  + price_real2;
+//	   	running_amtTotaliser2c = working_amtTotaliser2c + price2;
+
+//============================================================
+//         for totaliser toggle.
+	  r_volTotaliser2 	  = floor( scale_to_original2(running_volTotaliser2c) );
+
+//	  mechTotalizer2 = (mechTotalizer2_ + amt_middle2);
+
+		#ifdef PULSER_BASED_TV
+				mechTotalizer2 = (mechTotalizer2_ + pulser2amt2(current_pulser2));
+		#else
+				mechTotalizer2 = (mechTotalizer2_ + amt_middle2);
+		#endif
+
+	  mech_totalizer2 = (int) mechTotalizer2;
+
+//	  r_amtTotaliser2 	  = floor(running_amtTotaliser2c);
+//
+//	if(r_volTotaliser2 != old_r_volTotaliser2)
+//		{
+//			totalizer2Timer = 0;
+//			//then toggle the totaliser harware I/O.
+//			drive_totaliser2(ACTIVATE);
+//		}
+//	else
+//	{
+//		if(totalizer2Timer > 300)
+//		{
+//			//deactivate totaliser output...
+//			drive_totaliser2(DEACTIVATE);
+//		}
+//
+//	}
+//	  old_r_volTotaliser2 = r_volTotaliser2;   //update...
+//
+//	  old_r_amtTotaliser2 = r_amtTotaliser2;   //update...
+
+	  if (totaliser_vol2c - previous_totaliserVol2c >= THRESHOLD_TV)
+//	  if (amt_middle2 - previous_totaliserVol2c >= THRESHOLD_TV)
+	  {
+			previous_totaliserVol2c = totaliser_vol2c;
+//			previous_totaliserVol2c = amt_middle2;
+
+			totalizer_saveStatus2 = UNSAVED_TO_MAIN_TOTALIZER;
+			save_totaliserFrequent_fram(side_b);
+			save_totaliserFrequent_eeprom(side_b);
+	  }
+
+//============================================================
+	  if (t2 > LCD_UPDATE_RATE)
+	  {
+		    if(settings_stream1[1].display_format == PL)
+		  	{
+		  		 lcd_print_line1_2(upper2);
+		  		 lcd_print_line2_2(middle2);
+		  	}
+		  	else if(settings_stream1[1].display_format == LP)
+		  	{
+		  		  lcd_print_line1_2(middle2);
+		  		  lcd_print_line2_2(upper2);
+		  	}
+
+		  	char str__[9]= {0};
+		  	snprintf(str__, sizeof(str__), "%.2f", litre_price2);
+		  	lcd_print_line3_2(str__);
+
+		  	keypad_fillingUpdate2();
+
+			t2 = 0;
+		  }
+	  reset_timer2(timeout_dispense); //don't time out.
+//==========================pulser capture ============================
+#if (_USE_SOFT_PULSER == 1)
+	 // if ( (t > 50)&&(t < 200) )
+	 //  			{
+	 //  	    	   current_pulser1++;   //transfer this to the interrupt routine..
+	 //  			}
+#else
+	       current_pulser2 = __HAL_TIM_GET_COUNTER(&htim2);
+#endif
+//======================================================================
+	   if(target_pulser2 > 0)
+		{
+			//pulser_rem1 = target_pulser1 - current_pulser1;
+		}
+
+	 if(target_pulser2 > 0)
+       {
+		  if (pulser_rem2 <= 0 || pulser_complete2 == 1 )  //sales complete...
+		  	 {
+				stop_flow2(); //send_solenoid(1);  //stop solenoid.
+				filling2 = 0;
+		        do_calcs2();
+		    	get_time();
+		        update_info();
+//		        save_volumeTotaliser(operating_side);
+//		        save_amountTotaliser(operating_side);
+//		        save_lastSale(operating_side);
+
+		        while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
+				{
+		        	static uint8_t try = 0;
+					if(try++ >= 5)
+					{
+						while(retrieve_totaliser_eeprom_check(operating_side) != OK)
+						{
+							if(try++ >= 10)
+							{
+								clear_totaliser_fram(operating_side);
+								clear_totaliser_eeprom(operating_side);
+								try = 0;
+								break;
+							}
+
+						}
+						try = 0;
+						break;
+					}
+				 }
+
+		        save_totaliser_fram(operating_side);
+				save_totaliser_eeprom(operating_side);
+
+		        save_lastSale_fram(operating_side);
+		        save_lastSale_eeprom(operating_side);
+
+		          ////////////////////////////////////////////////
+				  //---------------------------------------------
+				  totalizer_saveStatus2 = SAVED_TO_MAIN_TOTALIZER;
+				  save_totaliserFrequent_fram(operating_side);
+				  save_totaliserFrequent_eeprom(operating_side);
+				  ////////////////////////////////////////////////
+
+
+
+//		        pump_status_2 = STATUS_MAMO_REACHED;
+
+//		        target_pulser2 = 0;
+
+				if(settings_stream1[1].mode == AUTO_MODE)
+				{
+					mamo_reached_flag2_1 = 1;
+				}
+
+		        return write_flash_State;
+		  	 }
+		  else
+		  {
+			//  slow_flow1();
+			  if (pulser_rem2 >= slowFlow_endThreshold2)
+			  {
+				    if(current_pulser2 >= slowFlow_startThreshold2)
+					{
+						fast_flow2();
+						fastFlow2 = 1;
+					}
+					else
+					{
+						slow_flow2();
+						fastFlow2 = 0;
+					}
+			  }
+			  else
+			  {
+				  slow_flow2();
+				  fastFlow2 = 0;
+			  }
+		  }
+       }
+
+	   if(flow_flag == 1)
+	   {
+			_tt2 = 0;
+	   }
+	   else if( (_tt2 > 60000) && (flow_flag == 2) )
+	   {
+			old_pulser_ = current_pulser2;
+			flow_flag = 3;
+	   }
+	   else if( (_tt2 > 65000) && (flow_flag == 3) )
+	   {
+			if(old_pulser_ > current_pulser2)
+			{
+				current_pulser2 = old_pulser_ ;
+				flow_loss2 = 1;
+				filling2 = 0,  nozzle_bit2 = 0;
+				stop_flag2 = 0;
+				stop_flow2(); //send_solenoid(1);  //stop solenoid.
+				get_time();
+				do_calcs2();
+				update_info();
+//				save_volumeTotaliser(operating_side);
+//				save_amountTotaliser(operating_side);
+//				save_lastSale(operating_side);
+
+				save_volumeTotaliser_fram(operating_side);
+				save_amountTotaliser_fram(operating_side);
+				save_lastSale_fram(operating_side);
+
+				keypad_zerorize2();
+
+				if(settings_stream1[1].mode == AUTO_MODE)
+				  {
+					 //////////////////////////////////////////////////////////////
+
+					 hardwareErrorFlag_source2 = 1;
+
+					 //////////////////////////////////////////////////////////////
+				  }
+
+				return write_flash_State;
+			}
+			flow_flag = 1;
+		}
+
+	   return filling_State;
+}
+
+
+
+//-------------------------------------
+eSystemState filledmamo_State_Handler2(void)
+{
+//	filling2 = 0,
+//	nozzle_bit2 = 0;
+
+	filling_mamo_flag2 = 0;
+
+	if(settings_stream1[1].noz_override == override)
+	{
+		nozzle_flag_key2 = 0;
+		nozzle_flag_key_old2 = 1;
+	}
+
+//	index_2 = 0;
+//	_index2 = 0;
+//
+//	 for(uint8_t i = 0; i < 9; i++)
+//	 {
+//	   keypad_pw_xter2[i] = 0;
+//	   keyboard_entry2[i] = 0;   //clear the buffer
+//	 }
+
+
+	  if (t2 > LCD_UPDATE_RATE)
+	  {
+
+		  if(settings_stream1[1].display_format == PL)
+		  {
+			 lcd_print_line1_2(upper2);
+			 lcd_print_line2_2(middle2);
+		  }
+		  else if(settings_stream1[1].display_format == LP)
+		  {
+			  lcd_print_line1_2(middle2);
+			  lcd_print_line2_2(upper2);
+		  }
+		  char str__[8]= {0};
+		  snprintf(str__, sizeof(str__), "%.2f", litre_price2);
+		  lcd_print_line3_2(str__);
+		  t2 = 0;
+	  }
+
+//	  reset_timer(timeout_dispense); //don't time out.
+
+	   return filledmamo_State;
+}
+
 eSystemState keyup_Handler2(void)
 {
 	progg2 = 1;
@@ -8532,15 +9531,19 @@ eSystemState keyup_Handler2(void)
 	return prog_State;
 }
 //-------------------------------------
-eSystemState inactiveState_Handler2(void)
+eSystemState keydown_Handler2(void)
 {
-    //error_state = 1;
-		  // All errors land here....
-		  // Only the CLEAR  key returns pump from this state....
-          // key reception is done in the key_entry handler..
+	clear_buffer2();
+	prog_entry2 = 0;
+	prog_revisit2 = 1;
 
-	return inactive_State;
+#ifndef DEV_MODE
+	prog_revisitt2 = 1;
+#endif //#ifndef DEV_MODE
+
+	 return savesettings_State;   //
 }
+
 //--------------------------------------
 eSystemState savesettings_State_Handler2(void)
 {
@@ -8635,62 +9638,7 @@ eSystemState savesettings_State_Handler2(void)
 	return savesettings_State;    //idle_State;  //return to idle mode
 }
 //--------------------------------------
-eSystemState keydown_Handler2(void)
-{
-	clear_buffer2();
-	prog_entry2 = 0;
-	prog_revisit2 = 1;
-
-#ifndef DEV_MODE
-	prog_revisitt2 = 1;
-#endif //#ifndef DEV_MODE
-
-	 return savesettings_State;   //
-}
-
 //-----------------------------------
-eSystemState nozzleup_Handler2(void)
-{
-	pump2_status_4G = STATUS_NOZZLE_UP;
-
-	reset_timer2(timeout_picknozzle);
-	start_timer2(timeout_picknozzle);
-
-	//set the motor on and solenoid off.
-	get_auth2();
-
-	if(opmode2 == AUTO_MODE)
-	{
-		 nozzle_out2 = true;
-		 status_change_noz2 = 1;
-
-		 if(pump_status_2 == STATUS_FILLING_COMP)
-		 {
-			 return idle_State;
-		 }
-	}
-
-	lcd_print_line1_2("88888888");
-	lcd_print_line2_2("88888888");
-	lcd_print_line3_2("888888");
-
-
-
-//	lcd_print_line3_2("      ");
-
-
-//	send_solenoid(0);
-//	send_pump(1);      //turn on pump.
-
-	if (eLastState2 == authorised_nozzledown_State)
-	{
-		 clr_pulser2();    //clear hardware pulser
-		 current_pulser2 = 0;
-		 return authorised_nozzleup_State;
-	}
-
-	return nozzleup_waitingforauth_State;
-}
 //-------------
 eSystemState auth_command_Handler2(void)
 {
@@ -8784,68 +9732,6 @@ eSystemState authorise_Handler2(void)
 }
 
 //---------------
-eSystemState authorised_nozzledown_State_Handler2(void)
-{
-	char *endPtr;
-
-	nozzle_bit2 = 0;
-	pump2_status_4G = STATUS_AUTHORIZED_NOZZLE_DOWN;
-
-	 //initialise the fuel and price variables
-
-	    if(index_2 >= 1)
-		  {
-			  key_value2 = strtof(keyboard_entry2, &endPtr);
-		  }
-		 else
-		 {
-			  key_value2 = 0.0;
-		 }
-
-	    //initialise the fuel and price variables
-	      if (sellmode2 == P)
-	    	{
-			  target_pulser2 = price2pulser(key_value2);  //calculate pulse frm price.
-	    	}
-	      else  //amt was selected.
-	      {
-	    	  target_pulser2 = amt2pulser(key_value2);   //calculate pulse frm amt.
-	      }
-
-	  price2  = 0.0;
-	  amt2 = 0.0;
-
-	  amt_middle2_tmin3 = 0.0;
-	  amt_middle2_tmin2 = 0.0;
-	  amt_middle2_tmin1 = 0.0;
-	  amt_middle2 = 0.0;
-
-	  amt_real2_tmin3 = 0.0;
-	  amt_real2_tmin2 = 0.0;
-	  amt_real2_tmin1 = 0.0;
-	  amt_real2 = 0.0;
-
-	  current_pulser2 = 0;
-
-   if(t2 > 300)
-   {
-	  lcd_print_line1_2(" Pic    ");
-	  lcd_print_line2_2("No22le  ");
-	  char str__[8]= {0};
-	  snprintf(str__, sizeof(str__), "%.2f", litre_price2); lcd_print_line3_2(str__);
-      t2 = 0;
-   }
-
-	if (display_overflow2 == 1)
-	{
-		display_overflow2 = 0;
-		firstTime_display_overflow2 = 0;
-	}
-
-	return authorised_nozzledown_State;
-}
-
-
 //----------------------
 uint32_t price2pulser2(float price2)
 {
@@ -9397,371 +10283,7 @@ eSystemState filling_resumed_Handler2(void)
 }
 
 //----------------------------------------
-eSystemState nozzledown_Handler2(void)
-{
-	filling2 = 0;
-	nozzle_bit2 = 0;
-	stop_flow2();
-
-	pump2_status_4G = STATUS_NOZZLE_DOWN;
-
-	 if(nozzleup_awaitingauth_state_not_timedOut2 == 1)
-	 {
-		 nozzleup_awaitingauth_state_not_timedOut2 = 0;
-		 clr_screen2();
-	 }
-
-	 if(nonValid_sale2 == 1)
-	 {
-		 return idle_State;
-	 }
-
-	//lcd_print_line2_2("nos dn");
-	 reset_timer2(30);
-	 stop_timer2();
-
-//	 if(  ( (eLastState2 == idle_State) && (eNextState2 == idle_State) ) || ( (eLastState2 == filledmamo_State) && (eNextState2 == filledmamo_State) ) || (eNextState2 == nozzleup_waitingforauth_State) )
-//	 {
-////		  return idle_State;
-//	 }
-//	 else
-	 if( (eLastState2 == filling_State) && (eNextState2 == filling_State) )
-	 {
-		 do_calcs2();
-		  get_time();
-		  update_info();
-//		  save_volumeTotaliser(operating_side);
-//		  save_amountTotaliser(operating_side);
-//		  save_lastSale(operating_side);
-
-		  while(retrieve_totaliser_fram_check(operating_side) != OK)   //If it fails, retry 5X
-		  {
-			  static uint8_t try = 0;
-				if(try++ >= 5)
-				{
-					while(retrieve_totaliser_eeprom_check(operating_side) != OK)
-					{
-						if(try++ >= 10)
-						{
-							clear_totaliser_fram(operating_side);
-							clear_totaliser_eeprom(operating_side);
-							try = 0;
-							break;
-						}
-
-					}
-					try = 0;
-					break;
-				}
-		  }
-
-		  save_totaliser_fram(operating_side);
-		  save_totaliser_eeprom(operating_side);
-
-		  save_lastSale_fram(operating_side);
-		  save_lastSale_eeprom(operating_side);
-
-		  ////////////////////////////////////////////////
-		  //---------------------------------------------
-		  totalizer_saveStatus2 = SAVED_TO_MAIN_TOTALIZER;
-		  save_totaliserFrequent_fram(operating_side);
-		  save_totaliserFrequent_eeprom(operating_side);
-		  ////////////////////////////////////////////////
-	 }
-/*
-		 char str__[8]= {0};
-         snprintf(str__, sizeof(str__), " %.2f", litre_price);
-		 lcd_print_line3_2(str__);   */
-
-	char str__[10]= {0};
-	snprintf(str__, sizeof(str__), "%.2f", litre_price2);
-	lcd_print_line3_2(str__);
-
- 	 if( ((pump_LitreOverflow2 == 1) && (pulser_rem2 > 0 )) || (display_overflow2 == 1) )    //|| ((display_overflow2 == 1) && (pulser_rem2 > 0 )) )
- 	 {
- 		  if(pump_LitreOverflow2 == 1)
- 			  pump_LitreOverflow2 = 0;
- 		  if(display_overflow2 == 1)
- 		  {
- 			  display_overflow2 = 0;
- 			  firstTime_display_overflow2 = 0;
- 		  }
-
- 		 clr_screen2();
- 	 }
-
- 	//--------------------------------------------------------
-// 		dpFlag2 = 0;
-// 		error_clr_flag2 = 1;
-// 		 index_2 = 0;
-// 		 _index2 = 0;
-// 		 for(int i = 0; i < 9; i++)
-// 		 {
-// 		   keypad_pw_xter2[i] = 0;
-// 		   keyboard_entry2[i] = 0;   //clear the buffer
-// 		 }
-//
-// 		 for(int i = 0; i <= 8; i++)
-// 		 {
-// 			 keyboard2[i] = 0;
-// 		 }
-// 		 //--------------------------------------------------------------------
-// 		 if (sellmode2 == P)
-// 		 {
-// 			  write_v2(3, "P     0");  //send_keypad("p    ");  //5 xters  lafeng..
-// 		 }
-// 		 else if(sellmode2 == L)
-// 		 {
-// 			  write_v2(3, "L     0");  //send_keypad("l    ");  //5 xters lafeng
-// 		 }
-// 	//	 else if(sellmode2 == V)
-// 	//	 {
-// 	//		  write_v2(3, "v    0");  //send_keypad("p    ");  //5 xters  lafeng..
-// 	//	 }
-// 		 send_keypad2(keyboard2);
-
- 	if(programmed_sale2 == 1)
-	{
-		 programmed_sale2 = 0;
-
-		 incidentRecord[1].timestamp_event = RtcToInt(2019);
-
-		 incidentRecord[1].programmed_sale = key_value2;
-
-	     incidentRecord[1].nozzleState_change_ = NOZZLE_HANGUP;
-
-	     save_programmedSaleEvent_fram(side_b);
-
-	 }
-//	 if(keypad_zerorise2 == true)
-		 keypad_zerorize2();
- 	//--------------------------------------------------------------------
-
-	  //-------------------------------------------
-	  //             saving to the log
-	  if(eNextState2 == filling_State)
-	  {
-		  stop_fueling_bit2 = 0;
-
-		  //===========================================================
-		  //         for totaliser toggle.
-		  //===========================================================
-
-//			running_volTotaliser2 = working_volTotaliser2 + amt_real2;
-			//----------------------------------------------------------------------------//
-		    running_volTotaliser2_tmin3 = running_volTotaliser2_tmin2;
-		    running_volTotaliser2_tmin2 = running_volTotaliser2_tmin1;
-			running_volTotaliser2_tmin1 = running_volTotaliser2;
-			running_volTotaliser2 = (working_volTotaliser2 + amt_real2);
-
-			running_volTotaliser2_array[0] = running_volTotaliser2;
-			running_volTotaliser2_array[1] = running_volTotaliser2_tmin1;
-			running_volTotaliser2_array[2] = running_volTotaliser2_tmin2;
-			running_volTotaliser2_array[3] = running_volTotaliser2_tmin3;
-
-			correctArray2(running_volTotaliser2_array, tot_b);
-
-			running_volTotaliser2 = running_volTotaliser2_array[0];
-			running_volTotaliser2_tmin1 = running_volTotaliser2_array[1];
-			running_volTotaliser2_tmin2 = running_volTotaliser2_array[2];
-			running_volTotaliser2_tmin3 = running_volTotaliser2_array[3];
-
-			totaliser_vol2 = scale_to_original2(running_volTotaliser2);
-
-			//============================================================================//
-
-
-//			running_volTotaliser2c = working_volTotaliser2c + amt_middle2;
-			//----------------------------------------------------------------------------//
-			running_volTotaliser2c_tmin3 = running_volTotaliser2c_tmin2;
-			running_volTotaliser2c_tmin2 = running_volTotaliser2c_tmin1;
-			running_volTotaliser2c_tmin1 = running_volTotaliser2c;
-			running_volTotaliser2c = ( working_volTotaliser2c + scale_to_range2(amt_middle2) );
-
-			running_volTotaliser2c_array[0] = running_volTotaliser2c;
-			running_volTotaliser2c_array[1] = running_volTotaliser2c_tmin1;
-			running_volTotaliser2c_array[2] = running_volTotaliser2c_tmin2;
-			running_volTotaliser2c_array[3] = running_volTotaliser2c_tmin3;
-
-			correctArray2(running_volTotaliser2c_array, tot_b);
-
-			running_volTotaliser2c = running_volTotaliser2c_array[0];
-			running_volTotaliser2c_tmin1 = running_volTotaliser2c_array[1];
-			running_volTotaliser2c_tmin2 = running_volTotaliser2c_array[2];
-			running_volTotaliser2c_tmin3 = running_volTotaliser2c_array[3];
-
-			totaliser_vol2c = scale_to_original2(running_volTotaliser2c);
-
-	//		running_volTotaliser2c = ( working_volTotaliser2c + scale_to_range2(amt_middle2) );
-			//============================================================================//
-
-
-			running_amtTotaliser2 = (working_amtTotaliser2 + price_real2);
-
-			running_amtTotaliser2c = (working_amtTotaliser2c + price_upper2);
-			//----------------------------------------------------------------------------//
-
-			//============================================================================//
-
-//		   float pricecheck = running_amtTotaliser2c - priceOld2;
-//
-//		   if (pricecheck >= 1000.00)
-//		   {
-//			   priceOld2 = running_amtTotaliser2c;
-//			   save_amountSend(side_b);
-//
-//			   char str[65];
-//			   sprintf(str, "[Side-B]... #%0.2f intermittent worth of sales made now!", pricecheck);
-//			   server_write(str);
-//		   }
-
-
-			r_volTotaliser2 = floor( scale_to_original2(running_volTotaliser2c) );
-
-//			mechTotalizer2 = (mechTotalizer2_ + amt_middle2);
-
-			#ifdef PULSER_BASED_TV
-					mechTotalizer2 = (mechTotalizer2_ + pulser2amt2(current_pulser2));
-			#else
-					mechTotalizer2 = (mechTotalizer2_ + amt_middle2);
-			#endif
-
-		    mech_totalizer2 = (int) mechTotalizer2;
-
-		//		if(r_volTotaliser2 != old_r_volTotaliser2)
-		//		{
-		//			totalizer2Timer = 0;
-		//	  //			then toggle the totaliser harware I/O.
-		//			drive_totaliser2(ACTIVATE);
-
-//				}
-				if(mech_totalizer2 != mech_totalizer_old2)
-				{
-			  		totalizer2Timer = 0;
-
-			        //	then toggle the totaliser harware I/O.
-			  		drive_totaliser2(ACTIVATE);
-				}
-				else
-				{
-					//deactivate totaliser output...
-					if(totalizer2Timer > 200)
-					{
-						drive_totaliser2(DEACTIVATE);
-					}
-
-				}
-				old_r_volTotaliser2 = r_volTotaliser2;   //update...
-
-				//===================// Update... //===================//
-			  	  mech_totalizer_old2 = mech_totalizer2;
-			  	//-----------------------------------------------------//
-
-//			  	if (totaliser_vol2c - previous_totaliserVol2c >= THRESHOLD_TV)
-//				{
-//					previous_totaliserVol2c = totaliser_vol2c;
-//
-//					save_totaliserFrequent_fram(side_b);
-//					save_totaliserFrequent_eeprom(side_b);
-//				}
-
-		 //============================================================
-
-			if(settings_stream1[1].mode == AUTO_MODE)
-			{
-
-				 if( (pump_status_2 == STATUS_FILLING) || (pump_status_2 == STATUS_MAMO_REACHED) )
-				 {
-
-				 }
-
-				 //////////////////////////////////////////////////////////////
-				 ///////// SIGNALS GO-CONTROLLER ABOUT NOZZLE STATUS //////////
-
-				 status_change_noz2 = 1;
-				 nozzle_out2 = false;
-
-				 nozzleDown_source2 = 1;
-
-				 //////////////////////////////////////////////////////////////
-
-			}
-
-			return  write_flash_State;
-		 }
-
-	  //-------------------------------------------
-
-		  pump_status_2 = STATUS_FILLING_COMP;
-
-	      return idle_State;
-}
-
 //----------------------------------------
-eSystemState timeout_Handler2(void)
-{
-	 if(eLastState2 != authorised_nozzleup_State)
-	 {
-		 lcd_print_line1_2(" t out  ");
-		 lcd_print_line2_2("--------");
-
-		 if( ((pump_LitreOverflow2 == 1) && (pulser_rem2 > 0 )) || ((display_overflow2 == 1) && (pulser_rem2 > 0 )) )
-		 {
-			  if(pump_LitreOverflow2 == 1)
-				  pump_LitreOverflow2 = 0;
-			  if(display_overflow2 == 1)
-				  display_overflow2 = 0;
-		 }
-	 }
-
-	  //write the commodity price...
-	  // char str__[8]= {0};
-	  // snprintf(str__, sizeof(str__), " %.2f", litre_price);
-	  // lcd_print_line3_2(str__);
-	  // lcd_print_line3_2("-----");
-
-	  //compose the kind of timeout error
-	  else if(eLastState2 == nozzleup_waitingforauth_State)
-	  {
-		 lcd_print_line3_2("Err1 ");
-		 nozzleup_awaitingauth_state_not_timedOut2 = 0;
-	  }
-
-	  else if(eLastState2 == authorised_nozzledown_State)
-	  {
-		 lcd_print_line3_2("Err2 ");
-	  }
-
-	  else if(eLastState2 == authorisation_paused_State)
-	  {
-		 lcd_print_line3_2("Err3 ");
-	  }
-
-	  else if(eLastState2 == filling_paused_State)
-	  {
-		 lcd_print_line3_2("Err4 ");
-	  }
-
-	  else if(eLastState2 == authorised_nozzleup_State)
-	  {
-		 if( ((pump_LitreOverflow2 == 1) && (pulser_rem2 > 0 )) || ((display_overflow2 == 1) && (pulser_rem2 > 0 )) )
-		 {
-			  if(pump_LitreOverflow2 == 1)
-				  pump_LitreOverflow2 = 0;
-			  if(display_overflow2 == 1)
-				  display_overflow2 = 0;
-		 }
-
-		 lcd_print_line1_2("    No ");
-		 lcd_print_line2_2("  Flouu ");
-		 lcd_print_line3_2("Err15 ");
-	 }
-
-	 pump_status_2 = STATUS_FILLING_COMP;
-
-	 return inactive_State;
-}
-
 //-----------------------------------
 eSystemState tone_Handler2(void)
 {
@@ -9775,19 +10297,6 @@ eSystemState tone_Handler2(void)
 }
 
 //----------------------------------------
-eSystemState tot_error_Handler2(void)
-{
-   //set irrecoverable error flag.
-//	irrecov_flag2 = 1;
-
-	totalizer2_error = 1;
-
-	lcd_print_line1_2("   tot   ");
-	lcd_print_line2_2("  Error ");
-
-    return inactive_State;
-}
-
 //----------------------------------------
 eSystemState key19_Handler2(void)
 {
@@ -9795,461 +10304,6 @@ eSystemState key19_Handler2(void)
 }
 
 //----------------------------------------
-eSystemState keypress_Handler2(void)
-{
-
-	static allowed_xters = 6;
-	extern uint8_t error_clr_flag2;
-	extern uint8_t keyEntry2_len;
-
-//	 if(pump_type == lafeng)
-//	 if(pump_type == DN_LAFNG17K)
-	 if(settings_stream1[1].keypad__ == LAFNG17_K)
-	 {
-	   kkey2 =  lafeng_keypad[keypress_2];
-	   allowed_xters = 6;
-	 }
-	 else if (settings_stream1[1].keypad__ == LAFNG18_K)
-	 {
-	   kkey2 =  lafeng_keypad_18K[keypress_2];
-	   allowed_xters = 7;
-	 }
-	 else if (settings_stream1[1].keypad__ == LAFNG18_K_V2)
-	 {
-	   kkey2 =  lafeng_keypad_18K_V2[keypress_2];
-	   allowed_xters = 7;
-	 }
-//	 else if(pump_type == bluesky)
-//	 else if( (pump_type == DN_BLSKY18K) || (pump_type == DN_BLSKY22) )
-	 else if( (settings_stream1[1].keypad__ == BLSKY18_K) || (settings_stream1[1].keypad__ == BLSKY22) )
-	 {
-	    kkey2 =  bluesky_keypad[keypress_2];
-	    allowed_xters = 7;
-	 }
-
-   ePrevState2 = eLastState2;
-
- /*  if (progg == 1)
-	 {
-	    return keypad_entry_State;
-	 }  */
-
-	//if (progg == 1) //if in programming mode return.
-
-	//char prc[7] = {'p'};
-	//char amt[7] = {'l'};
-	//char keyboard[6] = {0};
-	//char keyboard_screen[6] = {0};
-
-   int space = allowed_xters - index_2; //int space = 6 - index_;
-	int ind = 1;
-
-//-----------------------------------------------------------
-//If only 0 - 9 is pressed.....
-if(
-	(kkey2 != 'A') && (kkey2 != 'B') &&
-	(kkey2 != 'C') && (kkey2 != 'D') &&
-	(kkey2 != 'F') && (kkey2 != '-') &&
-	(kkey2 != 'G') && (kkey2 != 'J')  //&&(index_2 < 6)
-  )
-    {
-	 if(index_2 <= allowed_xters)    //only allow 6 xters...
-	  {
-		keyboard_entry2[index_2] = kkey2;
-		keyboard_entry2[index_2+1] = 0;         //NULL;
-		index_2++;
-	  }
-	}
-//-----------------------------------------------------------
-		  if (kkey2 == 'F')      //'clear' key.
-		  	{
-			  //ePrevState = eLastState1;
-			  //set the error clear flag..
-			    dpFlag2 = 0;
-			    error_clr_flag2 = 1;
-                 index_2 = 0;
-                 _index2 = 0;
-                 for(int i = 0;i<9;i++)
-				 {
-				   keypad_pw_xter2[i] = 0;
-				   upper2[i] = 0;
-				   middle2[i] = 0;
-				 }
-
-                 for(int i = 0; i <= 6; i++)
-				 {
-					 keyboard_entry2[i] = 0;   //clear the buffer
-					 keyboard2[i]= 0;
-				 }
-
-                 if(settings_stream1[1].display_format == PL)
-				  {
-					 upper2[0]  = 'P';
-					 middle2[0] = 'L';
-				  }
-				  else if(settings_stream1[1].display_format == LP)
-				  {
-					 upper2[0]  = 'L';
-					 middle2[0] = 'P';
-				  }
-		  	}
-//--------------------------------------------------------------------
-		  if (progg2 == 1)
-		  {
-			    keypad_print2("       ");
-			    if (auth2 == not_auth)
-			    {
-//			    	if(keypad_pw_xter2[0] != '\0')
-			    	keypad_print2(keypad_pw_xter2);
-			    }
-			    else
-			    {
-					 int8_t keyBoard_len = strlen(keyboard_entry2);
-					 strncpy(keyboard2, keyboard_entry2, sizeof(keyboard2));
-					 if(strchr(keyboard2, '.') )
-					 {
-						 if(keyboard2[keyBoard_len - 1] == '.')
-						 {
-							 keyboard2[keyBoard_len] = '0';
-
-							 if(keyboard2[0] == '.')
-							 {
-								 keyboard2[0] = '0';
-								 keyboard2[1] = '.';
-								 keyboard2[2] = '0';
-							 }
-
-						 }
-					 }
-					 keypad_print2(keyboard2);
-				}
-
-		  	    return keypad_entry_State;
-		  	 }
-
-      if ( ((kkey2 == 'D') && (progg2 == 0)) && (eNextState2 != filling_State) )   //fueling key.
-	  {
-
-    	  //ePrevState = eLastState1;
-
-          if(settings_stream1[1].mode == MANUAL_MODE)
-     	  {
- 			   auth_cmd_flag2 = 1;  //activate auth2 cmd.
-
- 			   return keypad_entry_State;
-     	  }
-     	  else if(settings_stream1[1].mode == AUTO_MODE)
-     	  {
-     		  nozzle_flag_key2 = 1;
-
-     		  return keypad_entry_State;
-     	  }
-	 }
-
-//      if ( (kkey2 == 'A') && (progg2 == 0)&&( (eNextState2 == filling_State) || (eNextState2 == authorised_nozzleup_State)) ) //stop sales.
-	  if ( (kkey2 == 'A') && (progg2 == 0) )
-	  {
-		   stop_flag2 = 1;  //deactivate auth2 cmd.
-
-		   nozzle_flag_key2 = 0;
-		   nozzle_flag_key_old2 = 1;
-
-//		   keypad_zerorise2 = true;
-		}
-
-//====================================================
-	if ( (kkey2 == 'C') && (progg2 == 0) )  //if change sales mode
-	{
-	   if(sellmode2 == L)
-	   {
-	       sellmode2 = P;
-	   }
-	   else
-	   {
-		   sellmode2 = L;
-	   }
-	}
-//--------------------------------------------------------------------
- int8_t space2,
- 	 	b;
-
- keyEntry2_len = strlen(keyboard_entry2);
- if( (strchr(keyboard_entry2, '.')) && (keyboard_entry2[keyEntry2_len - 1] != '.') )
- {
-	 space2 = 7 + ( -index_2 + 1);
-	 dpFlag2 = 1;
-
-	 b = 0;
-	 dpCount2 = 0;
-	 while( *(keyboard_entry2 + b) != '\0')
-	 {
-		 if( (keyboard_entry2[b] == '.') || (dpCount2 != 0) )
-		 {
-			dpCount2++;
-		 }
-		 b++;
-	 }
-	 dpCount2--;
-  }
-  else
-  {
-	 space2 = 7 - index_2;     //6 - index_;
-  }
-
-// int space2 = 7 - index_2;   //6 - index_2;
- if ((sellmode2 == L) && (progg2 == 0) )
- {
-	   memset(middle2, '\0', sizeof(middle2));
-	   middle2[0] = 'L';     //Append price to display.
-	// if((index_-1) >= 6) space = 2;
-		while (space2 > 0) //write spaces first..
-		{
-		   middle2[ind++] = ' ';
-		   space2--;
-		}
-	  space2 = index_2;     //reload with len of actual number
-	   while(space2 > 0)
-		 {
-			 middle2[ind++] = keyboard_entry2[index_2 - space2];
-			 space2--;
-		 }
-	  //  lcd_print_line2_2("p       ");
-
-	  write_v2(1,"        ");
-	  if(index_2 == 0)
-			middle2[7] = '0';
-
-	  //  lcd_print_line2_2(middle1);
-   }
-//--------------------------------------------------------------------
-
-       if ( (sellmode2 == P)&&(progg2 == 0) )
-	   {
-    	   memset(upper2, '\0', sizeof(upper2));
-    	   upper2[0] = 'p';       // append price to display
- 		// if((index_-1) >= 6) space = 2;
- 		   while (space2 > 0)     //write spaces first..
- 		   {
- 			   upper2[ind++] = ' ';
- 			   space2--;
- 		   }
- 		 space2 = index_2 ;          //reload with len of actual number
- 		    while(space2 > 0)
- 			 {
- 				 upper2[ind++] = keyboard_entry2[index_2 - space2];
- 				 space2--;
- 			 }
- 			//lcd_print_line2_2(upper1);  //clear the price
- 			//lcd_print_line2_2("l       ");
- 		   write_v2(2,"        ");
-
- 		   if(index_2 == 0)
- 			   upper2[7] = '0';
-         }
-//----------------------------------------------------------------
-//                            write to the keypad
-	   static int lcd_size = 5;
-
-//	   if(disp_type2 == LAFNG885)
-//	   if(disp_type2 == DN_LAFNG17K)
-	   if(settings_stream1[1].keypad__  == LAFNG17_K)
-	   {
-		    lcd_size = 5; //change this latter to accomodate other lcds.
-	   }
-	   else if( (settings_stream1[1].keypad__  == LAFNG18_K) || (settings_stream1[1].keypad__ == LAFNG18_K_V2) )
-	   {
-		    lcd_size = 7; //change this latter to accomodate other lcds.
-	   }
-//	   else if(disp_type2 == BLSKY886_N)
-//	   else if( (disp_type2 == DN_BLSKY18K) ||  (disp_type2 == DN_BLSKY22) )
-	   else if( (settings_stream1[1].keypad__  == BLSKY18_K) || (settings_stream1[1].keypad__  == BLSKY22) )
-	   {
-		    lcd_size = 7;   //6;
-	   }
-//================================================================
- int8_t size = lcd_size - 1;   // 1 xter to display 'P/L'
-
- int8_t k_index = 0;
- ind = 1;
-
-	  if (sellmode2 == P)
-	  {
-		 keyboard2[0] = 'p';
-		 if( (index_2 <= size) || ((index_2 <= 6) && (dpFlag2 == 1)) )
-		 {
-			if(dpFlag2 == 1)
-			{
-				space = size + (-index_2 + 1);
-//		    		dpFlag = 0;
-			}
-			else
-			{
-				space = size - index_2;
-			}
-		 }
-		 else
-			 space = 0;  //full size of xters.
-
-		 while (space > 0) //write spaces first..
-		   {
-			 keyboard2[ind++] = ' ';
-
-			 if( (index_2 == 0) && (space == 1) )
-				 keyboard2[ind - 1] = '0';
-
-			   space--;
-		   }
-	  //---------------------------------
-		if( (index_2 <= size) || ((index_2 <= 6) && (dpFlag2 == 1)) )
-			  space = index_2;
-		else
-		{
-			if(dpFlag2 == 1)
-			{
-				space = 6;
-			}
-			else
-				space = size;
-		}
-
-		if( (strchr(keyboard_entry2, '.')) && (index_2 > 6) ) space = 7;
-		while(space > 0)
-		 {
-		   keyboard2[ind++] = keyboard_entry2[index_2 - space];
-		   space--;
-		 }
-		if(keyboard2[ind - 1] == '.') keyboard2[ind] = '0';
-
-	   }
-
-	  //	  	  	 keyboard2[0] = 'p';
-//		     if(index_2 <= size)
-//		    	   space = size - index_2;
-//		     else
-//		    	   space = 0;  //full size of xters.
-//
-//		      while (space > 0) //write spaces first..
-//			   {
-//		    	 keyboard2[ind++] = ' ';
-//				   space--;
-//			   }
-//            //---------------------------------
-//				if(index_2 <= size)
-//					  space = index_2;
-//				else
-//					  space = size;
-//
-//			    while(space > 0)
-//				 {
-//				   keyboard2[ind++] = keyboard_entry2[index_2 - space];
-//				   space--;
-//				 }
-//
-//	 	   }
-//----------------------------------------------------------------
-	  if (sellmode2 == L)
-	  {
-
-		 keyboard2[0] = 'L';
-		 if( (index_2 <= size) || ((index_2 <= 6) && (dpFlag2 == 1)) )
-		 {
-			if(dpFlag2 == 1)
-			{
-				space = size + (-index_2 + 1);
- //		    		dpFlag = 0;
-			}
-			else
-			{
-				space = size - index_2;
-			}
-		 }
-		 else
-			 space = 0;  //full size of xters.
-
-		 while (space > 0) //write spaces first..
-		   {
-			 keyboard2[ind++] = ' ';
-
-			 if( (index_2 == 0) && (space == 1) )
-				 keyboard2[ind - 1] = '0';
-
-			   space--;
-		   }
-		  //---------------------------------
-			if( (index_2 <= size) || ((index_2 <= 6) && (dpFlag2 == 1)) )
-				  space = index_2;
-			else
-			{
-				if(dpFlag2 == 1)
-				{
-					space = 6;
-				}
-				else
-					space = size;
-			}
-
-			if( (strchr(keyboard_entry2, '.')) && (index_2 > 6) ) space = 7;
-			while(space > 0)
-			 {
-			   keyboard2[ind++] = keyboard_entry2[index_2 - space];
-			   space--;
-			 }
-			if(keyboard2[ind - 1] == '.') keyboard2[ind] = '0';
-
-		    }
-
-
-//		  keyboard2[0] = 'l';
-//		 if(index_2 <= size)
-//			   space = size - index_2;
-//		 else
-//			   space = 0;  //full size of xters.
-//
-//		 while (space > 0) //write spaces first..
-//		   {
-//			 keyboard2[ind++] = ' ';
-//			   space--;
-//		   }
-//	   //---------------------------------
-//			if(index_2 <= size)
-//				  space = index_2;
-//			else
-//				  space = size;
-//
-//			while(space > 0)
-//			 {
-//			   keyboard2[ind++] = keyboard_entry2[index_2 - space];
-//			   space--;
-//			 }
-//	   }
-
-	           if (progg2 == 1)
-	 		   {
-	        	    keypad_print2("      ");
-	 			    if (auth2 == not_auth)
-	 			    	keypad_print2(keypad_pw_xter2);
-	 			    else
-				    {
-						 int8_t keyBoard_len = strlen(keyboard_entry2);
-						 strncpy(keyboard2, keyboard_entry2, sizeof(keyboard2));
-						 if(strchr(keyboard2, '.') )
-						 {
-							 if(keyboard2[keyBoard_len - 1] == '.')
-							 {
-								 keyboard2[keyBoard_len] = '0';
-							 }
-						 }
-						 keypad_print2(keyboard2);
-					}
-	 		  	    return keypad_entry_State;
-	 		  	 }
-
-	           keypad_print2(keyboard2);
-//----------------------------------------------------------------
-      //send_keypad(keyboard);
-
-         return keypad_entry_State;
-}
 //---------------------------------------------------------------------
 
 eSystemState keypad_entry_State_Handler2(void)
@@ -10901,50 +10955,6 @@ uint16_t get_ctTime2(void)
 
 
 //----------------------------------------
-eSystemState filledmamo_State_Handler2(void)
-{
-//	filling2 = 0,
-//	nozzle_bit2 = 0;
-
-	filling_mamo_flag2 = 0;
-
-	nozzle_flag_key2 = 0;
-	nozzle_flag_key_old2 = 1;
-
-//	index_2 = 0;
-//	_index2 = 0;
-//
-//	 for(uint8_t i = 0; i < 9; i++)
-//	 {
-//	   keypad_pw_xter2[i] = 0;
-//	   keyboard_entry2[i] = 0;   //clear the buffer
-//	 }
-
-
-	  if (t2 > LCD_UPDATE_RATE)
-	  {
-
-		  if(settings_stream1[1].display_format == PL)
-		  {
-			 lcd_print_line1_2(upper2);
-			 lcd_print_line2_2(middle2);
-		  }
-		  else if(settings_stream1[1].display_format == LP)
-		  {
-			  lcd_print_line1_2(middle2);
-			  lcd_print_line2_2(upper2);
-		  }
-		  char str__[8]= {0};
-		  snprintf(str__, sizeof(str__), "%.2f", litre_price2);
-		  lcd_print_line3_2(str__);
-		  t2 = 0;
-	  }
-
-//	  reset_timer(timeout_dispense); //don't time out.
-
-	   return filledmamo_State;
-}
-
 //----------------------------------------
 eSystemState pnpState_Handler2(void)
 {
