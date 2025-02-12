@@ -2595,10 +2595,10 @@ skip_test:
 ////	totaliser_vol2c = 14221.48;   //8060.52;
 ////	totaliser_vol2 = 14221.48;
 //
-//	totaliser_vol2c = 0.0;  //161.69;
-//	totaliser_vol2 = 0.0;
-//	totaliser_amt2c = 0.00;
-//    totaliser_amt2 = 0.00;
+//	totaliser_vol2c = 18882.39;   //(totaliser_vol2c - 18.22);   //0.0;  //161.69;
+//	totaliser_vol2 = 18882.39; //(totaliser_vol2 - 18.22);   //0.0;
+////	totaliser_amt2c = 0.00;
+////    totaliser_amt2 = 0.00;
 //	save_totaliser_fram(side_b);
 //	save_totaliser_eeprom(side_b);
 
@@ -3042,7 +3042,7 @@ void run()
 //		t_exec6 = DWT->CYCCNT;
 //		t_exec7 = t_exec6 - t_exec4;
 
-	HAL_GPIO_WritePin(batt_check_GPIO_Port, batt_check_Pin, GPIO_PIN_RESET);
+//	HAL_GPIO_WritePin(batt_check_GPIO_Port, batt_check_Pin, GPIO_PIN_RESET);
 
 	float batt_val_ = battery_sense();
 
@@ -3055,7 +3055,7 @@ void run()
 
 		//	if( (batt_val < 2.00) && (batt_val >= 1.95) )
 		//	if( (batt_val < 1.8) && (batt_val >= 1.5) )
-			if( (batt_val < 1.48) && (batt_val >= 1.47) )   //6.0V & 6.1V
+			if( (batt_val < 1.48) && (batt_val >= 1.40) )   //6.0V & 6.1V
 			{
 				// Non-blocking delay function
 //				static uint32_t start_time = 0;
@@ -3072,7 +3072,7 @@ void run()
 				{
 					// Check if the delay has expired
 //					if ((currentTime - start_time) >= 2000)
-					if (timer_lowBatt >= 2000)
+					if (timer_lowBatt >= BATTERY_DELAY)
 					{
 						// Delay is over
 						delay_active = 0;
@@ -3088,7 +3088,7 @@ void run()
 			}
 		//	else if(batt_val < 1.5)
 		//	else if(batt_val < 1.0)
-			else if(batt_val < 1.47)
+			else if(batt_val < 1.40)
 			{
 				// Non-blocking delay function
 //				static uint32_t start_time1 = 0;

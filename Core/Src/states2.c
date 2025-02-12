@@ -2461,7 +2461,7 @@ eSystemState nozzledown_Handler2(void)
 //	 else
 //	 if( (eLastState2 == filling_State) && (eNextState2 == filling_State) )
 //	 if(eNextState2 == filling_State)
-	 if( (eLastState2 == filling_State) && (eNextState2 == filling_State) && (filling_mamo_flag2 == 0) )
+	 if( (eLastState2 == filling_State) && (eNextState2 == filling_State) && (filling_mamo_flag2 == 0) && (hardwareError_flag2 == 0) )
 	 {
 		  do_calcs2();
 		  get_time();
@@ -7314,6 +7314,12 @@ eSystemState idleState_Handler2(void)
 
 	if(changeLitrePrice2 == 1)
 	{
+
+		/********************************************************************************************
+		 | if the programme state is not been in idle-state or inactive-state,
+		 | reset the timer,
+		 | to effect the price change after the set time
+		*********************************************************************************************/
 //		if( ((eNextState2 == idle_State) && (eLastState2 != idle_State))
 //			|| ((eNextState2 != idle_State) && (eLastState2 == idle_State)) )
 //		if( ! ( (eNextState2 == idle_State) && (eLastState2 == idle_State) ) )
@@ -7802,6 +7808,8 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 
 	static uint16_t transact = 0;
 
+	float key_value_ = 0.00;
+
 	pump_status_2 = STATUS_AUTH;
 
 	slowFlow_startThreshold2 = (fast_flow_threshold2 * settings_stream2[1].valve_salesStart);
@@ -7930,7 +7938,7 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 
 			  //initialise the fuel and price variables
 
-			  half_litre2 = (0.5 * litre_price2);
+//			  half_litre2 = (0.5 * litre_price2);
 
 				if (sellmode2 == P)
 				{
@@ -7938,12 +7946,12 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 
 					  if( (key_value2 > sellPrice_max_pump) || (key_value2 > sellPrice_max_dpp) ) // || (key_value2 < half_litre2) )
 					  {
-						  if(sellPrice_max_pump < sellPrice_max_dpp)
+						  if(key_value2 > sellPrice_max_pump)
 						  {
 							  key_value2 = sellPrice_max_pump;
 							  pump_LitreOverflow2 = 1;
 						  }
-						  else if(sellPrice_max_pump > sellPrice_max_dpp)
+						  else if(key_value2 > sellPrice_max_dpp)
 						  {
 							  key_value2 = sellPrice_max_dpp;
 							  display_overflow2 = 1;
@@ -7955,16 +7963,16 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 				}
 				else  //amt was selected.
 				{
-					float key_value_ = (sellPrice_max_dpp / litre_price2);
+					key_value_ = (sellPrice_max_dpp / litre_price2);
 
 					if( (key_value2 > pump_max_litres2) || (key_value2 > key_value_) )
 					{
-						 if(pump_max_litres2 < key_value_)
+						 if(key_value2 > pump_max_litres2)
 						 {
 							  key_value2 = pump_max_litres2;
 							  pump_LitreOverflow2 = 1;
 						 }
-						 else if(pump_max_litres2 > key_value_)
+						 else if(key_value2 > key_value_)
 						 {
 							  key_value2 = key_value_;
 							  display_overflow2 = 1;
@@ -7976,32 +7984,32 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 		  }
 		  else
 		  {
-			  key_value2 = (litre_price2 * pump_max_litres2);
+			  key_value_ = (litre_price2 * pump_max_litres2);
 
 			  if (sellmode2 == P)
 			  {
-				  if(key_value2 < sellPrice_max_dpp)
-				  {
-					  key_value2 = key_value2;
-				  }
-				  else if(key_value2 > sellPrice_max_dpp)
+				  if(key_value2 > sellPrice_max_dpp)
 				  {
 					  key_value2 = sellPrice_max_dpp;
+				  }
+				  else if(key_value2 > key_value_)
+				  {
+					  key_value2 = key_value_;
 				  }
 
 				  target_pulser2 = price2pulser2(key_value2);  //calculate pulse frm price.
 			  }
 			  else if (sellmode2 == L)
 			  {
-					key_value2 = (sellPrice_max_dpp / litre_price2);
+				  key_value_ = (sellPrice_max_dpp / litre_price2);
 
-					if(pump_max_litres2 < key_value2)
+					if(key_value2 > pump_max_litres2)
 					{
 						  key_value2 = pump_max_litres2;
 					}
-					else if(pump_max_litres2 > key_value2)
+					else if(key_value2 > key_value_)
 					{
-						  key_value2 = key_value2;
+						  key_value2 = key_value_;
 					}
 
 					target_pulser2 = amt2pulser2(key_value2);   //calculate pulse frm amt.
@@ -8037,17 +8045,22 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 						key_value2 = (key_value2 * litre_price2);
 					}
 
+					//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
+					//======= Ensure keyed value doesn't exceed the allowable sale from the controller =======//
+
 					if(key_value2 > auth_p2)
 						key_value2 = auth_p2;
 
+					//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
+
 					if( (key_value2 > sellPrice_max_pump) || (key_value2 > sellPrice_max_dpp) )
 					{
-						if(sellPrice_max_pump < sellPrice_max_dpp)
+						if(key_value2 > sellPrice_max_pump)
 						{
 							key_value2 = sellPrice_max_pump;
 							pump_LitreOverflow2 = 1;
 						}
-						else if (sellPrice_max_pump > sellPrice_max_dpp)
+						else if (key_value2 > sellPrice_max_dpp)
 						{
 							 key_value2 = sellPrice_max_dpp;
 							 display_overflow2 = 1;
@@ -8063,13 +8076,13 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 			  {
 				  if( (auth_p2 > sellPrice_max_pump) || (auth_p2 > sellPrice_max_dpp) )
 				  {
-					  if(sellPrice_max_pump < sellPrice_max_dpp)
+					  if(auth_p2 > sellPrice_max_pump)
 					  {
 						  auth_p2 = sellPrice_max_pump;
 						  pump_LitreOverflow2 = 1;
 					  }
 
-					  else if(sellPrice_max_pump > sellPrice_max_dpp)
+					  else if(auth_p2 > sellPrice_max_dpp)
 					  {
 						  auth_p2 = sellPrice_max_dpp;
 						  display_overflow2 = 1;
@@ -8086,7 +8099,7 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 		  //authorise volume...
 		  else if (change_v2 == 1)
 		  {
-			  sellPrice_max_dpp = (sellPrice_max_dpp / litre_price1);
+//			  sellPrice_max_dpp = (sellPrice_max_dpp / litre_price1);
 
 			  change_v2 = 0;      //reset the flag.
 			  index_2 = strlen(keyboard_entry2);
@@ -8215,22 +8228,25 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 
 					//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
 
+					key_value_ = (sellPrice_max_dpp / litre_price2);
 
-					if( (key_value2 > pump_max_litres2) || (key_value2 > sellPrice_max_dpp) )
+					if( (key_value2 > pump_max_litres2) || (key_value2 > key_value_) )
 					{
-						if(pump_max_litres2 < sellPrice_max_dpp)
+						if(key_value2 > pump_max_litres2)
 						{
 							key_value2 = pump_max_litres2;
 							pump_LitreOverflow2 = 1;
 						}
-						else if (pump_max_litres2 > sellPrice_max_dpp)
+						else if (key_value2 > key_value_)
 						{
-							 key_value2 = sellPrice_max_dpp;
+							 key_value2 = key_value_;
 							 display_overflow2 = 1;
 						}
 					}
 
 					target_pulser2 = amt2pulser2(key_value2);   //calculate pulse frm amt.
+
+				#if defined (INCIDENT_RECORD)
 
 					incidentRecord[1].timestamp_event = RtcToInt(2019);
 
@@ -8246,21 +8262,23 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 
 					programmed_sale2 = 1;
 
+				#endif
+
 				}  //End of keyboard Input Check
 
 				else
 				{
-					if( (auth_v2 > pump_max_litres2) || (auth_v2 > sellPrice_max_dpp) )
+					if( (auth_v2 > pump_max_litres2) || (auth_v2 > key_value_) )
 					{
-						  if(pump_max_litres2 < sellPrice_max_dpp)
+						  if(auth_v2 > pump_max_litres2)
 						  {
 							  auth_v2 = pump_max_litres2;
 							  pump_LitreOverflow2 = 1;
 						  }
 
-						  else if (pump_max_litres2 > sellPrice_max_dpp)
+						  else if (auth_v2 > key_value_)
 						  {
-							  auth_v2 = sellPrice_max_dpp;
+							  auth_v2 = key_value_;
 							  display_overflow2 = 1;
 						  }
 					}
@@ -8588,6 +8606,12 @@ eSystemState filling_State_Handler2(void)
 		}
 	    return filling_State;
 	}
+
+   if (hardwareError_flag2 == 1)
+   {
+	   return filling_State;
+   }
+
 
 	float temp = 0.0;
 

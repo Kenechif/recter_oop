@@ -132,13 +132,16 @@ float battery_sense(void)
 	float batt_v;
 
 	static uint8_t firstTime_battSense = 1;
-	uint8_t interval = 100;   //100 milli-seconds
+	uint8_t interval = 1300;   //1300 milliseconds
 
 	static uint32_t previousMillis = 0;
 
 	if(firstTime_battSense == 1)
 	{
+		HAL_GPIO_WritePin(batt_check_GPIO_Port, batt_check_Pin, GPIO_PIN_RESET);  //Temporarily switch off battery-charge
+
 		HAL_Delay(1);
+
 		ADC_ChannelConfTypeDef sConfig = {0};
 
 		/** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
@@ -152,29 +155,39 @@ float battery_sense(void)
 		}
 
 		HAL_ADC_Start(&hadc1); // start A/D conversion
-		if(HAL_ADC_PollForConversion(&hadc1, 500) == HAL_OK) //check if conversion is completed & 500ms Timeout
+		if(HAL_ADC_PollForConversion(&hadc1, 10) == HAL_OK) //check if conversion is completed & 10ms Timeout
 		{
 			digital_reading = HAL_ADC_GetValue(&hadc1); // read digital value and save it inside uint32_t variable
+
+			firstTime_battSense = 0;
 		}
+		else
+		{
+			firstTime_battSense = 1;
+		}
+
 		HAL_ADC_Stop(&hadc1); // stop conversion
 
 		previousMillis = millis;
 
-		firstTime_battSense = 0;
+//		firstTime_battSense = 0;
 
 		batteryVoltage_ready = 0;
+
+		HAL_GPIO_WritePin(batt_check_GPIO_Port, batt_check_Pin, GPIO_PIN_SET);  //Switches battery-charge ON
 	}
 
-	if(firstTime_battSense == 0)
+	else if(firstTime_battSense == 0)
 	{
-		if (millis - previousMillis >= interval)       //		HAL_Delay(100);
+		if (millis - previousMillis >= interval)       //		HAL_Delay(2000);
 		{
 			firstTime_battSense = 1;
 
 			batt_v = ( (digital_reading * 3.3 ) / 4095 );   //BATTERY : Fully-charged => 2.22V (@ 8.4V) low_cutoff => 1.98 (@ 6.4V); 1.91 (@ 6.0V)
 															//	1.88V (@ 5.90V)  1.8V (@5.5V)
 
-			HAL_GPIO_WritePin(batt_check_GPIO_Port, batt_check_Pin, GPIO_PIN_SET);
+//			HAL_GPIO_WritePin(batt_check_GPIO_Port, batt_check_Pin, GPIO_PIN_SET);  //Switches battery charge ON
+//			timer_batteryRead = 0;
 			batteryVoltage_ready = 1;
 
 			return batt_v;

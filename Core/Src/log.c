@@ -644,7 +644,7 @@ eSystemState write_flash_State_Handler(void)
 
 	if(flshw == 0)
 	{
-		while (w25qxx.Lock == 1) return read_flash_State; //wait for pending job
+		  while (w25qxx.Lock == 1) return read_flash_State; //wait for pending job
 		  w25qxx.Lock = 1;  // lock access to flash mem. operations.
 		  //----------------------------------------------------
 		  //   assign the writing address.
@@ -677,16 +677,16 @@ eSystemState write_flash_State_Handler(void)
 	}
 
 	if(flshw == 3)
-		{
-	    	if ((w25qxx.StatusRegister1 & 0x01) == 0x01)
-			 {
-	    		flshw = 2;
-				return write_flash_State;
-			 }
-	      HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_SET);
-	      flshw = 4;
-	      return write_flash_State;
-		}
+	{
+		if ((w25qxx.StatusRegister1 & 0x01) == 0x01)
+		 {
+			flshw = 2;
+			return write_flash_State;
+		 }
+		  HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_SET);
+		  flshw = 4;
+		  return write_flash_State;
+	}
 //-------------------------  write enable  -------------------------
 	if(flshw == 4)
 		{
@@ -731,31 +731,31 @@ eSystemState write_flash_State_Handler(void)
 
 	//--------------------------wait for write end -----------------------------
 		if(flshw == 6)
-			{
+		{
 			 HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_RESET);
 			 W25qxx_Spi(0x05);
 			 flshw = 7;
-		    	 return write_flash_State;
-			}
+			 return write_flash_State;
+		}
 
 		if(flshw == 7)
 		{
 			w25qxx.StatusRegister1 = W25qxx_Spi(W25QXX_DUMMY_BYTE);
 			flshw = 8;
-			   return write_flash_State;
+		    return write_flash_State;
 		}
 
 		if(flshw == 8)
-			{
-		    	if ((w25qxx.StatusRegister1 & 0x01) == 0x01)
-				 {
-		    		flshw = 7;   //back to re test the status register.
-					return write_flash_State;
-				 }
-		      HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_SET);
-		      flshw = 9;
-		      return write_flash_State;
-			}
+		{
+			if ((w25qxx.StatusRegister1 & 0x01) == 0x01)
+			 {
+				flshw = 7;   //back to re test the status register.
+				return write_flash_State;
+			 }
+			  HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_SET);
+			  flshw = 9;
+			  return write_flash_State;
+		}
 
 		if(flshw == 9)
 		  {
@@ -764,24 +764,24 @@ eSystemState write_flash_State_Handler(void)
 			// logs written.
 			// next saving address is
 			  if (operating_side == side_a)
-				   {
-				     uint32_t next_loc =  flash_infoA.current_loc + 256;  //sizeof(log_a_new);
-				     if (next_loc > flash_endA) next_loc = flash_beginA;
-				     flash_infoA.current_loc  =  next_loc;
-				     flash_infoA.number_logs  =  flash_infoA.number_logs + 1;
+			  {
+				 uint32_t next_loc =  flash_infoA.current_loc + 256;  //sizeof(log_a_new);
+				 if (next_loc > flash_endA) next_loc = flash_beginA;
+				 flash_infoA.current_loc  =  next_loc;
+				 flash_infoA.number_logs  =  flash_infoA.number_logs + 1;
 //				     EEPROM_Write(flash_info_sto, flash_stoA, &flash_infoA, sizeof(flash_infoA));
-				     FRAM_Write(flash_stoA_fram, &flash_infoA, sizeof(flash_infoA));
+				 FRAM_Write(flash_stoA_fram, &flash_infoA, sizeof(flash_infoA));
 
-				   }
-			  if (operating_side == side_b)
-				   {
-				     uint32_t next_loc =  flash_infoB.current_loc + 256; //sizeof(log_b_new);
-				     if (next_loc > flash_endB) next_loc = flash_beginB;
-				     flash_infoA.current_loc  =  next_loc;
-					 flash_infoB.number_logs  =  flash_infoB.number_logs + 1;
+			  }
+			  else if (operating_side == side_b)
+			  {
+				 uint32_t next_loc =  flash_infoB.current_loc + 256; //sizeof(log_b_new);
+				 if (next_loc > flash_endB) next_loc = flash_beginB;
+				 flash_infoB.current_loc  =  next_loc;
+				 flash_infoB.number_logs  =  flash_infoB.number_logs + 1;
 //					 EEPROM_Write(flash_info_sto, flash_stoB, &flash_infoB, sizeof(flash_infoB));
-					 FRAM_Write(flash_stoB_fram, &flash_infoB, sizeof(flash_infoB));
-				   }
+				 FRAM_Write(flash_stoB_fram, &flash_infoB, sizeof(flash_infoB));
+			  }
 			//------------------------------------------------------------------------------------
 			w25qxx.Lock = 0;       // unlock the flash memory.
 			flshw = 0;             // reset the sub state.

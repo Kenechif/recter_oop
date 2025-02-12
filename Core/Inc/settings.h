@@ -59,6 +59,8 @@ extern "C" {
 
 //	  #define AUTO_SALE_TEST
 
+//    #define INCIDENT_RECORD
+
 //:::::::::::::::::::::::::::::::::::::::::::://
 
 
@@ -68,8 +70,8 @@ extern "C" {
 //	#define _USE_SOFT_PULSER            1
 	#define _USE_SOFT_PULSER            0
 	#define sense_battery 				0
-//	#define sense_power  				0
 //	#define sense_battery 				1
+//	#define sense_power  				0
 	#define sense_power  				1
 #else
 	#define _USE_SOFT_PULSER            0
@@ -139,7 +141,7 @@ extern "C" {
 #define UNSAVED_TO_MAIN_TOTALIZER   1
 
 
-#define BATTERY_DELAY 				2000
+#define BATTERY_DELAY 				1500
 
 /***********************************************************************/
 #define DEBOUNCE_TIME_MS 20  //5  //10  //20 // Debounce period in milliseconds
