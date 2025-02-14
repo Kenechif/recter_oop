@@ -3795,8 +3795,11 @@ int  read_event2()
 		//======================== NOZZLE-UP EVENT ============================//
 
 	    // nozzle up  event capture...
-		   if( ((nozzle_flag_old2 == 0) && (nozzle_flag2 == 1)) ||
-			 ((nozzle_flag_key_old2 == 0) && (nozzle_flag_key2 == 1)) )
+		   if(
+				 ( ((nozzle_flag_old2 == 0) && (nozzle_flag2 == 1)) ||
+				 ((nozzle_flag_key_old2 == 0) && (nozzle_flag_key2 == 1)) ) &&
+				 ((eNextState2 != operator_State) && (eLastState2 != operator_State))
+			 )
 		   {
 //			   keypad_zerorise2 = true;
 
@@ -3854,8 +3857,11 @@ int  read_event2()
 	   //--------------------------------------------------------------------------//
 
 	   // nozzle down  event capture...
-		   else if( ((nozzle_flag_old2 == 1) && (nozzle_flag2 == 0))  ||
-				   ((nozzle_flag_key_old2 == 1) && (nozzle_flag_key2 == 0)) )
+		  else if(
+					 ( ((nozzle_flag_old2 == 1) && (nozzle_flag2 == 0)) ||
+					 ((nozzle_flag_key_old2 == 1) && (nozzle_flag_key2 == 0)) ) &&
+					 ((eNextState2 != operator_State) && (eLastState2 != operator_State))
+				 )
 		   {
 			   if((nozzle_flag_old2 == 1) && (nozzle_flag2 == 0))
 			   {
@@ -4599,8 +4605,11 @@ uint8_t read_event1_1(void)
 	   //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH//
 	   //======================== NOZZLE-UP EVENT ============================//
 
-	   if( ((nozzle_flag_old == 0) && (nozzle_flag == 1)) ||
-	   	 ((nozzle_flag_key_old1 == 0) && (nozzle_flag_key1 == 1)) )
+	   if(
+			 ( ((nozzle_flag_old == 0) && (nozzle_flag == 1)) ||
+			 ((nozzle_flag_key_old1 == 0) && (nozzle_flag_key1 == 1)) ) &&
+			 ((eNextState1 != operator_State) && (eLastState1 != operator_State))
+		 )
 	   {
 //		   keypad_zerorise1 = true;
 //		   keypad_zerorize();
@@ -4663,8 +4672,11 @@ uint8_t read_event1_1(void)
 	   //=========================== NOZZLE-DOWN EVENT ============================//
 	   //--------------------------------------------------------------------------//
 	   	  // nozzle down  event capture...
-	   	   else if( ((nozzle_flag_old == 1) && (nozzle_flag == 0))  ||
-	   			   ((nozzle_flag_key_old1 == 1) && (nozzle_flag_key1 == 0)) )
+	   	  else if(
+					 ( ((nozzle_flag_old == 1) && (nozzle_flag == 0)) ||
+					 ((nozzle_flag_key_old1 == 1) && (nozzle_flag_key1 == 0)) ) &&
+					 ((eNextState1 != operator_State) && (eLastState1 != operator_State))
+				 )
 	   	   {
 	   		   if((nozzle_flag_old == 1) && (nozzle_flag == 0))
 			   {
@@ -4789,7 +4801,15 @@ bool nozzleSwitch_read1(void)
 
     if (currentState != lastSwitchState)
     {
-    	lastDebounceTime = currentTime;
+    	if ((eNextState1 == operator_State) && (eLastState1 == operator_State))
+		{
+
+		}
+		else
+		{
+			lastDebounceTime = currentTime;
+		}
+//    	lastDebounceTime = currentTime;
     }
 
     if ((currentTime - lastDebounceTime) > NOZZLESWITCH_DEBOUNCE_DELAY)
@@ -4839,7 +4859,14 @@ bool nozzleSwitch_read2(void)
 
     if (currentState != lastSwitchState)
     {
-    	lastDebounceTime = currentTime;
+    	if ((eNextState2 == operator_State) && (eLastState2 == operator_State))
+    	{
+
+    	}
+    	else
+    	{
+    		lastDebounceTime = currentTime;
+    	}
     }
 
     if ((currentTime - lastDebounceTime) > NOZZLESWITCH_DEBOUNCE_DELAY)

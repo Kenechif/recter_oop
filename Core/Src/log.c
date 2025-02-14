@@ -375,6 +375,8 @@ eSystemState write_flash_State_Handler(void)
 	static int8_t aflag2 = 0;
 	int pg = 0;
 
+	uint32_t next_loc = 0;
+
 	if(operating_sideA)
 	{
 		log_a_new.transaction_period = transaction_period;
@@ -449,8 +451,12 @@ eSystemState write_flash_State_Handler(void)
 		// next saving address is
 		  if (operating_side == side_a)
 		  {
-			 uint32_t next_loc = flash_infoA.current_loc + 256;  //sizeof(log_a_new);
-			 if (next_loc > flash_endA) next_loc = flash_beginA;   //flash_endA => 0x3FFFFF --> 4,194,303 pg16,383.996
+			 next_loc = flash_infoA.current_loc + 256;  //sizeof(log_a_new);
+
+			 if (next_loc > flash_endA)
+			 {
+				 next_loc = flash_beginA;   //flash_endA => 0x3FFFFF --> 4,194,303 pg16,383.996
+			 }
 			 flash_infoA.current_loc  =  next_loc;
 			 flash_infoA.number_logs  =  flash_infoA.number_logs + 1;
 //			 EEPROM_Write(flash_info_sto, flash_stoA, &flash_infoA, sizeof(flash_infoA));
@@ -487,10 +493,16 @@ eSystemState write_flash_State_Handler(void)
 		  }
 		  else if (operating_side == side_b)
 		  {
-			 uint32_t next_loc =  flash_infoB.current_loc + 256; //sizeof(log_b_new);   //flash_beginB => 0x400000 --> 4,194,304 pg16,384
-			 if (next_loc > flash_endB) next_loc = flash_beginB;  //flash_endB => 0x7FFFFF --> 8,388,607 pg32767.996
+			 next_loc =  flash_infoB.current_loc + 256; //sizeof(log_b_new);   //flash_beginB => 0x400000 --> 4,194,304 pg16,384
+
+			 if (next_loc > flash_endB)
+			 {
+				 next_loc = flash_beginB;  //flash_endB => 0x7FFFFF --> 8,388,607 pg32767.996
+			 }
+
 			 flash_infoB.current_loc  =  next_loc;
 			 flash_infoB.number_logs  =  flash_infoB.number_logs + 1;
+
 //			 EEPROM_Write(flash_info_sto, flash_stoB, &flash_infoB, sizeof(flash_infoB));
 			 FRAM_Write(flash_stoB_fram, &flash_infoB, sizeof(flash_infoB));
 
@@ -644,7 +656,9 @@ eSystemState write_flash_State_Handler(void)
 
 	if(flshw == 0)
 	{
-		  while (w25qxx.Lock == 1) return read_flash_State; //wait for pending job
+		  while (w25qxx.Lock == 1)
+			  return read_flash_State; //wait for pending job
+
 		  w25qxx.Lock = 1;  // lock access to flash mem. operations.
 		  //----------------------------------------------------
 		  //   assign the writing address.
@@ -765,8 +779,13 @@ eSystemState write_flash_State_Handler(void)
 			// next saving address is
 			  if (operating_side == side_a)
 			  {
-				 uint32_t next_loc =  flash_infoA.current_loc + 256;  //sizeof(log_a_new);
-				 if (next_loc > flash_endA) next_loc = flash_beginA;
+				 next_loc =  flash_infoA.current_loc + 256;  //sizeof(log_a_new);
+
+				 if (next_loc > flash_endA)
+				 {
+					 next_loc = flash_beginA;
+				 }
+
 				 flash_infoA.current_loc  =  next_loc;
 				 flash_infoA.number_logs  =  flash_infoA.number_logs + 1;
 //				     EEPROM_Write(flash_info_sto, flash_stoA, &flash_infoA, sizeof(flash_infoA));
@@ -775,8 +794,13 @@ eSystemState write_flash_State_Handler(void)
 			  }
 			  else if (operating_side == side_b)
 			  {
-				 uint32_t next_loc =  flash_infoB.current_loc + 256; //sizeof(log_b_new);
-				 if (next_loc > flash_endB) next_loc = flash_beginB;
+				 next_loc =  flash_infoB.current_loc + 256; //sizeof(log_b_new);
+
+				 if (next_loc > flash_endB)
+				 {
+					 next_loc = flash_beginB;
+				 }
+
 				 flash_infoB.current_loc  =  next_loc;
 				 flash_infoB.number_logs  =  flash_infoB.number_logs + 1;
 //					 EEPROM_Write(flash_info_sto, flash_stoB, &flash_infoB, sizeof(flash_infoB));

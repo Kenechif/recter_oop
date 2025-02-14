@@ -101,10 +101,10 @@ void NMI_Handler(void)
   /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
 
 	// Optional: Log error information for debugging
-		__disable_irq();  // Disable interrupts to prevent further issues
+//		__disable_irq();  // Disable interrupts to prevent further issues
 
-	//	NVIC_SystemReset();
-		my_error_handler();
+		NVIC_SystemReset();
+//		my_error_handler();
 
 
   /* USER CODE END NonMaskableInt_IRQn 0 */
@@ -123,10 +123,10 @@ void HardFault_Handler(void)
   /* USER CODE BEGIN HardFault_IRQn 0 */
 
 	// Optional: Log error information for debugging
-	__disable_irq();  // Disable interrupts to prevent further issues
+//	__disable_irq();  // Disable interrupts to prevent further issues
 
-//	NVIC_SystemReset();
-	my_error_handler();
+	NVIC_SystemReset();
+//	my_error_handler();
 
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
@@ -144,10 +144,10 @@ void MemManage_Handler(void)
   /* USER CODE BEGIN MemoryManagement_IRQn 0 */
 
 	// Optional: Log error information for debugging
-	__disable_irq();  // Disable interrupts to prevent further issues
+//	__disable_irq();  // Disable interrupts to prevent further issues
 
-//	NVIC_SystemReset();
-	my_error_handler();
+	NVIC_SystemReset();
+//	my_error_handler();
 
   /* USER CODE END MemoryManagement_IRQn 0 */
   while (1)
@@ -165,9 +165,10 @@ void BusFault_Handler(void)
   /* USER CODE BEGIN BusFault_IRQn 0 */
 
 	// Optional: Log error information for debugging
-	__disable_irq();  // Disable interrupts to prevent further issues
+//	__disable_irq();  // Disable interrupts to prevent further issues
 
-   my_error_handler();
+	NVIC_SystemReset();
+//   my_error_handler();
    //return;
   /* USER CODE END BusFault_IRQn 0 */
   while (1)
@@ -185,10 +186,10 @@ void UsageFault_Handler(void)
   /* USER CODE BEGIN UsageFault_IRQn 0 */
 
 	// Optional: Log error information for debugging
-	__disable_irq();  // Disable interrupts to prevent further issues
+//	__disable_irq();  // Disable interrupts to prevent further issues
 
-//	NVIC_SystemReset();
-	my_error_handler();
+	NVIC_SystemReset();
+//	my_error_handler();
 
   /* USER CODE END UsageFault_IRQn 0 */
   while (1)
@@ -479,15 +480,17 @@ void my_error_handler(void)
 //	uint32_t recovered_count1 = __HAL_TIM_GET_COUNTER(&htim2);
 //	uint32_t recovered_count2 = __HAL_TIM_GET_COUNTER(&htim5);
 
-	if(pump_status_1 == STATUS_FILLING)
-	{
-		save_recoveredPulserCount_fram(side_a);
-	}
+//	__disable_irq();  // Disable interrupts to prevent further issues
 
-	if(pump_status_2 == STATUS_FILLING)
-	{
-		save_recoveredPulserCount_fram(side_b);
-	}
+//	if(pump_status_1 == STATUS_FILLING)
+//	{
+//		save_recoveredPulserCount_fram(side_a);
+//	}
+//
+//	if(pump_status_2 == STATUS_FILLING)
+//	{
+//		save_recoveredPulserCount_fram(side_b);
+//	}
 
 	NVIC_SystemReset();
 }

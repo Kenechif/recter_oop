@@ -663,6 +663,7 @@ uint8_t ToBits(int Input)
 		 case  'k': return(0b01001110);
 		 case  'L': return(0b00011100);
 		 case  'l': return(0b00011100);
+		 case  'm': return(0b10101010);
          case  'N': return(0b11101100);
          case  'n': return(0b00101010);
          case  'O': return(0b11111100);
@@ -686,7 +687,9 @@ uint8_t ToBits(int Input)
 	     case  'Z': return(0b11011010);
 	     case  'z': return(0b11011010);
 	     case  '=': return(0b00010010);
-	     case  ':': return(0b10010000);
+	     case  ':': return(0b00010010);
+//	     case  ':': return(0b10010010);
+//	     case  ':': return(0b10010000);
 	     case  '[': return(0b10011100);
 	     case  ']': return(0b11110000);
 	     case  '.': return(0b00000001);

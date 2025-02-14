@@ -1623,7 +1623,7 @@ eSystemState operator_State_Handler2(void)
 //								  flash_locc = flash_loc;
 //							     }
 						  if (operating_side == side_b)
-						   {
+						  {
 							 flash_loc = flash_infoB.current_loc;
 							 log_no = flash_infoB.number_logs;
 							 if(log_no == 0)
@@ -1632,8 +1632,8 @@ eSystemState operator_State_Handler2(void)
 								  vl_  =  0.00; //amt_real1;
 								  tm_  =  "--------";
 							 }
-							else
-							{
+							 else
+							 {
 								//calculate the previous save id from the current
 								if (flash_loc <= flash_beginB) //at begining of storage
 								{
@@ -1855,13 +1855,31 @@ eSystemState operator_State_Handler2(void)
 									  printDisp_c2(st__,2,0,8,LT,CLEAR);
 								 }
 								 else if (scroll_ == 3)
-								  {
+								 {
 									  char st__[10]= {0};
-									  snprintf(st__, sizeof(st__),"%d%02d hrs",log_b_new.time_e._hh,log_b_new.time_e._mn);
-									  printDisp_c2(st__,2,0,8,LT,CLEAR);
-								  }
+//									  snprintf(st__, sizeof(st__),"%d%02d hrs",log_b_new.time_e._hh,log_b_new.time_e._mn);
+//									  printDisp_c2(st__,2,0,8,LT,CLEAR);
 
-								snprintf(line3, sizeof(line3), "Bn1.%d",log_indx_indx );
+									 if(log_b_new.time_e._hh <= 11)
+									 {
+										 snprintf(st__, sizeof(st__),"%02d:%02d am",log_b_new.time_e._hh,log_b_new.time_e._mn);
+									 }
+									 else if(log_b_new.time_e._hh == 12)
+									 {
+										 snprintf(st__, sizeof(st__),"%02d:%02d pm",log_b_new.time_e._hh,log_b_new.time_e._mn);
+									 }
+									 else if(log_b_new.time_e._hh > 12)
+									 {
+										 snprintf(st__, sizeof(st__),"%02d:%02d pm",(log_b_new.time_e._hh - 12),log_b_new.time_e._mn);
+									 }
+
+
+									 printDisp_c2(st__,2,0,8,LT,CLEAR);
+								 }
+
+
+//								snprintf(line3, sizeof(line3), "Bn1.%d",log_indx_indx );
+								snprintf(line3, sizeof(line3), "%06d", log_indx_indx );
 								lcd_print_line3_2("        ");
 								lcd_print_line3_2(line3);
 //							  }
@@ -8021,7 +8039,7 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 		  if (change_p2 == 1)
 		  {
 			  sellPrice_max_pump = (litre_price2 * pump_max_litres2);
-			  sellPrice_max_dpp = (sellPrice_max_dpp / litre_price2);
+//			  sellPrice_max_dpp = (sellPrice_max_dpp / litre_price2);
 
 			  change_p2 = 0;      //reset tbe flag.
 			  index_2 = strlen(keyboard_entry2);
@@ -8100,6 +8118,7 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 		  else if (change_v2 == 1)
 		  {
 //			  sellPrice_max_dpp = (sellPrice_max_dpp / litre_price1);
+			  key_value_  = (sellPrice_max_dpp / litre_price2);
 
 			  change_v2 = 0;      //reset the flag.
 			  index_2 = strlen(keyboard_entry2);
@@ -8228,7 +8247,7 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 
 					//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
 
-					key_value_ = (sellPrice_max_dpp / litre_price2);
+//					key_value_ = (sellPrice_max_dpp / litre_price2);
 
 					if( (key_value2 > pump_max_litres2) || (key_value2 > key_value_) )
 					{

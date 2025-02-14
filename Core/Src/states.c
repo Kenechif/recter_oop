@@ -889,7 +889,7 @@ sEventMachine asEventMachine_1 [] =
 sStateEventMachine asStateEventMachine_1 [] =
 {
 	{prog_State, progState_Handler,{_keydown_Event,_keypress_Event, _tone_Event}},
-	{idle_State, idleState_Handler, {_operator_Event,_keyup_Event,_tot_error_Event, _keypress_Event,_nozzleup_Event, _auth_command_Event, _nozzledown_Event, _resetcommand_Event, _switchoffcommand_Event, _tone_Event}},
+	{idle_State, idleState_Handler, {_operator_Event,_keyup_Event,_tot_error_Event, _keypress_Event, _nozzleup_Event, _auth_command_Event, _nozzledown_Event, _resetcommand_Event, _switchoffcommand_Event, _tone_Event}},
 	{inactive_State, inactiveState_Handler,{_error_clear_Event, _keyup_Event, _keypress_Event, _tone_Event}},
 	{nozzleup_waitingforauth_State, nozzleup_waitingforauthState_Handler, {_authorise_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _authorisecommand_Event, _stopcommand_Event, _switchoffcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _tone_Event}},
 	{authorised_nozzledown_State, authorised_nozzledown_State_Handler,{_nozzleup_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _tone_Event}},
@@ -2189,13 +2189,29 @@ eSystemState operator_State_Handler(void)
 									}
 	                              else if (scroll_ == 3)
 	                              {
-	                             	  char st__[10]= {0};
-									  snprintf(st__, sizeof(st__), "%d%02d hrs",log_a_new.time_e._hh,log_a_new.time_e._mn);
+	                             	 char st__[10] = {0};
+//									  snprintf(st__, sizeof(st__), "%d%02d hrs",log_a_new.time_e._hh,log_a_new.time_e._mn);
+//									 printDisp_c(st__,2,0,8,LT,CLEAR);
+
+									 if(log_a_new.time_e._hh <= 11)
+									 {
+										 snprintf(st__, sizeof(st__),"%02d:%02d am",log_a_new.time_e._hh,log_a_new.time_e._mn);
+									 }
+									 else if(log_a_new.time_e._hh == 12)
+									 {
+										 snprintf(st__, sizeof(st__), "%02d:%02d pm", log_a_new.time_e._hh,log_a_new.time_e._mn);
+									 }
+									 else if(log_a_new.time_e._hh > 12)
+									 {
+										 snprintf(st__, sizeof(st__), "%02d:%02d pm", (log_a_new.time_e._hh - 12),log_a_new.time_e._mn);
+									 }
+
 									 printDisp_c(st__,2,0,8,LT,CLEAR);
 	                              }
-	                              	  snprintf(line3, sizeof(line3), "An1.%d",log_indx_indx);
-	                                  lcd_print_line3("      ");
-	                              	  lcd_print_line3(line3);
+//	                              	snprintf(line3, sizeof(line3), "An1.%d",log_indx_indx);
+	                              	snprintf(line3, sizeof(line3), "%06d",log_indx_indx);
+	                                lcd_print_line3("      ");
+	                              	lcd_print_line3(line3);
 //	          	  	    	   }  //  if (indx1 == 1)
 
 	          	  	    	 //-----------------------------------------------------
@@ -8893,7 +8909,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 		  if (change_p1 == 1)
 		  {
 			  sellPrice_max_pump = (litre_price1 * pump_max_litres1);
-			  sellPrice_max_dpp = (sellPrice_max_dpp / litre_price1);
+//			  sellPrice_max_dpp = (sellPrice_max_dpp / litre_price1);
 
 			  change_p1 = 0;      //reset tbe flag.
 			  index_ = strlen(keyboard_entry);
@@ -8969,6 +8985,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 		  else if (change_v1 == 1)
 		  {
 //			  sellPrice_max_dpp = (sellPrice_max_dpp / litre_price1);
+			  key_value_ = (sellPrice_max_dpp / litre_price1);
 
 			  change_v1 = 0;      //reset tbe flag.
 			  index_ = strlen(keyboard_entry);
@@ -9096,7 +9113,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 					//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
 
-					key_value_ = (sellPrice_max_dpp / litre_price1);
+//					key_value_ = (sellPrice_max_dpp / litre_price1);
 
 					if( (key_value > pump_max_litres1) || (key_value > key_value_) )
 					{
@@ -9136,7 +9153,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 			    else
 			    {
-			    	key_value_ = (sellPrice_max_dpp / litre_price1);
+//			    	key_value_ = (sellPrice_max_dpp / litre_price1);
 
 			    	if( (auth_v1 > pump_max_litres1) || (auth_v1 > key_value_) )
 			    	{
