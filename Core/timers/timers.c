@@ -9,6 +9,8 @@
 #include "states.h"
 #include "states2.h"
 
+extern IWDG_HandleTypeDef hiwdg;
+
 extern int tot_buttonpress_tmr;
 extern int log_buttonpress_tmr;
 extern int key_buttonpress_tmr,
@@ -179,7 +181,11 @@ void toggle_led(void)
 		 log_buttonpress_tmr2++;
 		 key_buttonpress_tmr2++;
 		 progExit_buttonpress_tmr2++;
+
+// 		 HAL_IWDG_Refresh(&hiwdg);
 	 }
+
+	 HAL_IWDG_Refresh(&hiwdg);  //Refresh reload value every 1msec
 }
 
 //========================================================

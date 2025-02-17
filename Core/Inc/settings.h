@@ -450,16 +450,6 @@ typedef struct{
 	  float totaliserAmount_cal;	//4  -->16
  }totaliser_store;
 
-typedef struct
-{
-  float totaliserVol_real;      		  //4
-  float totaliserVol_cal;	    		  //4
-  float totaliserAmount_real;   		  //4
-  float totaliserAmount_cal;			  //4
-  float lastVolumeSale_cal;               //4
-  float lastAmountSale_cal;				  //4
-  uint8_t totalizer_save_status;  //1  + 3  -->28
-}totaliser_store_frequent;
 
 typedef struct
 {
@@ -1016,6 +1006,42 @@ typedef enum
 
 pump_status_enum_4G pump1_status_4G,
 				    pump2_status_4G;
+
+/* enum for pump status */
+typedef enum
+{
+	STATUS_UNKNOWN,    //used for idle state by the Main
+
+	STATUS_PNP,
+	STATUS_RESET,
+	STATUS_AUTH,
+	STATUS_FILLING,
+	STATUS_FILLING_COMP,
+	STATUS_MAMO_REACHED,
+	STATUS_SUSPENDED,
+	STATUS_SWITCHED_OFF
+}pump_status_enum;
+
+pump_status_enum pump_status_1,
+				 pump_status_2;
+
+
+typedef struct
+{
+  float totaliserVol_real;      		  //4
+  float totaliserVol_cal;	    		  //4
+  float totaliserAmount_real;   		  //4
+  float totaliserAmount_cal;			  //4
+  float lastVolumeSale_cal;               //4
+  float lastAmountSale_cal;				  //4
+  uint32_t timestamp;					  //4
+  float programmed_price;	              //4
+  uint8_t totalizer_save_status;          //1
+  uint8_t programmed;
+  uint8_t price_based;
+  pump_status_enum pump_status;           //1        -->36
+
+}totaliser_store_frequent;
 
 
 typedef struct

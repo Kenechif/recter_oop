@@ -2209,7 +2209,7 @@ eSystemState operator_State_Handler(void)
 									 printDisp_c(st__,2,0,8,LT,CLEAR);
 	                              }
 //	                              	snprintf(line3, sizeof(line3), "An1.%d",log_indx_indx);
-	                              	snprintf(line3, sizeof(line3), "%06d",log_indx_indx);
+	                              	snprintf(line3, sizeof(line3), " %05d",log_indx_indx);
 	                                lcd_print_line3("      ");
 	                              	lcd_print_line3(line3);
 //	          	  	    	   }  //  if (indx1 == 1)
@@ -8914,7 +8914,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 			  change_p1 = 0;      //reset tbe flag.
 			  index_ = strlen(keyboard_entry);
 
-			  if (index_ >= 1)
+			  if (index_ >= 1)    //Programmed Sale
 			  {
 					key_value = strtof(keyboard_entry, &endPtr);
 
@@ -8924,7 +8924,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 				  		key_value_original1 = key_value;
 
 
-				  		//======== Convert to Volume =======//
+				  		//======== Convert to Price-Sale =======//
 				  		key_value = (key_value * litre_price1);
 					}
 

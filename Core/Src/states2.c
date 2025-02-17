@@ -1879,7 +1879,7 @@ eSystemState operator_State_Handler2(void)
 
 
 //								snprintf(line3, sizeof(line3), "Bn1.%d",log_indx_indx );
-								snprintf(line3, sizeof(line3), "%06d", log_indx_indx );
+								snprintf(line3, sizeof(line3), " %05d", log_indx_indx );
 								lcd_print_line3_2("        ");
 								lcd_print_line3_2(line3);
 //							  }

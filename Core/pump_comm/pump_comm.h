@@ -51,20 +51,22 @@ typedef enum{
 }pump_state_enum;        //simply returned pump status + nozzle state
 
 
-/* enum for pump status */
-typedef enum
-{
-	STATUS_UNKNOWN,    //used for idle state by the Main
+///* enum for pump status */
+//typedef enum
+//{
+//	STATUS_UNKNOWN,    //used for idle state by the Main
+//
+//	STATUS_PNP,
+//	STATUS_RESET,
+//	STATUS_AUTH,
+//	STATUS_FILLING,
+//	STATUS_FILLING_COMP,
+//	STATUS_MAMO_REACHED,
+//	STATUS_SUSPENDED,
+//	STATUS_SWITCHED_OFF
+//}pump_status_enum;
 
-	STATUS_PNP,
-	STATUS_RESET,
-	STATUS_AUTH,
-	STATUS_FILLING,
-	STATUS_FILLING_COMP,
-	STATUS_MAMO_REACHED,
-	STATUS_SUSPENDED,
-	STATUS_SWITCHED_OFF
-}pump_status_enum;
+//extern struct pump_status_enum pump_status_;
 
 //PUMP_NOT_PROGRAMMED,
 //RESET0,
@@ -250,11 +252,11 @@ extern uint8_t change_p1,
 			   change_p2,
 			   change_v2;
 
-pump_status_enum pump_status_1,
-				 pump_status_2;
+extern pump_status_enum pump_status_1,
+				        pump_status_2;
 
 extern pump_status_enum_4G pump1_status_4G,
-					pump2_status_4G;
+					       pump2_status_4G;
 
 uint8_t sendState(void);
 void sendvol_totalizer(void);

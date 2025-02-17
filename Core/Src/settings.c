@@ -422,8 +422,8 @@ float amt_real1_array[4] CCRAM = {0},
  const uint16_t recov1_loc_fram = 734, 					  //8 + 2 CRC Bytes = 10 Bytes
 		        recov2_loc_fram = 744;					  //744 --> 753
 
- const uint16_t totFreq1_loc_fram = 754, 				  //size => 28 + 2 CRC Bytes = 30 Bytes
-		 	    totFreq2_loc_fram = 784; 				  //784 --> 813
+ const uint16_t totFreq1_loc_fram = 754, 				  //size => 36 + 2 CRC Bytes = 38 Bytes
+		 	    totFreq2_loc_fram = 792; 				  //792 --> 829
 
 
 
@@ -491,8 +491,8 @@ const int flash_stoB =  1225; //+ ( 1 + (32 * 2));    	 //1225 --> 1232   //1233
  const int16_t lastSale1_loc = 0;
  const int16_t lastSale2_loc = (lastSale1_loc + 2 + (4 * 4) );   // 54 -> 71
 
- const int16_t totFreq1_loc = 72,               // 28 Bytes + 2 CRC Bytes = 30 Bytes
- 	 	 	   totFreq2_loc = 102;   			// 102 -> 131
+ const int16_t totFreq1_loc = 72,               // 36 Bytes + 2 CRC Bytes = 38 Bytes
+ 	 	 	   totFreq2_loc = 110;   			// 110 -> 147
 
  //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH//
 
@@ -1739,6 +1739,11 @@ uint8_t save_totaliserFrequent_fram(pump_sid side)
 		totaliserFrequent_storeA.totalizer_save_status = totalizer_saveStatus1;
 		totaliserFrequent_storeA.lastVolumeSale_cal = amt_middle1;
 		totaliserFrequent_storeA.lastAmountSale_cal = price_upper1;
+		totaliserFrequent_storeA.timestamp = RtcToInt(2019);
+		totaliserFrequent_storeA.pump_status = pump_status_1;
+		totaliserFrequent_storeA.programmed = 0;
+		totaliserFrequent_storeA.price_based = 0;
+		totaliserFrequent_storeA.programmed_price = 0;
 
 		memcpy(buffer, &totaliserFrequent_storeA, sz);
 		crc = crc_16(buffer, sz);
