@@ -74,6 +74,8 @@ uint8_t dummyValue = 0;
 static bool mth_success = false,
 			clock_save = false;
 
+extern eSystemState eNextState2, eLastState2;
+
 uint8_t  prog_revisit1 = 1,
 		 prog_revisitt1 = 1,
 		 firstTime_key19 = 1;
@@ -889,7 +891,7 @@ sEventMachine asEventMachine_1 [] =
 sStateEventMachine asStateEventMachine_1 [] =
 {
 	{prog_State, progState_Handler,{_keydown_Event,_keypress_Event, _tone_Event}},
-	{idle_State, idleState_Handler, {_operator_Event,_keyup_Event,_tot_error_Event, _keypress_Event, _nozzleup_Event, _auth_command_Event, _nozzledown_Event, _resetcommand_Event, _switchoffcommand_Event, _tone_Event}},
+	{idle_State, idleState_Handler, {_operator_Event, _keyup_Event,_tot_error_Event, _keypress_Event, _nozzleup_Event, _auth_command_Event, _nozzledown_Event, _resetcommand_Event, _switchoffcommand_Event, _tone_Event}},
 	{inactive_State, inactiveState_Handler,{_error_clear_Event, _keyup_Event, _keypress_Event, _tone_Event}},
 	{nozzleup_waitingforauth_State, nozzleup_waitingforauthState_Handler, {_authorise_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _authorisecommand_Event, _stopcommand_Event, _switchoffcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _tone_Event}},
 	{authorised_nozzledown_State, authorised_nozzledown_State_Handler,{_nozzleup_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _tone_Event}},
@@ -1383,7 +1385,7 @@ uint8_t long_press_key()
 	        pressed_ = 0;
 	        key_buttonpress_tmr = 0;  //clr timer.
 		}
-		 if((key_buttonpress_tmr >= 3) && (pressed_ == 0) )
+		 if( ( (key_buttonpress_tmr >= 3) && (pressed_ == 0)) && ( (eLastState2 != filling_State) && (eNextState2 != filling_State)) )
 		 {
 		   key_buttonpress_tmr = 3;
 			pressed_ = 1;
@@ -1419,7 +1421,7 @@ uint8_t long_press_progExit()
 	        pressed_ = 0;
 	        progExit_buttonpress_tmr1 = 0;  //clr timer.
 		}
-		 if((progExit_buttonpress_tmr1 >= 3) && (pressed_ == 0) )
+		 if( (progExit_buttonpress_tmr1 >= 3) && (pressed_ == 0) && (eNextState2 != filling_State) )  // && (eNextState2 != filling_State)) )
 		 {
 			 progExit_buttonpress_tmr1 = 3;
 			pressed_ = 1;

@@ -153,6 +153,8 @@ extern int timeout_dispense;
 static bool mth_success2 = false,
 			clock_save2 = false;
 
+extern eSystemState eNextState1, eLastState1;
+
 static int time2 ;
 static int st2 = 0;
 int timer_flag2 = 0;
@@ -1061,7 +1063,7 @@ uint8_t long_press_key2()
 	        pressed_ = 0;
 	        key_buttonpress_tmr2 = 0;  //clr timer.
 		}
-		 if((key_buttonpress_tmr2 >= 3)&&(pressed_ == 0) )
+		 if( (key_buttonpress_tmr2 >= 3) && (pressed_ == 0) && (eNextState1 != filling_State) )  // && (eLastState1 != filling_State)) )
 		 {
 		   key_buttonpress_tmr2 = 3;
 			pressed_ = 1;
@@ -1097,11 +1099,12 @@ uint8_t long_press_progExit2()
 	        pressed_ = 0;
 	        progExit_buttonpress_tmr2 = 0;  //clr timer.
 		}
-		 if((progExit_buttonpress_tmr2 >= 3) && (pressed_ == 0) )
+		 if( (progExit_buttonpress_tmr2 >= 3) && (pressed_ == 0) && (eNextState1 != filling_State) )  //&& ( (eLastState1 != filling_State) && (eNextState1 != filling_State)) )
+
 		 {
 			 progExit_buttonpress_tmr2 = 3;
-			pressed_ = 1;
-			return 1;
+			 pressed_ = 1;
+			 return 1;
 		 }
 		 return 0;
 }
@@ -1136,7 +1139,7 @@ uint8_t long_press_log2()
 
 	 if ( (log_buttonpress_tmr2 >= 3) && (pressed_ == 0 ) )
 	 {
-	   log_buttonpress_tmr2 = 3;
+	    log_buttonpress_tmr2 = 3;
 		pressed_ = 1;
 
 //		HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);

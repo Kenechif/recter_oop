@@ -344,8 +344,12 @@ int main(void)
   MX_USART3_UART_Init();
   MX_UART5_Init();
   MX_RNG_Init();
-  MX_IWDG_Init();
+//  MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
+
+#ifndef DEV_MODE
+  MX_IWDG_Init();
+#endif
 
 //  retrieve_settings();    //Retrieves settings prior to Timers Initialisation
 
@@ -742,7 +746,7 @@ static void MX_IWDG_Init(void)
   /* USER CODE END IWDG_Init 1 */
   hiwdg.Instance = IWDG;
   hiwdg.Init.Prescaler = IWDG_PRESCALER_8;
-  hiwdg.Init.Reload = 7;
+  hiwdg.Init.Reload = 1999;            //500ms
   if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
   {
     Error_Handler();

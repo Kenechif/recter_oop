@@ -145,13 +145,14 @@ void toggle_led(void)
 	}
 
 
-	 static int count;
+	 static int count, count_;
 	 dec_var();
 
 	 decTimer_tone1();   //decrement the tone event timer
 	 decTimer_tone2();   //decrement the tone event timer
 
 	 count++;
+	 count_++;
 	 if(count >= 1000)  //1 sec
 	 {
 		 //=====================//
@@ -185,7 +186,11 @@ void toggle_led(void)
 // 		 HAL_IWDG_Refresh(&hiwdg);
 	 }
 
-	 HAL_IWDG_Refresh(&hiwdg);  //Refresh reload value every 1msec
+	 if(count_ >= 480)  //
+	 {
+		 HAL_IWDG_Refresh(&hiwdg);  //Refresh reload value every 1msec
+		 count_ = 0;
+	 }
 }
 
 //========================================================

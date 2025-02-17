@@ -3798,7 +3798,8 @@ int  read_event2()
 		   if(
 				 ( ((nozzle_flag_old2 == 0) && (nozzle_flag2 == 1)) ||
 				 ((nozzle_flag_key_old2 == 0) && (nozzle_flag_key2 == 1)) ) &&
-				 ((eNextState2 != operator_State) && (eLastState2 != operator_State))
+				 ((eNextState2 != operator_State) && (eLastState2 != operator_State)) &&
+				 (eNextState1 != prog_State)
 			 )
 		   {
 //			   keypad_zerorise2 = true;
@@ -3860,7 +3861,8 @@ int  read_event2()
 		  else if(
 					 ( ((nozzle_flag_old2 == 1) && (nozzle_flag2 == 0)) ||
 					 ((nozzle_flag_key_old2 == 1) && (nozzle_flag_key2 == 0)) ) &&
-					 ((eNextState2 != operator_State) && (eLastState2 != operator_State))
+					 ((eNextState2 != operator_State) && (eLastState2 != operator_State)) &&
+					 (eNextState1 != prog_State)
 				 )
 		   {
 			   if((nozzle_flag_old2 == 1) && (nozzle_flag2 == 0))
@@ -4608,7 +4610,8 @@ uint8_t read_event1_1(void)
 	   if(
 			 ( ((nozzle_flag_old == 0) && (nozzle_flag == 1)) ||
 			 ((nozzle_flag_key_old1 == 0) && (nozzle_flag_key1 == 1)) ) &&
-			 ((eNextState1 != operator_State) && (eLastState1 != operator_State))
+			 ((eNextState1 != operator_State) && (eLastState1 != operator_State)) &&
+			 (eNextState2 != prog_State) //&& (eLastState1 != operator_State))
 		 )
 	   {
 //		   keypad_zerorise1 = true;
@@ -4675,7 +4678,8 @@ uint8_t read_event1_1(void)
 	   	  else if(
 					 ( ((nozzle_flag_old == 1) && (nozzle_flag == 0)) ||
 					 ((nozzle_flag_key_old1 == 1) && (nozzle_flag_key1 == 0)) ) &&
-					 ((eNextState1 != operator_State) && (eLastState1 != operator_State))
+					 ((eNextState1 != operator_State) && (eLastState1 != operator_State)) &&
+					 (eNextState2 != prog_State)
 				 )
 	   	   {
 	   		   if((nozzle_flag_old == 1) && (nozzle_flag == 0))
@@ -5146,9 +5150,9 @@ uint8_t debounceKey1(void)
 
 									if( (test_key == lastKey) && (keyPress1 >= VALIDKEYPRESS_THRESHOLD) )
 									{
-										if(lastKey == 15)
+										if( (lastKey == 15) && (eNextState2 != filling_State) ) // && (eLastState1 != filling_State)) )
 											key_longpress_flag = 1;
-										else if(lastKey == 14)
+										else if( (lastKey == 14) && (eNextState2 != filling_State) )
 											progExit_longpress_flag = 1;
 										else if( (lastKey == 21) && (settings_stream1[0].keypad__ == BLSKY22) )
 											tot_longpress_flag = 1;
@@ -5301,9 +5305,9 @@ uint8_t debounceKey1(void)
 
 									if( (test_key == lastKey) && (keyPress2 >= VALIDKEYPRESS_THRESHOLD) )  // 6) )
 									{
-										if(lastKey == 15)
+										if( (lastKey == 15) && (eNextState1 != filling_State) ) // && (eLastState1 != filling_State)) )
 											key_longpress_flag2 = 1;
-										else if(lastKey == 14)
+										else if( (lastKey == 14) && (eNextState1 != filling_State) )
 											progExit_longpress_flag2 = 1;
 										else if( (lastKey == 21) && (settings_stream1[1].keypad__ == BLSKY22) )
 											tot_longpress_flag2 = 1;
