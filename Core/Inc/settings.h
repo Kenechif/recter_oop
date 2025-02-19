@@ -52,7 +52,7 @@ extern "C" {
 
 	  #define PRODUCT_TYPE _DPK
 
-//	  #define DEV_MODE
+	  #define DEV_MODE
 
 	  #define OTP_ENABLE
 
@@ -143,6 +143,11 @@ extern "C" {
 
 
 #define BATTERY_DELAY 				1500
+
+#define UNPROGRAMMED_SALE           0
+#define LITRE_PROGRAMMED            1
+#define PRICE_PROGRAMMED            2
+
 
 /***********************************************************************/
 #define DEBOUNCE_TIME_MS 20  //5  //10  //20 // Debounce period in milliseconds
@@ -836,11 +841,24 @@ int tone_duration1,
 extern float key_value CCRAM,
 	         key_value2 CCRAM;
 
+extern uint8_t sales_type1 CCRAM,
+			   sales_type2 CCRAM;
 
 uint32_t target_pulser1,
 		 current_pulser1,
 		 target_pulser2,
 		 current_pulser2;
+
+extern uint32_t currentPulser_recovered1 CCRAM,
+				currentPulser_recovered2 CCRAM,
+				targetPulser_recovered1 CCRAM,
+				targetPulser_recovered2 CCRAM;
+
+extern uint8_t nozzle_flag,
+	 	       nozzle_flag_old,
+		       nozzle_flag2,
+		       nozzle_flag_old2;
+
 ////==================================
 ////structure for settings
 //typedef struct
@@ -1045,7 +1063,7 @@ typedef struct
   float lastVolumeSale_cal;               //4
   float lastAmountSale_cal;				  //4
   uint32_t timestamp;					  //4
-  float programmed_value;	              //4
+  float sales_value;	              //4
   uint32_t target_pulser;				  //4
   uint32_t current_pulser;				  //4
   uint8_t totalizer_save_status;          //1
@@ -1053,12 +1071,12 @@ typedef struct
   /*
    * SALE'S PROGRAM STATUS
    *
-   |	0 ==> Not Programmed
+   |	0 ==> Not Programmed, or the Programmed Amount exceeds limits (pump's, display's or auth's)
    |	1 ==> Litre Programmed
    |	2 ==> Price Programmed
    *
    */
-  uint8_t saleProgram_status;		    	//1
+  uint8_t sales_type;		    	//1
 
   pump_status_enum pump_status;             //1 Byte + A Byte Padding       --> 44
 
@@ -1545,7 +1563,8 @@ float sellPrice_max_dp2(int8_t amount_dp);
 void int_to_bcd(int num, unsigned char *bcd);
 void int_to_bcd_(int num, unsigned char *bcd, uint8_t bcd_size);
 
-
+void sellmode_write1(uint8_t sellmodee);
+void sellmode_write2(uint8_t sellmodee);
 
 //typedef enum
 //{

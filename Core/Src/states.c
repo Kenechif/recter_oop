@@ -182,6 +182,11 @@ uint32_t //target_pulser1,
 extern uint32_t target_pulser1 = 0,
 		 	 	current_pulser1 = 0;
 
+extern uint32_t currentPulser_recovered1 CCRAM,
+				currentPulser_recovered2 CCRAM,
+				targetPulser_recovered1 CCRAM,
+				targetPulser_recovered2 CCRAM;
+
 uint8_t fastFlow1 = 0;
 
 extern int timeout_picknozzle;
@@ -254,6 +259,8 @@ uint8_t key_value_sellmodeP1 = 0,
 		key_value_sellmodeL1 = 0;
 
 uint8_t programmed_sale1 = 0;
+
+uint8_t sales_type1 CCRAM = UNPROGRAMMED_SALE;
 
 //extern float key_value = 0.0;
 
@@ -507,7 +514,7 @@ extern pump disp_type1,
 extern uint16_t shutdown_timer1;
 extern uint16_t motor_tmr1;
 
-int8_t pump_LitreOverflow = 0,
+int8_t pump_LitreOverflow1 = 0,
 	   display_overflow1 = 0,
 //	   _litre_price1 = 0,
 	   _auth_p = 0,
@@ -2949,10 +2956,10 @@ eSystemState nozzledown_Handler(void)
 		lcd_print_line3(str__);
 
 
-	 if( ((pump_LitreOverflow == 1) && (pulser_rem1 > 0 )) || (display_overflow1 == 1) || ( (authorizedSale_overflow1 == 1) && (pulser_rem1 > 0 ) ) )  //|| ((display_overflow1 == 1) && (pulser_rem1 > 0 )) )
+	 if( ((pump_LitreOverflow1 == 1) && (pulser_rem1 > 0 )) || (display_overflow1 == 1) || ( (authorizedSale_overflow1 == 1) && (pulser_rem1 > 0 ) ) )  //|| ((display_overflow1 == 1) && (pulser_rem1 > 0 )) )
 	 {
-		  if(pump_LitreOverflow == 1)
-			  pump_LitreOverflow = 0;
+		  if(pump_LitreOverflow1 == 1)
+			  pump_LitreOverflow1 = 0;
 
 		  if(display_overflow1 == 1)
 		  {
@@ -3292,10 +3299,10 @@ eSystemState timeout_Handler(void)
 		 lcd_print_line1(" t out  ");
 		 lcd_print_line2("--------");
 
-		 if( ((pump_LitreOverflow == 1) && (pulser_rem1 > 0 )) || ((display_overflow1 == 1) && (pulser_rem1 > 0 )) || ( (authorizedSale_overflow1 == 1) && (pulser_rem1 > 0 ) ))
+		 if( ((pump_LitreOverflow1 == 1) && (pulser_rem1 > 0 )) || ((display_overflow1 == 1) && (pulser_rem1 > 0 )) || ( (authorizedSale_overflow1 == 1) && (pulser_rem1 > 0 ) ))
 		 {
-			  if(pump_LitreOverflow == 1)
-				  pump_LitreOverflow = 0;
+			  if(pump_LitreOverflow1 == 1)
+				  pump_LitreOverflow1 = 0;
 			  if(display_overflow1 == 1)
 				  display_overflow1 = 0;
 
@@ -3336,10 +3343,10 @@ eSystemState timeout_Handler(void)
 
  if(eLastState1 == authorised_nozzleup_State)
  {
-	 if( ((pump_LitreOverflow == 1) && (pulser_rem1 > 0 )) || ((display_overflow1 == 1) && (pulser_rem1 > 0 )) || ( (authorizedSale_overflow1 == 1) && (pulser_rem1 > 0 ) ) )
+	 if( ((pump_LitreOverflow1 == 1) && (pulser_rem1 > 0 )) || ((display_overflow1 == 1) && (pulser_rem1 > 0 )) || ( (authorizedSale_overflow1 == 1) && (pulser_rem1 > 0 ) ) )
 	 {
-		  if(pump_LitreOverflow == 1)
-			  pump_LitreOverflow = 0;
+		  if(pump_LitreOverflow1 == 1)
+			  pump_LitreOverflow1 = 0;
 		  if(display_overflow1 == 1)
 			  display_overflow1 = 0;
 
@@ -3362,7 +3369,7 @@ eSystemState timeout_Handler(void)
 //	 lcd_print_line3("err6 ");
 //	 store fail
 //  }
-// if(eLastState1 == pump_maxLitres) //pump_LitreOverflow
+// if(eLastState1 == pump_maxLitres) //pump_LitreOverflow1
 //  {
 //	 lcd_print_line3("err7 ");
 //	 pump limit
@@ -8143,7 +8150,7 @@ eSystemState idleState_Handler(void)
 	   }
 	}
 
-	else if ( (t > 500) && (nozzleup_awaitingauth_state_not_timedOut == 0) && (pump_LitreOverflow == 0) && (_litre_price1 == 0)
+	else if ( (t > 500) && (nozzleup_awaitingauth_state_not_timedOut == 0) && (pump_LitreOverflow1 == 0) && (_litre_price1 == 0)
 			&& (_auth_p == 0) && (_auth_v == 0) && (idle_backwardPulse == 0) && (idle_forwardPulse == 0)
 			&& (flow_loss == 0) && (display_overflow1 == 0) && (changeLitrePrice1_2 == 0) && (_pump_max_litres1 == 0) && (nonValid_sale1 == 0)
 			&& (authorizedSale_overflow1 == 0) )
@@ -8183,7 +8190,7 @@ eSystemState idleState_Handler(void)
 //			if(t > 4000) t = 0;
 //		 }
 
-	else if ( (t > 2000) && (pump_LitreOverflow == 1) )
+	else if ( (t > 2000) && (pump_LitreOverflow1 == 1) )
 	{
 		 // lcd_print_line1("n up u a");
 //			 clr_screen1();
@@ -8193,7 +8200,7 @@ eSystemState idleState_Handler(void)
 		 if(t > 6000)
 		 {
 			 t = 0;
-			 pump_LitreOverflow = 0;
+			 pump_LitreOverflow1 = 0;
 		 }
 	 }
 
@@ -8522,12 +8529,12 @@ eSystemState idleState_Handler(void)
 //					 }
 //				}
 
-//		 else if ( ((t > 2000) && (t <= 3000)) && (pump_LitreOverflow == 1) )
+//		 else if ( ((t > 2000) && (t <= 3000)) && (pump_LitreOverflow1 == 1) )
 //		 {
 //			lcd_print_line1(" limit ");
 //			//t = 0;
 //		 }
-//		 else if ( ((t > 3000) && (t <= 4000)) && (pump_LitreOverflow == 1) )
+//		 else if ( ((t > 3000) && (t <= 4000)) && (pump_LitreOverflow1 == 1) )
 //		 {
 //			lcd_print_line1("");
 //			if(t > 4000) t = 0;
@@ -8946,7 +8953,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 						  if(key_value > sellPrice_max_pump)
 						  {
 							  key_value = sellPrice_max_pump;
-							  pump_LitreOverflow = 1;
+							  pump_LitreOverflow1 = 1;
 						  }
 						  else if(key_value > sellPrice_max_dpp)
 						  {
@@ -8956,9 +8963,22 @@ eSystemState authorised_nozzleup_State_Handler(void)
 					  }
 
 					  target_pulser1 = price2pulser(key_value);  //calculate pulse frm price.
-//					  }
 
+					  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			          //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+
+					  if( (pump_LitreOverflow1 == 1) || (display_overflow1 == 1) )
+					  {
+						 sales_type1 = UNPROGRAMMED_SALE;
+					  }
+					  else
+					  {
+						 sales_type1 = PRICE_PROGRAMMED;
+					  }
+
+					  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 				}
+
 				else  //amt was selected.
 				{
 					key_value_ = (sellPrice_max_dpp / litre_price1);
@@ -8968,7 +8988,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 						 if(key_value > pump_max_litres1)
 						 {
 							  key_value = pump_max_litres1;
-							  pump_LitreOverflow = 1;
+							  pump_LitreOverflow1 = 1;
 						 }
 						 else if(key_value > key_value_)
 						 {
@@ -8978,6 +8998,21 @@ eSystemState authorised_nozzleup_State_Handler(void)
 					 }
 
 					 target_pulser1 = amt2pulser(key_value);   //calculate pulse frm amt.
+
+					 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+
+					  if( (pump_LitreOverflow1 == 1) || (display_overflow1 == 1) )
+					  {
+						 sales_type1 = UNPROGRAMMED_SALE;
+					  }
+					  else
+					  {
+						 sales_type1 = LITRE_PROGRAMMED;
+					  }
+
+					  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 				}
 		  }
 		  else
@@ -9013,6 +9048,13 @@ eSystemState authorised_nozzleup_State_Handler(void)
 					target_pulser1 = amt2pulser(key_value);   //calculate pulse frm amt.
 			  }
 
+			  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	          //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+
+			   sales_type1 = UNPROGRAMMED_SALE;
+
+			  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 		   }
 
 	 }
@@ -9035,6 +9077,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 				  		key_value_sellmodeL1 = 1;
 				  		key_value_original1 = key_value;
 
+//				  		sales_type1 = LITRE_PROGRAMMED;
 
 				  		//======== Convert to Price-Sale =======//
 				  		key_value = (key_value * litre_price1);
@@ -9059,7 +9102,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 						if(key_value > sellPrice_max_pump)
 						{
 							key_value = sellPrice_max_pump;
-							pump_LitreOverflow = 1;
+							pump_LitreOverflow1 = 1;
 						}
 						else if (key_value > sellPrice_max_dpp)
 						{
@@ -9070,9 +9113,35 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 					target_pulser1 = price2pulser(key_value);  //calculate pulse frm price.
 
+
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+
+					if( (key_value_sellmodeL1 == 1) && (authorizedSale_overflow1 == 0) && (pump_LitreOverflow1 == 0) && (display_overflow1 == 0) )
+					{
+						key_value = key_value_original1;
+					}
+
+					if (sellmode == L)
+					{
+						sales_type1 = LITRE_PROGRAMMED;
+					}
+					else if (sellmode == P)
+					{
+						sales_type1 = PRICE_PROGRAMMED;
+					}
+
+					if( (authorizedSale_overflow1 == 1) || (pump_LitreOverflow1 == 1) || (display_overflow1 == 1) )
+					{
+						sales_type1 = UNPROGRAMMED_SALE;
+					}
+
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 				}  //End of keyboard Input Check
 
 
+			  /* UNPROGRAMMED SALE */
 			  else
 			  {
 				  if( (auth_p1 > sellPrice_max_pump) || (auth_p1 > sellPrice_max_dpp) )
@@ -9080,7 +9149,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 					  if(auth_p1 > sellPrice_max_pump)
 					  {
 						  auth_p1 = sellPrice_max_pump;
-						  pump_LitreOverflow = 1;
+						  pump_LitreOverflow1 = 1;
 					  }
 
 					  else if(auth_p1 > sellPrice_max_dpp)
@@ -9095,9 +9164,27 @@ eSystemState authorised_nozzleup_State_Handler(void)
 				  key_value = strtof(keyboard_entry, &endPtr);
 
 				  target_pulser1 = price2pulser(key_value);  //calculate pulse frm price.
+
+
+				  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		          //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+
+				  if( (pump_LitreOverflow1 == 1) || (display_overflow1 == 1) )
+				  {
+					 sales_type1 = UNPROGRAMMED_SALE;
+				  }
+				  else
+				  {
+					 sales_type1 = PRICE_PROGRAMMED;
+				  }
+
+				  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 			  }
 		  }
 		 //-----------------------------------------
+
+
 		  //authorise volume...
 		  else if (change_v1 == 1)
 		  {
@@ -9242,7 +9329,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 						if(key_value > pump_max_litres1)
 						{
 							key_value = pump_max_litres1;
-							pump_LitreOverflow = 1;
+							pump_LitreOverflow1 = 1;
 						}
 						else if (key_value > key_value_)
 						{
@@ -9271,8 +9358,19 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 				#endif
 
+
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+					if( (key_value_sellmodeP1 == 1) && (authorizedSale_overflow1 == 0) && (pump_LitreOverflow1 == 0) && (display_overflow1 == 0) )
+					{
+						key_value = key_value_original1;
+					}
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 				}  //End of keyboard Input Check
 
+
+			    /* UNPROGRAMMED SALE */
 			    else
 			    {
 //			    	key_value_ = (sellPrice_max_dpp / litre_price1);
@@ -9282,7 +9380,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 						  if(auth_v1 > pump_max_litres1)
 						  {
 							  auth_v1 = pump_max_litres1;
-							  pump_LitreOverflow = 1;
+							  pump_LitreOverflow1 = 1;
 						  }
 
 						  else if (auth_v1 > key_value_)
@@ -9297,6 +9395,21 @@ eSystemState authorised_nozzleup_State_Handler(void)
 				  key_value = strtof(keyboard_entry, &endPtr);
 
 				  target_pulser1 = amt2pulser(key_value);   //calculate pulse frm amt.
+
+				  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		          //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+
+				  if( (pump_LitreOverflow1 == 1) || (display_overflow1 == 1) )
+				  {
+					 sales_type1 = UNPROGRAMMED_SALE;
+				  }
+				  else
+				  {
+					 sales_type1 = LITRE_PROGRAMMED;
+				  }
+
+				  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 			   }
 
 		 }
@@ -10959,7 +11072,7 @@ void do_calcs ()
 				 temp = amt2price(amt);
 							 price = dp(temp, dp_amount1);
 
-				if( (key_value_sellmodeP1 == 1) && (authorizedSale_overflow1 == 0) && (pump_LitreOverflow == 0) && (display_overflow1 == 0) )
+				if( (key_value_sellmodeP1 == 1) && (authorizedSale_overflow1 == 0) && (pump_LitreOverflow1 == 0) && (display_overflow1 == 0) )
 				{
 					key_value_sellmodeP1 = 0;
 					key_value = key_value_original1;
@@ -10990,7 +11103,7 @@ void do_calcs ()
 
 					price  = amt2price(amt);
 
-					if( (key_value_sellmodeL1 == 1) && (authorizedSale_overflow1 == 0) && (pump_LitreOverflow == 0) && (display_overflow1 == 0) )
+					if( (key_value_sellmodeL1 == 1) && (authorizedSale_overflow1 == 0) && (pump_LitreOverflow1 == 0) && (display_overflow1 == 0) )
 					{
 						key_value_sellmodeL1 = 0;
 						key_value = key_value_original1;

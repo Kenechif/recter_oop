@@ -144,6 +144,11 @@ extern uint32_t target_pulser1,
 				target_pulser2 = 0,
 				current_pulser2 = 0;
 
+extern uint32_t currentPulser_recovered1 CCRAM,
+				currentPulser_recovered2 CCRAM,
+				targetPulser_recovered1 CCRAM,
+				targetPulser_recovered2 CCRAM;
+
 //uint32_t target_pulser2,
 //		 current_pulser2 = 0;
 
@@ -226,6 +231,8 @@ uint8_t key_value_sellmodeP2 = 0,
 		key_value_sellmodeL2 = 0;
 
 uint8_t programmed_sale2 = 0;
+
+uint8_t sales_type2 CCRAM = UNPROGRAMMED_SALE;
 
 //extern float key_value2 = 0.0;
 
@@ -8082,6 +8089,20 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 
 					  target_pulser2 = price2pulser2(key_value2);  //calculate pulse frm price.
 
+					  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			          //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+
+					  if( (pump_LitreOverflow2 == 1) || (display_overflow2 == 1) )
+					  {
+						 sales_type2 = UNPROGRAMMED_SALE;
+					  }
+					  else
+					  {
+						 sales_type2 = PRICE_PROGRAMMED;
+					  }
+
+					  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 				}
 				else  //amt was selected.
 				{
@@ -8102,6 +8123,21 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 					  }
 
 					 target_pulser2 = amt2pulser2(key_value2);   //calculate pulse frm amt.
+
+					 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			         //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+
+					  if( (pump_LitreOverflow2 == 1) || (display_overflow2 == 1) )
+					  {
+						 sales_type2 = UNPROGRAMMED_SALE;
+					  }
+					  else
+					  {
+						 sales_type2 = LITRE_PROGRAMMED;
+					  }
+
+					  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 				}
 		  }
 		  else
@@ -8136,6 +8172,14 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 
 					target_pulser2 = amt2pulser2(key_value2);   //calculate pulse frm amt.
 			  }
+
+			  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	          //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+
+			   sales_type2 = UNPROGRAMMED_SALE;
+
+			  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 		  }
 	 }
 	 else if(opmode2 == AUTO_MODE)
@@ -8197,9 +8241,35 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 
 					target_pulser2 = price2pulser2(key_value2);  //calculate pulse frm price.
 
+
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+
+					if( (key_value_sellmodeL2 == 1) && (authorizedSale_overflow2 == 0) && (pump_LitreOverflow2 == 0) && (display_overflow2 == 0) )
+					{
+						key_value2 = key_value_original2;
+					}
+
+					if (sellmode2 == L)
+					{
+						sales_type2 = LITRE_PROGRAMMED;
+					}
+					else if (sellmode2 == P)
+					{
+						sales_type2 = PRICE_PROGRAMMED;
+					}
+
+					if( (authorizedSale_overflow2 == 1) || (pump_LitreOverflow2 == 1) || (display_overflow2 == 1) )
+					{
+						sales_type2 = UNPROGRAMMED_SALE;
+					}
+
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 				}  //End of keyboard Input Check
 
-
+			  /* UNPROGRAMMED SALE */
 			  else
 			  {
 				  if( (auth_p2 > sellPrice_max_pump) || (auth_p2 > sellPrice_max_dpp) )
@@ -8221,9 +8291,25 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 				  key_value2 = strtof(keyboard_entry2, &endPtr);
 
 				  target_pulser2 = price2pulser2(key_value2);  //calculate pulse frm price.
+
+				  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		          //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+
+				  if( (pump_LitreOverflow2 == 1) || (display_overflow2 == 1) )
+				  {
+					 sales_type2 = UNPROGRAMMED_SALE;
+				  }
+				  else
+				  {
+					 sales_type2 = PRICE_PROGRAMMED;
+				  }
+
+				  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			  }
 		  }
 		 //-----------------------------------------
+
+
 		  //authorise volume...
 		  else if (change_v2 == 1)
 		  {
@@ -8399,8 +8485,17 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 
 				#endif
 
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+					if( (key_value_sellmodeP2 == 1) && (authorizedSale_overflow2 == 0) && (pump_LitreOverflow2 == 0) && (display_overflow2 == 0) )
+					{
+						key_value2 = key_value_original2;
+					}
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 				}  //End of keyboard Input Check
 
+			    /* UNPROGRAMMED SALE */
 				else
 				{
 					if( (auth_v2 > pump_max_litres2) || (auth_v2 > key_value_) )
@@ -8422,6 +8517,22 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 				  key_value2 = strtof(keyboard_entry2, &endPtr);
 
 				  target_pulser2 = amt2pulser2(key_value2);   //calculate pulse frm amt.
+
+				  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		          //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+
+				  if( (pump_LitreOverflow2 == 1) || (display_overflow2 == 1) )
+				  {
+					 sales_type2 = UNPROGRAMMED_SALE;
+				  }
+				  else
+				  {
+					 sales_type2 = LITRE_PROGRAMMED;
+				  }
+
+				  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 			   }
 		 }
  //		 else

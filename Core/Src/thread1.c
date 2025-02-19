@@ -374,8 +374,16 @@ int retn;
 				 current_pulser2,
 				 overall_currentPulser1;
 
- extern float key_value,
- 	 	 	  key_value2;
+ extern uint32_t currentPulser_recovered1 CCRAM,
+ 				currentPulser_recovered2 CCRAM,
+ 				targetPulser_recovered1 CCRAM,
+ 				targetPulser_recovered2 CCRAM;
+
+ extern float key_value CCRAM,
+ 	 	 	  key_value2 CCRAM;
+
+ extern uint8_t sales_type1 CCRAM,
+ 	 	 	    sales_type2 CCRAM;
 
  extern int index2, index2;
  extern char keypad_pw[10], keypad_pw2[10];
@@ -384,7 +392,8 @@ int retn;
  extern int auth;      //first set this to
  extern int side;      //pump side selected.
  extern int level;
-extern int _index, _index2;
+extern int _index,
+		   _index2;
 
 extern char sc1[10], sc12[10];
 

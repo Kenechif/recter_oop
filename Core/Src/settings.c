@@ -169,6 +169,11 @@ int access_level = non;    //default
 		  running_amtTotaliser2 CCRAM = 0,
 		  running_amtTotaliser2c CCRAM = 0;
 
+	uint32_t currentPulser_recovered1 CCRAM = 0,
+			currentPulser_recovered2 CCRAM = 0,
+			targetPulser_recovered1 CCRAM = 0,
+			targetPulser_recovered2 CCRAM = 0;
+
  float pulser_index = 500;
  float pulser_index_c = 500;
 
@@ -1340,9 +1345,10 @@ uint8_t save_totaliserFrequent_eeprom(pump_sid side)
 		totaliserFrequent_storeA.lastAmountSale_cal = price_upper1;
 		totaliserFrequent_storeA.timestamp = RtcToInt(2019);
 		totaliserFrequent_storeA.pump_status = pump_status_1;
-		totaliserFrequent_storeA.programmed_value = key_value;
+		totaliserFrequent_storeA.sales_value = key_value;
 		totaliserFrequent_storeA.current_pulser = current_pulser1;
 		totaliserFrequent_storeA.target_pulser = target_pulser1;
+		totaliserFrequent_storeA.sales_type = sales_type1;
 
 		memcpy(buffer, &totaliserFrequent_storeA, sz);
 		crc = crc_16(buffer, sz);
@@ -1368,9 +1374,10 @@ uint8_t save_totaliserFrequent_eeprom(pump_sid side)
 				totaliserFrequent_storeA.lastAmountSale_cal = price_upper1;
 				totaliserFrequent_storeA.timestamp = RtcToInt(2019);
 				totaliserFrequent_storeA.pump_status = pump_status_1;
-				totaliserFrequent_storeA.programmed_value = key_value;
+				totaliserFrequent_storeA.sales_value = key_value;
 				totaliserFrequent_storeA.current_pulser = current_pulser1;
 				totaliserFrequent_storeA.target_pulser = target_pulser1;
+				totaliserFrequent_storeA.sales_type = sales_type1;
 
 				memcpy(buffer, &totaliserFrequent_storeA, sz);
 				crc = crc_16(buffer, sz);
@@ -1399,9 +1406,10 @@ uint8_t save_totaliserFrequent_eeprom(pump_sid side)
 		totaliserFrequent_storeB.lastAmountSale_cal = price_upper2;
 		totaliserFrequent_storeB.timestamp = RtcToInt(2019);
 		totaliserFrequent_storeB.pump_status = pump_status_2;
-		totaliserFrequent_storeB.programmed_value = key_value2;
+		totaliserFrequent_storeB.sales_value = key_value2;
 		totaliserFrequent_storeB.current_pulser = current_pulser2;
 		totaliserFrequent_storeB.target_pulser = target_pulser2;
+		totaliserFrequent_storeB.sales_type = sales_type2;
 
 		memcpy(buffer, &totaliserFrequent_storeB, sz);
 		crc = crc_16(buffer, sz);
@@ -1427,9 +1435,10 @@ uint8_t save_totaliserFrequent_eeprom(pump_sid side)
 				totaliserFrequent_storeB.lastAmountSale_cal = price_upper2;
 				totaliserFrequent_storeB.timestamp = RtcToInt(2019);
 				totaliserFrequent_storeB.pump_status = pump_status_2;
-				totaliserFrequent_storeB.programmed_value = key_value2;
+				totaliserFrequent_storeB.sales_value = key_value2;
 				totaliserFrequent_storeB.current_pulser = current_pulser2;
 				totaliserFrequent_storeB.target_pulser = target_pulser2;
+				totaliserFrequent_storeB.sales_type = sales_type2;
 
 				memcpy(buffer, &totaliserFrequent_storeB, sz);
 				crc = crc_16(buffer, sz);
@@ -1761,9 +1770,10 @@ uint8_t save_totaliserFrequent_fram(pump_sid side)
 		totaliserFrequent_storeA.lastAmountSale_cal = price_upper1;
 		totaliserFrequent_storeA.timestamp = RtcToInt(2019);
 		totaliserFrequent_storeA.pump_status = pump_status_1;
-		totaliserFrequent_storeA.programmed_value = key_value;
+		totaliserFrequent_storeA.sales_value = key_value;
 		totaliserFrequent_storeA.current_pulser = current_pulser1;
 		totaliserFrequent_storeA.target_pulser = target_pulser1;
+		totaliserFrequent_storeA.sales_type = sales_type1;
 
 		memcpy(buffer, &totaliserFrequent_storeA, sz);
 		crc = crc_16(buffer, sz);
@@ -1789,9 +1799,10 @@ uint8_t save_totaliserFrequent_fram(pump_sid side)
 				totaliserFrequent_storeA.lastAmountSale_cal = price_upper1;
 				totaliserFrequent_storeA.timestamp = RtcToInt(2019);
 				totaliserFrequent_storeA.pump_status = pump_status_1;
-				totaliserFrequent_storeA.programmed_value = key_value;
+				totaliserFrequent_storeA.sales_value = key_value;
 				totaliserFrequent_storeA.current_pulser = current_pulser1;
 				totaliserFrequent_storeA.target_pulser = target_pulser1;
+				totaliserFrequent_storeA.sales_type = sales_type1;
 
 				memcpy(buffer, &totaliserFrequent_storeA, sz);
 				crc = crc_16(buffer, sz);
@@ -1820,9 +1831,10 @@ uint8_t save_totaliserFrequent_fram(pump_sid side)
 		totaliserFrequent_storeB.lastAmountSale_cal = price_upper2;
 		totaliserFrequent_storeB.timestamp = RtcToInt(2019);
 		totaliserFrequent_storeB.pump_status = pump_status_2;
-		totaliserFrequent_storeB.programmed_value = key_value2;
+		totaliserFrequent_storeB.sales_value = key_value2;
 		totaliserFrequent_storeB.current_pulser = current_pulser2;
 		totaliserFrequent_storeB.target_pulser = target_pulser2;
+		totaliserFrequent_storeB.sales_type = sales_type2;
 
 		memcpy(buffer, &totaliserFrequent_storeB, sz);
 		crc = crc_16(buffer, sz);
@@ -1848,9 +1860,10 @@ uint8_t save_totaliserFrequent_fram(pump_sid side)
 				totaliserFrequent_storeB.lastAmountSale_cal = price_upper2;
 				totaliserFrequent_storeB.timestamp = RtcToInt(2019);
 				totaliserFrequent_storeB.pump_status = pump_status_2;
-				totaliserFrequent_storeB.programmed_value = key_value2;
+				totaliserFrequent_storeB.sales_value = key_value2;
 				totaliserFrequent_storeB.current_pulser = current_pulser2;
 				totaliserFrequent_storeB.target_pulser = target_pulser2;
+				totaliserFrequent_storeB.sales_type = sales_type2;
 
 				memcpy(buffer, &totaliserFrequent_storeB, sz);
 				crc = crc_16(buffer, sz);
@@ -2364,27 +2377,65 @@ uint8_t retrieve_totaliserFrequent_eeprom(pump_sid side)
 		{
 			if(totaliserFrequent_storeA.totalizer_save_status == UNSAVED_TO_MAIN_TOTALIZER)
 			{
-//				totaliser_vol1c = totaliserFrequent_storeA.totaliserVol_cal;
-//				totaliser_vol1 = totaliserFrequent_storeA.totaliserVol_real;
-//
-//				totaliser_amt1c = totaliserFrequent_storeA.totaliserAmount_cal;
-//				totaliser_amt1 = totaliserFrequent_storeA.totaliserAmount_real;
+				if(totaliserFrequent_storeA.pump_status == filling_State)
+				{
+					uint32_t time_stamp = RtcToInt(2019);
+					if( (abs(time_stamp - totaliserFrequent_storeA.timestamp)) <= 1)
+					{
+						currentPulser_recovered1 = totaliserFrequent_storeA.current_pulser;
+						targetPulser_recovered1 = totaliserFrequent_storeA.target_pulser;
+						key_value = totaliserFrequent_storeA.sales_value;
+						sellmode_write1(totaliserFrequent_storeA.sales_type);
+					}
+					else   //exceeds 1 sec
+					{
+						totaliser_vol1c = totaliserFrequent_storeA.totaliserVol_cal;
+						totaliser_vol1 = totaliserFrequent_storeA.totaliserVol_real;
 
-				lastVolumeSale1c = totaliserFrequent_storeA.lastVolumeSale_cal;
-				lastAmountSale1c = totaliserFrequent_storeA.lastAmountSale_cal;
+						totaliser_amt1c = totaliserFrequent_storeA.totaliserAmount_cal;
+						totaliser_amt1 = totaliserFrequent_storeA.totaliserAmount_real;
+
+						lastVolumeSale1c = totaliserFrequent_storeA.lastVolumeSale_cal;
+						lastAmountSale1c = totaliserFrequent_storeA.lastAmountSale_cal;
+
+						if(isnan(totaliser_vol1c)) totaliser_vol1c = 0.0;
+						if(isnan(totaliser_vol1)) totaliser_vol1 = 0.0;
+						if(isnan(totaliser_amt1c)) totaliser_amt1c = 0.0;
+						if(isnan(totaliser_amt1)) totaliser_amt1 = 0.0;
+						if(isnan(lastVolumeSale1c)) lastVolumeSale1c = 0.0;
+						if(isnan(lastAmountSale1c)) lastAmountSale1c = 0.0;
+
+//						totaliser_vol1c = (totaliser_vol1c + lastVolumeSale1c);
+
+						save_totaliser_fram(side_a);
+						save_totaliser_eeprom(side_a);
+					}
+				}
+
+				else   //previous state, before the incident, wasn't filling_state
+				{
+					totaliser_vol1c = totaliserFrequent_storeA.totaliserVol_cal;
+					totaliser_vol1 = totaliserFrequent_storeA.totaliserVol_real;
+
+					totaliser_amt1c = totaliserFrequent_storeA.totaliserAmount_cal;
+					totaliser_amt1 = totaliserFrequent_storeA.totaliserAmount_real;
+
+					lastVolumeSale1c = totaliserFrequent_storeA.lastVolumeSale_cal;
+					lastAmountSale1c = totaliserFrequent_storeA.lastAmountSale_cal;
 
 
-				if(isnan(totaliser_vol1c)) totaliser_vol1c = 0.0;
-				if(isnan(totaliser_vol1)) totaliser_vol1 = 0.0;
-				if(isnan(totaliser_amt1c)) totaliser_amt1c = 0.0;
-				if(isnan(totaliser_amt1)) totaliser_amt1 = 0.0;
-				if(isnan(lastVolumeSale1c)) lastVolumeSale1c = 0.0;
-				if(isnan(lastAmountSale1c)) lastAmountSale1c = 0.0;
+					if(isnan(totaliser_vol1c)) totaliser_vol1c = 0.0;
+					if(isnan(totaliser_vol1)) totaliser_vol1 = 0.0;
+					if(isnan(totaliser_amt1c)) totaliser_amt1c = 0.0;
+					if(isnan(totaliser_amt1)) totaliser_amt1 = 0.0;
+					if(isnan(lastVolumeSale1c)) lastVolumeSale1c = 0.0;
+					if(isnan(lastAmountSale1c)) lastAmountSale1c = 0.0;
 
-				totaliser_vol1c = (totaliser_vol1c + lastVolumeSale1c);
+//					totaliser_vol1c = (totaliser_vol1c + lastVolumeSale1c);
 
-				save_totaliser_fram(side_a);
-				save_totaliser_eeprom(side_a);
+					save_totaliser_fram(side_a);
+					save_totaliser_eeprom(side_a);
+				}
 			}
 
 			return OK;
@@ -2413,27 +2464,67 @@ uint8_t retrieve_totaliserFrequent_eeprom(pump_sid side)
 
 			if(totaliserFrequent_storeB.totalizer_save_status == UNSAVED_TO_MAIN_TOTALIZER)
 			{
-//				totaliser_vol2c = totaliserFrequent_storeB.totaliserVol_cal;
-//				totaliser_vol2 = totaliserFrequent_storeB.totaliserVol_real;
-//
-//				totaliser_amt2c = totaliserFrequent_storeB.totaliserAmount_cal;
-//				totaliser_amt2 = totaliserFrequent_storeB.totaliserAmount_real;
+				if(totaliserFrequent_storeB.pump_status == filling_State)
+				{
+					uint32_t time_stamp = RtcToInt(2019);
+					if( (abs(time_stamp - totaliserFrequent_storeB.timestamp)) <= 1)
+					{
+						currentPulser_recovered2 = totaliserFrequent_storeB.current_pulser;
+						targetPulser_recovered2 = totaliserFrequent_storeB.target_pulser;
+						key_value2 = totaliserFrequent_storeB.sales_value;
+						sellmode_write2(totaliserFrequent_storeB.sales_type);
+					}
+					else   //exceeds 1 sec
+					{
 
-				lastVolumeSale2c = totaliserFrequent_storeB.lastVolumeSale_cal;
-				lastAmountSale2c = totaliserFrequent_storeB.lastAmountSale_cal;
+						totaliser_vol2c = totaliserFrequent_storeB.totaliserVol_cal;
+						totaliser_vol2 = totaliserFrequent_storeB.totaliserVol_real;
+
+						totaliser_amt2c = totaliserFrequent_storeB.totaliserAmount_cal;
+						totaliser_amt2 = totaliserFrequent_storeB.totaliserAmount_real;
+
+						lastVolumeSale2c = totaliserFrequent_storeB.lastVolumeSale_cal;
+						lastAmountSale2c = totaliserFrequent_storeB.lastAmountSale_cal;
 
 
-				if(isnan(totaliser_vol2c)) totaliser_vol2c = 0.0;
-				if(isnan(totaliser_vol2)) totaliser_vol2 = 0.0;
-				if(isnan(totaliser_amt2c)) totaliser_amt2c = 0.0;
-				if(isnan(totaliser_amt2)) totaliser_amt2 = 0.0;
-				if(isnan(lastVolumeSale2c)) lastVolumeSale2c = 0.0;
-				if(isnan(lastAmountSale2c)) lastAmountSale2c = 0.0;
+						if(isnan(totaliser_vol2c)) totaliser_vol2c = 0.0;
+						if(isnan(totaliser_vol2)) totaliser_vol2 = 0.0;
+						if(isnan(totaliser_amt2c)) totaliser_amt2c = 0.0;
+						if(isnan(totaliser_amt2)) totaliser_amt2 = 0.0;
+						if(isnan(lastVolumeSale2c)) lastVolumeSale2c = 0.0;
+						if(isnan(lastAmountSale2c)) lastAmountSale2c = 0.0;
 
-				totaliser_vol2c = (totaliser_vol2c + lastVolumeSale2c);
+//						totaliser_vol2c = (totaliser_vol2c + lastVolumeSale2c);
 
-				save_totaliser_fram(side_b);
-				save_totaliser_eeprom(side_b);
+						save_totaliser_fram(side_b);
+						save_totaliser_eeprom(side_b);
+					}
+				}
+
+				else   //previous state, before the incident, wasn't filling_state
+				{
+					totaliser_vol2c = totaliserFrequent_storeB.totaliserVol_cal;
+					totaliser_vol2 = totaliserFrequent_storeB.totaliserVol_real;
+
+					totaliser_amt2c = totaliserFrequent_storeB.totaliserAmount_cal;
+					totaliser_amt2 = totaliserFrequent_storeB.totaliserAmount_real;
+
+					lastVolumeSale2c = totaliserFrequent_storeB.lastVolumeSale_cal;
+					lastAmountSale2c = totaliserFrequent_storeB.lastAmountSale_cal;
+
+
+					if(isnan(totaliser_vol2c)) totaliser_vol2c = 0.0;
+					if(isnan(totaliser_vol2)) totaliser_vol2 = 0.0;
+					if(isnan(totaliser_amt2c)) totaliser_amt2c = 0.0;
+					if(isnan(totaliser_amt2)) totaliser_amt2 = 0.0;
+					if(isnan(lastVolumeSale2c)) lastVolumeSale2c = 0.0;
+					if(isnan(lastAmountSale2c)) lastAmountSale2c = 0.0;
+
+//					totaliser_vol2c = (totaliser_vol2c + lastVolumeSale2c);
+
+					save_totaliser_fram(side_b);
+					save_totaliser_eeprom(side_b);
+				}
 			}
 
 			return OK;
@@ -2548,27 +2639,68 @@ uint8_t retrieve_totaliserFrequent_fram(pump_sid side)
 		{
 			if(totaliserFrequent_storeA.totalizer_save_status == UNSAVED_TO_MAIN_TOTALIZER)
 			{
-				totaliser_vol1c = totaliserFrequent_storeA.totaliserVol_cal;
-				totaliser_vol1 = totaliserFrequent_storeA.totaliserVol_real;
+				if(totaliserFrequent_storeA.pump_status == filling_State)
+				{
+					uint32_t time_stamp = RtcToInt(2019);
+					if( (abs(time_stamp - totaliserFrequent_storeA.timestamp)) <= 1)
+					{
+						if((nozzle_flag_old == 1) && (nozzle_flag == 1))
+						{
+							currentPulser_recovered1 = totaliserFrequent_storeA.current_pulser;
+							targetPulser_recovered1 = totaliserFrequent_storeA.target_pulser;
+							key_value = totaliserFrequent_storeA.sales_value;
+							sellmode_write1(totaliserFrequent_storeA.sales_type);
+						}
+					}
+					else   //exceeds 1 sec
+					{
+						totaliser_vol1c = totaliserFrequent_storeA.totaliserVol_cal;
+						totaliser_vol1 = totaliserFrequent_storeA.totaliserVol_real;
 
-				totaliser_amt1c = totaliserFrequent_storeA.totaliserAmount_cal;
-				totaliser_amt1 = totaliserFrequent_storeA.totaliserAmount_real;
+						totaliser_amt1c = totaliserFrequent_storeA.totaliserAmount_cal;
+						totaliser_amt1 = totaliserFrequent_storeA.totaliserAmount_real;
 
-				lastVolumeSale1c = totaliserFrequent_storeA.lastVolumeSale_cal;
-				lastAmountSale1c = totaliserFrequent_storeA.lastAmountSale_cal;
+						lastVolumeSale1c = totaliserFrequent_storeA.lastVolumeSale_cal;
+						lastAmountSale1c = totaliserFrequent_storeA.lastAmountSale_cal;
+
+						if(isnan(totaliser_vol1c)) totaliser_vol1c = 0.0;
+						if(isnan(totaliser_vol1)) totaliser_vol1 = 0.0;
+						if(isnan(totaliser_amt1c)) totaliser_amt1c = 0.0;
+						if(isnan(totaliser_amt1)) totaliser_amt1 = 0.0;
+						if(isnan(lastVolumeSale1c)) lastVolumeSale1c = 0.0;
+						if(isnan(lastAmountSale1c)) lastAmountSale1c = 0.0;
+
+//						totaliser_vol1c = (totaliser_vol1c + lastVolumeSale1c);
+
+						save_totaliser_fram(side_a);
+						save_totaliser_eeprom(side_a);
+					}
+				}
+
+				else
+				{
+					totaliser_vol1c = totaliserFrequent_storeA.totaliserVol_cal;
+					totaliser_vol1 = totaliserFrequent_storeA.totaliserVol_real;
+
+					totaliser_amt1c = totaliserFrequent_storeA.totaliserAmount_cal;
+					totaliser_amt1 = totaliserFrequent_storeA.totaliserAmount_real;
+
+					lastVolumeSale1c = totaliserFrequent_storeA.lastVolumeSale_cal;
+					lastAmountSale1c = totaliserFrequent_storeA.lastAmountSale_cal;
 
 
-				if(isnan(totaliser_vol1c)) totaliser_vol1c = 0.0;
-				if(isnan(totaliser_vol1)) totaliser_vol1 = 0.0;
-				if(isnan(totaliser_amt1c)) totaliser_amt1c = 0.0;
-				if(isnan(totaliser_amt1)) totaliser_amt1 = 0.0;
-				if(isnan(lastVolumeSale1c)) lastVolumeSale1c = 0.0;
-				if(isnan(lastAmountSale1c)) lastAmountSale1c = 0.0;
+					if(isnan(totaliser_vol1c)) totaliser_vol1c = 0.0;
+					if(isnan(totaliser_vol1)) totaliser_vol1 = 0.0;
+					if(isnan(totaliser_amt1c)) totaliser_amt1c = 0.0;
+					if(isnan(totaliser_amt1)) totaliser_amt1 = 0.0;
+					if(isnan(lastVolumeSale1c)) lastVolumeSale1c = 0.0;
+					if(isnan(lastAmountSale1c)) lastAmountSale1c = 0.0;
 
-//				totaliser_vol1c = (totaliser_vol1c + lastVolumeSale1c);
+	//				totaliser_vol1c = (totaliser_vol1c + lastVolumeSale1c);
 
-				save_totaliser_fram(side_a);
-				save_totaliser_eeprom(side_a);
+					save_totaliser_fram(side_a);
+					save_totaliser_eeprom(side_a);
+				}
 			}
 
 			return OK;
@@ -2596,29 +2728,71 @@ uint8_t retrieve_totaliserFrequent_fram(pump_sid side)
 		{
 			if(totaliserFrequent_storeB.totalizer_save_status == UNSAVED_TO_MAIN_TOTALIZER)
 			{
-				totaliser_vol2c = totaliserFrequent_storeB.totaliserVol_cal;
-				totaliser_vol2 = totaliserFrequent_storeB.totaliserVol_real;
+				if(totaliserFrequent_storeB.pump_status == filling_State)
+				{
+					uint32_t time_stamp = RtcToInt(2019);
+					if( (abs(time_stamp - totaliserFrequent_storeB.timestamp)) <= 1)
+					{
+						currentPulser_recovered2 = totaliserFrequent_storeB.current_pulser;
+						targetPulser_recovered2 = totaliserFrequent_storeB.target_pulser;
+						key_value2 = totaliserFrequent_storeB.sales_value;
+						sellmode_write2(totaliserFrequent_storeB.sales_type);
+					}
+					else   //exceeds 1 sec
+					{
 
-				totaliser_amt2c = totaliserFrequent_storeB.totaliserAmount_cal;
-				totaliser_amt2 = totaliserFrequent_storeB.totaliserAmount_real;
+						totaliser_vol2c = totaliserFrequent_storeB.totaliserVol_cal;
+						totaliser_vol2 = totaliserFrequent_storeB.totaliserVol_real;
 
-				lastVolumeSale2c = totaliserFrequent_storeB.lastVolumeSale_cal;
-				lastAmountSale2c = totaliserFrequent_storeB.lastAmountSale_cal;
+						totaliser_amt2c = totaliserFrequent_storeB.totaliserAmount_cal;
+						totaliser_amt2 = totaliserFrequent_storeB.totaliserAmount_real;
+
+						lastVolumeSale2c = totaliserFrequent_storeB.lastVolumeSale_cal;
+						lastAmountSale2c = totaliserFrequent_storeB.lastAmountSale_cal;
 
 
-				if(isnan(totaliser_vol2c)) totaliser_vol2c = 0.0;
-				if(isnan(totaliser_vol2)) totaliser_vol2 = 0.0;
-				if(isnan(totaliser_amt2c)) totaliser_amt2c = 0.0;
-				if(isnan(totaliser_amt2)) totaliser_amt2 = 0.0;
-				if(isnan(lastVolumeSale2c)) lastVolumeSale2c = 0.0;
-				if(isnan(lastAmountSale2c)) lastAmountSale2c = 0.0;
+						if(isnan(totaliser_vol2c)) totaliser_vol2c = 0.0;
+						if(isnan(totaliser_vol2)) totaliser_vol2 = 0.0;
+						if(isnan(totaliser_amt2c)) totaliser_amt2c = 0.0;
+						if(isnan(totaliser_amt2)) totaliser_amt2 = 0.0;
+						if(isnan(lastVolumeSale2c)) lastVolumeSale2c = 0.0;
+						if(isnan(lastAmountSale2c)) lastAmountSale2c = 0.0;
 
-//				totaliser_vol2c = (totaliser_vol2c + lastVolumeSale2c);
+//						totaliser_vol2c = (totaliser_vol2c + lastVolumeSale2c);
 
-				save_totaliser_fram(side_b);
-				save_totaliser_eeprom(side_b);
+						save_totaliser_fram(side_b);
+						save_totaliser_eeprom(side_b);
+					}
+				}
+
+				else   //previous state, before the incident, wasn't filling_state
+				{
+//					lastVolumeSale2c = totaliserFrequent_storeB.lastVolumeSale_cal;
+//					lastAmountSale2c = totaliserFrequent_storeB.lastAmountSale_cal;
+
+					totaliser_vol2c = totaliserFrequent_storeB.totaliserVol_cal;
+					totaliser_vol2 = totaliserFrequent_storeB.totaliserVol_real;
+
+					totaliser_amt2c = totaliserFrequent_storeB.totaliserAmount_cal;
+					totaliser_amt2 = totaliserFrequent_storeB.totaliserAmount_real;
+
+					lastVolumeSale2c = totaliserFrequent_storeB.lastVolumeSale_cal;
+					lastAmountSale2c = totaliserFrequent_storeB.lastAmountSale_cal;
+
+
+					if(isnan(totaliser_vol2c)) totaliser_vol2c = 0.0;
+					if(isnan(totaliser_vol2)) totaliser_vol2 = 0.0;
+					if(isnan(totaliser_amt2c)) totaliser_amt2c = 0.0;
+					if(isnan(totaliser_amt2)) totaliser_amt2 = 0.0;
+					if(isnan(lastVolumeSale2c)) lastVolumeSale2c = 0.0;
+					if(isnan(lastAmountSale2c)) lastAmountSale2c = 0.0;
+
+//					totaliser_vol2c = (totaliser_vol2c + lastVolumeSale2c);
+
+					save_totaliser_fram(side_b);
+					save_totaliser_eeprom(side_b);
+				}
 			}
-
 			return OK;
 
 		}
@@ -6141,4 +6315,58 @@ void int_to_bcd_(int num, unsigned char *bcd, uint8_t bcd_size)
         bcd[i] = (num % 10) | ((num / 10 % 10) << 4);
         num /= 100;
     }
+}
+
+void sellmode_write1(uint8_t sellmodee)
+{
+	switch(sellmodee)
+	{
+		case UNPROGRAMMED_SALE :
+								{
+									sellmode = L;
+									break;
+								}
+		case LITRE_PROGRAMMED :
+								{
+									sellmode = L;
+									break;
+								}
+		case PRICE_PROGRAMMED :
+								{
+									sellmode = P;
+									break;
+								}
+		default :
+								{
+									sellmode = L;
+									break;
+								}
+	}
+}
+
+void sellmode_write2(uint8_t sellmodee)
+{
+	switch(sellmodee)
+	{
+		case UNPROGRAMMED_SALE :
+								{
+									sellmode2 = L;
+									break;
+								}
+		case LITRE_PROGRAMMED :
+								{
+									sellmode2 = L;
+									break;
+								}
+		case PRICE_PROGRAMMED :
+								{
+									sellmode2 = P;
+									break;
+								}
+		default :
+								{
+									sellmode2 = L;
+									break;
+								}
+	}
 }
