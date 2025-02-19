@@ -586,6 +586,7 @@ void shiftOut2(uint8_t data_byte,uint8_t lat)
 	  else if(settings_stream1[1].display__ == BLSKY886_IN)
 	  {
 			if ( byteRead(data_byte, i) == 0 )
+
 				HAL_GPIO_WritePin(dataPin_GPIO_Port, dataPin_Pin, GPIO_PIN_RESET);
 			else	//if low set dp low
 				HAL_GPIO_WritePin(dataPin_GPIO_Port, dataPin_Pin, GPIO_PIN_SET);

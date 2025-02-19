@@ -175,9 +175,12 @@ extern pump_settings_stream3 settings_stream3[2],
 extern int8_t ttime[3],
 			  ddate[4];
 
-uint32_t target_pulser1,
-		 current_pulser1 = 0,
+uint32_t //target_pulser1,
+		 //current_pulser1 = 0,
 		 overall_currentPulser1 = 0;
+
+extern uint32_t target_pulser1 = 0,
+		 	 	current_pulser1 = 0;
 
 uint8_t fastFlow1 = 0;
 
@@ -251,6 +254,8 @@ uint8_t key_value_sellmodeP1 = 0,
 		key_value_sellmodeL1 = 0;
 
 uint8_t programmed_sale1 = 0;
+
+//extern float key_value = 0.0;
 
 //=====================================================
 int flow_coeff = 0;
@@ -517,7 +522,9 @@ int8_t pump_LitreOverflow = 0,
 uint8_t _pump_max_litres1 = 0,
 		_litre_price1 = 0,
 		nonValid_sale1 = 0,
-		nozzleUp_inProgMode1 = 0;
+		nozzleUp_inProgMode1 = 0,
+		authorizedSale_overflow1 = 0,
+		firstTime_authorizedSale_overflow1 = 0;
 
 float half_litre1 = 0.00,
 	  display_minimumCentilitrePrice1 = 0.00;
@@ -1197,7 +1204,7 @@ eSystemState authorise_Handler(void)
 
 
 
-	 target_pulser1 = 0;  //state is coming from nozzleup ,no price/amt set
+	 target_pulser1 = 0;  //state is coming from nozzleup, no price/amt set
 
 	 pump_status_1 = STATUS_AUTH;
 	 status_change_pump1 = 1;
@@ -2942,7 +2949,7 @@ eSystemState nozzledown_Handler(void)
 		lcd_print_line3(str__);
 
 
-	 if( ((pump_LitreOverflow == 1) && (pulser_rem1 > 0 )) || (display_overflow1 == 1) )  //|| ((display_overflow1 == 1) && (pulser_rem1 > 0 )) )
+	 if( ((pump_LitreOverflow == 1) && (pulser_rem1 > 0 )) || (display_overflow1 == 1) || ( (authorizedSale_overflow1 == 1) && (pulser_rem1 > 0 ) ) )  //|| ((display_overflow1 == 1) && (pulser_rem1 > 0 )) )
 	 {
 		  if(pump_LitreOverflow == 1)
 			  pump_LitreOverflow = 0;
@@ -2951,6 +2958,12 @@ eSystemState nozzledown_Handler(void)
 		  {
 			  display_overflow1 = 0;
 			  firstTime_display_overflow1 = 0;
+		  }
+
+		  if(authorizedSale_overflow1 == 1)
+		  {
+			  authorizedSale_overflow1 = 0;
+			  firstTime_authorizedSale_overflow1 = 0;
 		  }
 
 		  clr_screen1();
@@ -3279,12 +3292,17 @@ eSystemState timeout_Handler(void)
 		 lcd_print_line1(" t out  ");
 		 lcd_print_line2("--------");
 
-		 if( ((pump_LitreOverflow == 1) && (pulser_rem1 > 0 )) || ((display_overflow1 == 1) && (pulser_rem1 > 0 )) )
+		 if( ((pump_LitreOverflow == 1) && (pulser_rem1 > 0 )) || ((display_overflow1 == 1) && (pulser_rem1 > 0 )) || ( (authorizedSale_overflow1 == 1) && (pulser_rem1 > 0 ) ))
 		 {
 			  if(pump_LitreOverflow == 1)
 				  pump_LitreOverflow = 0;
 			  if(display_overflow1 == 1)
 				  display_overflow1 = 0;
+
+			  if(authorizedSale_overflow1 == 1)
+			  {
+				  authorizedSale_overflow1 = 0;
+			  }
 		 }
 	 }
 
@@ -3318,12 +3336,17 @@ eSystemState timeout_Handler(void)
 
  if(eLastState1 == authorised_nozzleup_State)
  {
-	 if( ((pump_LitreOverflow == 1) && (pulser_rem1 > 0 )) || ((display_overflow1 == 1) && (pulser_rem1 > 0 )) )
+	 if( ((pump_LitreOverflow == 1) && (pulser_rem1 > 0 )) || ((display_overflow1 == 1) && (pulser_rem1 > 0 )) || ( (authorizedSale_overflow1 == 1) && (pulser_rem1 > 0 ) ) )
 	 {
 		  if(pump_LitreOverflow == 1)
 			  pump_LitreOverflow = 0;
 		  if(display_overflow1 == 1)
 			  display_overflow1 = 0;
+
+		  if(authorizedSale_overflow1 == 1)
+		  {
+			  authorizedSale_overflow1 = 0;
+		  }
 	 }
 
 	 lcd_print_line1("    No ");
@@ -8122,7 +8145,8 @@ eSystemState idleState_Handler(void)
 
 	else if ( (t > 500) && (nozzleup_awaitingauth_state_not_timedOut == 0) && (pump_LitreOverflow == 0) && (_litre_price1 == 0)
 			&& (_auth_p == 0) && (_auth_v == 0) && (idle_backwardPulse == 0) && (idle_forwardPulse == 0)
-			&& (flow_loss == 0) && (display_overflow1 == 0) && (changeLitrePrice1_2 == 0) && (_pump_max_litres1 == 0) && (nonValid_sale1 == 0) )
+			&& (flow_loss == 0) && (display_overflow1 == 0) && (changeLitrePrice1_2 == 0) && (_pump_max_litres1 == 0) && (nonValid_sale1 == 0)
+			&& (authorizedSale_overflow1 == 0) )
 	{
 		 if(settings_stream1[0].display_format == PL)
 		 {
@@ -8172,6 +8196,18 @@ eSystemState idleState_Handler(void)
 			 pump_LitreOverflow = 0;
 		 }
 	 }
+
+//	 else if ( (t > 2000) && (authorizedSale_overflow1 == 1) )
+//	 {
+//			 lcd_print_line1("  Auth. ");
+//			 lcd_print_line2(" Linnit  ");
+//			 lcd_print_line3("Err7   ");
+//			 if(t > 6000)
+//			 {
+//				 t = 0;
+//				 authorizedSale_overflow1 = 0;
+//			 }
+//	  }
 //	  	else if ( (t > 2000) && (display_overflow1 == 1) )
 //		{
 //			 lcd_print_line1("display   ");
@@ -8251,6 +8287,80 @@ eSystemState idleState_Handler(void)
 					 lcd_print_line3("        ");
 					 char str__[8]= {0};
 					 snprintf(str__, sizeof(str__), "%.2f", litre_price); lcd_print_line3(str__);
+				 }
+			 }
+		}
+
+	  	else if (authorizedSale_overflow1 == 1)
+		{
+	  		 if(firstTime_authorizedSale_overflow1 == 1)
+			 {
+	  			 if( (t > 2000) && (t <= 6000) )
+	  			 {
+	  				 clr_screen1();
+	  				 lcd_print_line1("  Auth.  ");
+					 lcd_print_line2(" Linnit  ");
+					 lcd_print_line3("Err18   ");
+	  			 }
+	  			 else if(t > 6000) //&& (display_overflow1 == 1) )
+				 {
+					 t = 0;
+
+					 clr_screen1();
+
+//					 lcd_print_line1(upper1);
+//					 lcd_print_line2(middle1);
+
+					 if(settings_stream1[0].display_format == PL)
+				  	  {
+				  		 lcd_print_line1(upper1);
+				  		 lcd_print_line2(middle1);
+				  	  }
+					  else if(settings_stream1[0].display_format == LP)
+					  {
+						  lcd_print_line1(middle1);
+						  lcd_print_line2(upper1);
+					  }
+
+					 lcd_print_line3("        ");
+					 char str__[8]= {0};
+					 snprintf(str__, sizeof(str__), "%.2f", litre_price);
+					 lcd_print_line3(str__);
+					 firstTime_authorizedSale_overflow1 = 0;
+				 }
+			 }
+	  		 else if(firstTime_authorizedSale_overflow1 == 0)
+			 {
+	  			 if( (t > 6000) && (t <= 12000) )
+	  			 {
+	  				 clr_screen1();
+	  				 lcd_print_line1("  Auth.  ");
+					 lcd_print_line2(" Linnit  ");
+					 lcd_print_line3("Err18   ");
+	  			 }
+	  			 else if(t > 12000) //&& (display_overflow1 == 1) )
+				 {
+					 t = 0;
+
+					 clr_screen1();
+
+					 if(settings_stream1[0].display_format == PL)
+					  {
+						 lcd_print_line1(upper1);
+						 lcd_print_line2(middle1);
+					  }
+					  else if(settings_stream1[0].display_format == LP)
+					  {
+						  lcd_print_line1(middle1);
+						  lcd_print_line2(upper1);
+					  }
+
+//					 lcd_print_line1(upper1);
+//					 lcd_print_line2(middle1);
+					 lcd_print_line3("        ");
+					 char str__[8]= {0};
+					 snprintf(str__, sizeof(str__), "%.2f", litre_price);
+					 lcd_print_line3(str__);
 				 }
 			 }
 		}
@@ -8934,7 +9044,12 @@ eSystemState authorised_nozzleup_State_Handler(void)
 					//======= Ensure keyed value doesn't exceed the allowable sale from the controller =======//
 
 					if(key_value > auth_p1)
+					{
 						key_value = auth_p1;
+
+						//can't honour the programmed sale again
+						authorizedSale_overflow1 = 1;
+					}
 
 					//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
 
@@ -9111,7 +9226,12 @@ eSystemState authorised_nozzleup_State_Handler(void)
 				  	//======= Ensure keyed value doesn't exceed the allowable sale from the controller =======//
 
 					if(key_value > auth_v1)
+					{
 						key_value = auth_v1;
+
+						//can't honour the programmed sale again
+						authorizedSale_overflow1 = 1;
+					}
 
 					//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
 
@@ -10839,7 +10959,7 @@ void do_calcs ()
 				 temp = amt2price(amt);
 							 price = dp(temp, dp_amount1);
 
-				if(key_value_sellmodeP1 == 1)
+				if( (key_value_sellmodeP1 == 1) && (authorizedSale_overflow1 == 0) && (pump_LitreOverflow == 0) && (display_overflow1 == 0) )
 				{
 					key_value_sellmodeP1 = 0;
 					key_value = key_value_original1;
@@ -10870,7 +10990,7 @@ void do_calcs ()
 
 					price  = amt2price(amt);
 
-					if(key_value_sellmodeL1 == 1)
+					if( (key_value_sellmodeL1 == 1) && (authorizedSale_overflow1 == 0) && (pump_LitreOverflow == 0) && (display_overflow1 == 0) )
 					{
 						key_value_sellmodeL1 = 0;
 						key_value = key_value_original1;

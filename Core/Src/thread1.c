@@ -374,7 +374,9 @@ int retn;
 				 current_pulser2,
 				 overall_currentPulser1;
 
- extern float key_value, key_value2;
+ extern float key_value,
+ 	 	 	  key_value2;
+
  extern int index2, index2;
  extern char keypad_pw[10], keypad_pw2[10];
  extern char keypad_pw_[10], keypad_pw_2[10];

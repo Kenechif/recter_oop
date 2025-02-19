@@ -25,6 +25,7 @@ extern "C" {
 #include <time.h>
 
 #include "checksum.h"
+//#include "ds1307_for_stm32_hal.h"
 
 
 #define randnum(min, max) \ ((rand() % (int)(((max) + 1) - (min))) + (min))
@@ -67,8 +68,8 @@ extern "C" {
 //============================================
 
 #ifdef DEV_MODE
-//	#define _USE_SOFT_PULSER            1
-	#define _USE_SOFT_PULSER            0
+	#define _USE_SOFT_PULSER            1
+//	#define _USE_SOFT_PULSER            0
 	#define sense_battery 				0
 //	#define sense_battery 				1
 //	#define sense_power  				0
@@ -831,6 +832,15 @@ uint8_t status_change_pump2,
 
 int tone_duration1,
 	tone_duration2;
+
+extern float key_value CCRAM,
+	         key_value2 CCRAM;
+
+
+uint32_t target_pulser1,
+		 current_pulser1,
+		 target_pulser2,
+		 current_pulser2;
 ////==================================
 ////structure for settings
 //typedef struct
@@ -1035,11 +1045,22 @@ typedef struct
   float lastVolumeSale_cal;               //4
   float lastAmountSale_cal;				  //4
   uint32_t timestamp;					  //4
-  float programmed_price;	              //4
+  float programmed_value;	              //4
+  uint32_t target_pulser;				  //4
+  uint32_t current_pulser;				  //4
   uint8_t totalizer_save_status;          //1
-  uint8_t programmed;
-  uint8_t price_based;
-  pump_status_enum pump_status;           //1        -->36
+
+  /*
+   * SALE'S PROGRAM STATUS
+   *
+   |	0 ==> Not Programmed
+   |	1 ==> Litre Programmed
+   |	2 ==> Price Programmed
+   *
+   */
+  uint8_t saleProgram_status;		    	//1
+
+  pump_status_enum pump_status;             //1 Byte + A Byte Padding       --> 44
 
 }totaliser_store_frequent;
 

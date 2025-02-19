@@ -422,8 +422,8 @@ float amt_real1_array[4] CCRAM = {0},
  const uint16_t recov1_loc_fram = 734, 					  //8 + 2 CRC Bytes = 10 Bytes
 		        recov2_loc_fram = 744;					  //744 --> 753
 
- const uint16_t totFreq1_loc_fram = 754, 				  //size => 36 + 2 CRC Bytes = 38 Bytes
-		 	    totFreq2_loc_fram = 792; 				  //792 --> 829
+ const uint16_t totFreq1_loc_fram = 754, 				  //size => 44 + 2 CRC Bytes = 46 Bytes
+		 	    totFreq2_loc_fram = 800; 				  //800 --> 845
 
 
 
@@ -491,8 +491,8 @@ const int flash_stoB =  1225; //+ ( 1 + (32 * 2));    	 //1225 --> 1232   //1233
  const int16_t lastSale1_loc = 0;
  const int16_t lastSale2_loc = (lastSale1_loc + 2 + (4 * 4) );   // 54 -> 71
 
- const int16_t totFreq1_loc = 72,               // 36 Bytes + 2 CRC Bytes = 38 Bytes
- 	 	 	   totFreq2_loc = 110;   			// 110 -> 147
+ const int16_t totFreq1_loc = 72,               // 44 Bytes + 2 CRC Bytes = 46 Bytes
+ 	 	 	   totFreq2_loc = 118;   			// 118 -> 163
 
  //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH//
 
@@ -1338,6 +1338,11 @@ uint8_t save_totaliserFrequent_eeprom(pump_sid side)
 		totaliserFrequent_storeA.totalizer_save_status = totalizer_saveStatus1;
 		totaliserFrequent_storeA.lastVolumeSale_cal = amt_middle1;
 		totaliserFrequent_storeA.lastAmountSale_cal = price_upper1;
+		totaliserFrequent_storeA.timestamp = RtcToInt(2019);
+		totaliserFrequent_storeA.pump_status = pump_status_1;
+		totaliserFrequent_storeA.programmed_value = key_value;
+		totaliserFrequent_storeA.current_pulser = current_pulser1;
+		totaliserFrequent_storeA.target_pulser = target_pulser1;
 
 		memcpy(buffer, &totaliserFrequent_storeA, sz);
 		crc = crc_16(buffer, sz);
@@ -1361,6 +1366,11 @@ uint8_t save_totaliserFrequent_eeprom(pump_sid side)
 				totaliserFrequent_storeA.totalizer_save_status = totalizer_saveStatus1;
 				totaliserFrequent_storeA.lastVolumeSale_cal = amt_middle1;
 				totaliserFrequent_storeA.lastAmountSale_cal = price_upper1;
+				totaliserFrequent_storeA.timestamp = RtcToInt(2019);
+				totaliserFrequent_storeA.pump_status = pump_status_1;
+				totaliserFrequent_storeA.programmed_value = key_value;
+				totaliserFrequent_storeA.current_pulser = current_pulser1;
+				totaliserFrequent_storeA.target_pulser = target_pulser1;
 
 				memcpy(buffer, &totaliserFrequent_storeA, sz);
 				crc = crc_16(buffer, sz);
@@ -1387,6 +1397,11 @@ uint8_t save_totaliserFrequent_eeprom(pump_sid side)
 		totaliserFrequent_storeB.totalizer_save_status = totalizer_saveStatus2;
 		totaliserFrequent_storeB.lastVolumeSale_cal = amt_middle2;
 		totaliserFrequent_storeB.lastAmountSale_cal = price_upper2;
+		totaliserFrequent_storeB.timestamp = RtcToInt(2019);
+		totaliserFrequent_storeB.pump_status = pump_status_2;
+		totaliserFrequent_storeB.programmed_value = key_value2;
+		totaliserFrequent_storeB.current_pulser = current_pulser2;
+		totaliserFrequent_storeB.target_pulser = target_pulser2;
 
 		memcpy(buffer, &totaliserFrequent_storeB, sz);
 		crc = crc_16(buffer, sz);
@@ -1410,6 +1425,11 @@ uint8_t save_totaliserFrequent_eeprom(pump_sid side)
 				totaliserFrequent_storeB.totalizer_save_status = totalizer_saveStatus2;
 				totaliserFrequent_storeB.lastVolumeSale_cal = amt_middle2;
 				totaliserFrequent_storeB.lastAmountSale_cal = price_upper2;
+				totaliserFrequent_storeB.timestamp = RtcToInt(2019);
+				totaliserFrequent_storeB.pump_status = pump_status_2;
+				totaliserFrequent_storeB.programmed_value = key_value2;
+				totaliserFrequent_storeB.current_pulser = current_pulser2;
+				totaliserFrequent_storeB.target_pulser = target_pulser2;
 
 				memcpy(buffer, &totaliserFrequent_storeB, sz);
 				crc = crc_16(buffer, sz);
@@ -1741,9 +1761,9 @@ uint8_t save_totaliserFrequent_fram(pump_sid side)
 		totaliserFrequent_storeA.lastAmountSale_cal = price_upper1;
 		totaliserFrequent_storeA.timestamp = RtcToInt(2019);
 		totaliserFrequent_storeA.pump_status = pump_status_1;
-		totaliserFrequent_storeA.programmed = 0;
-		totaliserFrequent_storeA.price_based = 0;
-		totaliserFrequent_storeA.programmed_price = 0;
+		totaliserFrequent_storeA.programmed_value = key_value;
+		totaliserFrequent_storeA.current_pulser = current_pulser1;
+		totaliserFrequent_storeA.target_pulser = target_pulser1;
 
 		memcpy(buffer, &totaliserFrequent_storeA, sz);
 		crc = crc_16(buffer, sz);
@@ -1767,6 +1787,11 @@ uint8_t save_totaliserFrequent_fram(pump_sid side)
 				totaliserFrequent_storeA.totalizer_save_status = totalizer_saveStatus1;
 				totaliserFrequent_storeA.lastVolumeSale_cal = amt_middle1;
 				totaliserFrequent_storeA.lastAmountSale_cal = price_upper1;
+				totaliserFrequent_storeA.timestamp = RtcToInt(2019);
+				totaliserFrequent_storeA.pump_status = pump_status_1;
+				totaliserFrequent_storeA.programmed_value = key_value;
+				totaliserFrequent_storeA.current_pulser = current_pulser1;
+				totaliserFrequent_storeA.target_pulser = target_pulser1;
 
 				memcpy(buffer, &totaliserFrequent_storeA, sz);
 				crc = crc_16(buffer, sz);
@@ -1793,6 +1818,11 @@ uint8_t save_totaliserFrequent_fram(pump_sid side)
 		totaliserFrequent_storeB.totalizer_save_status = totalizer_saveStatus2;
 		totaliserFrequent_storeB.lastVolumeSale_cal = amt_middle2;
 		totaliserFrequent_storeB.lastAmountSale_cal = price_upper2;
+		totaliserFrequent_storeB.timestamp = RtcToInt(2019);
+		totaliserFrequent_storeB.pump_status = pump_status_2;
+		totaliserFrequent_storeB.programmed_value = key_value2;
+		totaliserFrequent_storeB.current_pulser = current_pulser2;
+		totaliserFrequent_storeB.target_pulser = target_pulser2;
 
 		memcpy(buffer, &totaliserFrequent_storeB, sz);
 		crc = crc_16(buffer, sz);
@@ -1816,6 +1846,11 @@ uint8_t save_totaliserFrequent_fram(pump_sid side)
 				totaliserFrequent_storeB.totalizer_save_status = totalizer_saveStatus2;
 				totaliserFrequent_storeB.lastVolumeSale_cal = amt_middle2;
 				totaliserFrequent_storeB.lastAmountSale_cal = price_upper2;
+				totaliserFrequent_storeB.timestamp = RtcToInt(2019);
+				totaliserFrequent_storeB.pump_status = pump_status_2;
+				totaliserFrequent_storeB.programmed_value = key_value2;
+				totaliserFrequent_storeB.current_pulser = current_pulser2;
+				totaliserFrequent_storeB.target_pulser = target_pulser2;
 
 				memcpy(buffer, &totaliserFrequent_storeB, sz);
 				crc = crc_16(buffer, sz);
