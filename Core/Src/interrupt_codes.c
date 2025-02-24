@@ -87,6 +87,18 @@ float mechTotalizer1 CCRAM = 0.0,
 	  mechTotalizer2 CCRAM = 0.0,
 	  mechTotalizer1_ CCRAM = 0.0,
 	  mechTotalizer2_ CCRAM = 0.0;
+
+
+//uint32_t currentPulser_recovered1 CCRAM = 0,
+//		currentPulser_recovered2 CCRAM = 0,
+//		targetPulser_recovered1 CCRAM = 0,
+//		targetPulser_recovered2 CCRAM = 0;
+
+extern uint32_t currentPulser_recovered1,
+				currentPulser_recovered2,
+				targetPulser_recovered1,
+				targetPulser_recovered2;
+
 //===============================================
 
 extern int tot_buttonpress_tmr2;
@@ -294,7 +306,7 @@ void check_flow(void)
 		  {
 			 if(filling1 == 1)
 			 {
-				current_pulser1++;   //transfer this to the interrupt routine..
+				 current_pulser1++;   //transfer this to the interrupt routine...
 //				ttt1 = 0;
 			 }
 		  }
@@ -305,19 +317,19 @@ void check_flow(void)
 		  {
 			 if(filling1 == 1)
 			 {
-				current_pulser1++;   //transfer this to the interrupt routine..
+				 current_pulser1++;   //transfer this to the interrupt routine...
 			 }
 		  }
 	  }
 	#else
 		  if(pulser_rem1 > 0)
 		  {
-			  current_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);
+			  current_pulser1 = ( currentPulser_recovered1 + (__HAL_TIM_GET_COUNTER(&htim5) ) );
 			  overall_currentPulser1 = current_pulser1;
 		  }
 		  else
 		  {
-			  overall_currentPulser1 = __HAL_TIM_GET_COUNTER(&htim5);
+			  overall_currentPulser1 = ( currentPulser_recovered1 + (__HAL_TIM_GET_COUNTER(&htim5) ) );
 		  }
 
 	#endif
@@ -468,7 +480,7 @@ void check_flow(void)
 			  {
 				 if(filling2 == 1)
 				 {
-					current_pulser2++;   //transfer this to the interrupt routine..
+					current_pulser2++;   //transfer this to the interrupt routine...
 //					ttt2 = 0;
 				 }
 			  }
@@ -479,13 +491,13 @@ void check_flow(void)
 			  {
 				 if(filling2 == 1)
 				 {
-					current_pulser2++;   //transfer this to the interrupt routine..
+					current_pulser2++;   //transfer this to the interrupt routine...
 				 }
 			  }
 		  }
 
 		#else
-				current_pulser2 = __HAL_TIM_GET_COUNTER(&htim2);
+				current_pulser2 = ( currentPulser_recovered2 + __HAL_TIM_GET_COUNTER(&htim2) );
 		#endif
 	    //------------------------------------------------------------------
 		 if (filling2 == 1)

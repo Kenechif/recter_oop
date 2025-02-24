@@ -168,12 +168,24 @@ SECTIONS
   } >CCMRAM AT> FLASH
   
   
-  .ccmram (NOLOAD) :
+ /* 
+ .ccmram (NOLOAD) :
   {
     . = ALIGN(4);
     *(.ccmram)
     . = ALIGN(4);
   } >CCMRAM
+  */
+  
+  /* .ccmram (NOLOAD) : */
+  .ccmram :
+{
+    . = ALIGN(4);
+    _ccmram_start = .;
+    *(.ccmram)   /* Place all variables marked with .ccmram here */
+    . = ALIGN(4);
+    _ccmram_end = .;
+} >CCMRAM
   
 
   /* Uninitialized data section into "RAM" Ram type memory */

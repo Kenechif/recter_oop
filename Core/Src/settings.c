@@ -2377,15 +2377,46 @@ uint8_t retrieve_totaliserFrequent_eeprom(pump_sid side)
 		{
 			if(totaliserFrequent_storeA.totalizer_save_status == UNSAVED_TO_MAIN_TOTALIZER)
 			{
-				if(totaliserFrequent_storeA.pump_status == filling_State)
+				if(totaliserFrequent_storeA.pump_status == STATUS_FILLING)
 				{
 					uint32_t time_stamp = RtcToInt(2019);
-					if( (abs(time_stamp - totaliserFrequent_storeA.timestamp)) <= 1)
+					if( (abs(time_stamp - totaliserFrequent_storeA.timestamp)) <= 2)   //2 sec
+//					if( (abs(time_stamp - totaliserFrequent_storeA.timestamp)) <= 64)  //1 min
 					{
-						currentPulser_recovered1 = totaliserFrequent_storeA.current_pulser;
-						targetPulser_recovered1 = totaliserFrequent_storeA.target_pulser;
-						key_value = totaliserFrequent_storeA.sales_value;
-						sellmode_write1(totaliserFrequent_storeA.sales_type);
+						nozzle_flag = readNozzle1();
+						if(nozzle_flag == 1)
+						{
+							currentPulser_recovered1 = totaliserFrequent_storeA.current_pulser;
+							targetPulser_recovered1 = totaliserFrequent_storeA.target_pulser;
+							target_pulser1 = targetPulser_recovered1;
+							key_value = totaliserFrequent_storeA.sales_value;
+							sellmode_write1(totaliserFrequent_storeA.sales_type);
+
+							fillingresume_flag1_1 = 1;
+						}
+						else   //Meets Nozzle hung down
+						{
+							totaliser_vol1c = totaliserFrequent_storeA.totaliserVol_cal;
+							totaliser_vol1 = totaliserFrequent_storeA.totaliserVol_real;
+
+							totaliser_amt1c = totaliserFrequent_storeA.totaliserAmount_cal;
+							totaliser_amt1 = totaliserFrequent_storeA.totaliserAmount_real;
+
+							lastVolumeSale1c = totaliserFrequent_storeA.lastVolumeSale_cal;
+							lastAmountSale1c = totaliserFrequent_storeA.lastAmountSale_cal;
+
+							if(isnan(totaliser_vol1c)) totaliser_vol1c = 0.0;
+							if(isnan(totaliser_vol1)) totaliser_vol1 = 0.0;
+							if(isnan(totaliser_amt1c)) totaliser_amt1c = 0.0;
+							if(isnan(totaliser_amt1)) totaliser_amt1 = 0.0;
+							if(isnan(lastVolumeSale1c)) lastVolumeSale1c = 0.0;
+							if(isnan(lastAmountSale1c)) lastAmountSale1c = 0.0;
+
+	//						totaliser_vol1c = (totaliser_vol1c + lastVolumeSale1c);
+
+							save_totaliser_fram(side_a);
+							save_totaliser_eeprom(side_a);
+						}
 					}
 					else   //exceeds 1 sec
 					{
@@ -2464,15 +2495,47 @@ uint8_t retrieve_totaliserFrequent_eeprom(pump_sid side)
 
 			if(totaliserFrequent_storeB.totalizer_save_status == UNSAVED_TO_MAIN_TOTALIZER)
 			{
-				if(totaliserFrequent_storeB.pump_status == filling_State)
+				if(totaliserFrequent_storeB.pump_status == STATUS_FILLING)
 				{
 					uint32_t time_stamp = RtcToInt(2019);
-					if( (abs(time_stamp - totaliserFrequent_storeB.timestamp)) <= 1)
+					if( (abs(time_stamp - totaliserFrequent_storeB.timestamp)) <= 2)   //2 sec
+//					if( (abs(time_stamp - totaliserFrequent_storeB.timestamp)) <= 64)  //1 min
 					{
-						currentPulser_recovered2 = totaliserFrequent_storeB.current_pulser;
-						targetPulser_recovered2 = totaliserFrequent_storeB.target_pulser;
-						key_value2 = totaliserFrequent_storeB.sales_value;
-						sellmode_write2(totaliserFrequent_storeB.sales_type);
+						nozzle_flag2 = readNozzle2();
+						if(nozzle_flag2 == 1)
+						{
+							currentPulser_recovered2 = totaliserFrequent_storeB.current_pulser;
+							targetPulser_recovered2 = totaliserFrequent_storeB.target_pulser;
+							target_pulser2 = targetPulser_recovered2;
+							key_value2 = totaliserFrequent_storeB.sales_value;
+							sellmode_write2(totaliserFrequent_storeB.sales_type);
+
+							fillingresume_flag2_1 = 1;
+						}
+						else   //Meets Nozzle hung down
+						{
+							totaliser_vol2c = totaliserFrequent_storeB.totaliserVol_cal;
+							totaliser_vol2 = totaliserFrequent_storeB.totaliserVol_real;
+
+							totaliser_amt2c = totaliserFrequent_storeB.totaliserAmount_cal;
+							totaliser_amt2 = totaliserFrequent_storeB.totaliserAmount_real;
+
+							lastVolumeSale2c = totaliserFrequent_storeB.lastVolumeSale_cal;
+							lastAmountSale2c = totaliserFrequent_storeB.lastAmountSale_cal;
+
+
+							if(isnan(totaliser_vol2c)) totaliser_vol2c = 0.0;
+							if(isnan(totaliser_vol2)) totaliser_vol2 = 0.0;
+							if(isnan(totaliser_amt2c)) totaliser_amt2c = 0.0;
+							if(isnan(totaliser_amt2)) totaliser_amt2 = 0.0;
+							if(isnan(lastVolumeSale2c)) lastVolumeSale2c = 0.0;
+							if(isnan(lastAmountSale2c)) lastAmountSale2c = 0.0;
+
+	//						totaliser_vol2c = (totaliser_vol2c + lastVolumeSale2c);
+
+							save_totaliser_fram(side_b);
+							save_totaliser_eeprom(side_b);
+						}
 					}
 					else   //exceeds 1 sec
 					{
@@ -2639,17 +2702,45 @@ uint8_t retrieve_totaliserFrequent_fram(pump_sid side)
 		{
 			if(totaliserFrequent_storeA.totalizer_save_status == UNSAVED_TO_MAIN_TOTALIZER)
 			{
-				if(totaliserFrequent_storeA.pump_status == filling_State)
+				if(totaliserFrequent_storeA.pump_status == STATUS_FILLING)
 				{
 					uint32_t time_stamp = RtcToInt(2019);
-					if( (abs(time_stamp - totaliserFrequent_storeA.timestamp)) <= 1)
+					if( (abs(time_stamp - totaliserFrequent_storeA.timestamp)) <= 2) //2 sec
+//					if( (abs(time_stamp - totaliserFrequent_storeA.timestamp)) <= 64)  //1 min
 					{
-						if((nozzle_flag_old == 1) && (nozzle_flag == 1))
+						nozzle_flag = readNozzle1();
+						if(nozzle_flag == 1)
 						{
 							currentPulser_recovered1 = totaliserFrequent_storeA.current_pulser;
 							targetPulser_recovered1 = totaliserFrequent_storeA.target_pulser;
+							target_pulser1 = targetPulser_recovered1;
 							key_value = totaliserFrequent_storeA.sales_value;
 							sellmode_write1(totaliserFrequent_storeA.sales_type);
+
+							fillingresume_flag1_1 = 1;
+						}
+						else   //Meets Nozzle hung down
+						{
+							totaliser_vol1c = totaliserFrequent_storeA.totaliserVol_cal;
+							totaliser_vol1 = totaliserFrequent_storeA.totaliserVol_real;
+
+							totaliser_amt1c = totaliserFrequent_storeA.totaliserAmount_cal;
+							totaliser_amt1 = totaliserFrequent_storeA.totaliserAmount_real;
+
+							lastVolumeSale1c = totaliserFrequent_storeA.lastVolumeSale_cal;
+							lastAmountSale1c = totaliserFrequent_storeA.lastAmountSale_cal;
+
+							if(isnan(totaliser_vol1c)) totaliser_vol1c = 0.0;
+							if(isnan(totaliser_vol1)) totaliser_vol1 = 0.0;
+							if(isnan(totaliser_amt1c)) totaliser_amt1c = 0.0;
+							if(isnan(totaliser_amt1)) totaliser_amt1 = 0.0;
+							if(isnan(lastVolumeSale1c)) lastVolumeSale1c = 0.0;
+							if(isnan(lastAmountSale1c)) lastAmountSale1c = 0.0;
+
+	//						totaliser_vol1c = (totaliser_vol1c + lastVolumeSale1c);
+
+							save_totaliser_fram(side_a);
+							save_totaliser_eeprom(side_a);
 						}
 					}
 					else   //exceeds 1 sec
@@ -2728,15 +2819,47 @@ uint8_t retrieve_totaliserFrequent_fram(pump_sid side)
 		{
 			if(totaliserFrequent_storeB.totalizer_save_status == UNSAVED_TO_MAIN_TOTALIZER)
 			{
-				if(totaliserFrequent_storeB.pump_status == filling_State)
+				if(totaliserFrequent_storeB.pump_status == STATUS_FILLING)
 				{
 					uint32_t time_stamp = RtcToInt(2019);
-					if( (abs(time_stamp - totaliserFrequent_storeB.timestamp)) <= 1)
+					if( (abs(time_stamp - totaliserFrequent_storeB.timestamp)) <= 2)   //2 sec
+//					if( (abs(time_stamp - totaliserFrequent_storeB.timestamp)) <= 64)  //1 min
 					{
-						currentPulser_recovered2 = totaliserFrequent_storeB.current_pulser;
-						targetPulser_recovered2 = totaliserFrequent_storeB.target_pulser;
-						key_value2 = totaliserFrequent_storeB.sales_value;
-						sellmode_write2(totaliserFrequent_storeB.sales_type);
+						nozzle_flag2 = readNozzle2();
+						if(nozzle_flag2 == 1)
+						{
+							currentPulser_recovered2 = totaliserFrequent_storeB.current_pulser;
+							targetPulser_recovered2 = totaliserFrequent_storeB.target_pulser;
+							target_pulser2 = targetPulser_recovered2;
+							key_value2 = totaliserFrequent_storeB.sales_value;
+							sellmode_write2(totaliserFrequent_storeB.sales_type);
+
+							fillingresume_flag2_1 = 1;
+						}
+						else   //Meets Nozzle hung down
+						{
+							totaliser_vol2c = totaliserFrequent_storeB.totaliserVol_cal;
+							totaliser_vol2 = totaliserFrequent_storeB.totaliserVol_real;
+
+							totaliser_amt2c = totaliserFrequent_storeB.totaliserAmount_cal;
+							totaliser_amt2 = totaliserFrequent_storeB.totaliserAmount_real;
+
+							lastVolumeSale2c = totaliserFrequent_storeB.lastVolumeSale_cal;
+							lastAmountSale2c = totaliserFrequent_storeB.lastAmountSale_cal;
+
+
+							if(isnan(totaliser_vol2c)) totaliser_vol2c = 0.0;
+							if(isnan(totaliser_vol2)) totaliser_vol2 = 0.0;
+							if(isnan(totaliser_amt2c)) totaliser_amt2c = 0.0;
+							if(isnan(totaliser_amt2)) totaliser_amt2 = 0.0;
+							if(isnan(lastVolumeSale2c)) lastVolumeSale2c = 0.0;
+							if(isnan(lastAmountSale2c)) lastAmountSale2c = 0.0;
+
+	//						totaliser_vol2c = (totaliser_vol2c + lastVolumeSale2c);
+
+							save_totaliser_fram(side_b);
+							save_totaliser_eeprom(side_b);
+						}
 					}
 					else   //exceeds 1 sec
 					{

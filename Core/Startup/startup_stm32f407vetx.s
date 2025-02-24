@@ -78,7 +78,25 @@ LoopCopyDataInit:
   cmp r4, r1
   bcc CopyDataInit
   
+
+  ///////////////////////////////////////////////////////////
 /* Zero fill the bss segment. */
+ /* ldr r2, =_sbss
+  ldr r4, =_ebss
+  movs r3, #0
+  b LoopFillZerobss
+
+FillZerobss:
+  str  r3, [r2]
+  adds r2, r2, #4
+
+LoopFillZerobss:
+  cmp r2, r4
+  bcc FillZerobss*/
+
+  ///////////////////////////////////////////////////
+
+  /* Zero fill the bss segment. */
   ldr r2, =_sbss
   ldr r4, =_ebss
   movs r3, #0
@@ -91,6 +109,22 @@ FillZerobss:
 LoopFillZerobss:
   cmp r2, r4
   bcc FillZerobss
+
+/* ===== Fix: Zero fill the CCMRAM segment ===== */
+  ldr r2, =_ccmram_start   /* Load start address of CCRAM */
+  ldr r4, =_ccmram_end     /* Load end address of CCRAM */
+  movs r3, #0
+  b LoopFillZeroCCRAM
+
+FillZeroCCRAM:
+  str  r3, [r2]
+  adds r2, r2, #4
+
+LoopFillZeroCCRAM:
+  cmp r2, r4
+  bcc FillZeroCCRAM
+/* ===== End of CCRAM Fix ===== */
+
 
 /* Call the clock system intitialization function.*/
   bl  SystemInit   

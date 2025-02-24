@@ -116,6 +116,14 @@ uint8_t batteryStatus = BATTERY_OK;
 //volatile float batt_val = 0.0;
 float CCRAM batt_val = 0.0;
 
+
+extern uint32_t start_cycles,
+				end_cycles,
+				elapsed_cycles;
+
+extern float time_us; // Time in microseconds
+
+
 //===================================================
 #define DEV_ADDR 0xa0
 uint8_t dataw1[] = "hello world from EEPROM";
@@ -202,7 +210,9 @@ extern uint8_t mamo_reached_flag1,
 			   authsuspend_flag1 = 0,
 			   fillingsuspend_flag1 = 0,
 			   authresume_flag1 = 0,
-			   fillingresume_flag1 = 0;
+			   fillingresume_flag1 = 0,
+			   fillingresume_flag1_1 = 0,
+			   fillingresume_flag2_1 = 0;
 
 extern uint8_t mamo_reached_flag2,
 			   mamo_reached_flag1_2,
@@ -340,15 +350,26 @@ int retn;
 		 nozzle_flag_key_old1 = 0,
 		 nozzle_flag_key_old2 = 0;
 
- uint32_t pulser_count_old , pulser_new ,pulser_count_old2 , pulser_new2 = 0;
- extern int timer_flag_old , timer_flag , timer_flag_old2 , timer_flag2 ;
+ uint32_t pulser_count_old,
+ 	 	  pulser_new,
+		  pulser_count_old2,
+		  pulser_new2 = 0;
+
+ extern int timer_flag_old,
+ 	 	 	timer_flag,
+			timer_flag_old2,
+			timer_flag2;
 
  int key_longpress_status,key_longpress_status2 = 0;
 
- extern uint8_t filling1 , filling2;
+ extern uint8_t filling1,
+ 	 	 	 	filling2;
 
- extern int auth_flag , auth_flag2;
- extern int lat_cnt, lat_cnt2;
+ extern int auth_flag,
+ 	 	 	auth_flag2;
+
+ extern int lat_cnt,
+ 	 	 	lat_cnt2;
 
  uint8_t keypress_flag,
  	 	 keypress_flag2 = 0;
@@ -363,21 +384,30 @@ int retn;
  char keyboard[9], keyboard2[9];
  //reference variables
 
- extern char str_[9] , str_2[9];                 //used in states.c
- extern char keyboard_entry[10] , keyboard_entry2[10];
- extern int keypress_ , keypress_2;
- extern int8_t index_, index_2;
- extern char upper1[10] , upper2[10];
+ extern char str_[9],
+ 	 	 	 str_2[9];                 //used in states.c
+
+ extern char keyboard_entry[10],
+ 	 	 	 keyboard_entry2[10];
+
+ extern int keypress_,
+ 	 	 	keypress_2;
+
+ extern int8_t index_,
+ 	 	 	   index_2;
+ extern char upper1[10],
+ 	 	 	 upper2[10];
+
  extern uint32_t target_pulser1,
  	 	 	 	 current_pulser1,
 				 target_pulser2,
 				 current_pulser2,
 				 overall_currentPulser1;
 
- extern uint32_t currentPulser_recovered1 CCRAM,
- 				currentPulser_recovered2 CCRAM,
- 				targetPulser_recovered1 CCRAM,
- 				targetPulser_recovered2 CCRAM;
+ extern uint32_t currentPulser_recovered1,
+ 				currentPulser_recovered2,
+ 				targetPulser_recovered1,
+ 				targetPulser_recovered2;
 
  extern float key_value CCRAM,
  	 	 	  key_value2 CCRAM;
@@ -385,9 +415,14 @@ int retn;
  extern uint8_t sales_type1 CCRAM,
  	 	 	    sales_type2 CCRAM;
 
- extern int index2, index2;
- extern char keypad_pw[10], keypad_pw2[10];
- extern char keypad_pw_[10], keypad_pw_2[10];
+// extern int //index2,
+// 	 	 	index2;
+
+ extern char keypad_pw[10],
+ 	 	 	 keypad_pw2[10];
+
+ extern char keypad_pw_[10],
+ 	 	 	 keypad_pw_2[10];
 
  extern int auth;      //first set this to
  extern int side;      //pump side selected.
@@ -395,7 +430,8 @@ int retn;
 extern int _index,
 		   _index2;
 
-extern char sc1[10], sc12[10];
+extern char sc1[10],
+			sc12[10];
 
 //extern float totaliser_vol1;
 //extern float totaliser_vol1c;
@@ -1554,26 +1590,26 @@ void compose_printer()
     clear_prn();
 
 //===================================================================
-	printDisp_c("Fuel",1,2,4,LT,CLEAR);
-	printDisp_c("NNetrics",2,0,8,LT,CLEAR);
-	//}
-	printDisp_c2("Fuel",1,2,4,LT,CLEAR);
-	printDisp_c2("NNetrics",2,0,8,LT,CLEAR);
-
-	HAL_Delay(2500);
-
-   	reset_timer(15);
-	//start_timer(15);
-
-   //======= initialize ========
-   eNextState1 = idle_State;
-   eNextState2 = idle_State;
-
-//   state_ini();
-//   state_ini2();
-
-   clr_screen1();
-   clr_screen2();
+//	printDisp_c("Fuel",1,2,4,LT,CLEAR);
+//	printDisp_c("NNetrics",2,0,8,LT,CLEAR);
+//	//}
+//	printDisp_c2("Fuel",1,2,4,LT,CLEAR);
+//	printDisp_c2("NNetrics",2,0,8,LT,CLEAR);
+//
+//	HAL_Delay(2500);
+//
+//   	reset_timer(15);
+//	//start_timer(15);
+//
+//   //======= initialize ========
+//   eNextState1 = idle_State;
+//   eNextState2 = idle_State;
+//
+////   state_ini();
+////   state_ini2();
+//
+//   clr_screen1();
+//   clr_screen2();
 
 #if test_battery == 1
 //   while(1)
@@ -1693,13 +1729,17 @@ tmmm:
   if( (HAL_GPIO_ReadPin(settings1_GPIO_Port, settings1_Pin) == 1 ) || ( HAL_GPIO_ReadPin(settings2_GPIO_Port, settings2_Pin) == 1) )
   {
 	  printDisp_c("config", 1, 2, 4, LT, CLEAR);
+	  printDisp_c("NNode", 2, 0, 5, LT, CLEAR);
+
+	  printDisp_c2("config", 1, 2, 4, LT, CLEAR);
+	  printDisp_c2("NNode", 2, 0, 5, LT, CLEAR);
 
 //	  settings[0].passwd1 = 0000;
 //	  settings[0].passwd2 = 0000;
 //	  settings[0].passwd1 = 0000;
 //	  settings[0].passwd2 = 0000;
 
-
+	  HAL_Delay(2500);
 //
 //	 //==============================================
 //	 //    This step is to compose the settings.
@@ -2572,6 +2612,20 @@ skip_test:
    }
 
 
+   /////////////////////////////////////////////////////////////////////////////////////////
+   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%//
+
+    // End measurement
+    end_cycles = DWT->CYCCNT;
+
+    // Calculate elapsed cycles and time
+    elapsed_cycles = end_cycles - start_cycles;
+    time_us = (float)elapsed_cycles / (SystemCoreClock / 1000000.0f); // Convert to µs
+
+    //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%//
+
+
+
 //    retrieve_totaliser_fram(side_a);
 //    totaliser_vol1c = 0;
 //    totaliser_vol2c = 0;
@@ -2615,7 +2669,29 @@ skip_test:
 
 	//VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//
 
+    if(fillingresume_flag1_1 == 0)
+    {
+		printDisp_c("Fuel", 1, 2, 4, LT, CLEAR);
+		printDisp_c("NNetrics", 2, 0, 8, LT, CLEAR);
+	}
 
+    if(fillingresume_flag2_1 == 0)
+    {
+		printDisp_c2("Fuel", 1, 2, 4, LT, CLEAR);
+		printDisp_c2("NNetrics", 2, 0, 8, LT, CLEAR);
+    }
+
+	if( (fillingresume_flag1_1 == 0) && (fillingresume_flag2_1 == 0) )
+    {
+		HAL_Delay(2500);
+    }
+
+	reset_timer(15);
+	//start_timer(15);
+
+   //======= initialize ========
+   eNextState1 = idle_State;
+   eNextState2 = idle_State;
 
 
 //    retrieve_totalTransaction_sides(side_a);

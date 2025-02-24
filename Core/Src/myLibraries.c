@@ -1040,7 +1040,7 @@ end:
 }
 //==============================================================================================
 /* routines to write integer , float and string to the lcd  */
-void printDisp_i(int32_t num, int row, int col,int n,justify_ jst,clear_ cl)
+void printDisp_i(int32_t num, int row, int col, int n, justify_ jst, clear_ cl)
 {
 	  	char str_[10]= {0};
 	   	int cnv = snprintf(str_, sizeof(str_), "%ld", num);

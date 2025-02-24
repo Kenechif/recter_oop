@@ -143,6 +143,11 @@ extern float previous_totaliserVol1c,
 
 static int rcv_count = 0;
 
+//extern uint32_t currentPulser_recovered1 CCRAM,
+//				currentPulser_recovered2 CCRAM,
+//				targetPulser_recovered1 CCRAM,
+//				targetPulser_recovered2 CCRAM;
+
 //uint8_t rx_[25];
 
  void toggle_led(void);

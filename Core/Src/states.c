@@ -182,10 +182,10 @@ uint32_t //target_pulser1,
 extern uint32_t target_pulser1 = 0,
 		 	 	current_pulser1 = 0;
 
-extern uint32_t currentPulser_recovered1 CCRAM,
-				currentPulser_recovered2 CCRAM,
-				targetPulser_recovered1 CCRAM,
-				targetPulser_recovered2 CCRAM;
+extern uint32_t currentPulser_recovered1,
+				currentPulser_recovered2,
+				targetPulser_recovered1,
+				targetPulser_recovered2;
 
 uint8_t fastFlow1 = 0;
 
@@ -272,7 +272,7 @@ int tflow = 0;
 //  prog variables.
 //int progg = 0;
  int prog_index = 0;
- int index2 = 0;
+// int index2 = 0;
  int index3 = 0;
  int progg  = 0;
 
@@ -904,8 +904,8 @@ sEventMachine asEventMachine_1 [] =
 // { <state>,<handler>,{<allowed event1>,<allowed event2>,..,<allowed eventn>}}
 sStateEventMachine asStateEventMachine_1 [] =
 {
-	{prog_State, progState_Handler,{_keydown_Event,_keypress_Event, _tone_Event}},
-	{idle_State, idleState_Handler, {_operator_Event, _keyup_Event,_tot_error_Event, _keypress_Event, _nozzleup_Event, _auth_command_Event, _nozzledown_Event, _resetcommand_Event, _switchoffcommand_Event, _tone_Event}},
+	{prog_State, progState_Handler, {_keydown_Event,_keypress_Event, _tone_Event}},
+	{idle_State, idleState_Handler, {_operator_Event, _keyup_Event,_tot_error_Event, _keypress_Event, _nozzleup_Event, _auth_command_Event, _nozzledown_Event, _resetcommand_Event, _switchoffcommand_Event, _tone_Event, _filling_resumecommand_Event}},
 	{inactive_State, inactiveState_Handler,{_error_clear_Event, _keyup_Event, _keypress_Event, _tone_Event}},
 	{nozzleup_waitingforauth_State, nozzleup_waitingforauthState_Handler, {_authorise_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _authorisecommand_Event, _stopcommand_Event, _switchoffcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _tone_Event}},
 	{authorised_nozzledown_State, authorised_nozzledown_State_Handler,{_nozzleup_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _tone_Event}},
@@ -1351,6 +1351,62 @@ eSystemState auth_resumecommand_Handler(void)
 
 eSystemState filling_resumecommand_Handler(void)
 {
+	#if (_USE_SOFT_PULSER == 1)
+
+	 	 current_pulser1 = ( currentPulser_recovered1 + current_pulser1);
+
+	#else
+
+	    current_pulser1 = ( currentPulser_recovered1 + (__HAL_TIM_GET_COUNTER(&htim5) ) );
+
+	#endif
+	//------------------------------------------------------------------
+
+    pulser_rem1 = target_pulser1 - current_pulser1;
+
+	//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
+
+	amt = pulser2amt(current_pulser1);
+
+	price = amt2price(amt);
+
+	amt_middle1_tmin3 = amt;
+	amt_middle1_tmin2 = amt;
+	amt_middle1_tmin1 = amt;
+	amt_middle1 = amt;
+
+	amt_real1_tmin3 = amt;
+	amt_real1_tmin2 = amt;
+	amt_real1_tmin1 = amt;
+	amt_real1 = amt;
+
+	//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&//
+
+
+
+	//////////////////////////////////////////////////////////////////////////
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+	/*             CATERS TO RESUMED SALES @ PUMP RESTART                   */
+
+	nozzle_bit = 1;
+	stop_fueling_bit = 0;
+
+	drive_motor1(ACTIVATE);
+
+	if(settings_stream1[0].pump_type_ != LAFENG)
+	{
+		 drive_slow_sole1(ACTIVATE);
+		 drive_fast_sole1(DEACTIVATE);
+	}
+	else
+	{
+		drive_slow_sole1(DEACTIVATE);     // DEACTIVATE here actually means ACTIVATE
+		drive_fast_sole1(ACTIVATE);		  // ACTIVATE here actually means DEACTIVATE
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+
+
 	return filling_State;
 }
 
@@ -7819,6 +7875,185 @@ eSystemState progState_Handler(void)
 
 
 //----------------------------------------
+eSystemState pnpState_Handler(void)
+{
+	static int  printer_status;
+
+	static int8_t idleState_flag = 1;
+
+	static int32_t current_pulser_ = 0,
+				   old_pulser_ = 0;
+
+	uint16_t gerCtTime;
+
+	int pulser_diff = 0;
+
+	stop_fueling_bit = 1;
+
+	lock_clr = 0;
+
+	progg = 0;
+
+	firstTime_nozz1 = 1;
+
+
+	#if sense_power == 1
+	  if(readpwr() == 0)
+	  {
+		   modem_power(DEACTIVATE);
+
+		   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+		   HAL_Delay(100);
+		   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+
+		   //count time elapsed
+		   if (shutdown_timer1 > 120)
+		   {
+			   displayandkeypad_power(DEACTIVATE);   //shutdown... after  2 minutes
+			   mcu_power(DEACTIVATE);
+		   }
+	  }
+	  else
+	  {
+		  //clear the timer//
+		  shutdown_timer1 = 0;
+
+		  modem_power(ACTIVATE);
+		  displayandkeypad_power(ACTIVATE);
+	  }
+	#endif
+
+	#if !defined (DEV_MODE)
+//		if(batteryStatus == LOW_BATTERY)
+//		{
+//			lcd_print_line1("  Louu   ");
+//			lcd_print_line2("Battery  ");
+//			lcd_print_line3(" Err70 ");
+//
+////			return inactive_State;
+//		}
+//		else if(batteryStatus == NO_BATTERY)
+//		{
+//			lcd_print_line1("Battery ");
+//			lcd_print_line2(" Error  ");
+//			lcd_print_line3(" Err71 ");
+//
+//			return inactive_State;
+//		}
+
+		if(HAL_GPIO_ReadPin(pulser1_detect_GPIO_Port, pulser1_detect_Pin) == 1 )
+		{
+			lcd_print_line1(" Pulser ");
+			lcd_print_line2("  Error ");
+			lcd_print_line3(" Err24 ");
+
+			return inactive_State;
+		}
+		else
+		{
+
+		}
+
+	//	if(calib_pulser1 < 15800)  //15987, 15967 .... 1106247681
+//		calibration_flag1 = CALIBRATED;
+		if(calibration_flag1 != CALIBRATED) //15800)  //15987, 15967 .... 1106247681
+		{
+			retrieve_calibrationFlag_fram(side_a);
+
+			if(calibration_flag1 != CALIBRATED) //takes care of accidental clearing of calibration_flag1 by F-keys
+			{
+				calibration1_error = 1;
+
+				lcd_print_line1("Calibrat");
+				lcd_print_line2("  Error ");
+				lcd_print_line3("Err 23 ");
+
+				return inactive_State;
+			}
+		}
+		else
+		{
+			calibration1_error = 0;
+		}
+	#endif    //#if !defined (DEV_MODE) ,,
+
+	if(fillingresume_flag1_1 == 1)
+	{
+		amt = pulser2amt(currentPulser_recovered1);
+
+		price = amt2price(amt);
+
+		amt_middle1_tmin3 = amt;
+		amt_middle1_tmin2 = amt;
+		amt_middle1_tmin1 = amt;
+		amt_middle1 = amt;
+
+		amt_real1_tmin3 = amt;
+		amt_real1_tmin2 = amt;
+		amt_real1_tmin1 = amt;
+		amt_real1 = amt;
+
+		make_string(P, dp(price, dp_amount1));
+	    make_string(L, dp(amt, dp_vol1));
+
+		if  (t > 500)
+		{
+			 if(settings_stream1[0].display_format == PL)
+			 {
+				 lcd_print_line1(upper1);
+				 lcd_print_line2(middle1);
+			 }
+			 else if(settings_stream1[0].display_format == LP)
+			 {
+				  lcd_print_line1(middle1);
+				  lcd_print_line2(upper1);
+			 }
+
+			 lcd_print_line3("        ");
+			 char str__[8]= {0};
+			 snprintf(str__, sizeof(str__), "%.2f", litre_price);
+			 lcd_print_line3(str__);
+		}
+	}
+	else
+	{
+		 if  (t > 500)
+		 {
+			 lcd_print_line1("  Auto  ");
+			 lcd_print_line2(" NNode  ");
+
+	//		 lcd_print_line3("      ");
+
+			 char str__[8] = {0};
+			 snprintf(str__, sizeof(str__), "%.2f", litre_price1);
+			 lcd_print_line3(str__);
+		 }
+	}
+
+	 if (t > 2000)
+	 {
+		  /* start the DMA again */
+		  HAL_UARTEx_ReceiveToIdle_DMA(&huart2, (uint8_t *) RxBuf, RxBuf_SIZE);
+		  __HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
+
+		  t = 0;
+	 }
+
+
+	 if( (keypress_ == 21) && (nozzleup_awaitingauth_state_not_timedOut == 0) )
+	 {
+		   compose_printer();
+		   HAL_Delay(1000);
+		   printer_status = 1;
+	 }
+
+	     print__1();   //print the transaction.
+
+	  	return pnp_State;
+}
+
+
+
 eSystemState idleState_Handler(void)
 {
 	static int  printer_status;
@@ -8026,6 +8261,15 @@ eSystemState idleState_Handler(void)
 			save_settings_fram();
 			online_calibFlag1 = 0;
 			save_online_calibFlag_fram(side_a);
+		}
+
+		/////////////////////////////////////////////////////
+		// Resume Sales after an abrupt reboot, during sales
+		/////////////////////////////////////////////////////
+		if(fillingresume_flag1_1 == 1)
+		{
+			fillingresume_flag1 = 1;
+			fillingresume_flag1_1 = 0;
 		}
 	}
 
@@ -8749,7 +8993,9 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 	if (stop_flag == 1)   //if stop key is pressed
 	{
- 		filling1 = 0,  nozzle_bit = 0;
+ 		filling1 = 0,
+ 		nozzle_bit = 0;
+
 		stop_flag = 0;
 		stop_flow1(); //send_solenoid(1);  //stop solenoid.
 
@@ -8826,6 +9072,9 @@ eSystemState authorised_nozzleup_State_Handler(void)
 			lcd_print_line3("        ");
 
 			firstTime_nozz1 = 0;
+			current_pulser1 = 0;
+			currentPulser_recovered1 = 0;
+			targetPulser_recovered1 = 0;
 		}
 
 		return authorised_nozzleup_State;
@@ -8833,9 +9082,11 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 	lcd_print_line3("        ");
 	char str__[8]= {0};
-	snprintf(str__, sizeof(str__), "%.2f", litre_price); lcd_print_line3(str__);
+	snprintf(str__, sizeof(str__), "%.2f", litre_price);
+	lcd_print_line3(str__);
 
-	nozzle_bit = 1;  stop_fueling_bit = 0;
+	nozzle_bit = 1;
+	stop_fueling_bit = 0;
 
     pump1_status_4G = STATUS_AUTHORIZED_NOZZLE_UP;
 
@@ -9365,6 +9616,21 @@ eSystemState authorised_nozzleup_State_Handler(void)
 					{
 						key_value = key_value_original1;
 					}
+
+					if (sellmode == L)
+					{
+						sales_type1 = LITRE_PROGRAMMED;
+					}
+					else if (sellmode == P)
+					{
+						sales_type1 = PRICE_PROGRAMMED;
+					}
+
+					if( (authorizedSale_overflow1 == 1) || (pump_LitreOverflow1 == 1) || (display_overflow1 == 1) )
+					{
+						sales_type1 = UNPROGRAMMED_SALE;
+					}
+
 					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 				}  //End of keyboard Input Check
@@ -9595,7 +9861,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 				{
 					#if (_USE_SOFT_PULSER == 1)
 						 //  pulser_new += 1;
-						   current_pulser1++;
+					current_pulser1++;
 					#else
 						 // pulser_new = __HAL_TIM_GET_COUNTER(&htim5);
 						   current_pulser1 = __HAL_TIM_GET_COUNTER(&htim5);
@@ -9801,6 +10067,7 @@ eSystemState filling_State_Handler(void)
 					   old_pulser_ = 0;
 
 	pump1_status_4G = STATUS_FILLING_;
+	pump_status_1 = STATUS_FILLING;
 
     filling1  = 1;
 
@@ -10627,9 +10894,11 @@ eSystemState filling_State_Handler(void)
 	   {
 	 		if(old_pulser_ > current_pulser1)
 	 		{
-	 			current_pulser1 = old_pulser_ ;
+	 			current_pulser1 = old_pulser_;
 	 			flow_loss = 1;
-	 			filling1 = 0,  nozzle_bit = 0;
+	 			filling1 = 0,
+	 			nozzle_bit = 0;
+
 				stop_flag = 0;
 				stop_flow1(); //send_solenoid(1);  //stop solenoid.
 				get_time();
@@ -11027,6 +11296,27 @@ eSystemState filling_paused_State_Handler(void)
 //---------------
 eSystemState filling_resumed_Handler(void)
 {
+//	//////////////////////////////////////////////////////////////////////////
+//	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+//	/*             CATERS TO RESUMED SALES @ PUMP RESTART                   */
+//
+//	nozzle_bit = 1;
+//	stop_fueling_bit = 0;
+//
+//	drive_motor1(ACTIVATE);
+//
+//	if(settings_stream1[0].pump_type_ != LAFENG)
+//	{
+//		 drive_slow_sole1(ACTIVATE);
+//		 drive_fast_sole1(DEACTIVATE);
+//	}
+//	else
+//	{
+//		drive_slow_sole1(DEACTIVATE);     // DEACTIVATE here actually means ACTIVATE
+//		drive_fast_sole1(ACTIVATE);		  // ACTIVATE here actually means DEACTIVATE
+//	}
+//
+//	//////////////////////////////////////////////////////////////////////////
 
 	return filling_State;
 }
@@ -11843,7 +12133,7 @@ void states_1(void)
             }
           //...   scan through the allowed  events of the state if its among them..
 	    for (uint8_t i = 0; i < MAX_EVENTS_PER_STATE; i++)
-		 {
+		{
 		   ev = (asStateEventMachine_1[eNextState1].states[i]);  //
 		   if (ev == 0)
 			{
@@ -11926,146 +12216,6 @@ void states_1(void)
 
 //----------------------------------------
 //----------------------------------------
-eSystemState pnpState_Handler(void)
-{
-	static int  printer_status;
-
-	static int8_t idleState_flag = 1;
-
-	static int32_t current_pulser_ = 0,
-				   old_pulser_ = 0;
-
-	uint16_t gerCtTime;
-
-	int pulser_diff = 0;
-
-	stop_fueling_bit = 1;
-
-	lock_clr = 0;
-
-	progg = 0;
-
-	firstTime_nozz1 = 1;
-
-
-	#if sense_power == 1
-	  if(readpwr() == 0)
-	  {
-		   modem_power(DEACTIVATE);
-
-		   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-		   HAL_Delay(100);
-		   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
-
-		   //count time elapsed
-		   if (shutdown_timer1 > 120)
-		   {
-			   displayandkeypad_power(DEACTIVATE);   //shutdown... after  2 minutes
-			   mcu_power(DEACTIVATE);
-		   }
-	  }
-	  else
-	  {
-		  //clear the timer//
-		  shutdown_timer1 = 0;
-
-		  modem_power(ACTIVATE);
-		  displayandkeypad_power(ACTIVATE);
-	  }
-	#endif
-
-	#if !defined (DEV_MODE)
-//		if(batteryStatus == LOW_BATTERY)
-//		{
-//			lcd_print_line1("  Louu   ");
-//			lcd_print_line2("Battery  ");
-//			lcd_print_line3(" Err70 ");
-//
-////			return inactive_State;
-//		}
-//		else if(batteryStatus == NO_BATTERY)
-//		{
-//			lcd_print_line1("Battery ");
-//			lcd_print_line2(" Error  ");
-//			lcd_print_line3(" Err71 ");
-//
-//			return inactive_State;
-//		}
-
-		if(HAL_GPIO_ReadPin(pulser1_detect_GPIO_Port, pulser1_detect_Pin) == 1 )
-		{
-			lcd_print_line1(" Pulser ");
-			lcd_print_line2("  Error ");
-			lcd_print_line3(" Err24 ");
-
-			return inactive_State;
-		}
-		else
-		{
-
-		}
-
-	//	if(calib_pulser1 < 15800)  //15987, 15967 .... 1106247681
-//		calibration_flag1 = CALIBRATED;
-		if(calibration_flag1 != CALIBRATED) //15800)  //15987, 15967 .... 1106247681
-		{
-			retrieve_calibrationFlag_fram(side_a);
-
-			if(calibration_flag1 != CALIBRATED) //takes care of accidental clearing of calibration_flag1 by F-keys
-			{
-				calibration1_error = 1;
-
-				lcd_print_line1("Calibrat");
-				lcd_print_line2("  Error ");
-				lcd_print_line3("Err 23 ");
-
-				return inactive_State;
-			}
-		}
-		else
-		{
-			calibration1_error = 0;
-		}
-	#endif    //#if !defined (DEV_MODE) ,,
-
-
-
-	 if  (t > 500)
-	 {
-		 lcd_print_line1("  Auto  ");
-		 lcd_print_line2(" NNode  ");
-
-//		 lcd_print_line3("      ");
-
-		 char str__[8] = {0};
-		 snprintf(str__, sizeof(str__), "%.2f", litre_price1);
-		 lcd_print_line3(str__);
-
-		 if (t > 2000)
-		 {
-		  /* start the DMA again */
-		  HAL_UARTEx_ReceiveToIdle_DMA(&huart2, (uint8_t *) RxBuf, RxBuf_SIZE);
-		  __HAL_DMA_DISABLE_IT(&hdma_usart2_rx, DMA_IT_HT);
-
-		  t = 0;
-		 }
-	 }
-
-
-	 if( (keypress_ == 21) && (nozzleup_awaitingauth_state_not_timedOut == 0) )
-	 {
-		   compose_printer();
-		   HAL_Delay(1000);
-		   printer_status = 1;
-	 }
-
-	     print__1();   //print the transaction.
-
-	  	return pnp_State;
-}
-
-
-
 //----------------------------------------
 eSystemState switchedoffState_Handler(void)
 {
@@ -12243,7 +12393,7 @@ void correctArray1(float v[4], corrected_sid sid)
         {
             if (v[i - 1] < v[i] || fabs(v[i - 1] - v[i]) > 0.9)
             {
-			  #if DEBUG
+			  #if DEBUG_0
             	if(sid == tot_a)
             	{
 					sprintf(str,
@@ -12281,7 +12431,7 @@ void correctArray1(float v[4], corrected_sid sid)
                     v[i - 1] = v[i]; // Other elements take the value of the more recent element
                 }
 
-			  #if DEBUG
+			  #if DEBUG_0
                 if(sid == tot_a)
 				{
 					sprintf(str,

@@ -240,6 +240,11 @@ extern uint8_t nozzle_flag2,
 			   nozzle_flag_key2,
 			   nozzle_flag_key_old2;
 
+extern uint8_t fillingresume_flag1,
+			   fillingresume_flag2,
+			   fillingresume_flag1_1,
+			   fillingresume_flag2_1;
+
 extern uint16_t timer_go;
 uint8_t go_timeOut2;
 

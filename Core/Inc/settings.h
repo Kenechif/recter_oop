@@ -41,8 +41,8 @@ extern "C" {
 
 //:::::::::::::::::::::::::::::::::::::::::::://
 
-	  #define DEBUG 0
-//	  #define DEBUG 1
+	  #define DEBUG_0 0
+//	  #define DEBUG_0 1
 
 	  #define DEBUG1 0
 //	  #define DEBUG1 1
@@ -68,16 +68,16 @@ extern "C" {
 //============================================
 
 #ifdef DEV_MODE
-	#define _USE_SOFT_PULSER            1
-//	#define _USE_SOFT_PULSER            0
+//	#define _USE_SOFT_PULSER            1
+	#define _USE_SOFT_PULSER            0
 	#define sense_battery 				0
 //	#define sense_battery 				1
 //	#define sense_power  				0
 	#define sense_power  				1
 #else
 	#define _USE_SOFT_PULSER            0
-	#define sense_battery 				1
-//	#define sense_battery 				0
+//	#define sense_battery 				1
+	#define sense_battery 				0
 	#define sense_power  				1
 #endif
 
@@ -849,15 +849,20 @@ uint32_t target_pulser1,
 		 target_pulser2,
 		 current_pulser2;
 
-extern uint32_t currentPulser_recovered1 CCRAM,
-				currentPulser_recovered2 CCRAM,
-				targetPulser_recovered1 CCRAM,
-				targetPulser_recovered2 CCRAM;
+//extern uint32_t currentPulser_recovered1,
+//				currentPulser_recovered2,
+//				targetPulser_recovered1,
+//				targetPulser_recovered2;
 
 extern uint8_t nozzle_flag,
 	 	       nozzle_flag_old,
 		       nozzle_flag2,
 		       nozzle_flag_old2;
+
+extern uint8_t fillingresume_flag1,
+			   fillingresume_flag2,
+			   fillingresume_flag1_1,
+			   fillingresume_flag2_1;
 
 ////==================================
 ////structure for settings

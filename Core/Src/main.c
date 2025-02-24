@@ -33,6 +33,8 @@
 
 #include "UartRingbuffer.h"
 
+#include "core_cm4.h" // CMSIS header for Cortex-M4
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -85,6 +87,12 @@ extern pump_settings_stream2 settings_stream2[2];
 //uint8_t dummyValue = 0;
 
 ADC_ChannelConfTypeDef sConfig = {0};
+
+uint32_t start_cycles = 0,
+		 end_cycles = 0,
+		 elapsed_cycles = 0;
+
+float time_us = 0.0; // Time in microseconds
 
 /* USER CODE END PV */
 
@@ -269,6 +277,14 @@ void HAL_RTCEx_WakeUpTimerEventCallback(RTC_HandleTypeDef *hrtc)
 	HAL_UART_Transmit(&huart2, (uint8_t *) str, strlen (str), HAL_MAX_DELAY);
 }
 
+
+// Function to enable DWT cycle counter
+void EnableDWT(void) {
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk; // Enable trace
+    DWT->CYCCNT = 0; // Reset the cycle counter
+    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk; // Enable the cycle counter
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -287,16 +303,19 @@ int main(void)
 	uint8_t MSG[35] = {'\0'};
 	uint16_t CounterTicks = 0;
 
-
-	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-	DWT->CYCCNT = 0;
-	DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
-
+//	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+//	DWT->CYCCNT = 0;
+//	DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 
 //	unsigned long t1 = DWT->CYCCNT;
 //	/* do something */
 //	unsigned long t2 = DWT->CYCCNT;
 //	unsigned long diff = t2 - t1;
+
+//	EnableDWT(); // Enable DWT cycle counter
+
+	// Start measurement
+//	start_cycles = DWT->CYCCNT;
 
 //	int millis = HAL_GetTick();
 
@@ -326,6 +345,11 @@ int main(void)
   /* USER CODE BEGIN SysInit */
 
 //  	  retrieve_settings();
+
+  	EnableDWT(); // Enable DWT cycle counter
+
+  	// Start measurement
+  	start_cycles = DWT->CYCCNT;
 
   /* USER CODE END SysInit */
 
