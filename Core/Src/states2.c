@@ -833,7 +833,7 @@ sEventMachine2 asEventMachine2 [] =
 sStateEventMachine2 asStateEventMachine2 [] =
 {
 	{prog_State, progState_Handler2, {_keydown_Event,_keypress_Event, _tone_Event}},
-	{idle_State, idleState_Handler2, {_operator_Event,_keyup_Event,_tot_error_Event, _keypress_Event, _nozzleup_Event, _auth_command_Event, _nozzledown_Event, _resetcommand_Event, _switchoffcommand_Event, _tone_Event, _filling_resumecommand_Event}},
+	{idle_State, idleState_Handler2, {_operator_Event, _keyup_Event, _tot_error_Event, _keypress_Event, _nozzleup_Event, _auth_command_Event, _nozzledown_Event, _resetcommand_Event, _switchoffcommand_Event, _tone_Event, _filling_resumecommand_Event, _filling_resumed_Event}},
 	{inactive_State, inactiveState_Handler2, {_error_clear_Event, _keyup_Event, _keypress_Event, _tone_Event}},
 	{nozzleup_waitingforauth_State, nozzleup_waitingforauthState_Handler2, {_authorise_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _authorisecommand_Event, _stopcommand_Event, _switchoffcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _tone_Event}},
 	{authorised_nozzledown_State, authorised_nozzledown_State_Handler2, {_nozzleup_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _tone_Event}},
@@ -1036,6 +1036,8 @@ eSystemState auth_resumecommand_Handler2(void)
 
 eSystemState filling_resumecommand_Handler2(void)
 {
+	//==========================================================================
+
 	#if (_USE_SOFT_PULSER == 1)
 
 		 current_pulser2 = ( currentPulser_recovered2 + current_pulser2);
@@ -1045,7 +1047,8 @@ eSystemState filling_resumecommand_Handler2(void)
 		current_pulser2 = ( currentPulser_recovered2 + (__HAL_TIM_GET_COUNTER(&htim2) ) );
 
 	#endif
-	//------------------------------------------------------------------
+
+	//--------------------------------------------------------------------------
 
 	pulser_rem2 = target_pulser2 - current_pulser2;
 
@@ -7278,6 +7281,9 @@ eSystemState pnpState_Handler2(void)
 		amt_real2_tmin1 = amt2;
 		amt_real2 = amt2;
 
+		make_string2(P, dp2(price2, dp_amount2));
+		make_string2(L, dp2(amt2, dp_vol2));
+
 		if  (t2 > 500)
 		{
 			 if(settings_stream1[1].display_format == PL)
@@ -7580,6 +7586,37 @@ eSystemState idleState_Handler2(void)
 			fillingresume_flag2_1 = 0;
 		}
 	}
+
+	/////////////////////////////////////////////////////
+	// Resume Sales after an abrupt reboot, during sales
+	/////////////////////////////////////////////////////
+	else if (settings_stream1[1].mode == MANUAL_MODE)
+	{
+		if(fillingresume_flag2_1 == 1)
+		{
+			amt2 = pulser2amt2(current_pulser2);
+
+			price2 = amt2price2(amt2);
+
+			amt_middle2_tmin3 = amt2;
+			amt_middle2_tmin2 = amt2;
+			amt_middle2_tmin1 = amt2;
+			amt_middle2 = amt2;
+
+			amt_real2_tmin3 = amt2;
+			amt_real2_tmin2 = amt2;
+			amt_real2_tmin1 = amt2;
+			amt_real2 = amt2;
+
+			make_string2(P, dp2(price2, dp_amount2));
+			make_string2(L, dp2(amt2, dp_vol2));
+
+			fillingresume_flag2 = 1;
+			fillingresume_flag2_1 = 0;
+		}
+	}
+
+	//--------------------------------------------------
 
 
 	if( (idleState_flag == 1) && (eLastState2 != filling_State) )
@@ -8388,7 +8425,7 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 		  }
 		  else
 		  {
-			  key_value_ = (litre_price2 * pump_max_litres2);
+			  key_value2 = (litre_price2 * pump_max_litres2);
 
 			  if (sellmode2 == P)
 			  {
@@ -8396,25 +8433,25 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 				  {
 					  key_value2 = sellPrice_max_dpp;
 				  }
-				  else if(key_value2 > key_value_)
-				  {
-					  key_value2 = key_value_;
-				  }
+//				  else if(key_value2 > key_value_)
+//				  {
+//					  key_value2 = key_value_;
+//				  }
 
 				  target_pulser2 = price2pulser2(key_value2);  //calculate pulse frm price.
 			  }
 			  else if (sellmode2 == L)
 			  {
-				  key_value_ = (sellPrice_max_dpp / litre_price2);
+				  key_value2 = (sellPrice_max_dpp / litre_price2);
 
 					if(key_value2 > pump_max_litres2)
 					{
 						  key_value2 = pump_max_litres2;
 					}
-					else if(key_value2 > key_value_)
-					{
-						  key_value2 = key_value_;
-					}
+//					else if(key_value2 > key_value_)
+//					{
+//						  key_value2 = key_value_;
+//					}
 
 					target_pulser2 = amt2pulser2(key_value2);   //calculate pulse frm amt.
 			  }
@@ -10810,28 +10847,64 @@ eSystemState filling_paused_State_Handler2(void)
 //---------------
 eSystemState filling_resumed_Handler2(void)
 {
+	//==========================================================================
 
-//	//////////////////////////////////////////////////////////////////////////
-//	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
-//	/*             CATERS TO RESUMED SALES @ PUMP RESTART                   */
-//
-//	nozzle_bit2 = 1;
-//	stop_fueling_bit2 = 0;
-//
-//	drive_motor2(ACTIVATE);
-//
-//	if(settings_stream1[1].pump_type_ != LAFENG)
-//	{
-//		 drive_slow_sole2(ACTIVATE);
-//		 drive_fast_sole2(DEACTIVATE);
-//	}
-//	else
-//	{
-//		drive_slow_sole2(DEACTIVATE);     // DEACTIVATE here actually means ACTIVATE
-//		drive_fast_sole2(ACTIVATE);		  // ACTIVATE here actually means DEACTIVATE
-//	}
-//
-//	//////////////////////////////////////////////////////////////////////////
+	#if (_USE_SOFT_PULSER == 1)
+
+		 current_pulser2 = ( currentPulser_recovered2 + current_pulser2);
+
+	#else
+
+		current_pulser2 = ( currentPulser_recovered2 + (__HAL_TIM_GET_COUNTER(&htim2) ) );
+
+	#endif
+	//----------------------------------------------------------------------------
+
+	pulser_rem2 = target_pulser2 - current_pulser2;
+
+	//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
+
+	amt2 = pulser2amt2(currentPulser_recovered2);
+
+	price2 = amt2price2(amt2);
+
+	amt_middle2_tmin3 = amt2;
+	amt_middle2_tmin2 = amt2;
+	amt_middle2_tmin1 = amt2;
+	amt_middle2 = amt2;
+
+	amt_real2_tmin3 = amt2;
+	amt_real2_tmin2 = amt2;
+	amt_real2_tmin1 = amt2;
+	amt_real2 = amt2;
+
+	make_string2(P, dp2(price2, dp_amount2));
+    make_string2(L, dp2(amt2, dp_vol2));
+
+	//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&//
+
+
+	//////////////////////////////////////////////////////////////////////////
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+	/*             CATERS TO RESUMED SALES @ PUMP RESTART                   */
+
+	nozzle_bit2 = 1;
+	stop_fueling_bit2 = 0;
+
+	drive_motor2(ACTIVATE);
+
+	if(settings_stream1[1].pump_type_ != LAFENG)
+	{
+		 drive_slow_sole2(ACTIVATE);
+		 drive_fast_sole2(DEACTIVATE);
+	}
+	else
+	{
+		drive_slow_sole2(DEACTIVATE);     // DEACTIVATE here actually means ACTIVATE
+		drive_fast_sole2(ACTIVATE);		  // ACTIVATE here actually means DEACTIVATE
+	}
+
+	//////////////////////////////////////////////////////////////////////////
 
 
 	return filling_State;

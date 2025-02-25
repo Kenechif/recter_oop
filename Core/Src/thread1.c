@@ -1211,6 +1211,8 @@ void compose_printer()
 //	 settings_stream1[0].keypad__ = LAFNG18_K;
 //	 settings_stream1[1].keypad__ = LAFNG18_K;
 
+//	 settings_stream1[0].mode = MANUAL_MODE;
+
 	 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
 	 // 				LAFENG Valve's Signal is inverted for this version of PCB                      //
 	 //											PCB V5.0											   //
@@ -1370,9 +1372,13 @@ void compose_printer()
 //	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);  //TIM_CHANNEL_1 |TIM_CHANNEL_2); //TIM_CHANNEL_ALL);
 
 
-//	retrieve_settings();
+	//////////////////////////////////////////////////////////
+	//000000000000000000000000000000000000000000000000000000//
 
 	retrieve_settings_fram();
+
+	//======================================================//
+
 
 //	settings_stream2[0].pulser_type_ = quadrature; //non_quadrature;   //quadrature;
 //	settings_stream2[1].pulser_type_ = quadrature;   //non_quadrature;   //quadrature;
@@ -1980,7 +1986,6 @@ tmmm:
 	 calib_pulser2 =  (settings_stream1[1].pi_cal * vol_calibrated2);
 
 	 config_rx_parse();
-	//pumpType_configure();
 	 pumpType_configure_fram();
 
 
@@ -2404,7 +2409,7 @@ skip_test:
 //	settings_stream2[0].startUp_suppressVol = 0.12;
 //	settings_stream2[1].startUp_suppressVol = 0.12;
 
-//    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
+    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
 //    settings_stream1[0].mode = AUTO_MODE;      //AUTO_MODE;
 //
 //    settings_stream1[0].noz = nooverride;  //nooveride
@@ -3878,6 +3883,15 @@ int  read_event2()
 			   }
 		   }
 
+			else if(settings_stream1[1].mode == MANUAL_MODE)
+		    {
+				if (fillingresume_flag2 == 1)
+			   {
+				   fillingresume_flag2 = 0;
+				   return _filling_resumed_Event;
+			   }
+		    }
+
 		//HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH//
 		//======================== NOZZLE-UP EVENT ============================//
 
@@ -4647,6 +4661,17 @@ uint8_t read_event1_1(void)
 			   return _filling_resumecommand_Event;
 		   }
 	   }
+
+	   else if(settings_stream1[0].mode == MANUAL_MODE)
+	   {
+		   if (fillingresume_flag1 == 1)
+		   {
+			   fillingresume_flag1 = 0;
+			   return _filling_resumed_Event;
+		   }
+	   }
+
+
 
 	   // nozzle up  event capture...
 ////	    if( ((nozzle_flag_old == 0) && (nozzle_flag == 1)) ||

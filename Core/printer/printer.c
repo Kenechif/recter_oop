@@ -74,7 +74,7 @@
  void doubleHeightOff();
  void doubleHeightOn();
  void MANUAL();
- void AUTO() ;
+ void AUTO();
 //-----------------------------------------------------
  void flush() ;
  void reset();

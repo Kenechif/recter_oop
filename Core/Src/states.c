@@ -905,7 +905,7 @@ sEventMachine asEventMachine_1 [] =
 sStateEventMachine asStateEventMachine_1 [] =
 {
 	{prog_State, progState_Handler, {_keydown_Event,_keypress_Event, _tone_Event}},
-	{idle_State, idleState_Handler, {_operator_Event, _keyup_Event,_tot_error_Event, _keypress_Event, _nozzleup_Event, _auth_command_Event, _nozzledown_Event, _resetcommand_Event, _switchoffcommand_Event, _tone_Event, _filling_resumecommand_Event}},
+	{idle_State, idleState_Handler, {_operator_Event, _keyup_Event,_tot_error_Event, _keypress_Event, _nozzleup_Event, _auth_command_Event, _nozzledown_Event, _resetcommand_Event, _switchoffcommand_Event, _tone_Event, _filling_resumecommand_Event, _filling_resumed_Event}},
 	{inactive_State, inactiveState_Handler,{_error_clear_Event, _keyup_Event, _keypress_Event, _tone_Event}},
 	{nozzleup_waitingforauth_State, nozzleup_waitingforauthState_Handler, {_authorise_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _authorisecommand_Event, _stopcommand_Event, _switchoffcommand_Event, _hardwarereset_Event, _hardwareerror_Event, _tone_Event}},
 	{authorised_nozzledown_State, authorised_nozzledown_State_Handler,{_nozzleup_Event,_timeout_Event,_nozzledown_Event,_keypress_Event, _tone_Event}},
@@ -1351,6 +1351,8 @@ eSystemState auth_resumecommand_Handler(void)
 
 eSystemState filling_resumecommand_Handler(void)
 {
+	//==========================================================================
+
 	#if (_USE_SOFT_PULSER == 1)
 
 	 	 current_pulser1 = ( currentPulser_recovered1 + current_pulser1);
@@ -1360,7 +1362,7 @@ eSystemState filling_resumecommand_Handler(void)
 	    current_pulser1 = ( currentPulser_recovered1 + (__HAL_TIM_GET_COUNTER(&htim5) ) );
 
 	#endif
-	//------------------------------------------------------------------
+	//---------------------------------------------------------------------------
 
     pulser_rem1 = target_pulser1 - current_pulser1;
 
@@ -8273,6 +8275,37 @@ eSystemState idleState_Handler(void)
 		}
 	}
 
+	/////////////////////////////////////////////////////
+	// Resume Sales after an abrupt reboot, during sales
+	/////////////////////////////////////////////////////
+	else if (settings_stream1[0].mode == MANUAL_MODE)
+	{
+		if(fillingresume_flag1_1 == 1)
+		{
+			amt = pulser2amt(currentPulser_recovered1);
+
+			price = amt2price(amt);
+
+			amt_middle1_tmin3 = amt;
+			amt_middle1_tmin2 = amt;
+			amt_middle1_tmin1 = amt;
+			amt_middle1 = amt;
+
+			amt_real1_tmin3 = amt;
+			amt_real1_tmin2 = amt;
+			amt_real1_tmin1 = amt;
+			amt_real1 = amt;
+
+			make_string(P, dp(price, dp_amount1));
+			make_string(L, dp(amt, dp_vol1));
+
+			fillingresume_flag1 = 1;
+			fillingresume_flag1_1 = 0;
+		}
+	}
+	//--------------------------------------------------
+
+
 	if( (idleState_flag == 1) && (eLastState1 != filling_State) )
 	{
 		idleState_flag = 2;
@@ -9268,7 +9301,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 		  }
 		  else
 		  {
-			  key_value_ = (litre_price1 * pump_max_litres1);
+			  key_value = (litre_price1 * pump_max_litres1);
 
 			  if (sellmode == P)
 			  {
@@ -9276,25 +9309,25 @@ eSystemState authorised_nozzleup_State_Handler(void)
 				  {
 					  key_value = sellPrice_max_dpp;
 				  }
-				  else if(key_value > key_value_)
-				  {
-					  key_value = key_value_;
-				  }
+//				  else if(key_value > key_value_)
+//				  {
+//					  key_value = key_value_;
+//				  }
 
 				  target_pulser1 = price2pulser(key_value);  //calculate pulse frm price.
 			  }
 			  else if (sellmode == L)
 			  {
-				  key_value_ = (sellPrice_max_dpp / litre_price1);
+				  key_value = (sellPrice_max_dpp / litre_price1);
 
 					if(key_value > pump_max_litres1)
 					{
 						  key_value = pump_max_litres1;
 					}
-					else if(key_value > key_value_)
-					{
-						  key_value = key_value_;
-					}
+//					else if(key_value > key_value_)
+//					{
+//						  key_value = key_value_;
+//					}
 
 					target_pulser1 = amt2pulser(key_value);   //calculate pulse frm amt.
 			  }
@@ -11296,29 +11329,67 @@ eSystemState filling_paused_State_Handler(void)
 //---------------
 eSystemState filling_resumed_Handler(void)
 {
-//	//////////////////////////////////////////////////////////////////////////
-//	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
-//	/*             CATERS TO RESUMED SALES @ PUMP RESTART                   */
-//
-//	nozzle_bit = 1;
-//	stop_fueling_bit = 0;
-//
-//	drive_motor1(ACTIVATE);
-//
-//	if(settings_stream1[0].pump_type_ != LAFENG)
-//	{
-//		 drive_slow_sole1(ACTIVATE);
-//		 drive_fast_sole1(DEACTIVATE);
-//	}
-//	else
-//	{
-//		drive_slow_sole1(DEACTIVATE);     // DEACTIVATE here actually means ACTIVATE
-//		drive_fast_sole1(ACTIVATE);		  // ACTIVATE here actually means DEACTIVATE
-//	}
-//
-//	//////////////////////////////////////////////////////////////////////////
+
+	//==========================================================================
+
+	#if (_USE_SOFT_PULSER == 1)
+
+	 	 current_pulser1 = ( currentPulser_recovered1 + current_pulser1);
+
+	#else
+
+	    current_pulser1 = ( currentPulser_recovered1 + (__HAL_TIM_GET_COUNTER(&htim5) ) );
+
+	#endif
+	//--------------------------------------------------------------------------
+
+    pulser_rem1 = target_pulser1 - current_pulser1;
+
+	//$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$//
+
+	amt = pulser2amt(current_pulser1);
+
+	price = amt2price(amt);
+
+	amt_middle1_tmin3 = amt;
+	amt_middle1_tmin2 = amt;
+	amt_middle1_tmin1 = amt;
+	amt_middle1 = amt;
+
+	amt_real1_tmin3 = amt;
+	amt_real1_tmin2 = amt;
+	amt_real1_tmin1 = amt;
+	amt_real1 = amt;
+
+	//&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&//
+
+
+
+	//////////////////////////////////////////////////////////////////////////
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
+	/*             CATERS TO RESUMED SALES @ PUMP RESTART                   */
+
+	nozzle_bit = 1;
+	stop_fueling_bit = 0;
+
+	drive_motor1(ACTIVATE);
+
+	if(settings_stream1[0].pump_type_ != LAFENG)
+	{
+		 drive_slow_sole1(ACTIVATE);
+		 drive_fast_sole1(DEACTIVATE);
+	}
+	else
+	{
+		drive_slow_sole1(DEACTIVATE);     // DEACTIVATE here actually means ACTIVATE
+		drive_fast_sole1(ACTIVATE);		  // ACTIVATE here actually means DEACTIVATE
+	}
+
+	//////////////////////////////////////////////////////////////////////////
+
 
 	return filling_State;
+
 }
 
 
