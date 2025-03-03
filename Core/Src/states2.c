@@ -197,7 +197,8 @@ uint16_t tk_int_2;
 
 extern uint32_t transaction_period2;
 
-uint8_t firstTime_idleState2 = 1;
+uint8_t firstTime_idleState2 = 1,
+		idleStateEntry_flag2 = 0;
 
 //extern float target_pulser1 , current_pulser1 ;
 extern sellmode_ sellmode2; //int sellmode2 ;
@@ -7354,6 +7355,8 @@ eSystemState idleState_Handler2(void)
 
 	int pulser_diff = 0;
 
+	idleStateEntry_flag2 = 1;
+
 
 	//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
 	//======================= AUTOMATED SALES TEST ==========================//
@@ -7736,7 +7739,7 @@ eSystemState idleState_Handler2(void)
 	else if ( (t2 > 500) && (nozzleup_awaitingauth_state_not_timedOut2 == 0) && (pump_LitreOverflow2 == 0) && (_litre_price2 == 0)
 			&& (_auth_p2 == 0) && (_auth_v2 == 0) && (idle_backwardPulse2 == 0) && (idle_forwardPulse2 == 0)
 			&& (flow_loss2 == 0) && (display_overflow2 == 0) && (changeLitrePrice2_2 == 0) && (_pump_max_litres2 == 0) && (nonValid_sale2 == 0)
-			&& (authorizedSale_overflow2 == 0) )
+			&& (authorizedSale_overflow2 == 0) && (fillingresume_flag2 == 0) )
 	{
 		if(settings_stream1[1].display_format == PL)
 		  {
@@ -11456,6 +11459,14 @@ void states2(void)
 	if (eNewEvent2 != _keypress_Event)
 	{
         //ePrevState = eNextState1;
+	}
+
+	if (settings_stream1[1].mode == MANUAL_MODE)
+	{
+		if ( (eNewEvent2 == _nozzleup_Event) && (idleStateEntry_flag2 == 0) )
+		{
+			eNewEvent2 = _no_Event;
+		}
 	}
 
 	eSystemEvent ev2;

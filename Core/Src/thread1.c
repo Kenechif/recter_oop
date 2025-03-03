@@ -2409,8 +2409,8 @@ skip_test:
 //	settings_stream2[0].startUp_suppressVol = 0.12;
 //	settings_stream2[1].startUp_suppressVol = 0.12;
 
-    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
-//    settings_stream1[0].mode = AUTO_MODE;      //AUTO_MODE;
+//    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
+//    settings_stream1[1].mode = MANUAL_MODE;      //AUTO_MODE; //MANUAL_MODE;
 //
 //    settings_stream1[0].noz = nooverride;  //nooveride
 //    settings_stream1[0].noz_override = override;  //nooveride

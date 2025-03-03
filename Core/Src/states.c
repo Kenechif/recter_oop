@@ -106,6 +106,7 @@ uint16_t tk_int_;
 
 extern int tone_duration1 = 0;
 
+
 //===========================================
 
 
@@ -217,7 +218,8 @@ extern uint16_t _tt1,
 extern uint16_t autoSale_timer1,
 		 	 	autoSale_timer2;
 
-uint8_t firstTime_idleState1 = 1;
+uint8_t firstTime_idleState1 = 1,
+		idleStateEntry_flag1 = 0;
 
 extern uint32_t num ;
 
@@ -8069,6 +8071,9 @@ eSystemState idleState_Handler(void)
 
 	int pulser_diff = 0;
 
+	idleStateEntry_flag1 = 1;
+
+
 	//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
 	//======================= AUTOMATED SALES TEST ==========================//
 
@@ -8430,7 +8435,7 @@ eSystemState idleState_Handler(void)
 	else if ( (t > 500) && (nozzleup_awaitingauth_state_not_timedOut == 0) && (pump_LitreOverflow1 == 0) && (_litre_price1 == 0)
 			&& (_auth_p == 0) && (_auth_v == 0) && (idle_backwardPulse == 0) && (idle_forwardPulse == 0)
 			&& (flow_loss == 0) && (display_overflow1 == 0) && (changeLitrePrice1_2 == 0) && (_pump_max_litres1 == 0) && (nonValid_sale1 == 0)
-			&& (authorizedSale_overflow1 == 0) )
+			&& (authorizedSale_overflow1 == 0) && (fillingresume_flag1 == 0) )
 	{
 		 if(settings_stream1[0].display_format == PL)
 		 {
@@ -12192,6 +12197,14 @@ void states_1(void)
 	if (eNewEvent1 != _keypress_Event)
 	{
         //ePrevState = eNextState1;
+	}
+
+	if (settings_stream1[0].mode == MANUAL_MODE)
+	{
+		if ( (eNewEvent1 == _nozzleup_Event) && (idleStateEntry_flag1 == 0) )
+		{
+			eNewEvent1 = _no_Event;
+		}
 	}
 
 	eSystemEvent ev;

@@ -2822,8 +2822,8 @@ uint8_t retrieve_totaliserFrequent_fram(pump_sid side)
 				if(totaliserFrequent_storeB.pump_status == STATUS_FILLING)
 				{
 					uint32_t time_stamp = RtcToInt(2019);
-					if( (abs(time_stamp - totaliserFrequent_storeB.timestamp)) <= 2)   //2 sec
-//					if( (abs(time_stamp - totaliserFrequent_storeB.timestamp)) <= 64)  //1 min
+//					if( (abs(time_stamp - totaliserFrequent_storeB.timestamp)) <= 2)   //2 sec
+					if( (abs(time_stamp - totaliserFrequent_storeB.timestamp)) <= 64)  //1 min
 					{
 						nozzle_flag2 = readNozzle2();
 						if(nozzle_flag2 == 1)

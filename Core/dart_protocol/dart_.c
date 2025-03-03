@@ -1680,7 +1680,14 @@ void process_response1(response_enum response)
 
 							if(command_response == false)
 							{
-								if(status_change_noz1 == 1)   // Nozzle Status Change
+//								if(status_change_noz1 == 1)   // Nozzle Status Change
+
+								//========================================================================================//
+								//==========    ((fillingresume_flag1 == 0) && (fillingresume_flag1_1 == 0))    ==========//
+								//
+								//   Ensures GO is tricked to believe there's no Nozzle Change at Pump Reboot, during sales
+								//========================================================================================//
+								if( (status_change_noz1 == 1) && ((fillingresume_flag1 == 0) && (fillingresume_flag1_1 == 0)) )
 								{
 									if(nozzle_out1 == true)
 									{
@@ -1702,7 +1709,14 @@ void process_response1(response_enum response)
 
 									status_change_noz1 = 0;
 								}
-								else if(status_change_pump1 == 1)   //Generic Pump-Status-Change
+//								else if(status_change_pump1 == 1)   //Generic Pump-Status-Change
+
+								//===============================================================================================//
+								//==========        ((fillingresume_flag1 == 0) && (fillingresume_flag1_1 == 0))       ==========//
+								//
+								//   Ensures GO is tricked to believe there's no Pump Status Change at Pump Reboot, during sales
+								//===============================================================================================//
+								else if( (status_change_pump1 == 1) && ((fillingresume_flag1 == 0) && (fillingresume_flag1_1 == 0)) )
 								{
 									send_pumpStatus1(0);
 
@@ -1883,7 +1897,14 @@ void process_response2(response_enum response)
 
 							if(command_response2 == false)
 							{
-								if(status_change_noz2 == 1)
+//								if(status_change_noz2 == 1)
+
+								//========================================================================================//
+								//==========    ((fillingresume_flag2 == 0) && (fillingresume_flag2_1 == 0))    ==========//
+								//
+								//   Ensures GO is tricked to believe there's no Nozzle Change at Pump Reboot, during sales
+								//========================================================================================//
+								if( (status_change_noz2 == 1) && ((fillingresume_flag2 == 0) && (fillingresume_flag2_1 == 0)) )
 								{
 									if(nozzle_out2 == true)
 									{
@@ -1905,7 +1926,14 @@ void process_response2(response_enum response)
 
 									status_change_noz2 = 0;
 								}
-								else if(status_change_pump2 == 1)   //Generic Pump-Status-Change
+//								else if(status_change_pump2 == 1)   //Generic Pump-Status-Change
+
+								//===============================================================================================//
+								//==========        ((fillingresume_flag2 == 0) && (fillingresume_flag2_1 == 0))       ==========//
+								//
+								//   Ensures GO is tricked to believe there's no Pump Status Change at Pump Reboot, during sales
+								//===============================================================================================//
+								else if( (status_change_pump2 == 1) && ((fillingresume_flag2 == 0) && (fillingresume_flag2_1 == 0)) )
 								{
 									send_pumpStatus2(0);
 
@@ -1920,6 +1948,7 @@ void process_response2(response_enum response)
 
 									status_change_pump2 = 0;
 								}
+
 								///////////////////////////////////////  DC2  ///////////////////////////////////////
 								//=================================================================================//
 								//==========  This transaction is sent by the pump at change of a value  ==========//
@@ -2244,6 +2273,14 @@ void _process_response1(response_enum response)
 					//=============================//
 
 
+					//===================================================================================//
+					//	Tricks GO into believing Filling State seamlessly continued without a Pump Reset
+					//===================================================================================//
+					if( (fillingresume_flag1 == 1) || (fillingresume_flag1_1 == 1) )
+					{
+						pump_status_1 = STATUS_FILLING;
+					}
+
 					switch (pump_status_1)
 					{
 						//for the Pump-Status Commands
@@ -2304,6 +2341,14 @@ void _process_response1(response_enum response)
 
 					if(nozzle_out1 == true) nozStatus = 1;
 					else nozStatus = 0;
+
+					//===================================================================================//
+					//	Tricks GO into believing Filling State seamlessly continued without a Pump Reset
+					//===================================================================================//
+					if( (fillingresume_flag1 == 1) || (fillingresume_flag1_1 == 1) )
+					{
+						nozStatus = 1;
+					}
 
 					// nozIO = nozNum;
 					nozStatus = (nozStatus << 4);
@@ -3385,6 +3430,13 @@ void _process_response2(response_enum response)
 //				pump_status_ = STATUS_RESET;
 				//=============================//
 
+				//===================================================================================//
+				//	Tricks GO into believing Filling State seamlessly continued without a Pump Reset
+				//===================================================================================//
+				if( (fillingresume_flag2 == 1) || (fillingresume_flag2_1 == 1) )
+				{
+					pump_status_2 = STATUS_FILLING;
+				}
 
 				switch (pump_status_2)
 				{
@@ -3446,6 +3498,14 @@ void _process_response2(response_enum response)
 
 				if(nozzle_out2 == true) nozStatus = 1;
 				else nozStatus = 0;
+
+				//===================================================================================//
+				//	Tricks GO into believing Filling State seamlessly continued without a Pump Reset
+				//===================================================================================//
+				if( (fillingresume_flag2 == 1) || (fillingresume_flag2_1 == 1) )
+				{
+					nozStatus = 1;
+				}
 
 				// nozIO = nozNum;
 				nozStatus = (nozStatus << 4);
