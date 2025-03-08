@@ -14,6 +14,12 @@ extern "C" {
 
 #include "states.h"
 
+extern float amt_middle1,
+			 amt_middle2;
+
+extern sellmode_ sellmode,
+				 sellmode2;
+
 
 void flash_info_read(void);
 void flash_info_read_fram();

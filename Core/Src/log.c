@@ -535,6 +535,138 @@ eSystemState write_flash_State_Handler(void)
 
 		  }
 		//------------------------------------------------------------------------------------
+
+
+		  #if defined(AUTO_SALE_TEST)
+		  //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
+		  //======================= AUTOMATED SALES TEST ==========================//
+
+		  	  #if defined(DEBUG_AUTO_SALE_TEST)
+				char str_autoSale [50] = {0};
+				static uint8_t transact1 = 0,
+						       transact2 = 0;
+				if (operating_side == side_a)
+				{
+					memset(str_autoSale, '/0', sizeof(str_autoSale));
+
+					sprintf(str_autoSale,
+								"\n\nTransaction [Side-A] : #%d, ",
+								transact1++);
+
+					HAL_UART_Transmit(&huart3, str_autoSale, strlen((char*)str_autoSale), HAL_MAX_DELAY);
+
+					HAL_Delay(1);
+					memset(str_autoSale, '/0', sizeof(str_autoSale));
+
+					if(sellmode == P)
+					{
+						sprintf(str_autoSale,
+									"Programmed Sale : #%0.2f, ",
+									key_value);
+					}
+					else if(sellmode == L)
+					{
+						sprintf(str_autoSale,
+									"Programmed Sale : %0.2f L, ",
+									key_value);
+					}
+
+					HAL_UART_Transmit(&huart3, str_autoSale, strlen((char*)str_autoSale), HAL_MAX_DELAY);
+
+					HAL_Delay(1);
+
+					memset(str_autoSale, '/0', sizeof(str_autoSale));
+					sprintf(str_autoSale,
+								"Transaction Vol. : %0.2f, ",
+								amt_middle1);
+
+					HAL_UART_Transmit(&huart3, str_autoSale, strlen((char*)str_autoSale), HAL_MAX_DELAY);
+
+					HAL_Delay(1);
+
+					memset(str_autoSale, '/0', sizeof(str_autoSale));
+					sprintf(str_autoSale,
+								"Totalizer : %0.2f, ",
+								totaliser_vol1c);
+
+					HAL_UART_Transmit(&huart3, str_autoSale, strlen((char*)str_autoSale), HAL_MAX_DELAY);
+
+					HAL_Delay(1);
+
+					memset(str_autoSale, '/0', sizeof(str_autoSale));
+					sprintf(str_autoSale,
+								"Log No. : #%d\n\n ",
+								 flash_infoA.number_logs);
+
+					HAL_UART_Transmit(&huart3, str_autoSale, strlen((char*)str_autoSale), HAL_MAX_DELAY);
+
+				}
+
+				else if (operating_side == side_b)
+				{
+					memset(str_autoSale, '/0', sizeof(str_autoSale));
+
+					sprintf(str_autoSale,
+								"\n\nTransaction [Side-B] : #%d, ",
+								transact2++);
+
+					HAL_UART_Transmit(&huart3, str_autoSale, strlen((char*)str_autoSale), HAL_MAX_DELAY);
+
+					HAL_Delay(1);
+					memset(str_autoSale, '/0', sizeof(str_autoSale));
+
+					if(sellmode2 == P)
+					{
+						sprintf(str_autoSale,
+									"Programmed Sale : #%0.2f, ",
+									key_value2);
+					}
+					else if(sellmode2 == L)
+					{
+						sprintf(str_autoSale,
+									"Programmed Sale : %0.2f L, ",
+									key_value2);
+					}
+
+					HAL_UART_Transmit(&huart3, str_autoSale, strlen((char*)str_autoSale), HAL_MAX_DELAY);
+
+					HAL_Delay(1);
+
+					memset(str_autoSale, '/0', sizeof(str_autoSale));
+					sprintf(str_autoSale,
+								"Transaction Vol. : %0.2f, ",
+								amt_middle2);
+
+					HAL_UART_Transmit(&huart3, str_autoSale, strlen((char*)str_autoSale), HAL_MAX_DELAY);
+
+					HAL_Delay(1);
+
+					memset(str_autoSale, '/0', sizeof(str_autoSale));
+					sprintf(str_autoSale,
+								"Totalizer : %0.2f, ",
+								totaliser_vol2c);
+
+					HAL_UART_Transmit(&huart3, str_autoSale, strlen((char*)str_autoSale), HAL_MAX_DELAY);
+
+					HAL_Delay(1);
+
+					memset(str_autoSale, '/0', sizeof(str_autoSale));
+					sprintf(str_autoSale,
+								"Log No. : #%d\n\n ",
+								 flash_infoB.number_logs);
+
+					HAL_UART_Transmit(&huart3, str_autoSale, strlen((char*)str_autoSale), HAL_MAX_DELAY);
+
+				}
+
+			 #endif    //#if DEBUG_AUTO_SALE_TEST
+
+		//UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
+
+		#endif //#ifdef AUTO_SALE_TEST
+
+
+
 		w25qxx.Lock = 0;       // unlock the flash memory.
 		flshw = 0;             // reset the sub state.
 

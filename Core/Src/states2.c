@@ -2125,7 +2125,17 @@ if(
      	  }
      	  else if(settings_stream1[1].mode == AUTO_MODE)
      	  {
-     		  nozzle_flag_key2 = 1;
+
+     		  /* ---------------------------------------------------------------------------------------------------------- */
+			  /*                                                  NOZZLE UP 			   							        */
+			  /* 			   																						        */
+			  /*      [eNextState1 == prog_State] ==> Ensures Sales doesn't run in a config-mode of either/both side(s)     */
+    		  /*   			   																						        */
+			  /* ---------------------------------------------------------------------------------------------------------- */
+    		  if ( ((eNextState2 == idle_State) || (eNextState2 == authorised_nozzledown_State)) && (eNextState1 != prog_State) )
+    		  {
+    			  nozzle_flag_key2 = 1;
+    		  }
 
      		  return keypad_entry_State;
      	  }
@@ -2136,8 +2146,19 @@ if(
 	  {
 		   stop_flag2 = 1;  //deactivate auth2 cmd.
 
-		   nozzle_flag_key2 = 0;
-		   nozzle_flag_key_old2 = 1;
+		   /* ----------------------------------------------------------------------------------------------------- */
+		   /*                                            Nozzle Down                                                */
+		   /* ----------------------------------------------------------------------------------------------------- */
+		   if (
+				   (eNextState2 == idle_State) || (eNextState2 == nozzleup_waitingforauth_State) ||
+				   (eNextState2 == authorised_nozzledown_State) || (eNextState2 == authorised_nozzleup_State)  ||
+				   (eNextState2 == authorisation_paused_State) || (eNextState2 == filling_State) ||
+				   (eNextState2 == filling_paused_State) || (eNextState2 == filledmamo_State)
+			  )
+		   {
+			   nozzle_flag_key2 = 0;
+			   nozzle_flag_key_old2 = 1;
+		   }
 
 //		   keypad_zerorise2 = true;
 		}

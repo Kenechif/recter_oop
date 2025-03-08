@@ -1430,7 +1430,31 @@ void compose_printer()
 
 //	HAL_UART_Receive_IT(&huart3, uart3_rx_buf, pump_rx_bufsize);    //printer1
 	HAL_UART_Receive_IT(&huart3, rxBuffer, 1);
-	HAL_UART_Transmit(&huart3, "Hello, I'm Usart-3!\r\n", 21, HAL_MAX_DELAY);
+//	HAL_UART_Transmit(&huart3, "Hello, I'm Usart-3!\r\n", 21, HAL_MAX_DELAY);
+
+
+	/*=========================================================================*/
+
+	//-------------------------------------------------------------------------//
+
+	char strr__[60] = {0};
+
+	HAL_UART_Transmit(&huart3, "\n\n\n\n =====================", 26, HAL_MAX_DELAY);
+	HAL_Delay(1);
+	snprintf(strr__, sizeof(strr__), "\n\n   DATE : %02d-%02d-20%d\n", day, month, year);
+	HAL_UART_Transmit(&huart3, strr__, strlen((char*)strr__), HAL_MAX_DELAY);
+	HAL_Delay(1);
+	memset(strr__, sizeof(strr__), '\0');
+	snprintf(strr__, sizeof(strr__), "\n   TIME : %02d%02d Hrs\n\n", hour, minute);
+	HAL_UART_Transmit(&huart3, strr__, strlen((char*)strr__), HAL_MAX_DELAY);
+	HAL_Delay(1);
+	HAL_UART_Transmit(&huart3, " =====================\n\n\n\n", 26, HAL_MAX_DELAY);
+	HAL_Delay(1);
+
+	//-------------------------------------------------------------------------//
+
+	/*=========================================================================*/
+
 
 	HAL_UART_Receive_IT(&huart5, uart5_rx_buf, pump_rx_bufsize);    //printer2
 
@@ -2532,6 +2556,15 @@ skip_test:
 //    retrieve_amountTotaliser_fram(side_b);
 
 
+
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
+    //                                                                                                 //
+	// 				                        Retrieves Totalizers, 									   //
+    //	 But, at the same checks to reconcile Totalizers, in case there's reset during an active Sale  //
+	//																						           //
+	//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
+
+
     while(retrieve_totaliser_fram(side_a) != OK)   //If it fails, retry 5X
     {
     	static uint8_t try = 0;
@@ -2617,19 +2650,60 @@ skip_test:
    }
 
 
-   /////////////////////////////////////////////////////////////////////////////////////////
-   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%//
+    //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
 
-    // End measurement
-    end_cycles = DWT->CYCCNT;
 
-    // Calculate elapsed cycles and time
-    elapsed_cycles = end_cycles - start_cycles;
-    time_us = (float)elapsed_cycles / (SystemCoreClock / 1000000.0f); // Convert to µs
 
+    /////////////////////////////////////////////////////////////////////////////////////////
     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%//
 
+     // End measurement
+     end_cycles = DWT->CYCCNT;
 
+     // Calculate elapsed cycles and time
+     elapsed_cycles = end_cycles - start_cycles;
+     time_us = (float)elapsed_cycles / (SystemCoreClock / 1000000.0f); // Convert to µs
+
+     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%//
+     /////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+    /*=========================================================================*/
+	//-------------------------------------------------------------------------//
+
+	#if defined(DEBUG_AUTO_SALE_TEST)
+
+		memset(strr__, '/0', sizeof(strr__));
+
+		sprintf(strr__,
+					"\n\nInitial Totalizer [Side-A] : %0.2f ",
+					totaliser_vol1c);
+
+		HAL_UART_Transmit(&huart3, strr__, strlen((char*)strr__), HAL_MAX_DELAY);
+
+		HAL_Delay(1);
+
+		memset(strr__, '/0', sizeof(strr__));
+
+		sprintf(strr__,
+					"\n\nInitial Totalizer [Side-B] : %0.2f\n\n\n\n\n\n",
+					totaliser_vol2c);
+
+		HAL_UART_Transmit(&huart3, strr__, strlen((char*)strr__), HAL_MAX_DELAY);
+
+		HAL_Delay(1);
+
+	 #endif    //#if DEBUG_AUTO_SALE_TEST
+
+	//UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU//
+
+
+
+	//--------------------------------------------------------------------------------------------//
+	//VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//
 
 //    retrieve_totaliser_fram(side_a);
 //    totaliser_vol1c = 0;
@@ -2647,6 +2721,12 @@ skip_test:
 //
     //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH//
     //==============================================//
+
+//    /*--------------------------------------------------------*/
+//		clear_totaliser_fram(side_a);
+//		clear_totaliser_fram(side_b);
+//    /*--------------------------------------------------------*/
+
 //    totaliser_vol1c = 1000000.00;
 //    totaliser_vol1 = 1000000.00;
 
@@ -2672,7 +2752,9 @@ skip_test:
 //	save_totaliser_fram(side_b);
 //	save_totaliser_eeprom(side_b);
 
-	//VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//
+
+	//VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//
+	//--------------------------------------------------------------------------------------------//
 
     if(fillingresume_flag1_1 == 0)
     {
@@ -3896,11 +3978,19 @@ int  read_event2()
 		//======================== NOZZLE-UP EVENT ============================//
 
 	    // nozzle up  event capture...
+
+   //		   if(
+   //				 ( ((nozzle_flag_old2 == 0) && (nozzle_flag2 == 1)) ||
+   //				 ((nozzle_flag_key_old2 == 0) && (nozzle_flag_key2 == 1)) ) &&
+   //				 ((eNextState2 != operator_State) && (eLastState2 != operator_State)) &&
+   //				 (eNextState1 != prog_State)
+   //			 )
 		   if(
-				 ( ((nozzle_flag_old2 == 0) && (nozzle_flag2 == 1)) ||
-				 ((nozzle_flag_key_old2 == 0) && (nozzle_flag_key2 == 1)) ) &&
-				 ((eNextState2 != operator_State) && (eLastState2 != operator_State)) &&
-				 (eNextState1 != prog_State)
+				 (
+					( (nozzle_flag_old2 == 0) && (nozzle_flag2 == 1) ) ||
+					( (nozzle_flag_key_old2 == 0) && (nozzle_flag_key2 == 1) )
+				 ) &&
+				 (eNextState1 != prog_State)  //Forbids Sales-State in a Config-Mode of either Sides
 			 )
 		   {
 //			   keypad_zerorise2 = true;
@@ -3959,11 +4049,16 @@ int  read_event2()
 	   //--------------------------------------------------------------------------//
 
 	   // nozzle down  event capture...
+
+  //		  else if(
+  //					 ( ((nozzle_flag_old2 == 1) && (nozzle_flag2 == 0)) ||
+  //					 ((nozzle_flag_key_old2 == 1) && (nozzle_flag_key2 == 0)) ) &&
+  //					 ((eNextState2 != operator_State) && (eLastState2 != operator_State)) &&
+  //					 (eNextState1 != prog_State)
+  //				 )
 		  else if(
-					 ( ((nozzle_flag_old2 == 1) && (nozzle_flag2 == 0)) ||
-					 ((nozzle_flag_key_old2 == 1) && (nozzle_flag_key2 == 0)) ) &&
-					 ((eNextState2 != operator_State) && (eLastState2 != operator_State)) &&
-					 (eNextState1 != prog_State)
+				  ( (nozzle_flag_old2 == 1) && (nozzle_flag2 == 0) ) ||
+				  ( (nozzle_flag_key_old2 == 1) && (nozzle_flag_key2 == 0) )
 				 )
 		   {
 			   if((nozzle_flag_old2 == 1) && (nozzle_flag2 == 0))
@@ -4718,12 +4813,21 @@ uint8_t read_event1_1(void)
 
 	   //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH//
 	   //======================== NOZZLE-UP EVENT ============================//
+	   //--------------------------------------------------------------------------//
+	   	   	  // nozzle up event capture...
 
+//	   if(
+//   			 ( ((nozzle_flag_old == 0) && (nozzle_flag == 1)) ||
+//   			 ((nozzle_flag_key_old1 == 0) && (nozzle_flag_key1 == 1)) ) &&
+//   			 ((eNextState1 != operator_State) && (eLastState1 != operator_State)) &&
+//   			 (eNextState2 != prog_State) //&& (eLastState1 != operator_State))
+//   		 )
 	   if(
-			 ( ((nozzle_flag_old == 0) && (nozzle_flag == 1)) ||
-			 ((nozzle_flag_key_old1 == 0) && (nozzle_flag_key1 == 1)) ) &&
-			 ((eNextState1 != operator_State) && (eLastState1 != operator_State)) &&
-			 (eNextState2 != prog_State) //&& (eLastState1 != operator_State))
+			 (
+				( (nozzle_flag_old == 0) && (nozzle_flag == 1) ) ||
+				( (nozzle_flag_key_old1 == 0) && (nozzle_flag_key1 == 1) )
+			 ) &&
+			 (eNextState2 != prog_State)  //Forbids Sales-State in a Config-Mode of either Sides
 		 )
 	   {
 //		   keypad_zerorise1 = true;
@@ -4787,14 +4891,22 @@ uint8_t read_event1_1(void)
 	   //=========================== NOZZLE-DOWN EVENT ============================//
 	   //--------------------------------------------------------------------------//
 	   	  // nozzle down  event capture...
+
+//	   	  else if(
+//					 ( ((nozzle_flag_old == 1) && (nozzle_flag == 0)) ||
+//					 ((nozzle_flag_key_old1 == 1) && (nozzle_flag_key1 == 0)) ) &&
+//					 ((eNextState1 != operator_State) && (eLastState1 != operator_State)) &&
+//					 (eNextState2 != prog_State)
+//				 )
+
+
 	   	  else if(
-					 ( ((nozzle_flag_old == 1) && (nozzle_flag == 0)) ||
-					 ((nozzle_flag_key_old1 == 1) && (nozzle_flag_key1 == 0)) ) &&
-					 ((eNextState1 != operator_State) && (eLastState1 != operator_State)) &&
-					 (eNextState2 != prog_State)
+	   			  ( (nozzle_flag_old == 1) && (nozzle_flag == 0) ) ||
+	   			  ( (nozzle_flag_key_old1 == 1) && (nozzle_flag_key1 == 0) )
 				 )
-	   	   {
-	   		   if((nozzle_flag_old == 1) && (nozzle_flag == 0))
+	   	  {
+
+	   		  if((nozzle_flag_old == 1) && (nozzle_flag == 0))
 			   {
 	   			   if((nozzle_flag_key_old1 == 0) && (nozzle_flag_key1 == 0))
 				   {

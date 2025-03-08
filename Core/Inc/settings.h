@@ -39,26 +39,28 @@ extern "C" {
 
 #define TIMEOUT_GO					8000       //8 sec
 
+
 //:::::::::::::::::::::::::::::::::::::::::::://
 
-	  #define DEBUG_0 0
-//	  #define DEBUG_0 1
+#define DEBUG 0
+//	  #define DEBUG 1
 
-	  #define DEBUG1 0
+#define DEBUG1 0
 //	  #define DEBUG1 1
 
-	  #define DEBUG2 0
+#define DEBUG2 0
 //	  #define DEBUG2 1
 
-	  #define PRODUCT_TYPE _DPK
+#define PRODUCT_TYPE _DPK
 
-	  #define DEV_MODE
+#define DEV_MODE
 
-	  #define OTP_ENABLE
+#define OTP_ENABLE
 
 //	  #define PULSER_BASED_TV
 
-//	  #define AUTO_SALE_TEST
+#define AUTO_SALE_TEST
+#define DEBUG_AUTO_SALE_TEST
 
 //    #define INCIDENT_RECORD
 

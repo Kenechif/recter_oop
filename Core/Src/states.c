@@ -226,7 +226,7 @@ extern uint32_t num ;
 extern uint32_t transaction_period;
 
 //extern float target_pulser1 , current_pulser1 ;
-extern sellmode_ sellmode ;
+extern sellmode_ sellmode;
 
 char str_[10]= {0};
 
@@ -2493,7 +2493,17 @@ eSystemState keypress_Handler(void)
     	  }
     	  else if(settings_stream1[0].mode == AUTO_MODE)
     	  {
-    		  nozzle_flag_key1 = 1;
+
+    		  /* ---------------------------------------------------------------------------------------------------------- */
+			  /*                                                  NOZZLE UP 			   							        */
+			  /* 			   																						        */
+			  /*      [eNextState2 == prog_State] ==> Ensures Sales doesn't run in a config-mode of either/both side(s)     */
+    		  /*   			   																						        */
+			  /* ---------------------------------------------------------------------------------------------------------- */
+    		  if ( ((eNextState1 == idle_State) || (eNextState1 == authorised_nozzledown_State)) && (eNextState2 != prog_State) )
+    		  {
+    			  nozzle_flag_key1 = 1;
+    		  }
 
     		  return keypad_entry_State;
     	  }
@@ -2504,8 +2514,21 @@ eSystemState keypress_Handler(void)
 	  {
 		   stop_flag = 1;  //deactivate auth cmd.
 
-		   nozzle_flag_key1 = 0;
-		   nozzle_flag_key_old1 = 1;
+
+		   /* ----------------------------------------------------------------------------------------------------- */
+		   /*                                            Nozzle Down                                                */
+		   /* ----------------------------------------------------------------------------------------------------- */
+		   if (
+				   (eNextState1 == idle_State) || (eNextState1 == nozzleup_waitingforauth_State) ||
+				   (eNextState1 == authorised_nozzledown_State) || (eNextState1 == authorised_nozzleup_State)  ||
+				   (eNextState1 == authorisation_paused_State) || (eNextState1 == filling_State) ||
+				   (eNextState1 == filling_paused_State) || (eNextState1 == filledmamo_State)
+			  )
+		   {
+			   nozzle_flag_key1 = 0;
+			   nozzle_flag_key_old1 = 1;
+		   }
+
 //		   keypad_zerorise1 = true;
 	  }
 
