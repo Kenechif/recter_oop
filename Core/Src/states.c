@@ -9550,7 +9550,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 						{
 							tk_int_ = (uint16_t)tk_int;
 
-							if( (tk_int_ < 10) || (tk_int_ > 100) )
+							if( (tk_int_ < 10) || (tk_int_ > 150) )   //between 1L and 100L, sustained by the subsequent divisor 10
 							{
 								goto generate_4Rand1;
 							}
@@ -9567,7 +9567,7 @@ eSystemState authorised_nozzleup_State_Handler(void)
 
 							tk_int_ = (uint16_t)tk_int;
 
-							if( (tk_int_ < 300) || (tk_int_ > 3000) )
+							if( (tk_int_ < 2000) || (tk_int_ > 30000) )
 							{
 								goto generate_4Rand1;
 							}

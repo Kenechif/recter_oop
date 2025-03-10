@@ -53,7 +53,7 @@ extern "C" {
 
 #define PRODUCT_TYPE _DPK
 
-#define DEV_MODE
+//#define DEV_MODE
 
 #define OTP_ENABLE
 
@@ -78,8 +78,8 @@ extern "C" {
 	#define sense_power  				1
 #else
 	#define _USE_SOFT_PULSER            0
-//	#define sense_battery 				1
-	#define sense_battery 				0
+	#define sense_battery 				1
+//	#define sense_battery 				0
 	#define sense_power  				1
 #endif
 

@@ -8672,7 +8672,7 @@ eSystemState authorised_nozzleup_State_Handler2(void)
 						{
 							tk_int_2 = (uint16_t)tk_int;
 
-							if( (tk_int_2 < 10) || (tk_int_2 > 100) )
+							if( (tk_int_2 < 10) || (tk_int_2 > 50) )     //between 1L and 5L, sustained by the subsequent divisor 10
 							{
 								goto generate_4Rand;
 							}
