@@ -8063,27 +8063,27 @@ eSystemState idleState_Handler2(void)
 
 	 print__1();   //print the transaction.
 
-	#if sense_power == 1
-		  	  if(readpwr() == 0)
-			  {
-		  		   modem_power(DEACTIVATE);
-
-				   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-				   HAL_Delay(100);
-				   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
-
-		  		   //count time elapsed
-				   if (shutdown_timer2 > 120)
-				   {
-					   displayandkeypad_power(DEACTIVATE);   //shutdown... after  2 minutes
-				   }
-			  }
-		  	  else
-		  	  {
-		  		  //clear the timer//
-		  		  shutdown_timer2 = 0;
-		  	  }
-	#endif
+//	#if sense_power == 1
+//		  	  if(readpwr() == 0)
+//			  {
+//		  		   modem_power(DEACTIVATE);
+//
+//				   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
+//				   HAL_Delay(100);
+//				   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+//
+//		  		   //count time elapsed
+//				   if (shutdown_timer2 > 120)
+//				   {
+//					   displayandkeypad_power(DEACTIVATE);   //shutdown... after  2 minutes
+//				   }
+//			  }
+//		  	  else
+//		  	  {
+//		  		  //clear the timer//
+//		  		  shutdown_timer2 = 0;
+//		  	  }
+//	#endif
 
 	  	return idle_State;
 }
