@@ -28,28 +28,28 @@ extern const char device_id [];
 extern char session_id[9];
 
 extern float litre_price1;
-extern int8_t opmode,
+extern int8_t self->opmode,
 			  opmode2;
 //			  connected = 0;
 
 extern uint8_t connected = 0;
 
-extern uint32_t transaction_period,
+extern uint32_t self->transaction_period,
 				transaction_period2;
 
 extern uint8_t firstTime_filling1,
 			   firstTime_filling2;
 
 extern uint8_t mamo_reached_flag1,
-			   mamo_reached_flag1_1,
-			   filling_mamo_flag1 = 0,
-			   stopFlag_source1 = 0,
-			   nozzleDown_source1 = 0,
+			   self->mamo_reached_flag1_1,
+			   self->filling_mamo_flag = 0,
+			   self->stopFlag_source = 0,
+			   self->nozzleDown_source = 0,
 			   reset_flag1 = 0,
-			   hardwareError_flag1 = 0,
-			   hardwareErrorFlag_source1 = 0,
-			   go_timeOut1 = 0,
-			   mamo_fillingInfo_send1 = 0;
+			   self->hardwareError_flag = 0,
+			   self->hardwareErrorFlag_source = 0,
+			   self->go_timeOut = 0,
+			   self->mamo_fillingInfo_send = 0;
 
 extern uint8_t mamo_reached_flag2,
 			   mamo_reached_flag2_1,
@@ -80,13 +80,13 @@ const int max = 50-1;
 //extern RTC_TimeTypeDef gTime;
 
 //
-//extern log_new log_a_new;
+//extern log_new self->log_new;
 //extern log_new log_b_new;
 
-extern pump_status_enum pump_status_1,
+extern pump_status_enum self->pump_status,
 						pump_status_2;
 
-extern log_new log_a_new,
+extern log_new self->log_new,
 			   log_b_new,
 			   synchedLog_a_new,
 			   synchedLog_b_new;
@@ -100,22 +100,22 @@ extern char upper1[10],
 			upper2[10],
 			middle2[10];
 
-extern const uint32_t flash_beginA;
-extern const uint32_t flash_endA;
+extern const uint32_t self->flash_begin;
+extern const uint32_t self->flash_end;
 
 extern const uint32_t flash_beginB;
 extern const uint32_t flash_endB;
 
-extern flash_store_info flash_infoA,flash_infoB;
+extern flash_store_info self->flash_info,flash_infoB;
 
 extern const int flash_info_sto;
 extern const int flash_stoA;
 extern const int flash_stoB;
 
-extern const uint16_t flash_stoA_fram,
+extern const uint16_t self->flash_sto_fram,
 					  flash_stoB_fram;
 
-uint32_t flash_read_idA = 0;
+uint32_t self->flash_read_id = 0;
 uint32_t flash_read_idB = 0;
 
 extern int operating_side;
@@ -123,14 +123,14 @@ extern float price_real1, price_real2,
 			 amt_real1, amt_real2,
 			 price, price2,
 			 amt, amt2,
-//			 totaliser_vol1, totaliser_vol1c,
+//			 self->totaliser_vol, totaliser_vol1c,
 //			 totaliser_vol2, totaliser_vol2c,
 			 totaliser_amt1, totaliser_amt1c,
 			 totaliser_amt2, totaliser_amt2c,
 			 priceOld1,
 			 priceOld2;
 
-extern float totaliser_vol1,
+extern float self->totaliser_vol,
 			 totaliser_vol1c,
 			 totaliser_vol2,
 			 totaliser_vol2c;
@@ -166,15 +166,15 @@ extern uint8_t _litre_price1,
 //==================================================
 void flash_info_read()
 {
-	EEPROM_Read(flash_info_sto, flash_stoA, &flash_infoA, sizeof(flash_infoA));
-	  // log_wrt_ptrA = flash_infoA.current_loc;
+	EEPROM_Read(flash_info_sto, flash_stoA, &self->flash_info, sizeof(self->flash_info));
+	  // log_wrt_ptrA = self->flash_info.current_loc;
 	EEPROM_Read(flash_info_sto, flash_stoB, &flash_infoB, sizeof(flash_infoB));
   // log_wrt_ptrB = flash_infoB.current_loc;
 }
 
 void flash_info_read_fram()
 {
-	FRAM_Read(flash_stoA_fram, &flash_infoA, sizeof(flash_infoA));
+	FRAM_Read(self->flash_sto_fram, &self->flash_info, sizeof(self->flash_info));
 	FRAM_Read(flash_stoB_fram, &flash_infoB, sizeof(flash_infoB));
 }
 
@@ -191,44 +191,44 @@ void update_info()       //save_log( )
         //====================================
         //        price and volume
 
-//	    memset(log_a_new.pr__ , '0', sizeof(log_a_new.pr__) ); //calibrated
-//	    memset(log_a_new.vol__ , '0', sizeof(log_a_new.pr__) );
-//	    strncpy(log_a_new.pr__ , upper1, sizeof(log_a_new.pr__) );
-//	    strncpy(log_a_new.vol__ , middle1, sizeof(log_a_new.vol__) );
+//	    memset(self->log_new.pr__ , '0', sizeof(self->log_new.pr__) ); //calibrated
+//	    memset(self->log_new.vol__ , '0', sizeof(self->log_new.pr__) );
+//	    strncpy(self->log_new.pr__ , upper1, sizeof(self->log_new.pr__) );
+//	    strncpy(self->log_new.vol__ , middle1, sizeof(self->log_new.vol__) );
 
 	   char *endPtr;
 
-	    log_a_new.pr__ = strtof(upper1, &endPtr);  //calibrated
-//	    log_a_new.pr__  += 0.00011;  //make small correction for the inherent rounddown.
-	    log_a_new.vol__ = strtof(middle1, &endPtr);
-//	    log_a_new.vol__ += 0.00011;  //make small correction for the inherent rounddown.
+	    self->log_new.pr__ = strtof(upper1, &endPtr);  //calibrated
+//	    self->log_new.pr__  += 0.00011;  //make small correction for the inherent rounddown.
+	    self->log_new.vol__ = strtof(middle1, &endPtr);
+//	    self->log_new.vol__ += 0.00011;  //make small correction for the inherent rounddown.
 
-	    log_a_new.pr_ = price_real1;  //real
-        log_a_new.vol_ = amt_real1;
-//        log_a_new.pr__ = price;  //calibrated
-//        log_a_new.vol__ = amt;
-       // log_a_new.pr_d = 0; //price_;
-       // log_a_new.pr_d = 0; //amt_;
+	    self->log_new.pr_ = price_real1;  //real
+        self->log_new.vol_ = amt_real1;
+//        self->log_new.pr__ = price;  //calibrated
+//        self->log_new.vol__ = amt;
+       // self->log_new.pr_d = 0; //price_;
+       // self->log_new.pr_d = 0; //amt_;
 
         //=====================================
         //=========    totaliser   ==========
-		 log_a_new.totaliserVol_real =  totaliser_vol1;  //totaliser_vol_storeA.totaliserVol_real; //totaliser_vol1;
-		 log_a_new.totaliserVol_cal  =  totaliser_vol1c; //totaliser_vol_storeA.totaliserVol_cal;  //totaliser_vol2;
+		 self->log_new.totaliserVol_real =  self->totaliser_vol;  //totaliser_vol_storeA.totaliserVol_real; //self->totaliser_vol;
+		 self->log_new.totaliserVol_cal  =  totaliser_vol1c; //totaliser_vol_storeA.totaliserVol_cal;  //totaliser_vol2;
 
-		 log_a_new.totaliserAmount_real =  totaliser_amt1;  //totaliser_vol_storeA.totaliserVol_real; //totaliser_vol1;
-		 log_a_new.totaliserAmount_cal  =  totaliser_amt1c; //totaliser_vol_storeA.totaliserVol_cal;  //totaliser_vol2;
+		 self->log_new.totaliserAmount_real =  totaliser_amt1;  //totaliser_vol_storeA.totaliserVol_real; //self->totaliser_vol;
+		 self->log_new.totaliserAmount_cal  =  totaliser_amt1c; //totaliser_vol_storeA.totaliserVol_cal;  //totaliser_vol2;
 
         //=====================================
         //==========   date ==========
-         log_a_new.time_e._hh = hour;
-         log_a_new.time_e._mn = minute;
+         self->log_new.time_e._hh = hour;
+         self->log_new.time_e._mn = minute;
 
          //=========  time  ==========
-         log_a_new.date._yy = year;
-         log_a_new.date._mm = month;
-         log_a_new.date._dd = day;
+         self->log_new.date._yy = year;
+         self->log_new.date._mm = month;
+         self->log_new.date._dd = day;
 
-         log_a_new.litre_price_ = litre_price1;
+         self->log_new.litre_price_ = litre_price1;
 
        // log_wrt_ptrA +=1 ;
     }
@@ -254,15 +254,15 @@ void update_info()       //save_log( )
 //		   log_b_new.vol__ += 0.00011;  //make small correction for the inherent rounddown.
 
 
-          // log_a_new.pr_d = 0; //price_;
-          // log_a_new.pr_d = 0; //amt_;
+          // self->log_new.pr_d = 0; //price_;
+          // self->log_new.pr_d = 0; //amt_;
 
            //=====================================
            //=========    totaliser   ==========
-           log_b_new.totaliserVol_real = totaliser_vol2;  //totaliser_vol_storeB.totaliserVol_real; //totaliser_vol1;
+           log_b_new.totaliserVol_real = totaliser_vol2;  //totaliser_vol_storeB.totaliserVol_real; //self->totaliser_vol;
            log_b_new.totaliserVol_cal  = totaliser_vol2c; //totaliser_vol_storeB.totaliserVol_cal;  //totaliser_vol2;
 
-           log_b_new.totaliserAmount_real = totaliser_amt2;  //totaliser_vol_storeB.totaliserVol_real; //totaliser_vol1;
+           log_b_new.totaliserAmount_real = totaliser_amt2;  //totaliser_vol_storeB.totaliserVol_real; //self->totaliser_vol;
 		   log_b_new.totaliserAmount_cal  = totaliser_amt2c; //totaliser_vol_storeB.totaliserVol_cal;  //totaliser_vol2;
 
            //=====================================
@@ -287,16 +287,16 @@ void update_info()       //save_log( )
 //ooooooooooooooooooooooooooooooooooooooooooooooooooo
 eSystemState read_flash_State_Handler(void)
 {
-	static int flshr = 0;
+	static int self->flshr = 0;
 	uint32_t flash_read_id_ = 0;
-	static int prev_state_sto = 0;
+	static int self->prev_state_sto = 0;
 
 	uint32_t pg = 0;
 
  if (operating_side == side_a)
  {
-	 pg = flash_read_idA/w25qxx.PageSize;
-     W25qxx_ReadPage(&log_a_new,  pg, 0, sizeof(log_a_new) );
+	 pg = self->flash_read_id/w25qxx.PageSize;
+     W25qxx_ReadPage(&self->log_new,  pg, 0, sizeof(self->log_new) );
  }
  else
  {
@@ -308,18 +308,18 @@ eSystemState read_flash_State_Handler(void)
 
 //-----------------------------------------------------------
 
-		if(flshr == 0)
+		if(self->flshr == 0)
 		{
 		   while (w25qxx.Lock == 1) return read_flash_State;   //wait for pending job
 		   w25qxx.Lock = 1;  // lock access to flash mem. operations.
-		   prev_state_sto = ePrevState;
+		   self->prev_state_sto = ePrevState;
 		   //------------------------------------------------------
 		   //   restrict the reading addresses to within each zones.
 		  		  if (operating_side == side_a)
 		  			   {
-		  			     flash_read_id_ = flash_read_idA;   //assign the read address.
-		  			     if(flash_read_id_ > flash_endA)   flash_read_id_ = flash_endA;
-		  			     if(flash_read_id_ < flash_beginA) flash_read_id_ = flash_beginA;
+		  			     flash_read_id_ = self->flash_read_id;   //assign the read address.
+		  			     if(flash_read_id_ > self->flash_end)   flash_read_id_ = self->flash_end;
+		  			     if(flash_read_id_ < self->flash_begin) flash_read_id_ = self->flash_begin;
 		  			   }
 		  		  if (operating_side == side_b)
 		  			   {
@@ -328,11 +328,11 @@ eSystemState read_flash_State_Handler(void)
 		  			     if(flash_read_id_ < flash_beginB) flash_read_id_ = flash_beginB;
 		  			   }
 		   //-------------------------------------------------------
-		   flshr = 1;
+		   self->flshr = 1;
 		      return read_flash_State;
 		}
 
-		if(flshr == 1)
+		if(self->flshr == 1)
 		{
 			flash_read_id_ = flash_read_id;
 			HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_RESET);
@@ -351,16 +351,16 @@ eSystemState read_flash_State_Handler(void)
 			W25qxx_Spi(0);
 		  //-------------------------read the data--------------------------
 			if (operating_side == side_a)
-				HAL_SPI_Receive(&_W25QXX_SPI, &log_a_new, sizeof(log_a_new), 1000);
+				HAL_SPI_Receive(&_W25QXX_SPI, &self->log_new, sizeof(self->log_new), 1000);
 			else
 				HAL_SPI_Receive(&_W25QXX_SPI, &log_b_new, sizeof(log_b_new), 1000);
 			HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_SET);
 
 			w25qxx.Lock = 0;   //  unlock access to the flash mem.
-			flshr = 0;         //reset sub state variable
+			self->flshr = 0;         //reset sub state variable
 			return operator_State;
 
-			return prev_state_sto; //prog_State; //return to the calling state.
+			return self->prev_state_sto; //prog_State; //return to the calling state.
 		}
     return read_flash_State;
 }
@@ -368,7 +368,7 @@ eSystemState read_flash_State_Handler(void)
 //----------------------------------------
 eSystemState write_flash_State_Handler(void)
 {
-	static int flshw = 0;
+	static int self->flshw = 0;
 	uint32_t flash_write_id_ = 0;
 	//wrt_Buffer   contains the data to be written int the flash mem.
 
@@ -379,36 +379,36 @@ eSystemState write_flash_State_Handler(void)
 
 	if(operating_sideA)
 	{
-		log_a_new.transaction_period = transaction_period;
+		self->log_new.self->transaction_period = self->transaction_period;
 	    firstTime_filling1 = 1;
 
 	    keypad_fillingUpdate1();
 
-		if(opmode == AUTO_MODE)
+		if(self->opmode == AUTO_MODE)
 		{
-			log_a_new.autoTranxFlag = 1;
+			self->log_new.autoTranxFlag = 1;
 		}
-		else if(opmode == MANUAL_MODE)
+		else if(self->opmode == MANUAL_MODE)
 		{
-			log_a_new.autoTranxFlag = 0;
+			self->log_new.autoTranxFlag = 0;
 		}
 
 
-		pg = flash_infoA.current_loc/w25qxx.PageSize;
+		pg = self->flash_info.current_loc/w25qxx.PageSize;
 
-		generateTransc_ID(log_a_new.transaction_id);
+		generateTransc_ID(self->log_new.transaction_id);
 
-		log_a_new.timestamp = RtcToInt_synchedTranx(2019, side_a);
-		strcpy(log_a_new.nozzle_name, pumpName[0].pump_name);
-		strcpy(log_a_new.nozzle_product, settings_stream1[0].product_);
+		self->log_new.timestamp = RtcToInt_synchedTranx(2019, side_a);
+		strcpy(self->log_new.nozzle_name, pumpName[0].pump_name);
+		strcpy(self->log_new.nozzle_product, self->settings_stream1[0].product_);
 
-		memset(log_a_new.device_id, '\0', sizeof(log_a_new.device_id));
-		strncpy(log_a_new.device_id, device_id, 15);
+		memset(self->log_new.device_id, '\0', sizeof(self->log_new.device_id));
+		strncpy(self->log_new.device_id, device_id, 15);
 
-		memset(log_a_new.session_id, '\0', sizeof(log_a_new.session_id));
-//		strncpy(log_a_new.session_id, session_id1, strlen(session_id1));
+		memset(self->log_new.session_id, '\0', sizeof(self->log_new.session_id));
+//		strncpy(self->log_new.session_id, session_id1, strlen(session_id1));
 
-		W25qxx_WritePage(&log_a_new, pg, 0, sizeof(log_a_new) );
+		W25qxx_WritePage(&self->log_new, pg, 0, sizeof(self->log_new) );
 	}
 	else if(operating_sideB)
 	{
@@ -433,7 +433,7 @@ eSystemState write_flash_State_Handler(void)
 
 		log_b_new.timestamp = RtcToInt_synchedTranx(2019, side_b);
 		strcpy(log_b_new.nozzle_name, pumpName[1].pump_name);
-		strcpy(log_b_new.nozzle_product, settings_stream1[0].product_);
+		strcpy(log_b_new.nozzle_product, self->settings_stream1[0].product_);
 
 		memset(log_b_new.device_id, '\0', sizeof(log_b_new.device_id));
 		strncpy(log_b_new.device_id, device_id, 15);
@@ -451,21 +451,21 @@ eSystemState write_flash_State_Handler(void)
 		// next saving address is
 		  if (operating_side == side_a)
 		  {
-			 next_loc = flash_infoA.current_loc + 256;  //sizeof(log_a_new);
+			 next_loc = self->flash_info.current_loc + 256;  //sizeof(self->log_new);
 
-			 if (next_loc > flash_endA)
+			 if (next_loc > self->flash_end)
 			 {
-				 next_loc = flash_beginA;   //flash_endA => 0x3FFFFF --> 4,194,303 pg16,383.996
+				 next_loc = self->flash_begin;   //self->flash_end => 0x3FFFFF --> 4,194,303 pg16,383.996
 			 }
-			 flash_infoA.current_loc  =  next_loc;
-			 flash_infoA.number_logs  =  flash_infoA.number_logs + 1;
-//			 EEPROM_Write(flash_info_sto, flash_stoA, &flash_infoA, sizeof(flash_infoA));
-			 FRAM_Write(flash_stoA_fram, &flash_infoA, sizeof(flash_infoA));
+			 self->flash_info.current_loc  =  next_loc;
+			 self->flash_info.number_logs  =  self->flash_info.number_logs + 1;
+//			 EEPROM_Write(flash_info_sto, flash_stoA, &self->flash_info, sizeof(self->flash_info));
+			 FRAM_Write(self->flash_sto_fram, &self->flash_info, sizeof(self->flash_info));
 
 //			 ep1b_save.total_tranxA++;
 			 save_totalTransaction_sides(side_a);
 
-			 if(opmode == AUTO_MODE)
+			 if(self->opmode == AUTO_MODE)
 			 {
 				save_totalAutoTransaction_sides(side_a);
 			 }
@@ -484,8 +484,8 @@ eSystemState write_flash_State_Handler(void)
 //				connected = 0;
 //			}
 
-//			 if(pump_status_1 != STATUS_MAMO_REACHED)
-			 if(settings_stream1[0].noz_override == override)
+//			 if(self->pump_status != STATUS_MAMO_REACHED)
+			 if(self->settings_stream1[0].noz_override == override)
 				 keypad_zerorize();
 
 			//============================================//
@@ -528,7 +528,7 @@ eSystemState write_flash_State_Handler(void)
 //			}
 
 //			 if(pump_status_2 != STATUS_MAMO_REACHED)
-			 if(settings_stream1[1].noz_override == override)
+			 if(self->settings_stream1[1].noz_override == override)
 				 keypad_zerorize2();
 
 			//============================================//
@@ -596,7 +596,7 @@ eSystemState write_flash_State_Handler(void)
 					memset(str_autoSale, '/0', sizeof(str_autoSale));
 					sprintf(str_autoSale,
 								"Log No. : #%d\n\n ",
-								 flash_infoA.number_logs);
+								 self->flash_info.number_logs);
 
 					HAL_UART_Transmit(&huart3, str_autoSale, strlen((char*)str_autoSale), HAL_MAX_DELAY);
 
@@ -668,55 +668,55 @@ eSystemState write_flash_State_Handler(void)
 
 
 		w25qxx.Lock = 0;       // unlock the flash memory.
-		flshw = 0;             // reset the sub state.
+		self->flshw = 0;             // reset the sub state.
 
-		if( (settings_stream1[0].mode == AUTO_MODE) || (settings_stream1[1].mode == AUTO_MODE) )
+		if( (self->settings_stream1[0].mode == AUTO_MODE) || (self->settings_stream1[1].mode == AUTO_MODE) )
 		{
 			if(operating_side == side_a)
 			{
-				if(stopFlag_source1 == 1)
+				if(self->stopFlag_source == 1)
 				{
-					stopFlag_source1 = 0;
+					self->stopFlag_source = 0;
 
-					pump_status_1 = STATUS_FILLING_COMP;
+					self->pump_status = STATUS_FILLING_COMP;
 
-					status_change_noz1 = 1;
+					self->status_change_noz = 1;
 
 					return idle_State;
 				}
-				else if(nozzleDown_source1 == 1)
+				else if(self->nozzleDown_source == 1)
 				{
-					nozzleDown_source1 = 0;
+					self->nozzleDown_source = 0;
 
-					pump_status_1 = STATUS_FILLING_COMP;
+					self->pump_status = STATUS_FILLING_COMP;
 
-					status_change_noz1 = 1;
-					status_change_pump1 = 1;
+					self->status_change_noz = 1;
+					self->status_change_pump = 1;
 
 					return idle_State;
 				}
-				else if (mamo_reached_flag1_1 == 1)
+				else if (self->mamo_reached_flag1_1 == 1)
 				{
-					mamo_reached_flag1_1 = 0;
+					self->mamo_reached_flag1_1 = 0;
 
-					mamo_fillingInfo_send1 = 1;
+					self->mamo_fillingInfo_send = 1;
 
-					filling_mamo_flag1 = 1;  //Ensures Routine in the filling state is not on repeat
+					self->filling_mamo_flag = 1;  //Ensures Routine in the filling state is not on repeat
 
 					return filling_State;
 				}
-				else if (hardwareErrorFlag_source1 == 1)
+				else if (self->hardwareErrorFlag_source == 1)
 				{
-					hardwareErrorFlag_source1 = 0;
-					hardwareError_flag1 = 1;
+					self->hardwareErrorFlag_source = 0;
+					self->hardwareError_flag = 1;
 
 					return filling_State;
 				}
-				else if(go_timeOut1 == 1)
+				else if(self->go_timeOut == 1)
 				{
-					go_timeOut1 = 0;
+					self->go_timeOut = 0;
 
-					pump_status_1 = STATUS_PNP;
+					self->pump_status = STATUS_PNP;
 					return pnp_State;
 				}
 			}
@@ -769,11 +769,11 @@ eSystemState write_flash_State_Handler(void)
 			}
 		}
 
-		else if( (settings_stream1[0].mode == MANUAL_MODE) || (settings_stream1[1].mode == MANUAL_MODE) )
+		else if( (self->settings_stream1[0].mode == MANUAL_MODE) || (self->settings_stream1[1].mode == MANUAL_MODE) )
 		{
 			if (operating_side == side_a)
 			{
-				pump_status_1 = STATUS_FILLING_COMP;
+				self->pump_status = STATUS_FILLING_COMP;
 			}
 			else if (operating_side == side_b)
 			{
@@ -786,7 +786,7 @@ eSystemState write_flash_State_Handler(void)
 
 	//	 W25qxx_WritePage(pBuffer, Page_Address, OffsetInByte, NumByteToWrite_up_to_PageSize);
 
-	if(flshw == 0)
+	if(self->flshw == 0)
 	{
 		  while (w25qxx.Lock == 1)
 			  return read_flash_State; //wait for pending job
@@ -796,54 +796,54 @@ eSystemState write_flash_State_Handler(void)
 		  //   assign the writing address.
 		  if (operating_side == side_a)
 		   {
-			 flash_write_id_ = flash_infoA.current_loc;
+			 flash_write_id_ = self->flash_info.current_loc;
 		   }
 		  if (operating_side == side_b)
 		   {
 			 flash_write_id_ = flash_infoB.current_loc;
 		   }
 		  //-----------------------------------------------------
-		  flshw = 1;
+		  self->flshw = 1;
 		  return write_flash_State;
 	}
 //--------------------------wait for write end -----------------------------
-	if(flshw == 1)
+	if(self->flshw == 1)
 	{
 		 HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_RESET);
 		 W25qxx_Spi(0x05);
-		 flshw = 2;
+		 self->flshw = 2;
 		 return write_flash_State;
 	}
 
-	if(flshw == 2)
+	if(self->flshw == 2)
 	{
 		w25qxx.StatusRegister1 = W25qxx_Spi(W25QXX_DUMMY_BYTE);
-		flshw = 3;
+		self->flshw = 3;
 		return write_flash_State;
 	}
 
-	if(flshw == 3)
+	if(self->flshw == 3)
 	{
 		if ((w25qxx.StatusRegister1 & 0x01) == 0x01)
 		 {
-			flshw = 2;
+			self->flshw = 2;
 			return write_flash_State;
 		 }
 		  HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_SET);
-		  flshw = 4;
+		  self->flshw = 4;
 		  return write_flash_State;
 	}
 //-------------------------  write enable  -------------------------
-	if(flshw == 4)
+	if(self->flshw == 4)
 		{
 			HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_RESET);
 			W25qxx_Spi(0x06);
 			HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_SET);
-			flshw = 5;
+			self->flshw = 5;
 			return write_flash_State;
 		}
 //-------------------------  set the address ----------------------
-		if(flshw == 5)
+		if(self->flshw == 5)
 		{
 			flash_write_id_ = flash_write_id;
 	    	HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_RESET);
@@ -863,47 +863,47 @@ eSystemState write_flash_State_Handler(void)
 			extern int data_size;
          //----------------------------write the data--------------------------
 			if (operating_side == side_a)
-				HAL_SPI_Transmit(&_W25QXX_SPI, &log_a_new, data_size, 1000);
+				HAL_SPI_Transmit(&_W25QXX_SPI, &self->log_new, data_size, 1000);
 			else
 				HAL_SPI_Transmit(&_W25QXX_SPI, &log_b_new, data_size, 1000);
 
 			//HAL_SPI_Transmit(&_W25QXX_SPI, &wr_buffer, sizeof(wr_buffer), 100);
 
 	    	HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_SET);
-			flshw = 6;
+			self->flshw = 6;
 			return write_flash_State;
 		}
 
 
 	//--------------------------wait for write end -----------------------------
-		if(flshw == 6)
+		if(self->flshw == 6)
 		{
 			 HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_RESET);
 			 W25qxx_Spi(0x05);
-			 flshw = 7;
+			 self->flshw = 7;
 			 return write_flash_State;
 		}
 
-		if(flshw == 7)
+		if(self->flshw == 7)
 		{
 			w25qxx.StatusRegister1 = W25qxx_Spi(W25QXX_DUMMY_BYTE);
-			flshw = 8;
+			self->flshw = 8;
 		    return write_flash_State;
 		}
 
-		if(flshw == 8)
+		if(self->flshw == 8)
 		{
 			if ((w25qxx.StatusRegister1 & 0x01) == 0x01)
 			 {
-				flshw = 7;   //back to re test the status register.
+				self->flshw = 7;   //back to re test the status register.
 				return write_flash_State;
 			 }
 			  HAL_GPIO_WritePin(_W25QXX_CS_GPIO, _W25QXX_CS_PIN, GPIO_PIN_SET);
-			  flshw = 9;
+			  self->flshw = 9;
 			  return write_flash_State;
 		}
 
-		if(flshw == 9)
+		if(self->flshw == 9)
 		  {
 			//-----------------------------------------------------------------------------------
 			// update the address and the number of
@@ -911,17 +911,17 @@ eSystemState write_flash_State_Handler(void)
 			// next saving address is
 			  if (operating_side == side_a)
 			  {
-				 next_loc =  flash_infoA.current_loc + 256;  //sizeof(log_a_new);
+				 next_loc =  self->flash_info.current_loc + 256;  //sizeof(self->log_new);
 
-				 if (next_loc > flash_endA)
+				 if (next_loc > self->flash_end)
 				 {
-					 next_loc = flash_beginA;
+					 next_loc = self->flash_begin;
 				 }
 
-				 flash_infoA.current_loc  =  next_loc;
-				 flash_infoA.number_logs  =  flash_infoA.number_logs + 1;
-//				     EEPROM_Write(flash_info_sto, flash_stoA, &flash_infoA, sizeof(flash_infoA));
-				 FRAM_Write(flash_stoA_fram, &flash_infoA, sizeof(flash_infoA));
+				 self->flash_info.current_loc  =  next_loc;
+				 self->flash_info.number_logs  =  self->flash_info.number_logs + 1;
+//				     EEPROM_Write(flash_info_sto, flash_stoA, &self->flash_info, sizeof(self->flash_info));
+				 FRAM_Write(self->flash_sto_fram, &self->flash_info, sizeof(self->flash_info));
 
 			  }
 			  else if (operating_side == side_b)
@@ -940,7 +940,7 @@ eSystemState write_flash_State_Handler(void)
 			  }
 			//------------------------------------------------------------------------------------
 			w25qxx.Lock = 0;       // unlock the flash memory.
-			flshw = 0;             // reset the sub state.
+			self->flshw = 0;             // reset the sub state.
 			return idle_State;     //write complete go back to idle state.
 		  }
     return write_flash_State;
@@ -949,10 +949,10 @@ eSystemState write_flash_State_Handler(void)
 
 void  clear_totA(void)
 {
-	totaliser_vol1 = 0;
+	self->totaliser_vol = 0;
 	totaliser_vol1c = 0;
-	log_a_new.totaliserVol_real = 0;
-	log_a_new.totaliserVol_cal = 0;
+	self->log_new.totaliserVol_real = 0;
+	self->log_new.totaliserVol_cal = 0;
 //	save_volumeTotaliser(side_a);
 	save_volumeTotaliser_fram(side_a);
 
@@ -971,10 +971,10 @@ void  clear_totB(void)
 
 void clear_logA(void)
 {
-	flash_infoA.current_loc  =  flash_beginA;
-	flash_infoA.number_logs  =  0;
-//	EEPROM_Write(flash_info_sto, flash_stoA, &flash_infoA, sizeof(flash_infoA));
-	FRAM_Write(flash_stoA_fram, &flash_infoA, sizeof(flash_infoA));
+	self->flash_info.current_loc  =  self->flash_begin;
+	self->flash_info.number_logs  =  0;
+//	EEPROM_Write(flash_info_sto, flash_stoA, &self->flash_info, sizeof(self->flash_info));
+	FRAM_Write(self->flash_sto_fram, &self->flash_info, sizeof(self->flash_info));
 	W25qxx_EraseBlock( 0 );
 	W25qxx_EraseBlock( 1 );
 	W25qxx_EraseBlock( 2 );

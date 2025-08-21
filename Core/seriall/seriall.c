@@ -106,14 +106,14 @@ void config_rx(void)
 
 
 
-void config_rx_parse(void)
+void config_rx_parse(FuelDispenser *disp)
  {
 		int8_t head_pos = 0;
 	  	int8_t pos = 0, id = 0, size;
 	  	char rx;
         size = strlen(rx_buf);
 
-        config_found = 2;
+        disp->config_found = 2;
 
 	   while( (id != 1) && (head_pos < size) )
 	   {
@@ -166,10 +166,14 @@ void config_rx_parse(void)
 
 	   if(id == 1)
 	   {
-		   configure_pump(nozzle_name);
-		   configure_pump(product_name);
-		   configure_pump(disp_type);
-		   configure_pump(keypad_type);
+		   for(uint8_t i = 0; i < MAX_NOZZLES; i++)
+		   {
+			   Nozzle *self = &disp->nozzles[i];
+			   configure_pump(&self, nozzle_name);
+			   configure_pump(&self, product_name);
+			   configure_pump(&self, disp_type);
+			   configure_pump(&self, keypad_type);
+		   }
 		   memset(rx_buf, 0, sizeof(rx_buf));
 	   }
 }
@@ -283,100 +287,124 @@ void config_rx_parse(void)
 {"ni":"p17","pn":"pms","dt":"bluesky886n","kt":"bluesky22"}
 */
 
-void configure_pump(pumpCompPart _case)
+void configure_pump(Nozzle *self, pumpCompPart _case)
 {
 	switch(_case)
 	{
 		case nozzle_name:  if(strstr(nozz_id, "p1"))
 	   	   	   	   	   	   {
-								settings_stream1[0].noz_id = P1;
-								settings_stream1[1].noz_id = P2;
+								if(self->nozzle_id == 0)
+								{
+									self->settings_stream1.noz_id = P1;
+								}
+								else if(self->nozzle_id == 1)
+								{
+									self->settings_stream1.noz_id = P2;
+								}
 	   	   	   	   	   	   }
 						   else if(strstr(nozz_id, "p2"))
 		   	   	   	   	   {
-							   settings_stream1[0].noz_id = P2;
-							   settings_stream1[1].noz_id = P3;
+							   if(self->nozzle_id == 0)
+							   {
+								   self->settings_stream1.noz_id = P2;
+							   }
+							   else if(self->nozzle_id == 1)
+							   {
+									self->settings_stream1.noz_id = P3;
+							   }
 		   	   	   	   	   }
 						   else if(strstr(nozz_id, "p3"))
 		   	   	   	   	   {
-							   settings_stream1[0].noz_id = P3;
-							   settings_stream1[1].noz_id = P4;
+							    if(self->nozzle_id == 0)
+								{
+									self->settings_stream1.noz_id = P3;
+								}
+								else if(self->nozzle_id == 1)
+								{
+									self->settings_stream1.noz_id = P4;
+								}
 		   	   	   	   	   }
 						   else if(strstr(nozz_id, "p4"))
 		   	   	   	   	   {
-							   settings_stream1[0].noz_id = P4;
-							   settings_stream1[1].noz_id = P5;
+							   if(self->nozzle_id == 0)
+								{
+									self->settings_stream1.noz_id = P4;
+								}
+								else if(self->nozzle_id == 1)
+								{
+									self->settings_stream1.noz_id = P5;
+								}
 		   	   	   	   	   }
 						   break;
 
 
 		case product_name: if(strstr(rx_buf, "pms"))
 		   	   	   	   	   {
-								strcpy(settings_stream1[0].product_, "PMS");
-								strcpy(settings_stream1[1].product_, "PMS");
+								strcpy(self->settings_stream1.product_, "PMS");
+//								strcpy(self->settings_stream1[1].product_, "PMS");
 		   	   	   	   	   }
 						   else if(strstr(rx_buf, "dpk"))
 		   	   	   	   	   {
-								strcpy(settings_stream1[0].product_, "DPK");
-								strcpy(settings_stream1[1].product_, "DPK");
+								strcpy(self->settings_stream1.product_, "DPK");
+//								strcpy(self->settings_stream1[1].product_, "DPK");
 		   	   	   	   	   }
 						   else if(strstr(rx_buf, "ago"))
 		   	   	   	   	   {
-								strcpy(settings_stream1[0].product_, "AGO");
-								strcpy(settings_stream1[1].product_, "AGO");
+								strcpy(self->settings_stream1.product_, "AGO");
+//								strcpy(self->settings_stream1[1].product_, "AGO");
 		   	   	   	   	   }
 						   break;
 
 		case disp_type:   if(strstr(rx_buf, "lafeng885"))
 						   {
-							settings_stream1[0].display__ = LAFNG885;
-							settings_stream1[1].display__ = LAFNG885;
+							self->settings_stream1.display__ = LAFNG885;
+//							self->settings_stream1[1].display__ = LAFNG885;
 						   }
 					   	   else if(strstr(rx_buf, "bluesky886n"))
 						   {
-					   		settings_stream1[0].display__ = BLSKY886_N;
-					   		settings_stream1[1].display__ = BLSKY886_N;
+					   		self->settings_stream1.display__ = BLSKY886_N;
+//					   		self->settings_stream1[1].display__ = BLSKY886_N;
 						   }
 					   	   else if(strstr(rx_buf, "bluesky886i"))
 						   {
-					   		settings_stream1[0].display__ = BLSKY886_IN;
-					   		settings_stream1[1].display__ = BLSKY886_IN;
+					   		self->settings_stream1.display__ = BLSKY886_IN;
+//					   		self->settings_stream1[1].display__ = BLSKY886_IN;
 						   }
 					   	   break;
 
 		case keypad_type:  if(strstr(rx_buf, "lafeng17k"))
 						   {
-							settings_stream1[0].keypad__ = LAFNG17_K;
-							settings_stream1[1].keypad__ = LAFNG17_K;
+							self->settings_stream1.keypad__ = LAFNG17_K;
+//							self->settings_stream1[1].keypad__ = LAFNG17_K;
 						   }
 						   else if(strstr(rx_buf, "lafeng18k_v2"))
 						   {
-							   settings_stream1[0].keypad__ = LAFNG18_K_V2;
-							   settings_stream1[1].keypad__ = LAFNG18_K_V2;
+							   self->settings_stream1.keypad__ = LAFNG18_K_V2;
+//							   self->settings_stream1[1].keypad__ = LAFNG18_K_V2;
 						   }
 						   else if(strstr(rx_buf, "lafeng18k"))
 						   {
-							   settings_stream1[0].keypad__ = LAFNG18_K;
-							   settings_stream1[1].keypad__ = LAFNG18_K;
+							   self->settings_stream1.keypad__ = LAFNG18_K;
+//							   self->settings_stream1[1].keypad__ = LAFNG18_K;
 						   }
 
 						#ifdef DEV_MODE
 //						   else if(strstr(rx_buf,"bluesky22"))
 //						   {
-//							settings_stream1[0].keypad__ = BLSKY22;
-//							settings_stream1[1].keypad__ = LAFNG18_K;
+//							self->settings_stream1.keypad__ = BLSKY22;
+//							self->settings_stream1[1].keypad__ = LAFNG18_K;
 //						   }
 						#endif
 
 					   	   else if(strstr(rx_buf, "bluesky18k"))
 						   {
-					   		settings_stream1[0].keypad__ = BLSKY18_K;
-							settings_stream1[1].keypad__ = BLSKY18_K;
+					   		self->settings_stream1.keypad__ = BLSKY18_K;
+//							self->settings_stream1[1].keypad__ = BLSKY18_K;
 						   }
 					   	   else if(strstr(rx_buf, "bluesky22"))
 						   {
-					   		settings_stream1[0].keypad__ = BLSKY22;
-					   		settings_stream1[1].keypad__ = BLSKY22;
+					   		self->settings_stream1.keypad__ = BLSKY22;
+//					   		self->settings_stream1[1].keypad__ = BLSKY22;
 						   }
 					   	   break;
 	}

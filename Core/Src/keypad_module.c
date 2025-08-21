@@ -15,10 +15,10 @@ static char buf[9] = {0};  //keypad LCD display graphics array.
 
 // extern pump_settings settings[2];
 
- extern pump_settings_stream1 settings_stream1[2],
+ extern pump_settings_stream1 self->settings_stream1[2],
  					 	 	 settings_original_stream1[2];
 
- extern pump_settings_stream2 settings_stream2[2],
+ extern pump_settings_stream2 self->settings_stream2[2],
  							 settings_original_stream2[2];
 
  extern pump_settings_stream3 settings_stream3[2],
@@ -37,8 +37,8 @@ static char buf[9] = {0};  //keypad LCD display graphics array.
  //*****************************************************************
   extern int pump_type2;
 
-  extern int8_t dpFlag,
-  	  	  	  	dpCount;
+  extern int8_t self->dpFlag,
+  	  	  	  	self->dpCount;
 
 
 //=================================================================
@@ -48,16 +48,26 @@ void shift(uint8_t data_byte,uint8_t lat);
 void shift_2(uint8_t data_byte,uint8_t lat);
 void shift2(uint8_t data_byte,uint8_t lat);
 
-void keypad_ini(void)
+void keypad_ini(Nozzle *self)
 {
-	HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
-	for(int i = 0; i < 21; i++)
+	GPIO_TypeDef *clock_port, *data_port;
+	uint16_t clock_pin, data_pin;
+
+	clock_port = (self->nozzle_id == 0)? clock_port : clkk2_GPIO_Port;
+	data_port = (self->nozzle_id == 0)? data_port : datak2_GPIO_Port;
+
+	clock_pin = (self->nozzle_id == 0)? clkk1_Pin : clkk2_Pin;
+	data_pin = (self->nozzle_id == 0)? data_pin : datak2_Pin;
+
+	HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
+
+	for(uint8_t i = 0; i < 21; i++)
 	{
-			HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
-			_Delay(1);
-			HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
-			_Delay(1);
+		HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);
+		_Delay(1);
+		HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
+		_Delay(1);
 	}
 }
 
@@ -78,18 +88,15 @@ void keypad_ini2(void)
 /*
  *
  */
-uint8_t checkkey(void)
+uint8_t checkkey(Nozzle *self)
 {
-	 return(  (HAL_GPIO_ReadPin(com12k1_GPIO_Port, com12k1_Pin ) == 1)? 0:1  );   // return 1 if keypressed
+	GPIO_TypeDef *port;
+	uint16_t pin;
 
-//	if(HAL_GPIO_ReadPin(com12k1_GPIO_Port, com12k1_Pin ) == 1)
-//	{
-//		return 0;
-//	}
-//	else
-//	{
-//		return 1;
-//	}
+	port = (self->nozzle_id == 0)? com12_port : com12k2_GPIO_Port;
+	pin = (self->nozzle_id == 0)? com12_pin : com12k2_Pin;
+
+	return(  (HAL_GPIO_ReadPin(port, pin ) == 1)? 0 : 1  );   // return 1 if keypressed
 }
 
 uint8_t checkkey2(void)
@@ -105,47 +112,53 @@ uint8_t checkkey2(void)
  *
  *  * @param[out]  int returns the keyscan number or zero if nokey pressed
  */
-int scankey(void)
+uint8_t scankey(FuelDispenser *disp, Nozzle *self)
 {
-	int count = 0;
-	int keynumber = 0;
-	HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_RESET);
-	_Delay(1);
-	HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);        //shift in first bit.
-	_Delay(1);
-	HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
-	count++;
-	  if( checkkey() == 1) {
-		  keynumber = 1;
+	uint8_t count = 0,
+			keynumber = 0;
 
-//		  if(settings_stream2[0].keypress_tone == Yes)
-//		  {
-//			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);_Delay(100);
-//		  }
+	GPIO_TypeDef *clock_port, *data_port;
+	uint16_t clock_pin, data_pin;
+
+	clock_port = (self->nozzle_id == 0)? clock_port : clkk2_GPIO_Port;
+	data_port = (self->nozzle_id == 0)? data_port : datak2_GPIO_Port;
+
+	clock_pin = (self->nozzle_id == 0)? clkk1_Pin : clkk2_Pin;
+	data_pin = (self->nozzle_id == 0)? data_pin : datak2_Pin;
+
+	HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_RESET);
+	_Delay(1);
+	HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);        //shift in first bit.
+	_Delay(1);
+	HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
+	count++;
+
+	if( checkkey(&self) == 1) {
+	  keynumber = 1;
+	  goto keyfound;    //return i;
+	}
+ //-----------------------------------------------------------------------
+   HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_SET);
+
+	for(uint8_t i = 2; i < 22; i++)
+	{
+		_Delay(1);
+		HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);             //shift the rest 20 bits.
+		_Delay(1);
+		HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
+		count++;
+		if( checkkey() == 1)
+		{
+		  keynumber = i;
+
+		  if(self->settings_stream2[0].keypress_tone == Yes)
+		  {
+			  HAL_GPIO_WritePin(disp->buzzer_GPIO_Port, disp->buzzer_Pin, GPIO_PIN_SET);
+			  _Delay(100);
+		  }
 
 		  goto keyfound;    //return i;
-	  }
- //-----------------------------------------------------------------------
-   HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
-
-	for(int i = 2; i < 22; i++)
-	{
-		    _Delay(1);
-			HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);             //shift the rest 20 bits.
-			_Delay(1);
-			HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
-			count++;
-			  if( checkkey() == 1) {
-					  keynumber = i;
-
-					  if(settings_stream2[0].keypress_tone == Yes)
-					  {
-						  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-						  _Delay(100);
-					  }
-
-					  goto keyfound;    //return i;
-				  }
+	    }
 	}
       goto endd; //return 0;     // return with 0 if no key pressed.
 
@@ -154,22 +167,24 @@ int scankey(void)
               while(count < 22)
               {
             	 // temp++;
-            	   HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);  //shift out the rest of the bits.
+            	   HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);  //shift out the rest of the bits.
             		_Delay(1);
-            	   HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
+            	   HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
             	   count++;
               }
 
 	  endd:    // shift out the last bit...
 	            _Delay(1);
-				HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);  //shift the rest 20 bits.
+				HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);  //shift the rest 20 bits.
 				_Delay(1);
-				HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
+				HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
 
-	  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
+	  HAL_GPIO_WritePin(disp->buzzer_GPIO_Port, disp->buzzer_Pin, GPIO_PIN_RESET);
 	  return keynumber;
 }
+
 //============================================================================================
+
 int scankey2(void)
 {
 	int count2 = 0;
@@ -199,7 +214,7 @@ int scankey2(void)
 			  {
 					  keynumber2 = i;
 
-					  if(settings_stream2[1].keypress_tone == Yes)
+					  if(self->settings_stream2[1].keypress_tone == Yes)
 					  {
 						  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 						  _Delay(100);
@@ -230,19 +245,16 @@ int scankey2(void)
 }
 //===============================================================================================
 
-int readkeyboard(int type)
+int readkeyboard(FuelDispenser *disp, Nozzle *self)
 {
-  //while(1)
-  //{
-	int ky = scankey();
-        key  = ky;
-  	   if (ky > 0)
-       {
-          //  return ky;
-          //  _Delay(1);
-  	   }
- // }
-	   return ky;  //_Delay(1);
+	uint8_t ky = scankey(&disp, &self);
+	self->key  = ky;
+	if (ky > 0)
+	{
+
+	}
+
+	return ky;  //_Delay(1);
 }
 
 //===============================================================================================
@@ -312,100 +324,50 @@ uint8_t To_pattern(int Input)
  *  This routine writes to the KEYPAD LCD.
  *  * @param[in]  num  int contains the numeric value to be displayed on the KEYPAD LCD
  */
-uint8_t write_keypad_lcd(uint8_t fxn, char* num)
+uint8_t write_keypad_lcd(Nozzle *self, uint8_t fxn, char* num)
 {
-	extern uint8_t keyEntry_len;
+	extern uint8_t self->keyEntry_len;
+
+	GPIO_TypeDef *latch_port, *clock_port, *data_port, *com12_port;
+	uint16_t latch_pin, clock_pin, data_pin, com12_pin;
+
+	latch_port = (self->nozzle_id == 0)? lthk1_GPIO_Port : lthk2_GPIO_Port;
+	clock_port = (self->nozzle_id == 0)? clkk1_GPIO_Port : clkk2_GPIO_Port;
+	data_port = (self->nozzle_id == 0)? datak1_GPIO_Port : datak2_GPIO_Port;
+	com12_port = (self->nozzle_id == 0)? com12k1_GPIO_Port : com12k2_GPIO_Port;
+
+	latch_pin = (self->nozzle_id == 0)? lthk1_Pin : lthk2_Pin;
+	clock_pin = (self->nozzle_id == 0)? clkk1_Pin : clkk2_Pin;
+	data_pin = (self->nozzle_id == 0)? datak1_Pin : datak2_Pin;
+	com12_pin = (self->nozzle_id == 0)? com12k1_Pin : com12k2_Pin;
 
 	int8_t count = 0,
 		   decimalPoint_flag = 0,
 		   postn,
 		   scan_code = 0;
 
-	dpFlag = 0;
+	self->dpFlag = 0;
 
 	int8_t cnv = strlen(num);      //snprintf(buf2, sz, "%ld", num);
 
 	count = cnv;
 
-	keypad_ini();
-
-
-	//char buf2[9]  = {0};
-	//int sz = sizeof(buf2);
+	keypad_ini(&self);
 
 	// prefresh the lcd first.
+	HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);
 
-	HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
+	if(fxn == 1)
+		goto refresh;
 
-	if(fxn == 1) goto refresh;
-
-//	for(int i = 0 ; i < (7+22);i++)
-//	{
-//		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
-//		_Delay(1);
-//		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
-//	}
-//
-//	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_RESET);  // _Delay(1);
-//	_Delay(1);
-//	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_SET);
-//	_Delay(1);
-//	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_RESET);  // _Delay(1);
-//	_Delay(1);
-//
-//	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_SET);
-//
-//	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_RESET);
-
-	/*
-	*/
-
-
-
-//	 int8_t space2, c;
-//	 c = strlen(num);
-//	 if( (strchr(num, '.')) && (num[cnv-1] != '.') )
-//	 {
-////		 count--;
-//	 }
-//	 else
-//	 {
-//		 space2 = 7 - index_;     //6 - index_;
-//	 }
-
-//	 int8_t space2, c;
-//	 c = strlen(keyboard_entry);
-//	 if( (strchr(keyboard_entry, '.')) && (keyboard_entry[c-1] != '.') )
-//	 {
-//		 space2 = 7 + ( -index_ + 1);
-//	 }
-//	 else
-//	 {
-//		 space2 = 7 - index_;     //6 - index_;
-//	 }
-
-//	count = cnv;
-
-
-//	 int8_t c;
-//	 c = strlen(num);
-//	 if( (strchr(num, '.')) && (num[c-1] != '.') )
-//	 {
-//		 space2 = 7 + ( -index_ + 1);
-//	 }
-//	 else
-//	 {
-//		 space2 = 7 - index_;     //6 - index_;
-//	 }
-
-	if(dpFlag == 0)
+	if(self->dpFlag == 0)
 	{
 		postn = 6;
 		if(strchr(num, '.') ) --count;
 		while(count<7)
 		{
-			buf[postn] = 0;           //prefill leading spaces with spaces (zeros)
+			self->buf[postn] = 0;           //prefill leading spaces with spaces (zeros)
 			count++;
 			postn--;
 		}
@@ -413,33 +375,26 @@ uint8_t write_keypad_lcd(uint8_t fxn, char* num)
 
 		while (postn > -1) //for(int i = cnv; i<8; i++)   //fill the rest of the buffer with the code pattern.
 		{
-//			if( (num[count-postn] == '.' )  && (num[cnv-1] == '.') )
-			if(num[count-postn] == '.' ) // && (num[cnv-1] == '.') )
+			if(num[count-postn] == '.' )
 			{
-	//			char buff = buf[postn + 1];
-	//			buf[postn--] = buff + 0x80;
-	//			postn--;
-	//			continue;
 				scan_code = To_pattern( ToInt( num[(count-postn) + 1] ) );
-//				buf[postn] = 0x7E + 0X80;    //0x7E for a '0'
-				buf[postn] = scan_code + 0X80;
+				self->buf[postn] = scan_code + 0X80;
 				count++;
-//				postn--;
 			}
 			else
 			{
 					scan_code = To_pattern( ToInt( num[count-postn] ) );
-					buf[postn] = scan_code;     //128+64+32+16+8+4+2+1; //buf2[cnv-i];
+					self->buf[postn] = scan_code;     //128+64+32+16+8+4+2+1; //buf2[cnv-i];
 			}
 			postn--;
 		}
 	}
-	else if (dpFlag == 1)
+	else if (self->dpFlag == 1)
 	{
 		postn = 7;
 		while(count <= 8)
 		{
-			buf[postn] = 0;           //prefill leading spaces with spaces (zeros)
+			self->buf[postn] = 0;           //prefill leading spaces with spaces (zeros)
 			count++;
 			postn--;
 		}
@@ -449,152 +404,71 @@ uint8_t write_keypad_lcd(uint8_t fxn, char* num)
 		while (postn >= -1) //for(int i = cnv; i<8; i++)   //fill the rest of the buffer with the code pattern.
 		{
 
-			if(postn == (dpCount-1) )
+			if(postn == (self->dpCount - 1) )
 			{
 
 			}
-			else if(postn == ((dpCount-1)-1) )
+			else if(postn == ((self->dpCount - 1) - 1) )
 			{
 				scan_code = To_pattern( ToInt( num[count - (postn + 1)] ) );
-				buf[(postn + 1)] = scan_code + 0X80;
+				self->buf[(postn + 1)] = scan_code + 0X80;
 //				postn++;
 			}
 
 			else
 			{
 				scan_code = To_pattern( ToInt( num[count - (postn + 1)] ) );
-//				if (postn == (dpCount - 3) )
-//				{
-//					buf[postn + 1] = scan_code;
-//				}
-				if (  ((keyEntry_len == 8) && (dpCount != 1) && ((postn == 1 ) || (postn == 0 ) || (postn == -1))) ||
-					((keyEntry_len == 7) && ((postn == 0 ) || (postn == -1))) ||
-					((keyEntry_len == 6) && (postn == -1))  || ((dpCount == 2) && (postn == -1)) ||
-					((dpCount == 3) && ((postn == 0 ) || (postn == -1)))  ||
-					((dpCount == 4) && ((postn == 1 ) || (postn == 0 ) || (postn == -1))) )
+
+				if (  ((self->keyEntry_len == 8) && (self->dpCount != 1) && ((postn == 1 ) || (postn == 0 ) || (postn == -1))) ||
+					((self->keyEntry_len == 7) && ((postn == 0 ) || (postn == -1))) ||
+					((self->keyEntry_len == 6) && (postn == -1))  || ((self->dpCount == 2) && (postn == -1)) ||
+					((self->dpCount == 3) && ((postn == 0 ) || (postn == -1)))  ||
+					((self->dpCount == 4) && ((postn == 1 ) || (postn == 0 ) || (postn == -1))) )
 				{
-					buf[postn + 1] = scan_code;
+					self->buf[postn + 1] = scan_code;
 				}
 				else
-					buf[postn] = scan_code;
+					self->buf[postn] = scan_code;
 			}
 			postn--;
 		}
-
-//		dpFlag = 0;
 	}
-
-//	int scan_code = 0;
-
-//	if( (strchr(num, '.')) && (num[cnv-1] != '.') )
-//	 {
-////		postn++;
-//	 }
-
-//	if (dpFlag == 1)
-//		count = 6;
-//	else
-//		count = postn;
-//
-//	while (postn > -1) //for(int i = cnv; i<8; i++)   //fill the rest of the buffer with the code pattern.
-//	{
-//		if (dpFlag == 1)
-//		{
-//			if(postn == 0)
-//			{
-//
-//			}
-//			else if(postn == -1)
-//			{
-//				scan_code = To_pattern( ToInt( num[count - (postn + 1)] ) );
-//				buf[(postn + 1)] = scan_code + 0X80;
-//
-////				decimalPoint_flag = 0;
-//			}
-//
-//			else
-//			{
-//				scan_code = To_pattern( ToInt( num[count - (postn + 1)] ) );
-//				buf[postn] = scan_code;
-//			}
-//		}
-//		else if( (num[count-postn] == '.' )  && (num[cnv-1] == '.') )
-//		{
-////			char buff = buf[postn + 1];
-////			buf[postn--] = buff + 0x80;
-////			postn--;
-////			continue;
-////			scan_code = To_pattern( ToInt( num[count-postn] ) );
-//			buf[postn] = 0x7E + 0X80;
-//		}
-//		else if( (num[count-postn] == '.' )  && (num[cnv-1] != '.') )
-//		{
-////			char buff = buf[postn + 1];
-////			buf[postn--] = buff + 0x80;
-////			postn--;
-////			continue;
-////			scan_code = To_pattern( ToInt( num[count-postn] ) );
-////			buf[postn] = 0x7E + 0X80;
-//
-//			postn++;
-//
-//			decimalPoint_flag = 1;
-//		}
-//		else
-//		{
-//			if(decimalPoint_flag == 1)
-//			{
-//
-//				scan_code = To_pattern( ToInt( num[count-postn] ) );
-//				buf[postn] = scan_code + 0X80;
-//
-//				decimalPoint_flag = 0;
-//			}
-//
-//			else
-//			{
-//				scan_code = To_pattern( ToInt( num[count-postn] ) );
-//				buf[postn] = scan_code;     //128+64+32+16+8+4+2+1; //buf2[cnv-i];
-//			}
-//		}
-//		postn--;
-//	}
 
 	refresh:
 	// move the buf[] array into the shift register.
 	for(uint8_t i = 0; i < 7 ; i++)
 	{
-		shift(buf[i], 0);
+		shift(&self, self->buf[i], 0);
 	}
 
 	// push "0" into the keyboards memory first.
-	HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_RESET);
 
-	HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
 	_Delay(1);
-	HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);
 	_Delay(1);
-	HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_SET);
 
 
 	//push in "1"s past the keyboard registers memory of 24-1 places
-	HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_SET);
 
 	for(uint8_t i = 0; i < 22; i++)
 	{
-		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
 		_Delay(1);
-		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);
 		_Delay(1);
 	}
 
 	//then latch the shifted data...
 
-	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_SET);  //latch pin high
+	HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_SET);  //latch pin high
 
 	if(lat_cnt == 0)
 	{
-	  HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_RESET); //Latch pin low
+	  HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_RESET); //Latch pin low
 	}
 	lat_cnt++;
 	if(lat_cnt == 2) lat_cnt = 0;
@@ -602,23 +476,23 @@ uint8_t write_keypad_lcd(uint8_t fxn, char* num)
 	//_Delay(10);
 
 //	pushout the remaining zero from the keyboard registers.
-	HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
 	_Delay(1);
-		  HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
+		  HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);
 	_Delay(1);
 
 	//==========================================================================
 	   if(fxn == 2) return;     // return if fxn 2 selected (screen only..)
 	//==========================================================================
 	   //flush registers with 1
-	HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_SET);
 
 	 for(uint8_t pmp = 0; pmp < 25; pmp++)
 	 {
-			HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
 		 _Delay(1);
-			HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);
 		 _Delay(1);
 	 }
 	   //=======================================================================
@@ -627,91 +501,70 @@ uint8_t write_keypad_lcd(uint8_t fxn, char* num)
 	 uint8_t fill = 22;
 	   // push "0" into the keyboards memory first.
 
-	   	HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_RESET);
+	   	HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_RESET);
 	   	_Delay(1);
-	   	HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
+	   	HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
 	   	_Delay(1);
-	   	HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
+	   	HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);
 
 	   	//check keypress..
-	      if (HAL_GPIO_ReadPin(com12k1_GPIO_Port, com12k1_Pin ) == 0)
+	      if (HAL_GPIO_ReadPin(com12_port, com12_pin ) == 0)
 	   	  {
 	   	        keynumber = 1;
-//         #if delay_keypad == 1
-//
-//	   	       if(settings_stream2[0].keypress_tone == Yes)
-//			   {
-//				  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-//			   }
-//
-//	   	       HAL_Delay(keypad_delay);
-//         #endif
-//
-//			    HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 	   	        return keynumber;
 	   	  }
 
-	    //  fill = 22;
-	    //  if(pump_type == lafeng) fill = 17;
-
-	    HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
+	    HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_SET);
 
 	    for(uint8_t i = 2; i < fill; i++)
 	   	{
-	   		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
-	   		//_Delay(1);
-	   		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
-	   		//_Delay(1);
-	   		if( checkkey() == 1)
+	   		HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
+	   		HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);
+\
+	   		if( checkkey(&self) == 1)
 			{
 				keynumber = i;
-//			 #if delay_keypad == 1
-//
-//				   if(settings_stream2[0].keypress_tone == Yes)
-//				   {
-//					  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-//				   }
-//
-//				   HAL_Delay(keypad_delay);
-//			 #endif
-//
-//				   HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
-				   return keynumber;
+				return keynumber;
 			}
 	   	}
 
-	   	//pushout the remaining zero from the keyboard registers.
-	   //	HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_RESET);
-	   //	HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
-	   //	_Delay(1);
-	   //		  HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
-	   //	_Delay(1);
 	   	return keynumber;
 
 }
 
 
-void shift_(uint8_t data_byte,uint8_t lat)
+void shift_(Nozzle *self, uint8_t data_byte, uint8_t lat)
 {
-	//Latch pin low
-	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_RESET);
+	GPIO_TypeDef *latch_port, *clock_port, *data_port;
+	uint16_t latch_pin, clock_pin, data_pin;
 
-	for (int i = 0; i < 8; i++)
+	latch_port = (self->nozzle_id == 0)? lthk1_GPIO_Port : lthk2_GPIO_Port;
+	clock_port = (self->nozzle_id == 0)? clkk1_GPIO_Port : clkk2_GPIO_Port;
+	data_port = (self->nozzle_id == 0)? datak1_GPIO_Port : datak2_GPIO_Port;
+
+	latch_pin = (self->nozzle_id == 0)? lthk1_Pin : lthk2_Pin;
+	clock_pin = (self->nozzle_id == 0)? clkk1_Pin : clkk2_Pin;
+	data_pin = (self->nozzle_id == 0)? datak1_Pin : datak2_Pin;
+
+	//Latch pin low
+	HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_RESET);
+
+	for (uint8_t i = 0; i < 8; i++)
 	{
 		//clock pin low
-		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
 		// delay 1 ms
 		_Delay(1);
 		// check  bit, second bit ...
 		//if high set out high
 		if ( byteRead(data_byte, i) == 0 )
-			HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_SET);
 		else	//if low set dp low
-			HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_RESET);
 
 		//set clock pin high
-		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
-		//HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);
+		//HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_SET);
 		//delay 1 ms
 		_Delay(1);
 	}
@@ -720,50 +573,61 @@ void shift_(uint8_t data_byte,uint8_t lat)
 
   if(lat == 1)
   {
-	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_SET);      //latch pin high
+	HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_SET);      //latch pin high
    	_Delay(1);
-   	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_RESET);    //Latch pin low
+   	HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_RESET);    //Latch pin low
   }
 }
 
-void shift(uint8_t data_byte,uint8_t lat)
+void shift(Nozzle *self, uint8_t data_byte, uint8_t lat)
 {
-	//Latch pin low
-	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_RESET);
+	GPIO_TypeDef *latch_port, *clock_port, *data_port;
+	uint16_t latch_pin, clock_pin, data_pin;
 
-	for (int i = 0; i < 8; i++)
+	latch_port = (self->nozzle_id == 0)? lthk1_GPIO_Port : lthk2_GPIO_Port;
+	clock_port = (self->nozzle_id == 0)? clkk1_GPIO_Port : clkk2_GPIO_Port;
+	data_port = (self->nozzle_id == 0)? datak1_GPIO_Port : datak2_GPIO_Port;
+
+	latch_pin = (self->nozzle_id == 0)? lthk1_Pin : lthk2_Pin;
+	clock_pin = (self->nozzle_id == 0)? clkk1_Pin : clkk2_Pin;
+	data_pin = (self->nozzle_id == 0)? datak1_Pin : datak2_Pin;
+
+	//Latch pin low
+	HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_RESET);
+
+	for (uint8_t i = 0; i < 8; i++)
 	{
 		//clock pin low
-		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
 		// delay 1 ms
 		_Delay(1);
 		// check  bit, second bit ...
 		//if high set out high
-		int bitt ;
+		uint8_t bitt ;
 		if(lat_cnt == 0)
 			    bitt = 1;
 		else
 			    bitt = 0;
 
 		if ( byteRead(data_byte, i) == bitt )
-			HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_SET);
 		else	//if low set dp low
-			HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_RESET);
 
 		//set clock pin high
-		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
-		//HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);
+		//HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_SET);
 		//delay 1 ms
 		_Delay(1);
 	}
 
-	HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_SET);
 
   if(lat == 1)
   {
-	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_SET);      //latch pin high
+	HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_SET);      //latch pin high
    	_Delay(1);
-   	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_RESET);    //Latch pin low
+   	HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_RESET);    //Latch pin low
   }
 }
 
@@ -773,19 +637,27 @@ void shift(uint8_t data_byte,uint8_t lat)
  *  * @param[in]  num  int contains the numeric value to be displayed on the KEYPAD LCD
  *  * @param[out] int  outputs 0 for no keypressed or greater than 0 for the keyposition.
  */
-uint8_t keypad_lcd(uint8_t fxn, char* num)
+uint8_t keypad_lcd(FuelDispenser *disp, Nozzle *self, uint8_t fxn, char* num)
 {
+	GPIO_TypeDef *latch_port, *clock_port, *data_port;
+	uint16_t latch_pin, clock_pin, data_pin;
 
-//	if(pump_type != lafeng)
-//	if(pump_type != DN_LAFNG17K)
-	if( (settings_stream1[0].keypad__ != LAFNG17_K) && (settings_stream1[0].keypad__ != LAFNG18_K) && (settings_stream1[0].keypad__ != LAFNG18_K_V2))
+	latch_port = (self->nozzle_id == 0)? lthk1_GPIO_Port : lthk2_GPIO_Port;
+	clock_port = (self->nozzle_id == 0)? clkk1_GPIO_Port : clkk2_GPIO_Port;
+	data_port = (self->nozzle_id == 0)? datak1_GPIO_Port : datak2_GPIO_Port;
+
+	latch_pin = (self->nozzle_id == 0)? lthk1_Pin : lthk2_Pin;
+	clock_pin = (self->nozzle_id == 0)? clkk1_Pin : clkk2_Pin;
+	data_pin = (self->nozzle_id == 0)? datak1_Pin : datak2_Pin;
+
+	if( (self->settings_stream1[0].keypad__ != LAFNG17_K) && (self->settings_stream1[0].keypad__ != LAFNG18_K) && (self->settings_stream1[0].keypad__ != LAFNG18_K_V2))
 	{
-		uint8_t rr =	write_keypad_lcd(fxn, num);
+		uint8_t rr =	write_keypad_lcd(&self, fxn, num);
 	    return rr;
 	}
 
 
-	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_RESET); //Latch pin low --------------------------------------------
+	HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_RESET); //Latch pin low --------------------------------------------
 
 	if(fxn == 1) goto refresh;
 
@@ -806,7 +678,7 @@ uint8_t keypad_lcd(uint8_t fxn, char* num)
 
 	while(count < 7)
 	{
-		buf[postn] = 0;           //prefill leading spaces with spaces (zeros)
+		self->buf[postn] = 0;           //prefill leading spaces with spaces (zeros)
 		count++;
 		postn--;
 	}
@@ -819,16 +691,16 @@ uint8_t keypad_lcd(uint8_t fxn, char* num)
 //				buf2[postn2] = 0x7E + 0X80;
 			scan_code = To_pattern( ToInt( num[(count - postn) + 1] ) );
 
-			if( (settings_stream1[0].keypad__  == LAFNG18_K) || (settings_stream1[0].keypad__ == LAFNG18_K_V2))
+			if( (self->settings_stream1[0].keypad__  == LAFNG18_K) || (self->settings_stream1[0].keypad__ == LAFNG18_K_V2))
 			{
 				scan_code += 0x80;
 //				buf[postn] = (scan_code ^ 0xFF);
-				buf[postn] = scan_code;
+				self->buf[postn] = scan_code;
 			}
 			else
 			{
 				scan_code += 0x80;
-				buf[postn] = scan_code;     //128+64+32+16+8+4+2+1; //buf2[cnv-i];
+				self->buf[postn] = scan_code;     //128+64+32+16+8+4+2+1; //buf2[cnv-i];
 			}
 
 //			buf2[postn] = scan_code + 0X80;
@@ -838,14 +710,14 @@ uint8_t keypad_lcd(uint8_t fxn, char* num)
 		{
 				scan_code = To_pattern( ToInt( num[count - postn] ) );
 
-				if( (settings_stream1[0].keypad__  == LAFNG18_K) || (settings_stream1[0].keypad__ == LAFNG18_K_V2) )
+				if( (self->settings_stream1[0].keypad__  == LAFNG18_K) || (self->settings_stream1[0].keypad__ == LAFNG18_K_V2) )
 				{
-//					buf[postn] = (scan_code ^ 0xFF);
-					buf[postn] = scan_code;
+//					self->buf[postn] = (scan_code ^ 0xFF);
+					self->buf[postn] = scan_code;
 				}
 				else
 				{
-					buf[postn] = scan_code;     //128+64+32+16+8+4+2+1; //buf2[cnv-i];
+					self->buf[postn] = scan_code;     //128+64+32+16+8+4+2+1; //buf2[cnv-i];
 				}
 		}
 		postn--;
@@ -853,63 +725,63 @@ uint8_t keypad_lcd(uint8_t fxn, char* num)
 
 	refresh:
  //===========================================================================
- // HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_RESET); //Latch pin low
+ // HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_RESET); //Latch pin low
  // move the buf[] array into the shift register.
 
-	if (settings_stream1[0].keypad__ == LAFNG17_K)
+	if (self->settings_stream1[0].keypad__ == LAFNG17_K)
 	{
 	    	disp_len_pad = 5;
 	}
-    else if(settings_stream1[0].keypad__  == LAFNG18_K)
+    else if(self->settings_stream1[0].keypad__  == LAFNG18_K)
     {
     	disp_len_pad = 7;
     }
-    else if(settings_stream1[0].keypad__ == LAFNG18_K_V2)
+    else if(self->settings_stream1[0].keypad__ == LAFNG18_K_V2)
     {
     	disp_len_pad = 8;
     }
 
 	for(uint8_t i = 0; i < disp_len_pad; i++)  //7 bytes for bluesky 5 bytes for lafeng
 	{
-		shift_(buf[i], 0);
+		shift_(self->buf[i], 0);
 	}
 
 	//push in "1"s past the keyboard registers memory of 24-1 places
-	HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_SET);
 
-	HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
 
 	uint8_t fill = 24;
 
-	if ( (settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) || (settings_stream1[0].keypad__ == LAFNG18_K_V2))
+	if ( (self->settings_stream1[0].keypad__ == LAFNG17_K) || (self->settings_stream1[0].keypad__ == LAFNG18_K) || (self->settings_stream1[0].keypad__ == LAFNG18_K_V2))
 		fill = 16;
 
 	for(uint8_t i = 1; i < fill; i++)
 	{
-		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);
 		//	_Delay(1);
-		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
 		//	_Delay(1);
 	}
 	//then latch the shifted data...
-	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_SET);  //latch pin high
+	HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_SET);  //latch pin high
     //	_Delay(1);
-	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_RESET); //Latch pin low
+	HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_RESET); //Latch pin low
     //	_Delay(1);
-    //--------------------	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_SET);  //latch pin high
+    //--------------------	HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_SET);  //latch pin high
 
-    HAL_GPIO_TogglePin(refresh_GPIO_Port, refresh_Pin);
+    HAL_GPIO_TogglePin(disp->refresh_GPIO_Port, disp->refresh_Pin);
 
 //==========================================================================
         if(fxn == 2) return;     // return if fxn 2 selected (screen only..)
 //==========================================================================
 
-    HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_SET);
     for(uint8_t i = 0; i < 5; i++)
    	{
-   		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
+   		HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);
    		//_Delay(1);
-   		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
+   		HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
    		//_Delay(1);
    	}
 
@@ -917,19 +789,19 @@ uint8_t keypad_lcd(uint8_t fxn, char* num)
 	keynumber = 0;
 // push "0" into the keyboards memory first.
 
-	HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_RESET);
 	//_Delay(1);
-	HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);
 	//_Delay(1);
-	HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
 
 
 	//check keypress..
-   if( checkkey() == 1)
+   if( checkkey(&self) == 1)
    {
 		keynumber = 1;
 
-//		if(settings_stream2[0].keypress_tone == Yes)
+//		if(self->settings_stream2[0].keypress_tone == Yes)
 //		{
 //		  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 //		}
@@ -944,22 +816,22 @@ uint8_t keypad_lcd(uint8_t fxn, char* num)
    fill = 22;
 //   if(pump_type == lafeng) fill = 17;
 //   if(pump_type == DN_LAFNG17K)
-   if ( (settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) || (settings_stream1[0].keypad__ == LAFNG18_K_V2))
+   if ( (self->settings_stream1[0].keypad__ == LAFNG17_K) || (self->settings_stream1[0].keypad__ == LAFNG18_K) || (self->settings_stream1[0].keypad__ == LAFNG18_K_V2))
 	   fill = 17;
 
-   HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
+   HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_SET);
 
    for(uint8_t i = 2; i < fill; i++)
 	{
-		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);
 		//_Delay(1);
-		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
 		//_Delay(1);
-		if( checkkey() == 1)
+		if( checkkey(&self) == 1)
 		{
 			keynumber = i;
 
-//			if(settings_stream2[0].keypress_tone == Yes)
+//			if(self->settings_stream2[0].keypress_tone == Yes)
 //		    {
 //			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 //		    }
@@ -972,10 +844,10 @@ uint8_t keypad_lcd(uint8_t fxn, char* num)
 	}
 
 	//pushout the remaining zero from the keyboard registers.
-//	HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_RESET);
-//	HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
+//	HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_RESET);
+//	HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);
 //	_Delay(1);
-//		  HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
+//		  HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
 //	_Delay(1);
 	return keynumber;
 }
@@ -1014,21 +886,21 @@ uint8_t write_keypad_lcd2(uint8_t fxn, char* num)
 
 //	for(int i = 0 ; i < (7+22);i++)
 //	{
-//		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
+//		HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
 //		_Delay(1);
-//		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
+//		HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);
 //	}
 //
-//	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_RESET);  // _Delay(1);
+//	HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_RESET);  // _Delay(1);
 //	_Delay(1);
-//	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_SET);
+//	HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_SET);
 //	_Delay(1);
-//	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_RESET);  // _Delay(1);
+//	HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_RESET);  // _Delay(1);
 //	_Delay(1);
 //
-//	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_SET);
+//	HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_SET);
 //
-//	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_RESET);
+//	HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_RESET);
 
 
 	if(dpFlag2 == 0)
@@ -1196,7 +1068,7 @@ uint8_t write_keypad_lcd2(uint8_t fxn, char* num)
 	   	        keynumber = 1;
 //         #if delay_keypad == 1
 //
-//	   	       if(settings_stream2[1].keypress_tone == Yes)
+//	   	       if(self->settings_stream2[1].keypress_tone == Yes)
 //			   {
 //				  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 //			   }
@@ -1224,7 +1096,7 @@ uint8_t write_keypad_lcd2(uint8_t fxn, char* num)
 	   				keynumber = i;
 //             #if delay_keypad == 1
 //
-//	   			 if(settings_stream2[1].keypress_tone == Yes)
+//	   			 if(self->settings_stream2[1].keypress_tone == Yes)
 //				 {
 //					  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 //				 }
@@ -1238,10 +1110,10 @@ uint8_t write_keypad_lcd2(uint8_t fxn, char* num)
 	 }
 
 	   //pushout the remaining zero from the keyboard registers.
-	   //	HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_RESET);
-	   //	HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
+	   //	HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_RESET);
+	   //	HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);
 	   //	_Delay(1);
-	   //		  HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
+	   //		  HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
 	   //	_Delay(1);
 	   	return keynumber;
 }
@@ -1266,21 +1138,21 @@ uint8_t write_keypad_lcd2(uint8_t fxn, char* num)
 //
 ////	for(int i = 0 ; i < (7+22);i++)
 ////	{
-////		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
+////		HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
 ////		_Delay(1);
-////		HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
+////		HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);
 ////	}
 ////
-////	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_RESET);  // _Delay(1);
+////	HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_RESET);  // _Delay(1);
 ////	_Delay(1);
-////	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_SET);
+////	HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_SET);
 ////	_Delay(1);
-////	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_RESET);  // _Delay(1);
+////	HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_RESET);  // _Delay(1);
 ////	_Delay(1);
 ////
-////	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_SET);
+////	HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_SET);
 ////
-////	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_RESET);
+////	HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_RESET);
 //
 //
 //	int cnv2 =   strlen(num);      //snprintf(buf2, sz, "%ld", num);
@@ -1408,10 +1280,10 @@ uint8_t write_keypad_lcd2(uint8_t fxn, char* num)
 //	   	}
 //
 //	   //pushout the remaining zero from the keyboard registers.
-//	   //	HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_RESET);
-//	   //	HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
+//	   //	HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_RESET);
+//	   //	HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);
 //	   //	_Delay(1);
-//	   //		  HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
+//	   //		  HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
 //	   //	_Delay(1);
 //	   	return keynumber;
 //}
@@ -1437,7 +1309,7 @@ void shift_2(uint8_t data_byte, uint8_t lat)
 
 		//set clock pin high
 		HAL_GPIO_WritePin(clkk2_GPIO_Port, clkk2_Pin, GPIO_PIN_SET);
-		//HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
+		//HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_SET);
 		//delay 1 ms
 		_Delay2(1);
 	}
@@ -1478,7 +1350,7 @@ void shift2(uint8_t data_byte,uint8_t lat)
 
 		//set clock pin high
 		HAL_GPIO_WritePin(clkk2_GPIO_Port, clkk2_Pin, GPIO_PIN_SET);
-		//HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_SET);
+		//HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_SET);
 		//delay 1 ms
 		_Delay2(1);
 	}
@@ -1504,7 +1376,7 @@ uint8_t keypad_lcd2(int fxn, char* num)
 
 //	if(pump_type2 != lafeng)
 //	if(pump_type != DN_LAFNG17K)
-	if( (settings_stream1[1].keypad__ != LAFNG17_K) && (settings_stream1[1].keypad__ != LAFNG18_K) && (settings_stream1[1].keypad__ != LAFNG18_K_V2) )
+	if( (self->settings_stream1[1].keypad__ != LAFNG17_K) && (self->settings_stream1[1].keypad__ != LAFNG18_K) && (self->settings_stream1[1].keypad__ != LAFNG18_K_V2) )
 	{
 		uint8_t rr =	write_keypad_lcd2(fxn, num);
 	    return rr;
@@ -1562,15 +1434,15 @@ uint8_t keypad_lcd2(int fxn, char* num)
 	refresh:
  //===========================================================================
 
-	if (settings_stream1[1].keypad__ == LAFNG17_K)
+	if (self->settings_stream1[1].keypad__ == LAFNG17_K)
 	{
 	    	disp_len_pad2 = 5;
 	}
-    else if(settings_stream1[1].keypad__  == LAFNG18_K)
+    else if(self->settings_stream1[1].keypad__  == LAFNG18_K)
     {
     	disp_len_pad2 = 7;
     }
-    else if(settings_stream1[1].keypad__ == LAFNG18_K_V2)
+    else if(self->settings_stream1[1].keypad__ == LAFNG18_K_V2)
     {
     	disp_len_pad2 = 8;
     }
@@ -1587,7 +1459,7 @@ uint8_t keypad_lcd2(int fxn, char* num)
 
 	uint8_t fill = 24;
 
-	if ( (settings_stream1[1].keypad__ == LAFNG17_K) || (settings_stream1[1].keypad__ == LAFNG18_K) || (settings_stream1[1].keypad__ == LAFNG18_K_V2) )
+	if ( (self->settings_stream1[1].keypad__ == LAFNG17_K) || (self->settings_stream1[1].keypad__ == LAFNG18_K) || (self->settings_stream1[1].keypad__ == LAFNG18_K_V2) )
 		fill = 16;
 
 	for(uint8_t i = 1; i < fill; i++)
@@ -1602,7 +1474,7 @@ uint8_t keypad_lcd2(int fxn, char* num)
     //	_Delay(1);
 	HAL_GPIO_WritePin(lthk2_GPIO_Port, lthk2_Pin, GPIO_PIN_RESET); //Latch pin low
     //	_Delay(1);
-    //--------------------	HAL_GPIO_WritePin(lthk1_GPIO_Port, lthk1_Pin, GPIO_PIN_SET);  //latch pin high
+    //--------------------	HAL_GPIO_WritePin(latch_port, latch_pin, GPIO_PIN_SET);  //latch pin high
 
     HAL_GPIO_TogglePin(refresh2_GPIO_Port, refresh2_Pin);
 
@@ -1635,7 +1507,7 @@ uint8_t keypad_lcd2(int fxn, char* num)
 	   {
 	        keynumber = 1;
 
-//	        if(settings_stream2[1].keypress_tone == Yes)
+//	        if(self->settings_stream2[1].keypress_tone == Yes)
 //			{
 //			  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 //			}
@@ -1649,7 +1521,7 @@ uint8_t keypad_lcd2(int fxn, char* num)
 
    fill = 22;
 
-   if ( (settings_stream1[1].keypad__ == LAFNG17_K) || (settings_stream1[1].keypad__ == LAFNG18_K) || (settings_stream1[1].keypad__ == LAFNG18_K_V2))
+   if ( (self->settings_stream1[1].keypad__ == LAFNG17_K) || (self->settings_stream1[1].keypad__ == LAFNG18_K) || (self->settings_stream1[1].keypad__ == LAFNG18_K_V2))
 	   fill = 17;
 
    HAL_GPIO_WritePin(datak2_GPIO_Port, datak2_Pin, GPIO_PIN_SET);
@@ -1664,7 +1536,7 @@ uint8_t keypad_lcd2(int fxn, char* num)
 			{
 				keynumber = i;
 
-//				if(settings_stream2[1].keypress_tone == Yes)
+//				if(self->settings_stream2[1].keypress_tone == Yes)
 //			    {
 //				  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 //			    }
@@ -1678,10 +1550,10 @@ uint8_t keypad_lcd2(int fxn, char* num)
 	}
 
 	//pushout the remaining zero from the keyboard registers.
-//	HAL_GPIO_WritePin(datak1_GPIO_Port, datak1_Pin, GPIO_PIN_RESET);
-//	HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_SET);
+//	HAL_GPIO_WritePin(data_port, data_pin, GPIO_PIN_RESET);
+//	HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_SET);
 //	_Delay(1);
-//		  HAL_GPIO_WritePin(clkk1_GPIO_Port, clkk1_Pin, GPIO_PIN_RESET);
+//		  HAL_GPIO_WritePin(clock_port, clock_pin, GPIO_PIN_RESET);
 //	_Delay(1);
 	return keynumber;
 }

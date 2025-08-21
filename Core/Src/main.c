@@ -297,11 +297,192 @@ int main(void)
 
 	// stop_flow1();
 
+	FuelNozzle nozzle1, nozzle2;
+	FuelDispenser dispenser;
 
-  	config_mode = 0;
+	void FuelDispenser_init(FuelDispenser *self,
+	                       StateMachine *nozzles[MAX_NOZZLES],
+	                       ADC_HandleTypeDef *adc)
+	{
+	    for(int i = 0; i < MAX_NOZZLES; i++)
+	    {
+	        self->nozzles[i] = nozzles[i];
+	    }
+	    self->pressure_sensor = adc;
+	}
+
+	void FuelNozzle_ctor(FuelNozzle *self,
+            GPIO_TypeDef *valve_port, uint16_t valve_pin,
+            TIM_HandleTypeDef *flow_timer, float price)
+	{
+		self->base.vtable = &nozzle_vtable;
+		self->base.current_state = STATE_IDLE;
+		self->valve_port = valve_port;
+		self->valve_pin = valve_pin;
+		self->flow_timer = flow_timer;
+		self->unit_price = price;
+		HAL_GPIO_WritePin(valve_port, valve_pin, GPIO_PIN_RESET);
+	}
+
+
+	// Create nozzle objects
+    FuelNozzle_ctor(&nozzle1, VALVE0_GPIO_Port, VALVE0_Pin, &htim2, 1.50f);
+    FuelNozzle_ctor(&nozzle2, VALVE1_GPIO_Port, VALVE1_Pin, &htim3, 1.65f);
+
+    // Create dispenser
+    StateMachine *nozzles[] = {(StateMachine *)&nozzle1, (StateMachine *)&nozzle2};
+    FuelDispenser_init(&dispenser, nozzles, &hadc1);
+
+	//---------------------------------------------------------------------------------------
+
+//**********************************************************************************************/
+
+
+    /************************************
+     *          dispenser.h             *
+     ************************************/
+    #pragma once
+    #include "stm32f4xx_hal.h"
+
+    #define NUM_NOZZLES 2
+    #define PULSES_PER_LITER 1000        // From flow meter specifications
+    #define MAX_SAFE_PRESSURE 70.0f      // PSI
+    #define DISPENSER_TIMEOUT 300000     // 5 minutes (300,000 ms)
+
+    typedef enum {
+        STATE_IDLE,
+        STATE_AUTH_REQUIRED,
+        STATE_PUMP_READY,
+        STATE_DISPENSING,
+        STATE_PAYMENT_PENDING,
+        STATE_EMERGENCY_STOP
+    } NozzleState;
+
+    typedef struct {
+        // Hardware handles
+    	TIM_HandleTypeDef htim5;
+        TIM_HandleTypeDef *flow_timer;
+        GPIO_TypeDef *valve_port;
+        uint16_t valve_pin;
+        GPIO_TypeDef *nozzle_switch_port;
+        uint16_t nozzle_switch_pin;
+        LCD_HandleTypeDef *display;
+        ADC_HandleTypeDef *pressure_adc;
+
+        // State variables
+        NozzleState state;
+        uint32_t pulse_count;
+        float total_liters;
+        float price_per_liter;
+        uint32_t transaction_id;
+        bool authorized;
+    } Nozzle;
+
+    typedef struct {
+        Nozzle nozzles[NUM_NOZZLES];
+        RTC_HandleTypeDef *rtc;
+        uint32_t total_transactions;
+    } FuelDispenser;
+
+    // VTable for nozzle operations
+    typedef struct {
+        void (*authorize)(Nozzle *self);
+        void (*start_dispensing)(Nozzle *self);
+        void (*stop_dispensing)(Nozzle *self);
+        void (*emergency_stop)(Nozzle *self);
+        void (*update_display)(Nozzle *self);
+        void (*process_payment)(Nozzle *self);
+    } NozzleVTable;
+
+    void Dispenser_Init(FuelDispenser *disp, TIM_HandleTypeDef *tim1, TIM_HandleTypeDef *tim2,
+                       ADC_HandleTypeDef *adc1, ADC_HandleTypeDef *adc2, RTC_HandleTypeDef *rtc);
+    void Dispenser_Run(FuelDispenser *disp);
+
+
+
+    void Dispenser_Init(FuelDispenser *disp, TIM_HandleTypeDef *tim1, TIM_HandleTypeDef *tim2,
+	                   ADC_HandleTypeDef *adc1, ADC_HandleTypeDef *adc2, RTC_HandleTypeDef *rtc) {
+	    // Initialize nozzle 1 (Regular fuel)
+	    disp->nozzles[0] = (Nozzle){
+	        .flow_timer = tim1,
+	        .valve_port = VALVE1_GPIO_Port,
+	        .valve_pin = VALVE1_Pin,
+	        .nozzle_switch_port = NOZZLE1_SW_GPIO_Port,
+	        .nozzle_switch_pin = NOZZLE1_SW_Pin,
+	        .display = &hlcd1,
+	        .pressure_adc = adc1,
+	        .state = STATE_IDLE,
+	        .price_per_liter = 1.50f,
+	        .vtable = &nozzle_ops
+	    };
+
+	    // Initialize nozzle 2 (Premium fuel)
+	    disp->nozzles[1] = (Nozzle){
+	        .flow_timer = tim2,
+	        .valve_port = VALVE2_GPIO_Port,
+	        .valve_pin = VALVE2_Pin,
+	        .nozzle_switch_port = NOZZLE2_SW_GPIO_Port,
+	        .nozzle_switch_pin = NOZZLE2_SW_Pin,
+	        .display = &hlcd2,
+	        .pressure_adc = adc2,
+	        .state = STATE_IDLE,
+	        .price_per_liter = 1.75f,
+	        .vtable = &nozzle_ops
+	    };
+
+	    disp->rtc = rtc;
+	    disp->total_transactions = 0;
+
+	    // Start flow timers in encoder mode
+	    HAL_TIM_Encoder_Start(disp->nozzles[0].flow_timer, TIM_CHANNEL_ALL);
+	    HAL_TIM_Encoder_Start(disp->nozzles[1].flow_timer, TIM_CHANNEL_ALL);
+	}
+
+	// Dispenser initialization
+    Dispenser_Init(&fuelDispenser, &htim2, &htim3, &hadc1, &hadc2, &hrtc);
+
+
+	//---------------------------------------------------------------------------------------
+
+    //**********************************************************************************************/
+
+
+
+	// --------------------------
+	// 8. Hardware Abstraction
+	// --------------------------
+	void hardware_init_nozzles(Nozzle nozzles[NOZZLES]) {
+	    for(int i = 0; i < NOZZLES; i++) {
+	        nozzles[i] = (Nozzle){
+	            .vtable = &nozzle_vtable,
+	            .id = i,
+	            .state = STATE_IDLE,
+	            .price_per_liter = 1.50f
+	        };
+	    }
+	}
+	Nozzle nozzles[NOZZLES];
+
+    // Initialize hardware and business logic
+    hardware_init_nozzles(nozzles);
+
+	//---------------------------------------------------------------------------------------
+
+
 
 	uint8_t MSG[35] = {'\0'};
 	uint16_t CounterTicks = 0;
+
+	void FuelDispenser_init(FuelDispenser *disp,
+		                       StateMachine *nozzles[MAX_NOZZLES])
+	{
+		for(int i = 0; i < MAX_NOZZLES; i++)
+		{
+			self->nozzles[i] = nozzles[i];
+		}
+
+		disp->config_mode = 0;
+	}
 
 //	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
 //	DWT->CYCCNT = 0;
@@ -324,7 +505,9 @@ int main(void)
 	SCnSCB->ACTLR |= SCnSCB_ACTLR_DISDEFWBUF_Msk; // disable the write buffer
 	SCB->SHCSR |= SCB_SHCSR_USGFAULTENA_Msk	| SCB_SHCSR_BUSFAULTENA_Msk
     | SCB_SHCSR_MEMFAULTENA_Msk; 				// Enable Usage-/Bus-/Mem Faults
+
 	//===========================================================================
+
 //  read signature from the backup ram...
 
 //	int demo[12] = {0};
@@ -360,20 +543,20 @@ int main(void)
   MX_RTC_Init();
   MX_SPI1_Init();
   MX_SPI2_Init();
-  MX_TIM2_Init();
-  MX_TIM5_Init();
-  MX_USART1_UART_Init();
-  MX_USART2_UART_Init();
-  MX_ADC1_Init();
-  MX_USART3_UART_Init();
-  MX_UART5_Init();
-  MX_RNG_Init();
+//  MX_TIM2_Init();
+//  MX_TIM5_Init();
+//  MX_USART1_UART_Init();
+//  MX_USART2_UART_Init();
+//  MX_ADC1_Init();
+//  MX_USART3_UART_Init();
+//  MX_UART5_Init();
+//  MX_RNG_Init();
 //  MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
 
-#ifndef DEV_MODE
-  MX_IWDG_Init();
-#endif
+//#ifndef DEV_MODE
+//  MX_IWDG_Init();
+//#endif
 
 //  retrieve_settings();    //Retrieves settings prior to Timers Initialisation
 
@@ -387,6 +570,10 @@ int main(void)
   MX_USART3_UART_Init();
   MX_UART5_Init();
   MX_RNG_Init();
+
+#ifndef DEV_MODE
+  MX_IWDG_Init();
+#endif
 
   //--------------------------------------
 

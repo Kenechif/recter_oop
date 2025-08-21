@@ -88,26 +88,26 @@ extern bool keypad_zerorise1,
 //					  settings0[2];
 
 
-extern pump_settings_stream1 settings_stream1[2],
+extern pump_settings_stream1 self->settings_stream1[2],
 						     settings_original_stream1[2],
 						     copy_stream1[2];
 
-extern pump_settings_stream2 settings_stream2[2],
+extern pump_settings_stream2 self->settings_stream2[2],
 				       	     settings_original_stream2[2],
 							 copy_stream2[2];
 
-extern pump_settings_stream3 settings_stream3[2],
+extern pump_settings_stream3 self->settings_stream3[2],
 				       	     settings_original_stream3[2],
 							 copy_stream3[2];
 
-extern pump_status_enum pump_status_1,
+extern pump_status_enum self->pump_status,
 						pump_status_2;
 
 extern pump pump_type,
  	 	 	disp_type1,
             disp_type2;
 
-extern drive drive1,
+extern drive self->drive,
 			 drive2;
 
 extern uint8_t hmacKey[];
@@ -134,7 +134,7 @@ uint8_t datar1[50];
 //uint8_t datar2[100];
 float datar3;
 
-int number = 0;
+uint16_t number = 0;
 
 #define FRAM_I2C &hi2c1
 
@@ -183,34 +183,34 @@ int checkk = 0;
 
 extern uint8_t batteryVoltage_ready = 0;
 
-uint8_t keyPress1 = 0,
-	    nonKeyPress1 = 0,
+uint8_t self->keyPress = 0,
+	    self->nonKeyPress = 0,
 		keyPress2 = 0,
 	    nonKeyPress2 = 0;
 
-KeyState state1 = KEY_IDLE,
+KeyState self->state = KEY_IDLE,
 		 state2 = KEY_IDLE;
 
 SwitchState switch_state1 = SWITCH_IDLE,
 		    switch_state2 = SWITCH_IDLE;
 
-uint32_t lastDebounceTime1 = 0,
+uint32_t self->lastDebounceTime = 0,
 		 lastDebounceTime2 = 0,
-		 keyPressStartTime1 = 0,
+		 self->keyPressStartTime = 0,
 		 keyPressStartTime2 = 0;
 
 unsigned long cheq3 = 0;
 
-extern uint8_t mamo_reached_flag1,
+extern uint8_t self->mamo_reached_flag,
 			   mamo_reached_flag1_1,
-			   hardwareError_flag1,
+			   self->hardwareError_flag,
 			   hardwareErrorFlag_source1,
-			   fillingComplete_flag1 = 0,
-			   nozzlezUp1 = 0,
-			   authsuspend_flag1 = 0,
-			   fillingsuspend_flag1 = 0,
-			   authresume_flag1 = 0,
-			   fillingresume_flag1 = 0,
+			   self->fillingComplete_flag = 0,
+			   self->nozzlezUp = 0,
+			   self->authsuspend_flag = 0,
+			   self->fillingsuspend_flag = 0,
+			   self->authresume_flag = 0,
+			   self->fillingresume_flag = 0,
 			   fillingresume_flag1_1 = 0,
 			   fillingresume_flag2_1 = 0;
 
@@ -243,7 +243,7 @@ extern const int16_t save_productType_loc,
 
 //==================================================
 
-extern pump_names pumpName[2];
+extern pump_names self->pumpName[2];
 
 
 char testChar0[9] = {0};
@@ -261,7 +261,7 @@ int8_t val;
 
 int t, t2 = 0;
 
-uint8_t key__ = 0;
+uint8_t self->key__ = 0;
 
 uint16_t _tt1 = 0,
 		 _tt2 = 0,
@@ -292,7 +292,7 @@ uint32_t transaction_period = 0,
 unsigned int ttt1 = 0,
 			 ttt2 = 0;
 
-extern uint16_t autoSale_timer1,
+extern uint16_t self->autoSale_timer,
 		 	 	autoSale_timer2;
 
 uint8_t server_message_found = 0,
@@ -307,7 +307,7 @@ uint16_t shutdown_timer1 = 0,
 char key_lcd[10], key_lcd2[10]  = {0};
 uint8_t buff[30], buff2[30]  = {0};
 
-int keynew,keyold = 0;
+int self->keynew,keyold = 0;
 int keynew2,keyold2 = 0;
 
 int32_t  count__, count__2 = 0;
@@ -321,10 +321,10 @@ int retn;
  fifo_t  dat_strout; //create an instance of the buffer - output buffer.
 
  //=====================variables from master===========================
- int totaliser_flag, totaliser_flag2 = 0;
- int key19_flag ,key19_flag2 = 0;
+ int self->totaliser_flag, totaliser_flag2 = 0;
+ int self->key19_flag ,key19_flag2 = 0;
 
- uint8_t auth_cmd_flag = 0,
+ uint8_t self->auth_cmd_flag = 0,
 		 auth_cmd_flag2 = 0;
 
  nozzle_override override_,
@@ -333,53 +333,53 @@ int retn;
  uint8_t stop_flag,
  	 	 stop_flag2 = 0;
 
- uint8_t error_clr_flag,
+ uint8_t self->error_clr_flag,
  	 	 error_clr_flag2 = 0;
 
- uint8_t key_flag,
- 	 	 key_flag_old,
+ uint8_t self->key_flag,
+ 	 	 self->key_flag_old,
 		 key_flag2,
 		 key_flag_old2 = 0;
 
- uint8_t nozzle_flag,
- 	 	 nozzle_flag_old,
+ uint8_t self->nozzle_flag,
+ 	 	 self->nozzle_flag_old,
 		 nozzle_flag2,
 		 nozzle_flag_old2 = 0,
-		 nozzle_flag_key1 = 0,
+		 self->nozzle_flag_key = 0,
 		 nozzle_flag_key2 = 0,
-		 nozzle_flag_key_old1 = 0,
+		 self->nozzle_flag_key_old = 0,
 		 nozzle_flag_key_old2 = 0;
 
- uint32_t pulser_count_old,
- 	 	  pulser_new,
+ uint32_t self->pulser_count_old,
+ 	 	  self->pulser_new,
 		  pulser_count_old2,
 		  pulser_new2 = 0;
 
- extern int timer_flag_old,
- 	 	 	timer_flag,
+ extern int self->timer_flag_old,
+ 	 	 	self->timer_flag,
 			timer_flag_old2,
 			timer_flag2;
 
  int key_longpress_status,key_longpress_status2 = 0;
 
- extern uint8_t filling1,
+ extern uint8_t self->filling,
  	 	 	 	filling2;
 
- extern int auth_flag,
+ extern int self->auth_flag,
  	 	 	auth_flag2;
 
  extern int lat_cnt,
  	 	 	lat_cnt2;
 
- uint8_t keypress_flag,
+ uint8_t self->keypress_flag,
  	 	 keypress_flag2 = 0;
 
- uint8_t keypress__,
+ uint8_t self->keypress__,
  	 	 keypress__2 = 1;
 
  char wrt_[10],wrt_2[10]  = {0};
 
- uint8_t prog_entry1, prog_entry2 = 0;
+ uint8_t self->prog_entry, prog_entry2 = 0;
 
  char keyboard[9], keyboard2[9];
  //reference variables
@@ -390,7 +390,7 @@ int retn;
  extern char keyboard_entry[10],
  	 	 	 keyboard_entry2[10];
 
- extern int keypress_,
+ extern int self->keypress_,
  	 	 	keypress_2;
 
  extern int8_t index_,
@@ -468,22 +468,22 @@ extern float working_amtTotaliser1c;
 extern float working_amtTotaliser2;
 extern float working_amtTotaliser2c;
 
-uint8_t tot_longpress_flag,
-		log_longpress_flag,
-		key_longpress_flag = 0,
-		progExit_longpress_flag = 0;
+uint8_t self->tot_longpress_flag,
+		self->log_longpress_flag,
+		self->key_longpress_flag = 0,
+		self->progExit_longpress_flag = 0;
 
 uint8_t tot_longpress_flag2,
 		log_longpress_flag2,
 		key_longpress_flag2 = 0,
 		progExit_longpress_flag2 = 0;
 
-extern uint8_t timerFlag_tone1,
- 	 	 	   timerFlagOld_tone1,
+extern uint8_t self->timerFlag_tone,
+ 	 	 	   self->timerFlagOld_tone,
 			   timerFlag_tone2,
  	 	 	   timerFlagOld_tone2;
 
-extern operatorfxn_  operatorfxn,
+extern operatorfxn_  self->operatorfxn,
 					 operatorfxn2;
 
  extern float original_pulse,
@@ -1154,7 +1154,7 @@ void check_interface1()
 
 void compose_printer()
 {
-	extern log_new log_a_new , log_b_new;
+	extern log_new self->log_new , log_b_new;
 	extern uint32_t flash_read_idA;
 	extern uint32_t flash_read_idB;
 
@@ -1164,19 +1164,19 @@ void compose_printer()
 	extern const uint32_t flash_beginB;
 	extern const uint32_t flash_endB;
 
-	extern uint8_t prog_entry1;
+	extern uint8_t self->prog_entry;
 	extern uint8_t prog_entry2;
 
 	    sprintf(print_struct_.name,"RECTER");
 		sprintf(print_struct_.adr,"Ilupeju Bypass Ilupeju, Lagos");
-		sprintf(print_struct_.date_,"Thur Oct ,%d , 2022",log_a_new.date._dd);
-		sprintf(print_struct_.time_," %d : %d ", log_a_new.time_e._hh, log_a_new.time_e._mn);
+		sprintf(print_struct_.date_,"Thur Oct ,%d , 2022",self->log_new.date._dd);
+		sprintf(print_struct_.time_," %d : %d ", self->log_new.time_e._hh, self->log_new.time_e._mn);
 		sprintf(print_struct_.transaction_type,"USSD");
 		sprintf(print_struct_.voucher_,"0a2345ba");
 		sprintf(print_struct_.product_,"AGO");
 		sprintf(print_struct_.pn,"A2");
-		sprintf(print_struct_.ta,"%2f",log_a_new.pr_);  //price);
-		sprintf(print_struct_.tv,"%2f",log_a_new.vol_); //amt);
+		sprintf(print_struct_.ta,"%2f",self->log_new.pr_);  //price);
+		sprintf(print_struct_.tv,"%2f",self->log_new.vol_); //amt);
 		sprintf(print_struct_.pl,"180.00");
 
 		printer_status = 1;
@@ -1191,50 +1191,50 @@ void compose_printer()
   //-----------------------------------------------------------
  void setup()
 {
-	 pump_status_1 = STATUS_UNKNOWN;
-	 pump_status_2 = STATUS_UNKNOWN;
+	 self->pump_status = STATUS_UNKNOWN;
+//	 pump_status_2 = STATUS_UNKNOWN;
 
-	 pump1_status_4G = STATUS_PUMP_ON;
+	 self->pump_status_4G = STATUS_PUMP_ON;
 
 	 dart_init();
 
 //	 ep_send(ep0);
 
-	 mcu_power(ACTIVATE);
+	 mcu_power(&disp, ACTIVATE);
 
-	 batt_charge(ACTIVATE);
+	 batt_charge(&disp, ACTIVATE);
 
-	 displayandkeypad_power(ACTIVATE);   //latch power...
+	 displayandkeypad_power(&disp, ACTIVATE);   //latch power...
 
-	 modem_power(ACTIVATE);
+	 modem_power(&disp, ACTIVATE);
 
-//	 settings_stream1[0].keypad__ = LAFNG18_K;
-//	 settings_stream1[1].keypad__ = LAFNG18_K;
+//	 self->settings_stream1.keypad__ = LAFNG18_K;
+//	 self->settings_stream1[1].keypad__ = LAFNG18_K;
 
-//	 settings_stream1[0].mode = MANUAL_MODE;
+//	 self->settings_stream1.mode = MANUAL_MODE;
 
 	 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
 	 // 				LAFENG Valve's Signal is inverted for this version of PCB                      //
 	 //											PCB V5.0											   //
 	 //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX//
 
-	 if (settings_stream1[0].pump_type_ == LAFENG)
+	 if (self->settings_stream1.pump_type_ == LAFENG)
 	 {
-		 drive_slow_sole1(ACTIVATE);     // ACTIVATE here actually means DEACTIVATE
-		 drive_fast_sole1(ACTIVATE);
+		 drive_slow_sole(&self, ACTIVATE);     // ACTIVATE here actually means DEACTIVATE
+		 drive_fast_sole(&self, ACTIVATE);
 	 }
-//	 else if (settings_stream1[0].pump_type_ == BLUESKY)
+//	 else if (self->settings_stream1.pump_type_ == BLUESKY)
 //	 {
 //		 drive_slow_sole1(DEACTIVATE);
 //		 drive_fast_sole1(DEACTIVATE);
 //	 }
 
-	 if (settings_stream1[1].pump_type_ == LAFENG)
-	 {
-		 drive_slow_sole2(ACTIVATE); // ACTIVATE here actually means DEACTIVATE
-		 drive_fast_sole2(ACTIVATE);
-	 }
-//	 else if (settings_stream1[1].pump_type_ == BLUESKY)
+//	 if (self->settings_stream1[1].pump_type_ == LAFENG)
+//	 {
+//		 drive_slow_sole2(ACTIVATE); // ACTIVATE here actually means DEACTIVATE
+//		 drive_fast_sole2(ACTIVATE);
+//	 }
+//	 else if (self->settings_stream1[1].pump_type_ == BLUESKY)
 //	 {
 //		 drive_slow_sole2(DEACTIVATE);
 //		 drive_fast_sole2(DEACTIVATE);
@@ -1335,10 +1335,10 @@ void compose_printer()
 //		 make_settings(side_a);
 //		 make_settings(side_b);
 //
-//		 settings_stream1[0].pi_ = 797.15;   //798.1;  //407.3;   //399.25;   //798.35;
-//		 settings_stream1[0].pi_c = 797.15;  //767.40;  //391.64;   //383.89;  //760.33;
-//		 settings_stream1[1].pi_ = 799.8;    //799.25;  //399.25;   //798.35;
-//		 settings_stream1[1].pi_c = 799.8;   //768.51;   //383.89;  //760.33;
+//		 self->settings_stream1.pi_ = 797.15;   //798.1;  //407.3;   //399.25;   //798.35;
+//		 self->settings_stream1.pi_c = 797.15;  //767.40;  //391.64;   //383.89;  //760.33;
+//		 self->settings_stream1[1].pi_ = 799.8;    //799.25;  //399.25;   //798.35;
+//		 self->settings_stream1[1].pi_c = 799.8;   //768.51;   //383.89;  //760.33;
 //
 // //		Pulser_count1 = 15962 20|0.8|0.0
 // //		Pulser_count2 = 15985 20|0.8|0.0
@@ -1351,8 +1351,8 @@ void compose_printer()
 //		 vol_effective1 = 20;   //20.8;    //21.0;
 //		 vol_effective2 = 20;   //20.8;
 //
-////     		 calib_pulser1 =  (settings_stream1[0].pi_c * vol_calibrated1);
-////     		 calib_pulser2 =  (settings_stream1[1].pi_c * vol_calibrated2);
+////     		 calib_pulser1 =  (self->settings_stream1.pi_c * vol_calibrated1);
+////     		 calib_pulser2 =  (self->settings_stream1[1].pi_c * vol_calibrated2);
 //
 //		 save_settings();
 //
@@ -1363,8 +1363,8 @@ void compose_printer()
 
 //	srand(time(NULL));
 
-    keypad_lcd(2, "0");                      //keypad_lcd(0,"0");
-    keypad_lcd2(2, "0");
+    keypad_lcd(&disp, &self, 2, "0");                      //keypad_lcd(0,"0");
+//    keypad_lcd2(2, "0");
 
 	buffer_init(&dat_str,buffer_length);    //initialise the buffer
 
@@ -1375,30 +1375,33 @@ void compose_printer()
 	//////////////////////////////////////////////////////////
 	//000000000000000000000000000000000000000000000000000000//
 
-	retrieve_settings_fram();
+	retrieve_settings_fram(&self);
 
 	//======================================================//
 
 
-//	settings_stream2[0].pulser_type_ = quadrature; //non_quadrature;   //quadrature;
-//	settings_stream2[1].pulser_type_ = quadrature;   //non_quadrature;   //quadrature;
-//	settings_stream1[0].keypad__ = LAFNG18_K;
-//	settings_stream1[1].keypad__ = LAFNG18_K;
+//	self->settings_stream2[0].pulser_type_ = quadrature; //non_quadrature;   //quadrature;
+//	self->settings_stream2[1].pulser_type_ = quadrature;   //non_quadrature;   //quadrature;
+//	self->settings_stream1.keypad__ = LAFNG18_K;
+//	self->settings_stream1[1].keypad__ = LAFNG18_K;
 
-	if(settings_stream2[0].pulser_type_ == quadrature)
+	if(self->settings_stream2[0].pulser_type_ == quadrature)
 	{
+//		HAL_StatusTypeDef HAL_TIM_Encoder_Start(TIM_HandleTypeDef *htim, uint32_t Channel)
 		HAL_TIM_Encoder_Start(&htim5, TIM_CHANNEL_1 |TIM_CHANNEL_2); //TIM_CHANNEL_ALL); //start encoder acquinsition.
+		HAL_TIM_Encoder_Start(self->htim, uint32_t Channel);
 	}
-	else if(settings_stream2[0].pulser_type_ == non_quadrature)
+	else if(self->settings_stream2[0].pulser_type_ == non_quadrature)
 	{
-		HAL_TIM_Base_Start(&htim5);
+//		HAL_TIM_Base_Start(&htim5);
+		HAL_TIM_Base_Start(self->htim,);
 	}
 
-	if(settings_stream2[1].pulser_type_ == quadrature)
+	if(self->settings_stream2[1].pulser_type_ == quadrature)
 	{
 		HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);  //TIM_CHANNEL_1 |TIM_CHANNEL_2); //TIM_CHANNEL_ALL);
 	}
-	else if(settings_stream2[1].pulser_type_ == non_quadrature)
+	else if(self->settings_stream2[1].pulser_type_ == non_quadrature)
 	{
 		HAL_TIM_Base_Start(&htim2);
 
@@ -1410,17 +1413,17 @@ void compose_printer()
 	//   uint16_t CounterTicks2 = 0;
 	//------------------------------
 	//initialise realtime clock
-	    setup_ds1307();
-//	    get_time();
-//	    set_time();
-	    get_time();
+	    disp->setup_ds1307();
+//	    disp->get_time();
+//	    disp->set_time();
+	    disp->get_time();
 	//-----------------------------
 
 
 //	read_config();
 
-	clear_screen1();         //	clear_screen2();  //nextion1_ini();
-	clear_screen2();
+	clear_screen(Nozzle *self);         //	clear_screen2();  //nextion1_ini();
+//	clear_screen2();
 
 //	pump_ini();    // activate the pump communication I/O
 
@@ -1632,7 +1635,7 @@ void compose_printer()
 //	//start_timer(15);
 //
 //   //======= initialize ========
-//   eNextState1 = idle_State;
+//   self->eNextState = idle_State;
 //   eNextState2 = idle_State;
 //
 ////   state_ini();
@@ -1787,7 +1790,7 @@ tmmm:
 //	 // ===========================================================================
 
 
-	  config_mode = 1;
+	  disp->config_mode = 1;
 //	  retrieve_settings();
 
 //	  HAL_UART_Transmit (&huart1, "Hey!", 4, 1000);
@@ -1816,7 +1819,7 @@ tmmm:
 //	 HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 //     HAL_Delay(1);
 
-	  while(config_found == 0)   //Loops idly while configuration is yet to be inputted
+	  while(disp->config_found == 0)   //Loops idly while configuration is yet to be inputted
 	  {
 		 HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 		 HAL_GPIO_TogglePin(nLed_GPIO_Port, nLed_Pin);  // Toggle LED
@@ -1880,8 +1883,8 @@ tmmm:
 //	  clear_volumeTotaliser(side_a);
 //	  clear_volumeTotaliser(side_b);
 
-	  clear_totaliser_fram(side_a);
-	  clear_totaliser_fram(side_b);
+	  clear_totaliser_fram(&self);
+//	  clear_totaliser_fram(side_b);
 
 //	  clear_amountTotaliser(side_a);
 //	  clear_amountTotaliser(side_b);
@@ -1892,39 +1895,39 @@ tmmm:
 //	  clear_lastSale(side_a);
 //	  clear_lastSale(side_b);
 
-	  clear_lastSale_fram(side_a);
-	  clear_lastSale_fram(side_b);
+	  clear_lastSale_fram(&self);
+//	  clear_lastSale_fram(side_b);
 
 //	  clear_1stvolTotaliser_day(side_a);
 //	  clear_1stvolTotaliser_day(side_b);
 
-	  clear_1stvolTotaliser_day_fram(side_a);
-	  clear_1stvolTotaliser_day_fram(side_b);
+	  clear_1stvolTotaliser_day_fram(&self);
+//	  clear_1stvolTotaliser_day_fram(side_b);
 
-	  clear_configFlag_fram(side_a);
-	  clear_configFlag_fram(side_b);
+	  clear_configFlag_fram(&self);
+//	  clear_configFlag_fram(side_b);
 
-	  clear_configChange_trackNum_fram(side_a);
-	  clear_configChange_trackNum_fram(side_b);
+	  clear_configChange_trackNum_fram(&self);
+//	  clear_configChange_trackNum_fram(side_b);
 
-	  clear_config_otpSeed_time_fram(side_a);
-	  clear_config_otpSeed_time_fram(side_b);
+	  clear_config_otpSeed_time_fram(&self);
+//	  clear_config_otpSeed_time_fram(side_b);
 
-	  clear_otpSeed_session_fram(side_a);
-	  clear_otpSeed_session_fram(side_b);
+	  clear_otpSeed_session_fram(&self);
+//	  clear_otpSeed_session_fram(side_b);
 
-	  clear_online_calibFlag_fram(side_a);
-	  clear_online_calibFlag_fram(side_b);
+	  clear_online_calibFlag_fram(&self);
+//	  clear_online_calibFlag_fram(side_b);
 
 
 	  //============ Incident Test ==============//
-	  clear_incidentNextLoc_fram(side_a);
-	  clear_incidentNextLoc_fram(side_b);
+	  clear_incidentNextLoc_fram(&self);
+//	  clear_incidentNextLoc_fram(side_b);
 
-	  clear_totaliserFrequent_fram(side_a);
-	  clear_totaliserFrequent_eeprom(side_a);
-	  clear_totaliserFrequent_fram(side_b);
-	  clear_totaliserFrequent_eeprom(side_b);
+	  clear_totaliserFrequent_fram(&self);
+	  clear_totaliserFrequent_eeprom(&self);
+//	  clear_totaliserFrequent_fram(side_b);
+//	  clear_totaliserFrequent_eeprom(side_b);
 
 
 //	  clear_ctSettings(side_a);
@@ -1966,12 +1969,12 @@ tmmm:
 //	 save_settings_fram();
 //	 save_volumeTotaliser_fram(side_a); //side_a
 //	 save_volumeTotaliser_fram(side_b);
-	 flash_infoA.current_loc = flash_beginA;
-	 flash_infoA.number_logs = 0;
-	 flash_infoB.current_loc = flash_beginB;
-	 flash_infoB.number_logs = 0;
-	 FRAM_Write(flash_stoA_fram, &flash_infoA, sizeof(flash_infoA));
-	 FRAM_Write(flash_stoB_fram, &flash_infoB, sizeof(flash_infoB));
+	 self->flash_info.current_loc = self->flash_begin;
+	 self->flash_info.number_logs = 0;
+//	 flash_infoB.current_loc = flash_beginB;
+//	 flash_infoB.number_logs = 0;
+	 FRAM_Write(self->flash_sto_fram, &self->flash_info, sizeof(self->flash_info));
+//	 FRAM_Write(flash_stoB_fram, &flash_infoB, sizeof(flash_infoB));
 	 // ===========================================================================
 
 
@@ -1984,33 +1987,33 @@ tmmm:
 		 //==============================================
 		 //    This step is to compose the settings.
 		 //==============================================
-	 make_settings(side_a);
-	 make_settings(side_b);
+	 make_settings(&self);
+//	 make_settings(side_b);
 
-	 settings_stream1[0].noz_addr = 0x01;
-	 settings_stream1[1].noz_addr = 0x02;
+	 self->settings_stream1.noz_addr = 0x01;
+	 self->settings_stream1[1].noz_addr = 0x02;
 
-	 settings_stream1[0].pi_real = 805.75;  //797.15;   //798.1;  //407.3;   //399.25;   //798.35;
-	 settings_stream1[0].pi_cal = 786.10;   //797.15;  //767.40;  //391.64;   //383.89;  //760.33;
-	 settings_stream1[1].pi_real = 800.00;  //799.8;    //799.25;  //399.25;   //798.35;
-	 settings_stream1[1].pi_cal = 780.88;   //799.8;   //768.51;   //383.89;  //760.33;
+	 self->settings_stream1.pi_real = 805.75;  //797.15;   //798.1;  //407.3;   //399.25;   //798.35;
+	 self->settings_stream1.pi_cal = 786.10;   //797.15;  //767.40;  //391.64;   //383.89;  //760.33;
+	 self->settings_stream1[1].pi_real = 800.00;  //799.8;    //799.25;  //399.25;   //798.35;
+	 self->settings_stream1[1].pi_cal = 780.88;   //799.8;   //768.51;   //383.89;  //760.33;
 
 //		Pulser_count1 = 15962 20|0.8|0.0
 //		Pulser_count2 = 15985 20|0.8|0.0
 
 //4650
-	 vol_real1 = 20;
-	 vol_real2 = 20;
-	 vol_calibrated1 = 20.5;  //20.8;   //21.0;
-	 vol_calibrated2 = 20.5;  //20.8;
-	 vol_effective1 = 20.5;   //20.8;    //21.0;
-	 vol_effective2 = 20.5;   //20.8;
+	 self->vol_real = 20;
+//	 vol_real2 = 20;
+	 self->vol_calibrated = 20.5;  //20.8;   //21.0;
+//	 vol_calibrated2 = 20.5;  //20.8;
+	 self->vol_effective = 20.5;   //20.8;    //21.0;
+//	 vol_effective2 = 20.5;   //20.8;
 
-	 calib_pulser1 =  (settings_stream1[0].pi_cal * vol_calibrated1);
-	 calib_pulser2 =  (settings_stream1[1].pi_cal * vol_calibrated2);
+	 self->calib_pulser =  (self->settings_stream1.pi_cal * self->vol_calibrated);
+//	 calib_pulser2 =  (self->settings_stream1[1].pi_cal * vol_calibrated2);
 
-	 config_rx_parse();
-	 pumpType_configure_fram();
+	 config_rx_parse(&disp);
+	 pumpType_configure_fram(&disp);
 
 
 		// ===========================================================================
@@ -2317,7 +2320,7 @@ skip_test:
 //		 memset(testChar1, '\0', sizeof(testChar1) );
 //
 //		 EEPROM_Read(700, 0, &testChar1, sz);
-//		 strncpy(attendant1.session_id, testChar1, sizeof(attendant1.session_id) );
+//		 strncpy(self->attendant.session_id, testChar1, sizeof(self->attendant.session_id) );
 
 //	settings[0].pi_ = 407.3;
 //	save_settings();
@@ -2424,47 +2427,47 @@ skip_test:
 //	settings[0].noz_id;
 
 
-    settings_stream1[0].noz_addr = 0x01;
-	settings_stream1[1].noz_addr = 0x02;
+    self->settings_stream1.noz_addr = 0x01;
+	self->settings_stream1[1].noz_addr = 0x02;
 
-//	settings_stream2[0].valve_salesStart = 0.00; // 0.15;
-//	settings_stream2[0].valve_salesEnd = 0.00;   //0.36;
+//	self->settings_stream2[0].valve_salesStart = 0.00; // 0.15;
+//	self->settings_stream2[0].valve_salesEnd = 0.00;   //0.36;
 
-//	settings_stream2[0].startUp_suppressVol = 0.12;
-//	settings_stream2[1].startUp_suppressVol = 0.12;
+//	self->settings_stream2[0].startUp_suppressVol = 0.12;
+//	self->settings_stream2[1].startUp_suppressVol = 0.12;
 
-//    settings_stream1[0].mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
-//    settings_stream1[1].mode = MANUAL_MODE;      //AUTO_MODE; //MANUAL_MODE;
+//    self->settings_stream1.mode = MANUAL_MODE;    //AUTO_MODE;   //MANUAL_MODE;
+//    self->settings_stream1[1].mode = MANUAL_MODE;      //AUTO_MODE; //MANUAL_MODE;
 //
-//    settings_stream1[0].noz = nooverride;  //nooveride
-//    settings_stream1[0].noz_override = override;  //nooveride
-//    settings_stream2[0].keypress_tone = No;   //Yes;
+//    self->settings_stream1.noz = nooverride;  //nooveride
+//    self->settings_stream1.noz_override = override;  //nooveride
+//    self->settings_stream2[0].keypress_tone = No;   //Yes;
 
-//    settings_stream2[0].calibration_measureCan = 2;
+//    self->settings_stream2[0].calibration_measureCan = 2;
 
-//    settings_stream1[0].keypad__ = BLSKY22;   //BLSKY22
-//    settings_stream1[0].keypad__ = LAFNG18_K_V2;  //LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
+//    self->settings_stream1.keypad__ = BLSKY22;   //BLSKY22
+//    self->settings_stream1.keypad__ = LAFNG18_K_V2;  //LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
 
 //
-//    settings_stream1[1].mode = MANUAL_MODE;  //AUTO;   //MANUAL;
-//    settings_stream1[1].mode = AUTO_MODE;    //AUTO_MODE;
+//    self->settings_stream1[1].mode = MANUAL_MODE;  //AUTO;   //MANUAL;
+//    self->settings_stream1[1].mode = AUTO_MODE;    //AUTO_MODE;
 //
-//    settings_stream1[1].noz = nooverride;  //nooveride
-////	settings_stream1[1].noz = override;  //nooveride
-//	settings_stream1[1].keypad__ = BLSKY22;   //BLSKY22
-//    settings_stream1[1].keypad__ = LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
-//    settings_stream1[1].keypad__ = LAFNG18_K_V2;  //LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
+//    self->settings_stream1[1].noz = nooverride;  //nooveride
+////	self->settings_stream1[1].noz = override;  //nooveride
+//	self->settings_stream1[1].keypad__ = BLSKY22;   //BLSKY22
+//    self->settings_stream1[1].keypad__ = LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
+//    self->settings_stream1[1].keypad__ = LAFNG18_K_V2;  //LAFNG18_K;   //BLSKY22;    //LAFNG18_K;
 
-//    settings_stream1[0].pi_cal = 797.150024;
+//    self->settings_stream1.pi_cal = 797.150024;
 
-//    settings_stream1[0].noz_addr = 0x01;
-//    settings_stream1[1].noz_addr = 0x02;
+//    self->settings_stream1.noz_addr = 0x01;
+//    self->settings_stream1[1].noz_addr = 0x02;
 
-//    settings_stream2[1].keypress_tone = Yes;   //No;   //Yes;
-//    settings_stream1[0].display_format = PL;
-//    settings_stream1[1].display_format = PL;
-//    settings_stream1[0].def_t = P;
-//    settings_stream1[1].def_t = P;
+//    self->settings_stream2[1].keypress_tone = Yes;   //No;   //Yes;
+//    self->settings_stream1.display_format = PL;
+//    self->settings_stream1[1].display_format = PL;
+//    self->settings_stream1.def_t = P;
+//    self->settings_stream1[1].def_t = P;
 
 
 
@@ -2488,8 +2491,8 @@ skip_test:
 
 //    pumpName_parse();
     pumpName_parse_fram();
-//    strcpy(pumpName[0].pump_name, "P17");
-//    strcpy(pumpName[1].pump_name, "P18");
+//    strcpy(self->pumpName[0].pump_name, "P17");
+//    strcpy(self->pumpName[1].pump_name, "P18");
 
 //    retrieve_volumeTotaliser(side_a);
 //    retrieve_volumeTotaliser(side_b);
@@ -2777,7 +2780,7 @@ skip_test:
 	//start_timer(15);
 
    //======= initialize ========
-   eNextState1 = idle_State;
+   self->eNextState = idle_State;
    eNextState2 = idle_State;
 
 
@@ -2891,8 +2894,8 @@ skip_test:
 //===============================================//
 
 
-//    strcpy(settings_stream1[0].product_, "DPK");
-//    strcpy(settings_stream1[1].product_, "DPK");
+//    strcpy(self->settings_stream1.product_, "DPK");
+//    strcpy(self->settings_stream1[1].product_, "DPK");
 
 
 //    pulser_benchMark1 = 15985;   //15987;
@@ -2924,10 +2927,10 @@ skip_test:
 
     ep0_save.boot_time = RtcToInt(2019);
 
-    slowFlow_startThreshold1 = (fast_flow_threshold1 * settings_stream2[0].valve_salesStart);
-    slowFlow_endThreshold1 = (fast_flow_threshold1 * settings_stream2[0].valve_salesEnd);
-	slowFlow_startThreshold2 = (fast_flow_threshold2 * settings_stream2[1].valve_salesStart);
-	slowFlow_endThreshold2 = (fast_flow_threshold2 * settings_stream2[1].valve_salesEnd);
+    slowFlow_startThreshold1 = (fast_flow_threshold1 * self->settings_stream2[0].valve_salesStart);
+    slowFlow_endThreshold1 = (fast_flow_threshold1 * self->settings_stream2[0].valve_salesEnd);
+	slowFlow_startThreshold2 = (fast_flow_threshold2 * self->settings_stream2[1].valve_salesStart);
+	slowFlow_endThreshold2 = (fast_flow_threshold2 * self->settings_stream2[1].valve_salesEnd);
 
 //	settings[1].noz = overide;   //nooveride;
 //	overide_2 = settings[1].noz;
@@ -2936,15 +2939,15 @@ skip_test:
 
 //    calib_pulser1 = 15800;
 
-//	settings_stream2[0].pulser_type_ = non_quadrature;   //quadrature;
-//	settings_stream2[1].pulser_type_ = non_quadrature;   //quadrature;
+//	self->settings_stream2[0].pulser_type_ = non_quadrature;   //quadrature;
+//	self->settings_stream2[1].pulser_type_ = non_quadrature;   //quadrature;
 
-//	settings_stream1[0].noz_override = nooverride;
-//	settings_stream1[1].noz_override = nooverride;
+//	self->settings_stream1.noz_override = nooverride;
+//	self->settings_stream1[1].noz_override = nooverride;
 
     day = DS1307_GetDate();
 
-	if(settings_stream2[0].totalizer_day != day)
+	if(self->settings_stream2[0].totalizer_day != day)
 	{
 //		save_1stVolTotaliser_day(side_a);
 //		save_1stVolTotaliser_day(side_b);
@@ -3096,23 +3099,12 @@ void led_pin_out(void)
 //============================================================
  void house_keeping()
  {
- 	          Multiplex(0, 0);
+ 	         Multiplex(0, 0);
 
-// 	    	  keynew = keypad_lcd(0, key_lcd);  //write lcd and read keypad.
-// 			  if ( (keyold == 0) && (keyold != keynew) )  //send key only if new key is pressed
-//			  {
-//				 //send_keyboard();
-// 				 keypress_flag = 1;  //indicate that a new press was detected.
-//			  }
-// 			  keyold = keynew;
-
-// 			 keypress_ = keynew;
-
-
- 			 keynew = debounceKey1();
- 			 if (keynew != 0)
+ 			 self->keynew = debounceKey(&self);
+ 			 if (self->keynew != 0)
  			 {
- 				 keypress_flag = 1;  //indicate that a new press was detected.
+ 				 self->keypress_flag = 1;  //indicate that a new press was detected.
 			 }
  }
 
@@ -3188,7 +3180,7 @@ void run()
 	//		server_message_found = 0;
 			go_message = false;
 //		}
-			if (r_pumpno == settings_stream1[0].noz_addr)
+			if (r_pumpno == self->settings_stream1.noz_addr)
 			{
 				if( (resp != NOREPLY) && (resp != JUNK) )
 				{
@@ -3201,7 +3193,7 @@ void run()
 //					checkk++;
 				}
 			}
-			else if (r_pumpno == settings_stream1[1].noz_addr)
+			else if (r_pumpno == self->settings_stream1[1].noz_addr)
 			{
 
 				if( (resp2 != NOREPLY) && (resp2 != JUNK) )
@@ -3220,7 +3212,7 @@ void run()
 
 	float batt_val_ = battery_sense();
 
-//	if( (batteryVoltage_ready == 1) && ( (eLastState1 != pnp_State) || (eLastState2 != pnp_State) ) )
+//	if( (batteryVoltage_ready == 1) && ( (self->eLastState != pnp_State) || (eLastState2 != pnp_State) ) )
 	if(batteryVoltage_ready == 1)
 	{
 		batt_val = batt_val_;
@@ -3385,10 +3377,10 @@ void run()
 //		 states();
 		 states_1();
 
-//		 if(keypress_flag == 1)
+//		 if(self->keypress_flag == 1)
 //		 {
 //			 keypress_Handler();
-//			 keypress_flag = 0;
+//			 self->keypress_flag = 0;
 //		 }
 
 		 operating_sideA = false;
@@ -3485,29 +3477,29 @@ void run()
 //==============================================================
 uint8_t  read_event1()
 {
-	extern bool lock_clr;
-		 	   key19_flag = 0;
-		 	 //  auth_cmd_flag = 0;
-	     	 //  totaliser_flag = 0;
-		 	 //  keypress_flag = 0;
+	extern bool self->lock_clr;
+		 	   self->key19_flag = 0;
+		 	 //  self->auth_cmd_flag = 0;
+	     	 //  self->totaliser_flag = 0;
+		 	 //  self->keypress_flag = 0;
 
             //READ STATES OF INPUTS PIN AND KEYPAD...
-           	  totaliser_flag =  readtotaliser1_state();
+           	  self->totaliser_flag =  readtotaliser1_state();
 
-			  //key19_flag =  readkey19_state();
+			  //self->key19_flag =  readkey19_state();
 
-	          key_flag =  readsettingskey_state();
+	          self->key_flag =  readsettingskey_state();
 
-	          nozzle_flag = readNozzle1();
+	          self->nozzle_flag = readNozzle1();
 
-   			  keypress_ = keynew;  //key flag is also set...
+   			  self->keypress_ = self->keynew;  //key flag is also set...
 
 #ifndef DEV_MODE
    			 //--------------------------------------------------
 			  //  totaliser error.
-				if( (totaliser_flag == 0) && (drive1 != ACTIVATE) )
+				if( (self->totaliser_flag == 0) && (self->drive != ACTIVATE) )
 				{
-					totaliser_flag = 1;
+					self->totaliser_flag = 1;
 					return _tot_error_Event;
 				}
    			  //--------------------------------------------------
@@ -3518,84 +3510,84 @@ uint8_t  read_event1()
 	 //==================================================
 	 //      then select the  operator  view mode...
 	 //--------------------------------------------------
-   			tot_longpress_flag = long_press_tot();
-   			log_longpress_flag = long_press_log();
-   			key_longpress_flag = long_press_key();
-   			progExit_longpress_flag = long_press_progExit();
+   			self->tot_longpress_flag = long_press_tot();
+   			self->log_longpress_flag = long_press_log();
+   			self->key_longpress_flag = long_press_key();
+   			self->progExit_longpress_flag = long_press_progExit();
 
-   			  if(tot_longpress_flag == 1)
+   			  if(self->tot_longpress_flag == 1)
 			  {
-				   operatorfxn = totaliser_view;
+				   self->operatorfxn = totaliser_view;
 				   return _operator_Event;
 			  }
 
-   			  else if(log_longpress_flag == 1)
+   			  else if(self->log_longpress_flag == 1)
 			  {
-				   operatorfxn = log_view;
+				   self->operatorfxn = log_view;
 				   return _operator_Event;
 			  }
-   			  else if(key_longpress_flag == 1)
+   			  else if(self->key_longpress_flag == 1)
 			  {
 				//if not previously activated,
 //				 if (key_longpress_status == 0)
 //				 {
 //					key_longpress_status = 1;
-					prog_entry1 = 1;   //variable used to clear the var. states in settings menu.
+					self->prog_entry = 1;   //variable used to clear the var. states in settings menu.
 					return _keyup_Event;
 //				 }
 //				 else
 //				 {
 //					key_longpress_status = 0;
-//					prog_entry1 = 0;
+//					self->prog_entry = 0;
 //					return _keydown_Event;
 //				 }
 			  }
-   			  else if(progExit_longpress_flag == 1)
+   			  else if(self->progExit_longpress_flag == 1)
 			  {
 				//if not previously activated,
 //				 if (key_longpress_status == 0)
 //				 {
 //					key_longpress_status = 1;
-//					prog_entry1 = 1;   //variable used to clear the var. states in settings menu.
+//					self->prog_entry = 1;   //variable used to clear the var. states in settings menu.
 //					return _keyup_Event;
 //				 }
 //				 else
 //				 {
 //					key_longpress_status = 0;
-					prog_entry1 = 0;
+					self->prog_entry = 0;
 					return _keydown_Event;
 //				 }
 			  }
 
        //--------------------------------------------------
 	   //          error clear flag...
-	   if( error_clr_flag == 1)
+	   if( self->error_clr_flag == 1)
 		 {
-			error_clr_flag = 0;
+			self->error_clr_flag = 0;
 
-			filling1 = 0;
+			self->filling = 0;
 
 			return _error_clear_Event;
 		 }
 	  //--------------------------------------------------
 			 // authorise  event capture.
-		if ( auth_flag  == 1 )
+		if ( self->auth_flag  == 1 )
 		{
-			auth_flag = 0;
+			self->auth_flag = 0;
 			return _authorise_Event;
 		}
 		//--------------------------------------------------
 				// authorise  command event.
-		if ( auth_cmd_flag  == 1 )
+		if ( self->auth_cmd_flag  == 1 )
 			{
 			  //if(settings[operating_side-1].mode == offline_)
 			  //{
-				auth_cmd_flag = 0;
+				self->auth_cmd_flag = 0;
 
-//				eNextState1 = authorised_nozzledown_State;
+//				self->eNextState = authorised_nozzledown_State;
 					//---------------------------------------------
 					//                nozzle-up overide
-					if (eNextState1 == authorised_nozzledown_State)
+					if (self->eNextState == authorised_nozzledown_State)
 					{
 //						if (override_ == override)
 //						{
@@ -3608,9 +3600,9 @@ uint8_t  read_event1()
 			}
 
 	   // nozzle up  event capture...
-			if( (nozzle_flag_old == 0) && (nozzle_flag == 1) )
+			if( (self->nozzle_flag_old == 0) && (self->nozzle_flag == 1) )
 			{
-					nozzle_flag_old = 1;
+					self->nozzle_flag_old = 1;
 //					if (override_ != override)
 //					{
 								//send nozzleup command only in MANUAL mode
@@ -3623,71 +3615,71 @@ uint8_t  read_event1()
 			}
 	  //-----------------------
 	  // nozzle down  event capture...
-			if( (nozzle_flag_old == 1) && (nozzle_flag == 0) )
+			if( (self->nozzle_flag_old == 1) && (self->nozzle_flag == 0) )
 			{
-					nozzle_flag_old = 0;
+					self->nozzle_flag_old = 0;
 //					if (override_ != override)
 						return _nozzledown_Event;
 			}
-		//	nozzle_flag_old = nozzle_flag;
+		//	self->nozzle_flag_old = self->nozzle_flag;
 	  //--------------------------------------------------
 	  //--------------------------------------------------
 		// key up  event capture...
-		if( (key_flag_old == 0)&&(key_flag == 1) )
+		if( (self->key_flag_old == 0)&&(self->key_flag == 1) )
 			{
-					key_flag_old = 1;
+					self->key_flag_old = 1;
 			      return _keyup_Event;
 			}
 	  //-----------------------
 		// key down  event capture...
-		if( (key_flag_old == 1)&&(key_flag == 0) )
+		if( (self->key_flag_old == 1)&&(self->key_flag == 0) )
 			{
-					key_flag_old = 0;
+					self->key_flag_old = 0;
 				  return _keydown_Event;
 			}
-			key_flag_old = key_flag;
+			self->key_flag_old = self->key_flag;
 	  //--------------------------------------------------
 	  //--------------------------------------------------
 		// key press event capture...
-		if (keypress_flag == 1)
+		if (self->keypress_flag == 1)
 			{
-			    keypress__ = 1;
-				keypress_flag = 0;
+			    self->keypress__ = 1;
+				self->keypress_flag = 0;
 				return _keypress_Event;
 			}
 	  //--------------------------------------------------
-	  /*	  if (key19_flag == 1)
+	  /*	  if (self->key19_flag == 1)
 			{
 				return _key19_Event;
 			}                              */
 	  //--------------------------------------------------
 	  //  totaliser error.
-//		if( (totaliser_flag == 0) && (drive1 != ACTIVATE) )
+//		if( (self->totaliser_flag == 0) && (self->drive != ACTIVATE) )
 //		{
-//			totaliser_flag = 1;
+//			self->totaliser_flag = 1;
 //			return _tot_error_Event;
 //		}
 	  //--------------------------------------------------
-	   //filling1 pulse detection.
-		if ( (pulser_count_old < pulser_new) && ( eNextState1 == authorised_nozzleup_State ) )
+	   //self->filling pulse detection.
+		if ( (self->pulser_count_old < self->pulser_new) && ( self->eNextState == authorised_nozzleup_State ) )
 			{
-				pulser_count_old = pulser_new;
-				lock_clr = 0;
+				self->pulser_count_old = self->pulser_new;
+				self->lock_clr = 0;
 				return _filling_pulse_Event;
 			}
-		 pulser_count_old = pulser_new;
+		 self->pulser_count_old = self->pulser_new;
 
 	  //--------------------------------------------------
 			  // timeout   event capture...
-		if( (timer_flag_old == 0)&&(timer_flag == 1) )
+		if( (self->timer_flag_old == 0)&&(self->timer_flag == 1) )
 		{
-				  timer_flag_old = 1;
+				  self->timer_flag_old = 1;
 
-				  filling1 = 0;
+				  self->filling = 0;
 
 			  return _timeout_Event;
 		}
-			timer_flag_old = timer_flag;
+			self->timer_flag_old = self->timer_flag;
 
 	  return _no_Event;
 }
@@ -3699,14 +3691,14 @@ int  read_event2()
 
 	  extern bool lock_clr2;
 		 	   key19_flag2 = 0;
-		 	 //  auth_cmd_flag = 0;
-	     	 //  totaliser_flag = 0;
-		 	 //  keypress_flag = 0;
+		 	 //  self->auth_cmd_flag = 0;
+	     	 //  self->totaliser_flag = 0;
+		 	 //  self->keypress_flag = 0;
 
             //READ STATES OF INPUTS PIN AND KEYPAD...
            	  totaliser_flag2 =  readtotaliser2_state();
 
-			  //key19_flag =  readkey19_state();
+			  //self->key19_flag =  readkey19_state();
 
 	          key_flag2 =  readsettingskey2_state();
 
@@ -3717,7 +3709,7 @@ int  read_event2()
 
 	          //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
 			  //======================= AUTOMATED SALES TEST ==========================//
-	          if(settings_stream1[1].mode == AUTO_MODE)
+	          if(self->settings_stream1[1].mode == AUTO_MODE)
 	          {
 	        	  if(eNextState2 != idle_State)
 	        	  {
@@ -3773,7 +3765,7 @@ int  read_event2()
 	 //==================================================
 	 //      then select the  operator  view mode...
 	 //--------------------------------------------------
-			if( (settings_stream1[1].keypad__ == LAFNG17_K) || (settings_stream1[1].keypad__ == LAFNG18_K) || (settings_stream1[1].keypad__ == LAFNG18_K_V2) )
+			if( (self->settings_stream1[1].keypad__ == LAFNG17_K) || (self->settings_stream1[1].keypad__ == LAFNG18_K) || (self->settings_stream1[1].keypad__ == LAFNG18_K_V2) )
 			{
 				tot_longpress_flag2 = long_press_tot2();
 			}
@@ -3854,7 +3846,7 @@ int  read_event2()
 //			{
 //				auth_cmd_flag2 = 0;
 //
-//				if(settings_stream1[1].mode == MANUAL_MODE)
+//				if(self->settings_stream1[1].mode == MANUAL_MODE)
 //				{
 //					eNextState2 = authorised_nozzledown_State;
 //				}
@@ -3869,7 +3861,7 @@ int  read_event2()
 //					}
 //				}
 //
-//				if(settings_stream1[1].mode == MANUAL_MODE)
+//				if(self->settings_stream1[1].mode == MANUAL_MODE)
 //				{
 //					eNextState2 = authorised_nozzledown_State;
 //				}
@@ -3887,7 +3879,7 @@ int  read_event2()
 				auth_cmd_flag2 = 0;
 
 
-				if(settings_stream1[1].mode == MANUAL_MODE)
+				if(self->settings_stream1[1].mode == MANUAL_MODE)
 				{
 					eNextState2 = authorised_nozzledown_State;
 				}
@@ -3902,7 +3894,7 @@ int  read_event2()
 					}
 			//				//---------------------------------------------
 			//
-							if(settings_stream1[1].mode == AUTO_MODE)
+							if(self->settings_stream1[1].mode == AUTO_MODE)
 							{
 								if(nozzlezUp2 == 1)   //A NozzleUp that triggers a transaction
 								{
@@ -3916,7 +3908,7 @@ int  read_event2()
 			}
 
 
-			if(settings_stream1[1].mode == AUTO_MODE)
+			if(self->settings_stream1[1].mode == AUTO_MODE)
 		    {
 
 			   if (hardwareError_flag2 == 1)
@@ -3965,7 +3957,7 @@ int  read_event2()
 			   }
 		   }
 
-			else if(settings_stream1[1].mode == MANUAL_MODE)
+			else if(self->settings_stream1[1].mode == MANUAL_MODE)
 		    {
 				if (fillingresume_flag2 == 1)
 			   {
@@ -3983,14 +3975,14 @@ int  read_event2()
    //				 ( ((nozzle_flag_old2 == 0) && (nozzle_flag2 == 1)) ||
    //				 ((nozzle_flag_key_old2 == 0) && (nozzle_flag_key2 == 1)) ) &&
    //				 ((eNextState2 != operator_State) && (eLastState2 != operator_State)) &&
-   //				 (eNextState1 != prog_State)
+   //				 (self->eNextState != prog_State)
    //			 )
 		   if(
 				 (
 					( (nozzle_flag_old2 == 0) && (nozzle_flag2 == 1) ) ||
 					( (nozzle_flag_key_old2 == 0) && (nozzle_flag_key2 == 1) )
 				 ) &&
-				 (eNextState1 != prog_State)  //Forbids Sales-State in a Config-Mode of either Sides
+				 (self->eNextState != prog_State)  //Forbids Sales-State in a Config-Mode of either Sides
 			 )
 		   {
 //			   keypad_zerorise2 = true;
@@ -4025,7 +4017,7 @@ int  read_event2()
 //					{
 						//send nozzleup command only in MANUAL mode
 
-				if(settings_stream1[1].mode == AUTO_MODE)
+				if(self->settings_stream1[1].mode == AUTO_MODE)
 				{
 					nozzlezUp2 = 1;
 				}
@@ -4054,7 +4046,7 @@ int  read_event2()
   //					 ( ((nozzle_flag_old2 == 1) && (nozzle_flag2 == 0)) ||
   //					 ((nozzle_flag_key_old2 == 1) && (nozzle_flag_key2 == 0)) ) &&
   //					 ((eNextState2 != operator_State) && (eLastState2 != operator_State)) &&
-  //					 (eNextState1 != prog_State)
+  //					 (self->eNextState != prog_State)
   //				 )
 		  else if(
 				  ( (nozzle_flag_old2 == 1) && (nozzle_flag2 == 0) ) ||
@@ -4107,7 +4099,7 @@ int  read_event2()
 
 	   //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH//
 
-		//	nozzle_flag_old = nozzle_flag;
+		//	self->nozzle_flag_old = self->nozzle_flag;
 	  //--------------------------------------------------
 
 	  //--------------------------------------------------
@@ -4135,7 +4127,7 @@ int  read_event2()
 				return _keypress_Event;
 			}
 	  //--------------------------------------------------
-	  /*	  if (key19_flag == 1)
+	  /*	  if (self->key19_flag == 1)
 			{
 				return _key19_Event;
 			}                              */
@@ -4147,7 +4139,7 @@ int  read_event2()
 //			return _tot_error_Event;
 //		}
 	  //--------------------------------------------------
-	   //filling1 pulse detection.
+	   //self->filling pulse detection.
 		if ( (pulser_count_old2 < pulser_new2) && ( eNextState2 == authorised_nozzleup_State ) )
 			{
 				pulser_count_old2 = pulser_new2;
@@ -4174,104 +4166,105 @@ int  read_event2()
 
 void pumpType_configure(void)
 {
-	  if((settings_stream1[0].display__ == LAFNG885) && (settings_stream1[0].keypad__ == LAFNG17_K))  //LAFENG885-NormalScreen | LAFENG16-Keypad
+	  if((self->settings_stream1.display__ == LAFNG885) && (self->settings_stream1.keypad__ == LAFNG17_K))  //LAFENG885-NormalScreen | LAFENG16-Keypad
 	  {
 		  EEPROM_Write_NUM (save_pumpType_loc, 0, 0b00000001);
 	  }
-	  else if((settings_stream1[0].display__ == BLSKY886_N) && (settings_stream1[0].keypad__ == BLSKY18_K))  //BLUESKY886-NormalScreen | BLUESKY18K-Keypad
+	  else if((self->settings_stream1.display__ == BLSKY886_N) && (self->settings_stream1.keypad__ == BLSKY18_K))  //BLUESKY886-NormalScreen | BLUESKY18K-Keypad
 	  {
 		  EEPROM_Write_NUM (save_pumpType_loc, 0, 0b00000010);
 	  }
-	  else if((settings_stream1[0].display__ == BLSKY886_N) && (settings_stream1[0].keypad__ == BLSKY22))  //BLUESKY886-NormalScreen | BLUESKY22-Keypad
+	  else if((self->settings_stream1.display__ == BLSKY886_N) && (self->settings_stream1.keypad__ == BLSKY22))  //BLUESKY886-NormalScreen | BLUESKY22-Keypad
 	  {
 		  EEPROM_Write_NUM (save_pumpType_loc, 0, 0b00000011);
 	  }
-	  else if((settings_stream1[0].display__ == BLSKY886_IN) && (settings_stream1[0].keypad__ == BLSKY18_K))  //BLUESKY886-InvertedScreen | BLUESKY18K-Keypad
+	  else if((self->settings_stream1.display__ == BLSKY886_IN) && (self->settings_stream1.keypad__ == BLSKY18_K))  //BLUESKY886-InvertedScreen | BLUESKY18K-Keypad
 	  {
 		  EEPROM_Write_NUM (save_pumpType_loc, 0, 0b00000100);
 	  }
-	  else if((settings_stream1[0].display__ == BLSKY886_IN) && (settings_stream1[0].keypad__ == BLSKY22))  //BLUESKY886-InvertedScreen | BLUESKY22-Keypad
+	  else if((self->settings_stream1.display__ == BLSKY886_IN) && (self->settings_stream1.keypad__ == BLSKY22))  //BLUESKY886-InvertedScreen | BLUESKY22-Keypad
 	  {
 		  EEPROM_Write_NUM (save_pumpType_loc, 0, 0b00000101);
 	  }
-	  else if((settings_stream1[0].display__ == LAFNG885) && (settings_stream1[0].keypad__ == LAFNG18_K))  //LAFENG885-NormalScreen | LAFENG18-Keypad
+	  else if((self->settings_stream1.display__ == LAFNG885) && (self->settings_stream1.keypad__ == LAFNG18_K))  //LAFENG885-NormalScreen | LAFENG18-Keypad
 	  {
 		  EEPROM_Write_NUM (save_pumpType_loc, 0, 0b00000110);
 	  }
-	  else if((settings_stream1[0].display__ == BLSKY886_N) && (settings_stream1[0].keypad__ == LAFNG18_K))  //BLSKY886_N-NormalScreen | LAFENG18-Keypad
+	  else if((self->settings_stream1.display__ == BLSKY886_N) && (self->settings_stream1.keypad__ == LAFNG18_K))  //BLSKY886_N-NormalScreen | LAFENG18-Keypad
 	  {
 		  EEPROM_Write_NUM (save_pumpType_loc, 0, 0b00000111);
 	  }
 
 
 
-		if(strcmp(settings_stream1[0].product_, "PMS") == 0)
+		if(strcmp(self->settings_stream1.product_, "PMS") == 0)
 		{
 			EEPROM_Write_NUM (save_productType_loc, 0, PMS);
 		}
-		else if(strcmp(settings_stream1[0].product_, "AGO") == 0)
+		else if(strcmp(self->settings_stream1.product_, "AGO") == 0)
 		{
 			EEPROM_Write_NUM (save_productType_loc, 0, AGO);
 		}
-		else if(strcmp(settings_stream1[0].product_, "DPK") == 0)
+		else if(strcmp(self->settings_stream1.product_, "DPK") == 0)
 		{
 			EEPROM_Write_NUM (save_productType_loc, 0, DPK);
 		}
 
-		EEPROM_Write_NUM (save_nozzleId_loc, 0, settings_stream1[0].noz_id);
+		EEPROM_Write_NUM (save_nozzleId_loc, 0, self->settings_stream1.noz_id);
 }
 
 
-void pumpType_configure_fram(void)
+void pumpType_configure_fram(FuelDispenser *disp)
 {
+	for(uint8_t i = 0; i < NUM_NOZZLES; i++)
+	{
+		Nozzle *self = &disp->nozzles[0];
 
-//	  void FRAM_WriteByte(uint16_t memAddress, uint8_t data);
-
-	  if((settings_stream1[0].display__ == LAFNG885) && (settings_stream1[0].keypad__ == LAFNG17_K))  //LAFENG885-NormalScreen | LAFENG16-Keypad
-	  {
-		  FRAM_WriteByte (save_pumpType_loc_fram, 0b00000001);
-	  }
-	  else if((settings_stream1[0].display__ == BLSKY886_N) && (settings_stream1[0].keypad__ == BLSKY18_K))  //BLUESKY886-NormalScreen | BLUESKY18K-Keypad
-	  {
-		  FRAM_WriteByte (save_pumpType_loc_fram, 0b00000010);
-	  }
-	  else if((settings_stream1[0].display__ == BLSKY886_N) && (settings_stream1[0].keypad__ == BLSKY22))  //BLUESKY886-NormalScreen | BLUESKY22-Keypad
-	  {
-		  FRAM_WriteByte (save_pumpType_loc_fram, 0b00000011);
-	  }
-	  else if((settings_stream1[0].display__ == BLSKY886_IN) && (settings_stream1[0].keypad__ == BLSKY18_K))  //BLUESKY886-InvertedScreen | BLUESKY18K-Keypad
-	  {
-		  FRAM_WriteByte (save_pumpType_loc_fram, 0b00000100);
-	  }
-	  else if((settings_stream1[0].display__ == BLSKY886_IN) && (settings_stream1[0].keypad__ == BLSKY22))  //BLUESKY886-InvertedScreen | BLUESKY22-Keypad
-	  {
-		  FRAM_WriteByte (save_pumpType_loc_fram, 0b00000101);
-	  }
-	  else if((settings_stream1[0].display__ == LAFNG885) && (settings_stream1[0].keypad__ == LAFNG18_K))  //LAFENG885-NormalScreen | LAFENG18-Keypad
-	  {
-		  FRAM_WriteByte (save_pumpType_loc_fram, 0b00000110);
-	  }
-	  else if((settings_stream1[0].display__ == BLSKY886_N) && (settings_stream1[0].keypad__ == LAFNG18_K))  //BLSKY886_N-NormalScreen | LAFENG18-Keypad
-	  {
-		  FRAM_WriteByte (save_pumpType_loc_fram, 0b00000111);
-	  }
-
-
-
-		if(strcmp(settings_stream1[0].product_, "PMS") == 0)
+		if((self->settings_stream1.display__ == LAFNG885) && (self->settings_stream1.keypad__ == LAFNG17_K))  //LAFENG885-NormalScreen | LAFENG16-Keypad
 		{
-			FRAM_WriteByte (save_productType_loc_fram, PMS);
+		  FRAM_WriteByte (disp->save_pumpType_loc_fram, 0b00000001);
 		}
-		else if(strcmp(settings_stream1[0].product_, "AGO") == 0)
+		else if((self->settings_stream1.display__ == BLSKY886_N) && (self->settings_stream1.keypad__ == BLSKY18_K))  //BLUESKY886-NormalScreen | BLUESKY18K-Keypad
 		{
-			FRAM_WriteByte (save_productType_loc_fram, AGO);
+		  FRAM_WriteByte (disp->save_pumpType_loc_fram, 0b00000010);
 		}
-		else if(strcmp(settings_stream1[0].product_, "DPK") == 0)
+		else if((self->settings_stream1.display__ == BLSKY886_N) && (self->settings_stream1.keypad__ == BLSKY22))  //BLUESKY886-NormalScreen | BLUESKY22-Keypad
 		{
-			FRAM_WriteByte (save_productType_loc_fram, DPK);
+		  FRAM_WriteByte (disp->save_pumpType_loc_fram, 0b00000011);
+		}
+		else if((self->settings_stream1.display__ == BLSKY886_IN) && (self->settings_stream1.keypad__ == BLSKY18_K))  //BLUESKY886-InvertedScreen | BLUESKY18K-Keypad
+		{
+		  FRAM_WriteByte (disp->save_pumpType_loc_fram, 0b00000100);
+		}
+		else if((self->settings_stream1.display__ == BLSKY886_IN) && (self->settings_stream1.keypad__ == BLSKY22))  //BLUESKY886-InvertedScreen | BLUESKY22-Keypad
+		{
+		  FRAM_WriteByte (disp->save_pumpType_loc_fram, 0b00000101);
+		}
+		else if((self->settings_stream1.display__ == LAFNG885) && (self->settings_stream1.keypad__ == LAFNG18_K))  //LAFENG885-NormalScreen | LAFENG18-Keypad
+		{
+		  FRAM_WriteByte (disp->save_pumpType_loc_fram, 0b00000110);
+		}
+		else if((self->settings_stream1.display__ == BLSKY886_N) && (self->settings_stream1.keypad__ == LAFNG18_K))  //BLSKY886_N-NormalScreen | LAFENG18-Keypad
+		{
+		  FRAM_WriteByte (disp->save_pumpType_loc_fram, 0b00000111);
 		}
 
-		FRAM_WriteByte (save_nozzleId_loc_fram, settings_stream1[0].noz_id);
+
+		if(strcmp(self->settings_stream1.product_, "PMS") == 0)
+		{
+			FRAM_WriteByte (disp->save_productType_loc_fram, PMS);
+		}
+		else if(strcmp(self->settings_stream1.product_, "AGO") == 0)
+		{
+			FRAM_WriteByte (disp->save_productType_loc_fram, AGO);
+		}
+		else if(strcmp(self->settings_stream1.product_, "DPK") == 0)
+		{
+			FRAM_WriteByte (disp->save_productType_loc_fram, DPK);
+		}
+
+		FRAM_WriteByte (disp->save_nozzleId_loc_fram, self->settings_stream1.noz_id);
+	}
 }
 
 
@@ -4303,40 +4296,40 @@ void pumpType_configure_fram(void)
 
 void pumpType_parse(void)
 {
-//	  if(settings_stream1[0].pump_type_ == DN_LAFNG17K)
+//	  if(self->settings_stream1.pump_type_ == DN_LAFNG17K)
 //	  {
-//		  settings_stream1[0].display__ = LAFNG885;
-//		  settings_stream1[0].keypad__ = LAFNG17_K;
+//		  self->settings_stream1.display__ = LAFNG885;
+//		  self->settings_stream1.keypad__ = LAFNG17_K;
 //	  }
-//	  else if(settings_stream1[0].pump_type_ == DN_LAFNG18K)
+//	  else if(self->settings_stream1.pump_type_ == DN_LAFNG18K)
 //	  {
-//		  settings_stream1[0].display__ = LAFNG885;
-//		  settings_stream1[0].keypad__ = LAFNG18_K;
+//		  self->settings_stream1.display__ = LAFNG885;
+//		  self->settings_stream1.keypad__ = LAFNG18_K;
 //	  }
-//	  else if(settings_stream1[0].pump_type_ == DN_BLSKY18K)
+//	  else if(self->settings_stream1.pump_type_ == DN_BLSKY18K)
 //	  {
-//		  settings_stream1[0].display__ = BLSKY886_N;
-//		  settings_stream1[0].keypad__ = BLSKY18_K;
+//		  self->settings_stream1.display__ = BLSKY886_N;
+//		  self->settings_stream1.keypad__ = BLSKY18_K;
 //	  }
-//	  else if(settings_stream1[0].pump_type_ == BLSKY886_N_LAFNG18_K)
+//	  else if(self->settings_stream1.pump_type_ == BLSKY886_N_LAFNG18_K)
 //	  {
-//		  settings_stream1[0].display__ = BLSKY886_N;
-//		  settings_stream1[0].keypad__ = LAFNG18_K;
+//		  self->settings_stream1.display__ = BLSKY886_N;
+//		  self->settings_stream1.keypad__ = LAFNG18_K;
 //	  }
-//	  else if(settings_stream1[0].pump_type_ == DN_BLSKY22)
+//	  else if(self->settings_stream1.pump_type_ == DN_BLSKY22)
 //	  {
-//		  settings_stream1[0].display__ = BLSKY886_N;
-//		  settings_stream1[0].keypad__ = BLSKY22;
+//		  self->settings_stream1.display__ = BLSKY886_N;
+//		  self->settings_stream1.keypad__ = BLSKY22;
 //	  }
-//	  else if(settings_stream1[0].pump_type_ == DIN_BLSKY18K)
+//	  else if(self->settings_stream1.pump_type_ == DIN_BLSKY18K)
 //	  {
-//		  settings_stream1[0].display__ = BLSKY886_IN;
-//		  settings_stream1[0].keypad__ = BLSKY18_K;
+//		  self->settings_stream1.display__ = BLSKY886_IN;
+//		  self->settings_stream1.keypad__ = BLSKY18_K;
 //	  }
-//	  else if(settings_stream1[0].pump_type_ == DIN_BLSKY22)
+//	  else if(self->settings_stream1.pump_type_ == DIN_BLSKY22)
 //	  {
-//		  settings_stream1[0].display__ = BLSKY886_IN;
-//		  settings_stream1[0].keypad__ = BLSKY22;
+//		  self->settings_stream1.display__ = BLSKY886_IN;
+//		  self->settings_stream1.keypad__ = BLSKY22;
 //	  }
 
 }
@@ -4373,20 +4366,24 @@ void pumpType_parse(void)
 
 void pumpType_write(void)
 {
-	settings_stream1[0].pump_type_ = EEPROM_Read_NUM (save_pumpType_loc, 0);
-	settings_stream1[1].pump_type_ = EEPROM_Read_NUM (save_pumpType_loc, 0);
-	disp_type1 = settings_stream1[0].pump_type_;
-	disp_type2 = settings_stream1[1].pump_type_;
+	self->settings_stream1.pump_type_ = EEPROM_Read_NUM (save_pumpType_loc, 0);
+	self->settings_stream1[1].pump_type_ = EEPROM_Read_NUM (save_pumpType_loc, 0);
+	disp_type1 = self->settings_stream1.pump_type_;
+	disp_type2 = self->settings_stream1[1].pump_type_;
 }
 
-void pumpType_write_fram(void)
+void pumpType_write_fram(FuelDispenser *disp)
 {
 //	uint8_t FRAM_ReadByte(uint16_t memAddress);
+	for(uint8_t i = 0; i < NUM_NOZZLES; i++)
+	{
+		Nozzle *self = &disp->nozzles[i];
 
-	settings_stream1[0].pump_type_ = FRAM_ReadByte(save_pumpType_loc_fram);
-	settings_stream1[1].pump_type_ = FRAM_ReadByte(save_pumpType_loc_fram);
-	disp_type1 = settings_stream1[0].pump_type_;
-	disp_type2 = settings_stream1[1].pump_type_;
+		self->settings_stream1.pump_type_ = FRAM_ReadByte(disp->save_pumpType_loc_fram);
+//		self->settings_stream1[1].pump_type_ = FRAM_ReadByte(disp->save_pumpType_loc_fram);
+		disp_type1 = self->settings_stream1.pump_type_;
+//		disp_type2 = self->settings_stream1[1].pump_type_;
+	}
 }
 
 
@@ -4398,91 +4395,99 @@ void firstTotalizer_day(void)
 
 void firstTotalizerDay_write(void)
 {
-	settings_stream2[0].totalizer_day = EEPROM_Read_NUM (totalizerDay_loc, 0);
-	settings_stream2[1].totalizer_day = EEPROM_Read_NUM (totalizerDay_loc, 0);
+	self->settings_stream2[0].totalizer_day = EEPROM_Read_NUM (totalizerDay_loc, 0);
+	self->settings_stream2[1].totalizer_day = EEPROM_Read_NUM (totalizerDay_loc, 0);
 }
 
 
 
-void pumpName_parse(void)
+void pumpName_parse(FuelDispenser *disp)
 {
 	 	char str[5];
 
 		int8_t productType;
 
-		settings_stream1[0].noz_id = EEPROM_Read_NUM (save_nozzleId_loc, 0);
-
-		productType = EEPROM_Read_NUM (save_productType_loc, 0);
-
-	 	if( productType == PMS)
-	 	{
-	 		strcpy(settings_stream1[0].product_, "PMS");
-
-	 		snprintf(str, 5,"P%d", settings_stream1[0].noz_id);
-			strcpy(pumpName[0].pump_name, str);
-			snprintf(str, 5, "P%d", (settings_stream1[0].noz_id + 1));
-			strcpy(pumpName[1].pump_name, str);
-	 	}
-
-		else if( productType == AGO)
+		for(uint8_t i = 0; i < NUM_NOZZLES; i++)
 		{
-	 		strcpy(settings_stream1[0].product_, "AGO");
+			Nozzle *self = &disp->nozzles[i];
 
-	 		snprintf(str, 5,"A%d", settings_stream1[0].noz_id);
-			strcpy(pumpName[0].pump_name, str);
-			snprintf(str, 5, "A%d", (settings_stream1[0].noz_id + 1));
-			strcpy(pumpName[1].pump_name, str);
-		}
-		else if( productType == DPK)
-		{
-	 		strcpy(settings_stream1[0].product_, "DPK");
+			self->settings_stream1.noz_id = EEPROM_Read_NUM (save_nozzleId_loc, 0);
 
-	 		snprintf(str, 5,"D%d", settings_stream1[0].noz_id);
-			strcpy(pumpName[0].pump_name, str);
-			snprintf(str, 5, "D%d", (settings_stream1[0].noz_id + 1));
-			strcpy(pumpName[1].pump_name, str);
+			productType = EEPROM_Read_NUM (save_productType_loc, 0);
+
+			if( productType == PMS)
+			{
+				strcpy(self->settings_stream1.product_, "PMS");
+
+				snprintf(str, 5,"P%d", self->settings_stream1.noz_id);
+				strcpy(self->pumpName[0].pump_name, str);
+//				snprintf(str, 5, "P%d", (self->settings_stream1.noz_id + 1));
+//				strcpy(self->pumpName[1].pump_name, str);
+			}
+
+			else if( productType == AGO)
+			{
+				strcpy(self->settings_stream1.product_, "AGO");
+
+				snprintf(str, 5,"A%d", self->settings_stream1.noz_id);
+				strcpy(self->pumpName[0].pump_name, str);
+//				snprintf(str, 5, "A%d", (self->settings_stream1.noz_id + 1));
+//				strcpy(self->pumpName[1].pump_name, str);
+			}
+			else if( productType == DPK)
+			{
+				strcpy(self->settings_stream1.product_, "DPK");
+
+				snprintf(str, 5,"D%d", self->settings_stream1.noz_id);
+				strcpy(self->pumpName[0].pump_name, str);
+//				snprintf(str, 5, "D%d", (self->settings_stream1.noz_id + 1));
+//				strcpy(self->pumpName[1].pump_name, str);
+			}
 		}
 }
 
-void pumpName_parse_fram(void)
+void pumpName_parse_fram(FuelDispenser *disp)
 {
-	 	char str[5];
+		char str[5];
 
-		int8_t productType;
+		uint8_t productType;
 
-//		uint8_t FRAM_ReadByte(uint16_t memAddress);
-
-		settings_stream1[0].noz_id = FRAM_ReadByte(save_nozzleId_loc_fram);
-
-		productType = FRAM_ReadByte(save_productType_loc_fram);
-
-	 	if( productType == PMS)
-	 	{
-	 		strcpy(settings_stream1[0].product_, "PMS");
-
-	 		snprintf(str, 5,"P%d", settings_stream1[0].noz_id);
-			strcpy(pumpName[0].pump_name, str);
-			snprintf(str, 5, "P%d", (settings_stream1[0].noz_id + 1));
-			strcpy(pumpName[1].pump_name, str);
-	 	}
-
-		else if( productType == AGO)
+		for(uint8_t i = 0; i < NUM_NOZZLES; i++)
 		{
-	 		strcpy(settings_stream1[0].product_, "AGO");
+			Nozzle *self = &disp->nozzles[i];
 
-	 		snprintf(str, 5,"A%d", settings_stream1[0].noz_id);
-			strcpy(pumpName[0].pump_name, str);
-			snprintf(str, 5, "A%d", (settings_stream1[0].noz_id + 1));
-			strcpy(pumpName[1].pump_name, str);
-		}
-		else if( productType == DPK)
-		{
-	 		strcpy(settings_stream1[0].product_, "DPK");
+			self->settings_stream1.noz_id = FRAM_ReadByte(disp->save_nozzleId_loc_fram);
 
-	 		snprintf(str, 5,"D%d", settings_stream1[0].noz_id);
-			strcpy(pumpName[0].pump_name, str);
-			snprintf(str, 5, "D%d", (settings_stream1[0].noz_id + 1));
-			strcpy(pumpName[1].pump_name, str);
+			productType = FRAM_ReadByte(disp->save_productType_loc_fram);
+
+			if( productType == PMS)
+			{
+				strcpy(self->settings_stream1.product_, "PMS");
+
+				snprintf(str, 5,"P%d", self->settings_stream1.noz_id);
+				strcpy(self->pumpName[0].pump_name, str);
+//				snprintf(str, 5, "P%d", (self->settings_stream1.noz_id + 1));
+//				strcpy(self->pumpName[1].pump_name, str);
+			}
+
+			else if( productType == AGO)
+			{
+				strcpy(self->settings_stream1.product_, "AGO");
+
+				snprintf(str, 5,"A%d", self->settings_stream1.noz_id);
+				strcpy(self->pumpName[0].pump_name, str);
+//				snprintf(str, 5, "A%d", (self->settings_stream1.noz_id + 1));
+//				strcpy(self->pumpName[1].pump_name, str);
+			}
+			else if( productType == DPK)
+			{
+				strcpy(self->settings_stream1.product_, "DPK");
+
+				snprintf(str, 5,"D%d", self->settings_stream1.noz_id);
+				strcpy(self->pumpName[0].pump_name, str);
+//				snprintf(str, 5, "D%d", (self->settings_stream1.noz_id + 1));
+//				strcpy(self->pumpName[1].pump_name, str);
+			}
 		}
 }
 
@@ -4522,37 +4527,37 @@ void pumpName_parse_fram(void)
 
 
 
-uint8_t read_event1_1(void)
+uint8_t read_event(Nozzle *self)
 {
-	extern bool lock_clr;
-	   key19_flag = 0;
-	 //  auth_cmd_flag = 0;
-	 //  totaliser_flag = 0;
-	 //  keypress_flag = 0;
+	extern bool self->lock_clr;
+	   self->key19_flag = 0;
+	 //  self->auth_cmd_flag = 0;
+	 //  self->totaliser_flag = 0;
+	 //  self->keypress_flag = 0;
 
 	//READ STATES OF INPUTS PIN AND KEYPAD...
-	  totaliser_flag = readtotaliser1_state();
+	  self->totaliser_flag = readtotaliser_state(&self);
 
-	  //key19_flag =  readkey19_state();
+	  //self->key19_flag =  readkey19_state();
 
-	  key_flag = readsettingskey_state();
+	  self->key_flag = readsettingskey_state(&self);
 
-//	  nozzle_flag = readNozzle1();
-	  bool redundantHolder = nozzleSwitch_read1();
+//	  self->nozzle_flag = readNozzle1();
+	  bool redundantHolder = nozzleSwitch_read(&self);
 
     #if defined(AUTO_SALE_TEST)
 	  //AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//
 	  //======================= AUTOMATED SALES TEST ==========================//
-	  if(settings_stream1[0].mode == AUTO_MODE)
+	  if(self->settings_stream1.mode == AUTO_MODE)
 	  {
-		  if(eNextState1 != idle_State)
+		  if(self->eNextState != idle_State)
 		  {
-			  autoSale_timer1 = 0;
+			  self->autoSale_timer = 0;
 		  }
-		  if( (autoSale_timer1 >= 5000) && (eNextState1 == idle_State) )
+		  if( (self->autoSale_timer >= 5000) && (self->eNextState == idle_State) )
 		  {
-			  nozzle_flag_key1 = 1;
-			  autoSale_timer1 = 0;
+			  self->nozzle_flag_key = 1;
+			  self->autoSale_timer = 0;
 		  }
 	  }
 
@@ -4560,7 +4565,7 @@ uint8_t read_event1_1(void)
 
 	#endif //#ifdef AUTO_SALE_TEST
 
-	  keypress_ = keynew;  //key flag is also set...
+	  self->keypress_ = self->keynew;  //key flag is also set...
 
 	//--------------------------------------------------
 
@@ -4568,26 +4573,26 @@ uint8_t read_event1_1(void)
 	//                 tone event capture...
 	//////////////////////////////////////////////////////////
 
-	if( (timerFlagOld_tone1 == 0) && (timerFlag_tone1 == 1) )
+	if( (self->timerFlagOld_tone == 0) && (self->timerFlag_tone == 1) )
 	{
 		return _tone_Event;
 	}
-	else if( (timerFlagOld_tone1 == 1) && (timerFlag_tone1 == 0) )
+	else if( (self->timerFlagOld_tone == 1) && (self->timerFlag_tone == 0) )
 	{
 		HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
-		tone_duration1 = 0;
+		self->tone_duration = 0;
 	}
 
-	timerFlagOld_tone1 = timerFlag_tone1;
+	self->timerFlagOld_tone = self->timerFlag_tone;
 
 	//////////////////////////////////////////////////////////
 
 #ifndef DEV_MODE
    			 //--------------------------------------------------
 			  //  totaliser error.
-				if( (totaliser_flag == 0) && (drive1 != ACTIVATE) )
+				if( (self->totaliser_flag == 0) && (self->drive != ACTIVATE) )
 				{
-					totaliser_flag = 1;
+					self->totaliser_flag = 1;
 					return _tot_error_Event;
 				}
    			  //--------------------------------------------------
@@ -4598,95 +4603,95 @@ uint8_t read_event1_1(void)
 	 //==================================================
 	 //      then select the  operator  view mode...
 	 //--------------------------------------------------
-		if( (settings_stream1[0].keypad__ == LAFNG17_K) || (settings_stream1[0].keypad__ == LAFNG18_K) || (settings_stream1[0].keypad__ == LAFNG18_K_V2) )
+		if( (self->settings_stream1.keypad__ == LAFNG17_K) || (self->settings_stream1.keypad__ == LAFNG18_K) || (self->settings_stream1.keypad__ == LAFNG18_K_V2) )
 		{
-			tot_longpress_flag = long_press_tot();
+			self->tot_longpress_flag = long_press_tot(&self);
 		}
-		log_longpress_flag = long_press_log();
-//		key_longpress_flag = long_press_key();
-//		progExit_longpress_flag = long_press_progExit();
+		self->log_longpress_flag = long_press_log(&self);
+//		self->key_longpress_flag = long_press_key();
+//		self->progExit_longpress_flag = long_press_progExit();
 
-		  if(tot_longpress_flag == 1)
+		  if(self->tot_longpress_flag == 1)
 		  {
-			   operatorfxn = totaliser_view;
-			   tot_longpress_flag = 0;
+			   self->operatorfxn = totaliser_view;
+			   self->tot_longpress_flag = 0;
 			   return _operator_Event;
 		  }
 
-		  else if(log_longpress_flag == 1)
+		  else if(self->log_longpress_flag == 1)
 		  {
-			   operatorfxn = log_view;
+			   self->operatorfxn = log_view;
 			   return _operator_Event;
 		  }
-		  else if(key_longpress_flag == 1)
+		  else if(self->key_longpress_flag == 1)
 		  {
 			//if not previously activated,
 //				 if (key_longpress_status == 0)
 //				 {
 //					key_longpress_status = 1;
-				prog_entry1 = 1;   //variable used to clear the var. states in settings menu.
-				key_longpress_flag = 0;
+				self->prog_entry = 1;   //variable used to clear the var. states in settings menu.
+				self->key_longpress_flag = 0;
 				return _keyup_Event;
 //				 }
 //				 else
 //				 {
 //					key_longpress_status = 0;
-//					prog_entry1 = 0;
+//					self->prog_entry = 0;
 //					return _keydown_Event;
 //				 }
 		  }
-		  else if(progExit_longpress_flag == 1)
+		  else if(self->progExit_longpress_flag == 1)
 		  {
 			//if not previously activated,
 //				 if (key_longpress_status == 0)
 //				 {
 //					key_longpress_status = 1;
-//					prog_entry1 = 1;   //variable used to clear the var. states in settings menu.
+//					self->prog_entry = 1;   //variable used to clear the var. states in settings menu.
 //					return _keyup_Event;
 //				 }
 //				 else
 //				 {
 //					key_longpress_status = 0;
-					prog_entry1 = 0;
-					progExit_longpress_flag = 0;
+					self->prog_entry = 0;
+					self->progExit_longpress_flag = 0;
 					return _keydown_Event;
 //				 }
 			  }
 
        //--------------------------------------------------
 	   //          error clear flag...
-	   if(error_clr_flag == 1)
+	   if(self->error_clr_flag == 1)
 		 {
-			error_clr_flag = 0;
+			self->error_clr_flag = 0;
 
-			filling1 = 0;
+			self->filling = 0;
 
 			return _error_clear_Event;
 		 }
 	  //--------------------------------------------------
 			 // authorise  event capture.
-	   else if (auth_flag == 1)
+	   else if (self->auth_flag == 1)
 		{
-			auth_flag = 0;
+			self->auth_flag = 0;
 			return _authorise_Event;
 		}
 
 		//--------------------------------------------------
 				// authorise  command event.
-	   else if (auth_cmd_flag == 1)
+	   else if (self->auth_cmd_flag == 1)
 		{
 		  //if(settings[operating_side-1].mode == offline_)
 		  //{
-			auth_cmd_flag = 0;
+			self->auth_cmd_flag = 0;
 
 
-			if(settings_stream1[0].mode == MANUAL_MODE)
+			if(self->settings_stream1.mode == MANUAL_MODE)
 			{
-				eNextState1 = authorised_nozzledown_State;
+				self->eNextState = authorised_nozzledown_State;
 			}
 				//---------------------------------------------
 				//                nozzle-up overide
-				if (eNextState1 == authorised_nozzledown_State)
+				if (self->eNextState == authorised_nozzledown_State)
 				{
 //					if (override_ == override)
 //					{
@@ -4695,11 +4700,11 @@ uint8_t read_event1_1(void)
 				}
 //				//---------------------------------------------
 //
-				if(settings_stream1[0].mode == AUTO_MODE)
+				if(self->settings_stream1.mode == AUTO_MODE)
 				{
-					if(nozzlezUp1 == 1)   //A NozzleUp that triggers a transaction
+					if(self->nozzlezUp == 1)   //A NozzleUp that triggers a transaction
 					{
-//						nozzlezUp1 = 0;
+//						self->nozzlezUp = 0;
 						return _authorisecommand_Event;
 					}
 				}
@@ -4708,60 +4713,60 @@ uint8_t read_event1_1(void)
 		  //}
 		}
 
-	   if(settings_stream1[0].mode == AUTO_MODE)
+	   if(self->settings_stream1.mode == AUTO_MODE)
 	   {
 
-		   if (hardwareError_flag1 == 1)
+		   if (self->hardwareError_flag == 1)
 		   {
-			   hardwareError_flag1 = 0;
+			   self->hardwareError_flag = 0;
 			   return _hardwareerror_Event;
 		   }
 
 		   // mamo reach  event capture...
-		   else if(mamo_reached_flag1 == 1)
+		   else if(self->mamo_reached_flag == 1)
 			{
-				mamo_reached_flag1 = 0;
+				self->mamo_reached_flag = 0;
 				return _mamo_Event;
 			}
 
 		   // idle state due-return event capture...
-		   else if (fillingComplete_flag1 == 1)
+		   else if (self->fillingComplete_flag == 1)
 		   {
-			   fillingComplete_flag1 = 0;
+			   self->fillingComplete_flag = 0;
 			   return _fillingcomplete_Event;
 		   }
-		   else if (reset_flag1 == 1)
+		   else if (self->reset_flag == 1)
 		   {
-			   reset_flag1 = 0;
+			   self->reset_flag = 0;
 			   return _resetcommand_Event;
 		   }
-		   else if (authsuspend_flag1 == 1)
+		   else if (self->authsuspend_flag == 1)
 		   {
-			   authsuspend_flag1 = 0;
+			   self->authsuspend_flag = 0;
 			   return  _auth_suspendcommand_Event;
 		   }
-		   else if (fillingsuspend_flag1 == 1)
+		   else if (self->fillingsuspend_flag == 1)
 		   {
-			   fillingsuspend_flag1 = 0;
+			   self->fillingsuspend_flag = 0;
 			   return _filling_suspendcommand_Event;
 		   }
-		   else if (authresume_flag1 == 1)
+		   else if (self->authresume_flag == 1)
 		   {
-			   authresume_flag1 = 0;
+			   self->authresume_flag = 0;
 			   return _auth_resumecommand_Event;
 		   }
-		   else if (fillingresume_flag1 == 1)
+		   else if (self->fillingresume_flag == 1)
 		   {
-			   fillingresume_flag1 = 0;
+			   self->fillingresume_flag = 0;
 			   return _filling_resumecommand_Event;
 		   }
 	   }
 
-	   else if(settings_stream1[0].mode == MANUAL_MODE)
+	   else if(self->settings_stream1.mode == MANUAL_MODE)
 	   {
-		   if (fillingresume_flag1 == 1)
+		   if (self->fillingresume_flag == 1)
 		   {
-			   fillingresume_flag1 = 0;
+			   self->fillingresume_flag = 0;
 			   return _filling_resumed_Event;
 		   }
 	   }
@@ -4769,26 +4774,26 @@ uint8_t read_event1_1(void)
 
 
 	   // nozzle up  event capture...
-////	    if( ((nozzle_flag_old == 0) && (nozzle_flag == 1)) ||
-////			((nozzle_flag_key_old1 == 0) && (nozzle_flag_key1 == 1)) )
-//		if((nozzle_flag_old == 0) && (nozzle_flag == 1))
+////	    if( ((self->nozzle_flag_old == 0) && (self->nozzle_flag == 1)) ||
+////			((self->nozzle_flag_key_old == 0) && (self->nozzle_flag_key == 1)) )
+//		if((self->nozzle_flag_old == 0) && (self->nozzle_flag == 1))
 //		{
-//			if(nozzle_flag == 1)
+//			if(self->nozzle_flag == 1)
 //			{
-//				nozzle_flag_old = 1;
+//				self->nozzle_flag_old = 1;
 //			}
-//			else if (nozzle_flag_key1 == 1)
+//			else if (self->nozzle_flag_key == 1)
 //			{
-//				nozzle_flag_key_old1 = 1;
+//				self->nozzle_flag_key_old = 1;
 //			}
 //
 ////			if (override_ != override)
 ////			{
 //				//send nozzleup command only in MANUAL mode
 //
-//				if(settings_stream1[0].mode == AUTO_MODE)
+//				if(self->settings_stream1.mode == AUTO_MODE)
 //				{
-//					nozzlezUp1 = 1;
+//					self->nozzlezUp = 1;
 //				}
 //
 //				return _nozzleup_Event;
@@ -4800,12 +4805,12 @@ uint8_t read_event1_1(void)
 //		}
 //	  //-----------------------
 //	  // nozzle down  event capture...
-////	   else if( ((nozzle_flag_old == 1) && (nozzle_flag == 0))  ||
-////			   ((nozzle_flag_key_old1 == 1) && (nozzle_flag_key1 == 0)) )
-//	   else if((nozzle_flag_old == 1) && (nozzle_flag == 0) )
+////	   else if( ((self->nozzle_flag_old == 1) && (self->nozzle_flag == 0))  ||
+////			   ((self->nozzle_flag_key_old == 1) && (self->nozzle_flag_key == 0)) )
+//	   else if((self->nozzle_flag_old == 1) && (self->nozzle_flag == 0) )
 //	   {
-//			nozzle_flag_old = 0;
-////			nozzle_flag_key_old1 = 0;
+//			self->nozzle_flag_old = 0;
+////			self->nozzle_flag_key_old = 0;
 //
 ////			if (override_ != override)
 //				return _nozzledown_Event;
@@ -4817,15 +4822,15 @@ uint8_t read_event1_1(void)
 	   	   	  // nozzle up event capture...
 
 //	   if(
-//   			 ( ((nozzle_flag_old == 0) && (nozzle_flag == 1)) ||
-//   			 ((nozzle_flag_key_old1 == 0) && (nozzle_flag_key1 == 1)) ) &&
-//   			 ((eNextState1 != operator_State) && (eLastState1 != operator_State)) &&
-//   			 (eNextState2 != prog_State) //&& (eLastState1 != operator_State))
+//   			 ( ((self->nozzle_flag_old == 0) && (self->nozzle_flag == 1)) ||
+//   			 ((self->nozzle_flag_key_old == 0) && (self->nozzle_flag_key == 1)) ) &&
+//   			 ((self->eNextState != operator_State) && (self->eLastState != operator_State)) &&
+//   			 (eNextState2 != prog_State) //&& (self->eLastState != operator_State))
 //   		 )
 	   if(
 			 (
-				( (nozzle_flag_old == 0) && (nozzle_flag == 1) ) ||
-				( (nozzle_flag_key_old1 == 0) && (nozzle_flag_key1 == 1) )
+				( (self->nozzle_flag_old == 0) && (self->nozzle_flag == 1) ) ||
+				( (self->nozzle_flag_key_old == 0) && (self->nozzle_flag_key == 1) )
 			 ) &&
 			 (eNextState2 != prog_State)  //Forbids Sales-State in a Config-Mode of either Sides
 		 )
@@ -4833,30 +4838,30 @@ uint8_t read_event1_1(void)
 //		   keypad_zerorise1 = true;
 //		   keypad_zerorize();
 
-		   if((nozzle_flag_old == 0) && (nozzle_flag == 1))
+		   if((self->nozzle_flag_old == 0) && (self->nozzle_flag == 1))
 		   {
-			   if((nozzle_flag_key_old1 == 0) && (nozzle_flag_key1 == 0))
+			   if((self->nozzle_flag_key_old == 0) && (self->nozzle_flag_key == 0))
 			   {
-				   nozzle_flag_old = 1;
+				   self->nozzle_flag_old = 1;
 			   }
-			   else if((nozzle_flag_key_old1 == 1) && (nozzle_flag_key1 == 1))
+			   else if((self->nozzle_flag_key_old == 1) && (self->nozzle_flag_key == 1))
 			   {
-				   nozzle_flag_old = 1;
+				   self->nozzle_flag_old = 1;
 				   return _no_Event;
 			   }
 		   }
-		   else if((nozzle_flag_key_old1 == 0) && (nozzle_flag_key1 == 1))
+		   else if((self->nozzle_flag_key_old == 0) && (self->nozzle_flag_key == 1))
 		   {
-			   if((nozzle_flag_old == 1) && (nozzle_flag == 1))
+			   if((self->nozzle_flag_old == 1) && (self->nozzle_flag == 1))
 			   {
-				   nozzle_flag_key_old1 = 1;
+				   self->nozzle_flag_key_old = 1;
 
-				   if(eNextState1 == filling_State)
+				   if(self->eNextState == filling_State)
 					   return _no_Event; //
 			   }
-			   else if((nozzle_flag_old == 0) && (nozzle_flag == 0))
+			   else if((self->nozzle_flag_old == 0) && (self->nozzle_flag == 0))
 			   {
-				   nozzle_flag_key_old1 = 1;
+				   self->nozzle_flag_key_old = 1;
 			   }
 		   }
 
@@ -4864,12 +4869,12 @@ uint8_t read_event1_1(void)
 	   //			{
 	   				//send nozzleup command only in MANUAL mode
 
-	   				if(settings_stream1[0].mode == AUTO_MODE)
+	   				if(self->settings_stream1.mode == AUTO_MODE)
 	   				{
-	   					nozzlezUp1 = 1;
+	   					self->nozzlezUp = 1;
 	   				}
 
-	   				nozzle_out1 = true;
+	   				self->nozzle_out = true;
 
 //	   				uint32_t timestamp_event = RtcToInt(2019);
 ////	   				int_to_bcd_(timestamp_event, bcd_, sizeof(bcd_));
@@ -4893,199 +4898,199 @@ uint8_t read_event1_1(void)
 	   	  // nozzle down  event capture...
 
 //	   	  else if(
-//					 ( ((nozzle_flag_old == 1) && (nozzle_flag == 0)) ||
-//					 ((nozzle_flag_key_old1 == 1) && (nozzle_flag_key1 == 0)) ) &&
-//					 ((eNextState1 != operator_State) && (eLastState1 != operator_State)) &&
+//					 ( ((self->nozzle_flag_old == 1) && (self->nozzle_flag == 0)) ||
+//					 ((self->nozzle_flag_key_old == 1) && (self->nozzle_flag_key == 0)) ) &&
+//					 ((self->eNextState != operator_State) && (self->eLastState != operator_State)) &&
 //					 (eNextState2 != prog_State)
 //				 )
 
 
 	   	  else if(
-	   			  ( (nozzle_flag_old == 1) && (nozzle_flag == 0) ) ||
-	   			  ( (nozzle_flag_key_old1 == 1) && (nozzle_flag_key1 == 0) )
+	   			  ( (self->nozzle_flag_old == 1) && (self->nozzle_flag == 0) ) ||
+	   			  ( (self->nozzle_flag_key_old == 1) && (self->nozzle_flag_key == 0) )
 				 )
 	   	  {
 
-	   		  if((nozzle_flag_old == 1) && (nozzle_flag == 0))
+	   		  if((self->nozzle_flag_old == 1) && (self->nozzle_flag == 0))
 			   {
-	   			   if((nozzle_flag_key_old1 == 0) && (nozzle_flag_key1 == 0))
+	   			   if((self->nozzle_flag_key_old == 0) && (self->nozzle_flag_key == 0))
 				   {
-					   nozzle_flag_old = 0;  //
-					   nozzle_flag_key_old1 = 0;
-					   nozzle_flag_key1 = 0;
+					   self->nozzle_flag_old = 0;  //
+					   self->nozzle_flag_key_old = 0;
+					   self->nozzle_flag_key = 0;
 
-					   status_change_noz1 = 1;
-					   nozzle_out1 = false;
+					   self->status_change_noz = 1;
+					   self->nozzle_out = false;
 				   }
-	   			   else if((nozzle_flag_key_old1 == 1) && (nozzle_flag_key1 == 1))
+	   			   else if((self->nozzle_flag_key_old == 1) && (self->nozzle_flag_key == 1))
 				   {
-					   nozzle_flag_old = 0; //
-					   nozzle_flag_key_old1 = 0;
-					   nozzle_flag_key1 = 0;
+					   self->nozzle_flag_old = 0; //
+					   self->nozzle_flag_key_old = 0;
+					   self->nozzle_flag_key = 0;
 
-					   status_change_noz1 = 1;
-					   nozzle_out1 = false;
+					   self->status_change_noz = 1;
+					   self->nozzle_out = false;
 				   }
 			   }
-	   		   else if((nozzle_flag_key_old1 == 1) && (nozzle_flag_key1 == 0))
+	   		   else if((self->nozzle_flag_key_old == 1) && (self->nozzle_flag_key == 0))
 			   {
-				   if((nozzle_flag_old == 1) && (nozzle_flag == 1))
+				   if((self->nozzle_flag_old == 1) && (self->nozzle_flag == 1))
 				   {
-					   nozzle_flag_key_old1 = 0;
+					   self->nozzle_flag_key_old = 0;
 
-					   status_change_noz1 = 1;
-					   nozzle_out1 = false;
+					   self->status_change_noz = 1;
+					   self->nozzle_out = false;
 				   }
-				   else if((nozzle_flag_old == 0) && (nozzle_flag == 0))
+				   else if((self->nozzle_flag_old == 0) && (self->nozzle_flag == 0))
 				   {
-					   nozzle_flag_key_old1 = 0;  //
+					   self->nozzle_flag_key_old = 0;  //
 
-					   status_change_noz1 = 1;
-					   nozzle_out1 = false;
+					   self->status_change_noz = 1;
+					   self->nozzle_out = false;
 				   }
 			   }
 
-	   		   keypad_zerorize();
+	   		   keypad_zerorize(&self);
 
 	   //			if (override_ != override)
 	   				return _nozzledown_Event;
 	   	   }
 	   //HHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHHH//
-		//	nozzle_flag_old = nozzle_flag;
+		//	self->nozzle_flag_old = self->nozzle_flag;
 	  //--------------------------------------------------
 	  //--------------------------------------------------
 		// key up  event capture...
-	   else if( (key_flag_old == 0) && (key_flag == 1) )
+	   else if( (self->key_flag_old == 0) && (self->key_flag == 1) )
 		{
-				key_flag_old = 1;
+				self->key_flag_old = 1;
 			  return _keyup_Event;
 		}
 	  //-----------------------
 		// key down  event capture...
-	   else if( (key_flag_old == 1) && (key_flag == 0) )
+	   else if( (self->key_flag_old == 1) && (self->key_flag == 0) )
 		{
-				key_flag_old = 0;
+				self->key_flag_old = 0;
 			  return _keydown_Event;
 		}
-		key_flag_old = key_flag;
+		self->key_flag_old = self->key_flag;
 	  //--------------------------------------------------
 	  //--------------------------------------------------
 		// key press event capture...
-	   if (keypress_flag == 1)
+	   if (self->keypress_flag == 1)
 		{
-			keypress__ = 1;
-			keypress_flag = 0;
+			self->keypress__ = 1;
+			self->keypress_flag = 0;
 			return _keypress_Event;
 		}
 	  //--------------------------------------------------
-	  /*	  if (key19_flag == 1)
+	  /*	  if (self->key19_flag == 1)
 			{
 				return _key19_Event;
 			}                              */
 	  //--------------------------------------------------
 	  //  totaliser error.
-//		if( (totaliser_flag == 0) && (drive1 != ACTIVATE) )
+//		if( (self->totaliser_flag == 0) && (self->drive != ACTIVATE) )
 //		{
-//			totaliser_flag = 1;
+//			self->totaliser_flag = 1;
 //			return _tot_error_Event;
 //		}
 	  //--------------------------------------------------
-	   //filling1 pulse detection.
-	   if ( (pulser_count_old < pulser_new) && ( eNextState1 == authorised_nozzleup_State ) )
+	   //self->filling pulse detection.
+	   if ( (self->pulser_count_old < self->pulser_new) && ( self->eNextState == authorised_nozzleup_State ) )
 			{
-				pulser_count_old = pulser_new;
-				lock_clr = 0;
+				self->pulser_count_old = self->pulser_new;
+				self->lock_clr = 0;
 				return _filling_pulse_Event;
 			}
-		 pulser_count_old = pulser_new;
+		 self->pulser_count_old = self->pulser_new;
 
 	  //--------------------------------------------------
 			  // timeout   event capture...
-		if( (timer_flag_old == 0) && (timer_flag == 1) )
+		if( (self->timer_flag_old == 0) && (self->timer_flag == 1) )
 		{
-			  timer_flag_old = 1;
+			  self->timer_flag_old = 1;
 
-			  filling1 = 0;
+			  self->filling = 0;
 
 			  return _timeout_Event;
 		}
 
-		timer_flag_old = timer_flag;
+		self->timer_flag_old = self->timer_flag;
 
 	  return _no_Event;
 }
 
 
-bool nozzleSwitch_read1(void)
+bool nozzleSwitch_read(Nozzle *self)
 {
-	static bool switchState = false;
-	static bool lastSwitchState = false;
+	static bool self->switchState = false;
+	static bool self->lastSwitchState = false;
 
-    static uint32_t lastDebounceTime = 0;
+    static uint32_t self->lastDebounceTime = 0;
 
-    bool currentState = readNozzle1();
+    bool currentState = readNozzle(&self);
 
     uint32_t currentTime = HAL_GetTick(); // Get the current system tick
 
-    if (currentState != lastSwitchState)
+    if (currentState != self->lastSwitchState)
     {
-    	if ((eNextState1 == operator_State) && (eLastState1 == operator_State))
+    	if ((self->eNextState == operator_State) && (self->eLastState == operator_State))
 		{
 
 		}
 		else
 		{
-			lastDebounceTime = currentTime;
+			self->lastDebounceTime = currentTime;
 		}
-//    	lastDebounceTime = currentTime;
+//    	self->lastDebounceTime = currentTime;
     }
 
-    if ((currentTime - lastDebounceTime) > NOZZLESWITCH_DEBOUNCE_DELAY)
+    if ((currentTime - self->lastDebounceTime) > NOZZLESWITCH_DEBOUNCE_DELAY)
     { // Update the actual switch state if the reading has been stable for the debounce delay
-    	if (currentState != switchState)
+    	if (currentState != self->switchState)
     	{
-    		switchState = currentState;
-    		if(switchState == true)
+    		self->switchState = currentState;
+    		if(self->switchState == true)
 			{
-    			nozzle_flag = 1;
+    			self->nozzle_flag = 1;
 
-    			if(eLastState1 != pnp_State)
+    			if(self->eLastState != pnp_State)
     			{
-    				timerFlag_tone1 = 1;
-    				tone_duration1 = 300;
+    				self->timerFlag_tone = 1;
+    				self->tone_duration = 300;
     			}
 //    			HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 			}
 			else
 			{
-				nozzle_flag = 0;
-				if(eLastState1 != pnp_State)
+				self->nozzle_flag = 0;
+				if(self->eLastState != pnp_State)
 				{
-					timerFlag_tone1 = 1;
-					tone_duration1 = 300;
+					self->timerFlag_tone = 1;
+					self->tone_duration = 300;
 				}
 //				HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 			}
     	}
     }
 
-    lastSwitchState = currentState;
+    self->lastSwitchState = currentState;
 
     return false;
 }
 
 bool nozzleSwitch_read2(void)
 {
-	static bool switchState = false;
-	static bool lastSwitchState = false;
+	static bool self->switchState = false;
+	static bool self->lastSwitchState = false;
 
-    static uint32_t lastDebounceTime = 0;
+    static uint32_t self->lastDebounceTime = 0;
 
     bool currentState = readNozzle2();
 
     uint32_t currentTime = HAL_GetTick(); // Get the current system tick
 
-    if (currentState != lastSwitchState)
+    if (currentState != self->lastSwitchState)
     {
     	if ((eNextState2 == operator_State) && (eLastState2 == operator_State))
     	{
@@ -5093,16 +5098,16 @@ bool nozzleSwitch_read2(void)
     	}
     	else
     	{
-    		lastDebounceTime = currentTime;
+    		self->lastDebounceTime = currentTime;
     	}
     }
 
-    if ((currentTime - lastDebounceTime) > NOZZLESWITCH_DEBOUNCE_DELAY)
+    if ((currentTime - self->lastDebounceTime) > NOZZLESWITCH_DEBOUNCE_DELAY)
     { // Update the actual switch state if the reading has been stable for the debounce delay
-    	if (currentState != switchState)
+    	if (currentState != self->switchState)
     	{
-    		switchState = currentState;
-    		if(switchState == true)
+    		self->switchState = currentState;
+    		if(self->switchState == true)
 			{
     			nozzle_flag2 = 1;
 
@@ -5125,61 +5130,61 @@ bool nozzleSwitch_read2(void)
     	}
     }
 
-    lastSwitchState = currentState;
+    self->lastSwitchState = currentState;
 
     return false;
 }
 
-//bool switchState = false;
-//bool lastSwitchState = false;
-//unsigned long lastDebounceTime = 0;
+//bool self->switchState = false;
+//bool self->lastSwitchState = false;
+//unsigned long self->lastDebounceTime = 0;
 //unsigned long currentTime;
 //
-//if (reading != lastSwitchState)
+//if (reading != self->lastSwitchState)
 //{
-//	lastDebounceTime = currentTime; // Reset the debounce timer
+//	self->lastDebounceTime = currentTime; // Reset the debounce timer
 //}
-//if ((currentTime - lastDebounceTime) > DEBOUNCE_DELAY) { // Update the actual switch state if the reading has been stable for the debounce delay
-//	if (reading != switchState)
+//if ((currentTime - self->lastDebounceTime) > DEBOUNCE_DELAY) { // Update the actual switch state if the reading has been stable for the debounce delay
+//	if (reading != self->switchState)
 //	{
-//		switchState = reading; // Here you can add code to handle the switch state change
-//		printf("Switch state changed to: %d\n", switchState);
+//		self->switchState = reading; // Here you can add code to handle the switch state change
+//		printf("Switch state changed to: %d\n", self->switchState);
 //	}
 //}
-//lastSwitchState = reading;
+//self->lastSwitchState = reading;
 //}
 //	}
 //}
 
 //uint8_t debounceKey1(void)
 //{
-//     static uint8_t lastKey = 0;
+//     static uint8_t self->lastKey = 0;
 //
 //     uint8_t key = keypad_lcd(0, key_lcd);  //write lcd and read keypad.
 //
 //     uint32_t currentTime = HAL_GetTick(); // Get the current system tick
 //
-//     switch (state1)
+//     switch (self->state)
 //     {
 //         case KEY_IDLE:
 //							 if (key != 0)
 //							 {
-//								 state1 = KEY_DEBOUNCE;
-//								 lastDebounceTime1 = currentTime;
+//								 self->state = KEY_DEBOUNCE;
+//								 self->lastDebounceTime = currentTime;
 //							 }
 //							 break;
 //
 //         case KEY_DEBOUNCE:
-//							 if ((currentTime - lastDebounceTime1) > DEBOUNCE_TIME_MS)
+//							 if ((currentTime - self->lastDebounceTime) > DEBOUNCE_TIME_MS)
 //							 {
-//								 if ((key != 0) && (key != lastKey))
+//								 if ((key != 0) && (key != self->lastKey))
 //								 {
-//									 lastKey = key;
-//									 state1 = KEY_IDLE;
+//									 self->lastKey = key;
+//									 self->state = KEY_IDLE;
 //
 //									#if delay_keypad == 1
 //
-//										   if(settings_stream2[0].keypress_tone == Yes)
+//										   if(self->settings_stream2[0].keypress_tone == Yes)
 //										   {
 //											  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 //										   }
@@ -5192,8 +5197,8 @@ bool nozzleSwitch_read2(void)
 //									 return key; // Valid keypress detected
 //								 }
 //
-//								 lastKey = key;
-//								 state1 = KEY_IDLE;
+//								 self->lastKey = key;
+//								 self->state = KEY_IDLE;
 //							 }
 //							 break;
 //     }
@@ -5203,7 +5208,7 @@ bool nozzleSwitch_read2(void)
 
 // uint8_t debounceKey2(void)
 // {
-//      static uint8_t lastKey = 0;
+//      static uint8_t self->lastKey = 0;
 //
 //      uint8_t key = keypad_lcd2(0, key_lcd2);  //write lcd and read keypad.
 //
@@ -5222,14 +5227,14 @@ bool nozzleSwitch_read2(void)
 //          case KEY_DEBOUNCE:
 // 							 if ((currentTime - lastDebounceTime2) > DEBOUNCE_TIME_MS)
 // 							 {
-// 								 if ((key != 0) && (key != lastKey))
+// 								 if ((key != 0) && (key != self->lastKey))
 // 								 {
-// 									 lastKey = key;
+// 									 self->lastKey = key;
 // 									 state2 = KEY_DEBOUNCE;
 //
 // 									 #if delay_keypad == 1
 //
-//									   if(settings_stream2[1].keypress_tone == Yes)
+//									   if(self->settings_stream2[1].keypress_tone == Yes)
 //									   {
 //										  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 //									   }
@@ -5241,7 +5246,7 @@ bool nozzleSwitch_read2(void)
 //
 // 									 return key; // Valid keypress detected
 // 								 }
-// 								 lastKey = key;
+// 								 self->lastKey = key;
 // 								 state2 = KEY_IDLE;
 // 							 }
 // 							 break;
@@ -5251,73 +5256,73 @@ bool nozzleSwitch_read2(void)
 //  }
 
 
-uint8_t debounceKey1(void)
+uint8_t debounceKey(Nozzle *self)
  {
-      static uint8_t lastKey = 0,
-    		  	  	 test_key = 0;
-//    		  	  	  keyPress1 = 0,
-//					  nonKeyPress1 = 0;
+      static uint8_t self->lastKey = 0,
+    		  	  	 self->test_key = 0;
+//    		  	  	  self->keyPress = 0,
+//					  self->nonKeyPress = 0;
 
-      static bool keyPress = false;
+      static bool self->keyPress_debounceKey = false;
 
       uint32_t duration = 0;
 
       uint8_t key = keypad_lcd(0, key_lcd);  //write lcd and read keypad.
 
-      key__ = key;
+      self->key__ = key;
 
       uint32_t currentTime = HAL_GetTick(); // Get the current system tick
 
-      switch (state1)
+      switch (self->state)
       {
           case KEY_IDLE:
  							 if (key != 0)
  							 {
- 								 state1 = KEY_DEBOUNCE;
- 								 lastDebounceTime1 = currentTime;
-								 keyPressStartTime1 = currentTime;
-								 test_key = key;
+ 								 self->state = KEY_DEBOUNCE;
+ 								 self->lastDebounceTime = currentTime;
+								 self->keyPressStartTime = currentTime;
+								 self->test_key = key;
  							 }
  							 break;
 
           case KEY_DEBOUNCE:
 
-        	  	  	  	  	 duration = currentTime - lastDebounceTime1;
+        	  	  	  	  	 duration = currentTime - self->lastDebounceTime;
 
-        	  	  	  	  	 if (key == test_key)
-								 keyPress1++;
+        	  	  	  	  	 if (key == self->test_key)
+								 self->keyPress++;
         	  	  	  	  	 else
-        	  	  	  	  		 nonKeyPress1++;
+        	  	  	  	  		 self->nonKeyPress++;
 
 							 if(duration > DEBOUNCE_TIME_MS)
 							 {
 								if (key != 0)
 								{
-									state1 = KEY_SHORT_PRESS;
+									self->state = KEY_SHORT_PRESS;
 								}
 								else
 								{
-									state1 = KEY_IDLE;
+									self->state = KEY_IDLE;
 								}
 							 }
 							 break;
 
 		   case KEY_SHORT_PRESS:
-								if (keyPress == true)
+								if (self->keyPress_debounceKey == true)
 			   	   	   	   	   	{
 			   	   	   	   	   		if ( (delay_nonBlocking1(keypad_delay)) == 1)
 									{
 //										HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 
 										// Key released before long press delay
-										state1 = KEY_IDLE;
+										self->state = KEY_IDLE;
 
-										uint8_t test_key_1 = test_key;
-										test_key = 0;
-										keyPress1 = 0;
-										nonKeyPress1 = 0;
+										uint8_t test_key_1 = self->test_key;
+										self->test_key = 0;
+										self->keyPress = 0;
+										self->nonKeyPress = 0;
 
-										keyPress = false;
+										self->keyPress_debounceKey = false;
 
 										return test_key_1;
 									}
@@ -5326,43 +5331,43 @@ uint8_t debounceKey1(void)
 								else if (key == 0)
 								{
 									// Key released before long press delay
-//									state1 = KEY_IDLE;
+//									self->state = KEY_IDLE;
 
-									if( (test_key == lastKey) && (keyPress1 >= VALIDKEYPRESS_THRESHOLD) )
+									if( (self->test_key == self->lastKey) && (self->keyPress >= VALIDKEYPRESS_THRESHOLD) )
 									{
 
 										#if delay_keypad == 1
 
-										   if(settings_stream2[0].keypress_tone == Yes)
+										   if(self->settings_stream2[0].keypress_tone == Yes)
 										   {
 //											  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
-											  timerFlag_tone1 = 1;
-											  tone_duration1 = 70;
+											  self->timerFlag_tone = 1;
+											  self->tone_duration = 70;
 										   }
 
 //										   HAL_Delay(keypad_delay);
 
-										   keyPress = true;
+										   self->keyPress_debounceKey = true;
 
 										#endif
 									}
 									else
 									{
-										test_key = 0;
-										keyPress1 = 0;
-									    nonKeyPress1 = 0;
+										self->test_key = 0;
+										self->keyPress = 0;
+									    self->nonKeyPress = 0;
 
-									    lastDebounceTime1 = currentTime;
-										keyPressStartTime1 = currentTime;
+									    self->lastDebounceTime = currentTime;
+										self->keyPressStartTime = currentTime;
 
-										state1 = KEY_IDLE;
+										self->state = KEY_IDLE;
 
 									    return 0;
 									}
 								}
-								else if ((currentTime - keyPressStartTime1) > LONG_PRESS_DELAY)
+								else if ((currentTime - self->keyPressStartTime) > LONG_PRESS_DELAY)
 								{
-									state1 = KEY_LONG_PRESS;
+									self->state = KEY_LONG_PRESS;
 								}
 								break;
 
@@ -5370,34 +5375,34 @@ uint8_t debounceKey1(void)
 			  	  	  	  	  	if (key == 0)
 								{
 									// Key released after long press delay
-									state1 = KEY_IDLE;
+									self->state = KEY_IDLE;
 
-									if( (test_key == lastKey) && (keyPress1 >= VALIDKEYPRESS_THRESHOLD) )
+									if( (self->test_key == self->lastKey) && (self->keyPress >= VALIDKEYPRESS_THRESHOLD) )
 									{
-										if( (lastKey == 15) && (eNextState2 != filling_State) ) // && (eLastState1 != filling_State)) )
-											key_longpress_flag = 1;
-										else if( (lastKey == 14) && (eNextState2 != filling_State) )
-											progExit_longpress_flag = 1;
-										else if( (lastKey == 21) && (settings_stream1[0].keypad__ == BLSKY22) )
-											tot_longpress_flag = 1;
+										if( (self->lastKey == 15) && (eNextState2 != filling_State) ) // && (self->eLastState != filling_State)) )
+											self->key_longpress_flag = 1;
+										else if( (self->lastKey == 14) && (eNextState2 != filling_State) )
+											self->progExit_longpress_flag = 1;
+										else if( (self->lastKey == 21) && (self->settings_stream1.keypad__ == BLSKY22) )
+											self->tot_longpress_flag = 1;
 
-										test_key = 0;
-										keyPress1 = 0;
-										nonKeyPress1 = 0;
+										self->test_key = 0;
+										self->keyPress = 0;
+										self->nonKeyPress = 0;
 
-										lastDebounceTime1 = currentTime;
-										keyPressStartTime1 = currentTime;
+										self->lastDebounceTime = currentTime;
+										self->keyPressStartTime = currentTime;
 
-										return lastKey;
+										return self->lastKey;
 									}
 									else
 									{
-										test_key = 0;
-										keyPress1 = 0;
-										nonKeyPress1 = 0;
+										self->test_key = 0;
+										self->keyPress = 0;
+										self->nonKeyPress = 0;
 
-										lastDebounceTime1 = currentTime;
-										keyPressStartTime1 = currentTime;
+										self->lastDebounceTime = currentTime;
+										self->keyPressStartTime = currentTime;
 
 										return 0;
 									}
@@ -5405,15 +5410,15 @@ uint8_t debounceKey1(void)
 								break;
     }
 
-    lastKey = key;  // Update the last key state
+    self->lastKey = key;  // Update the last key state
 
     return 0;
   }
 
  uint8_t debounceKey2(void)
  {
-      static uint8_t lastKey = 0,
-    		  	  	 test_key = 0;
+      static uint8_t self->lastKey = 0,
+    		  	  	 self->test_key = 0;
 
       static bool keyPress = false;
 
@@ -5431,7 +5436,7 @@ uint8_t debounceKey1(void)
  								 state2 = KEY_DEBOUNCE;
  								 lastDebounceTime2 = currentTime;
 								 keyPressStartTime2 = currentTime;
-								 test_key = key;
+								 self->test_key = key;
  							 }
  							 break;
 
@@ -5439,7 +5444,7 @@ uint8_t debounceKey1(void)
 
         	  	  	  	  	  duration = currentTime - lastDebounceTime2;
 
-							  if (key == test_key)
+							  if (key == self->test_key)
 								 keyPress2++;
 							  else
 								 nonKeyPress2++;
@@ -5467,8 +5472,8 @@ uint8_t debounceKey1(void)
 										// Key released before long press delay
 										state2 = KEY_IDLE;
 
-										uint8_t test_key_1 = test_key;
-										test_key = 0;
+										uint8_t test_key_1 = self->test_key;
+										self->test_key = 0;
 										keyPress2 = 0;
 										nonKeyPress2 = 0;
 
@@ -5483,12 +5488,12 @@ uint8_t debounceKey1(void)
 									// Key released before long press delay
 //									state2 = KEY_IDLE;
 
-									if( (test_key == lastKey) && (keyPress2 >= VALIDKEYPRESS_THRESHOLD) )   // 6) )
+									if( (self->test_key == self->lastKey) && (keyPress2 >= VALIDKEYPRESS_THRESHOLD) )   // 6) )
 									{
 
 										#if delay_keypad == 1
 
-										   if(settings_stream2[1].keypress_tone == Yes)
+										   if(self->settings_stream2[1].keypress_tone == Yes)
 										   {
 //											  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_SET);
 											  timerFlag_tone2 = 1;
@@ -5503,7 +5508,7 @@ uint8_t debounceKey1(void)
 									}
 									else
 									{
-										test_key = 0;
+										self->test_key = 0;
 										keyPress2 = 0;
 										nonKeyPress2 = 0;
 
@@ -5527,27 +5532,27 @@ uint8_t debounceKey1(void)
 									// Key released after long press delay
 									state2 = KEY_IDLE;
 
-									if( (test_key == lastKey) && (keyPress2 >= VALIDKEYPRESS_THRESHOLD) )  // 6) )
+									if( (self->test_key == self->lastKey) && (keyPress2 >= VALIDKEYPRESS_THRESHOLD) )  // 6) )
 									{
-										if( (lastKey == 15) && (eNextState1 != filling_State) ) // && (eLastState1 != filling_State)) )
+										if( (self->lastKey == 15) && (self->eNextState != filling_State) ) // && (self->eLastState != filling_State)) )
 											key_longpress_flag2 = 1;
-										else if( (lastKey == 14) && (eNextState1 != filling_State) )
+										else if( (self->lastKey == 14) && (self->eNextState != filling_State) )
 											progExit_longpress_flag2 = 1;
-										else if( (lastKey == 21) && (settings_stream1[1].keypad__ == BLSKY22) )
+										else if( (self->lastKey == 21) && (self->settings_stream1[1].keypad__ == BLSKY22) )
 											tot_longpress_flag2 = 1;
 
-										test_key = 0;
+										self->test_key = 0;
 										keyPress2 = 0;
 										nonKeyPress2 = 0;
 
 										lastDebounceTime2 = currentTime;
 										keyPressStartTime2 = currentTime;
 
-										return lastKey;
+										return self->lastKey;
 									}
 									else
 									{
-										test_key = 0;
+										self->test_key = 0;
 										keyPress2 = 0;
 										nonKeyPress2 = 0;
 
@@ -5560,32 +5565,32 @@ uint8_t debounceKey1(void)
 								break;
     }
 
-    lastKey = key;  // Update the last key state
+    self->lastKey = key;  // Update the last key state
 
     return 0;
   }
 
-uint8_t delay_nonBlocking1(uint32_t delayTime)
+uint8_t delay_nonBlocking(Nozzle *self, uint32_t delayTime)
 {
-   static uint32_t startTime = 0;
-   static uint8_t firstEntry = 0;
+   static uint32_t self->startTime_delayNonBlocking = 0;
+   static uint8_t self->firstEntry_delayNonBlocking = 0;
 
    uint32_t currentTime = HAL_GetTick(); // Get the current system tick
 
-   if(firstEntry == 0)
+   if(self->firstEntry_delayNonBlocking == 0)
    {
-	   startTime = currentTime;
-	   firstEntry = 1;
+	   self->startTime_delayNonBlocking = currentTime;
+	   self->firstEntry_delayNonBlocking = 1;
 
 	   return 0;
    }
 
-   if(firstEntry == 1)
+   if(self->firstEntry_delayNonBlocking == 1)
    {
-	   if((currentTime - startTime) >= delayTime)
+	   if((currentTime - self->startTime_delayNonBlocking) >= delayTime)
 	   {
-		   firstEntry = 0;
-		   startTime = currentTime;
+		   self->firstEntry_delayNonBlocking = 0;
+		   self->startTime_delayNonBlocking = currentTime;
 		   return 1;
 	   }
 	   else
@@ -5626,14 +5631,68 @@ uint8_t delay_nonBlocking2(uint32_t delayTime)
 }
 
 
-void sendStructData(void)
+void sendStructData(Nozzle *self)
 {
-    //char buffer[100]; // Adjust size based on your needs
+	char dateTime [30],
+		 strr___ [30];
 
-    // Format the data into a string
-    //snprintf(buffer, sizeof(buffer), "ID: %d, Temp: %.2f, Status: %s\r\n",
-            // data.id, data.temperature, data.status);
-//	static int number = 0;
+	tranx_savee.transaction_type = 'a';
+	tranx_savee.storage_loc = 'i';
+
+	strcpy(tranx_savee.device_id, device_id);
+
+	strcpy(tranx_savee.tag, "null");
+
+	self->tranx_token = generate_tk();
+
+	tranx_savee.token = self->tranx_token;
+
+	//============================================================================================
+
+	snprintf(strr___, sizeof(strr___), "%02d-%02d-20%d | %02d%02d Hrs",
+			self->log_new.date._dd, self->log_new.date._mm, self->log_new.date._yy,
+			self->log_new.time_e._hh, self->log_new.time_e._mn);
+	strcpy(dateTime, strr___);
+
+	//============================================================================================
+
+	tranx_savee.timestamp = self->log_new.timestamp;
+	strcpy(tranx_savee.transaction_id, self->log_new.transaction_id);
+	tranx_savee.transaction_price = self->log_new.pr__;
+	tranx_savee.transaction_vol = self->log_new.vol__;
+	tranx_savee.litre_price = self->log_new.litre_price_;
+	tranx_savee.totalizer = self->log_new.totaliserVol_cal;
+	tranx_savee.nozzle_address = 1;
+	strcpy(tranx_savee.nozzle_product, self->log_new.nozzle_product);
+	tranx_savee.transaction_period = self->log_new.transaction_period;
+	strncpy(tranx_savee.session_id, self->attendant.session_id, 9);
+	strcpy(tranx_savee.nozzle_name, self->pumpName[0].pump_name);
+
+	if(number == 1)
+	{
+		HAL_UART_Transmit (&huart3, "\n\n\n\n", 4, 1000);
+		HAL_Delay(1);
+	}
+
+	 sprintf(ep_messagee,
+					"No. %lu  ==>  {\"ep\":2,\"di\":\"%s\",\"tk\":%lu,\"tm\":%s,\"ti\":\"%s\",\"ta\":%0.3f,\"tv\":%0.3f,\"pl\":%0.3f,\"tz\":%0.3f,\"pm\":\"%s\",\"pa\":%d,\"pr\":\"%s\",\"tt\":\'%c\',\"tp\":%u,\"sl\":\'%c\',\"tg\":\"%s\",\"ci\":\"%s\"}\r\n\r\n",
+					number++,
+					tranx_savee.device_id, tranx_savee.token, dateTime,   //tranx_savee.timestamp,  "tm\":%lu,
+					tranx_savee.transaction_id, tranx_savee.transaction_price,
+					tranx_savee.transaction_vol, tranx_savee.litre_price,
+					tranx_savee.totalizer, tranx_savee.nozzle_name,
+					tranx_savee.nozzle_address, tranx_savee.nozzle_product,
+					tranx_savee.transaction_type, tranx_savee.transaction_period,
+					tranx_savee.storage_loc, tranx_savee.tag, tranx_savee.session_id);
+
+ 	HAL_UART_Transmit (&huart3, ep_messagee, strlen(ep_messagee), 1000);
+}
+
+void sendStructData2(void)
+{
+	char dateTime [30],
+		 strr___ [30];
+
 	tranx_savee.transaction_type = 'a';
 	tranx_savee.storage_loc = 'i';
 //					strcpy(tranx_save.session_id, " ");
@@ -5645,6 +5704,15 @@ void sendStructData(void)
 	tranxB_token = generate_tk();
 
 	tranx_savee.token = tranxB_token;
+
+	//============================================================================================
+
+	snprintf(strr___, sizeof(strr___), "%02d-%02d-20%d | %02d%02d Hrs",
+			log_b_new.date._dd, log_b_new.date._mm, log_b_new.date._yy,
+			log_b_new.time_e._hh, log_b_new.time_e._mn);
+	strcpy(dateTime, strr___);
+
+	//============================================================================================
 
 	tranx_savee.timestamp = log_b_new.timestamp;
 //		strcpy(tranx_save.device_id, log_b_new.device_id);
@@ -5658,12 +5726,17 @@ void sendStructData(void)
 	strcpy(tranx_savee.nozzle_product, log_b_new.nozzle_product);
 	tranx_savee.transaction_period = log_b_new.transaction_period;
 	strncpy(tranx_savee.session_id, attendant2.session_id, 9);
-	strcpy(tranx_savee.nozzle_name, pumpName[1].pump_name);
+	strcpy(tranx_savee.nozzle_name, self->pumpName[1].pump_name);
 
+	if(number == 1)
+	{
+		HAL_UART_Transmit (&huart3, "\n\n\n\n", 4, 1000);
+		HAL_Delay(1);
+	}
 	 sprintf(ep_messagee,
-					"No. %lu  ==>  {\"ep\":2,\"di\":\"%s\",\"tk\":%lu,\"tm\":%lu,\"ti\":\"%s\",\"ta\":%0.3f,\"tv\":%0.3f,\"pl\":%0.3f,\"tz\":%0.3f,\"pm\":\"%s\",\"pa\":%d,\"pr\":\"%s\",\"tt\":\'%c\',\"tp\":%u,\"sl\":\'%c\',\"tg\":\"%s\",\"ci\":\"%s\"}\r\n\r\n",
+					"No. %lu  ==>  {\"ep\":2,\"di\":\"%s\",\"tk\":%lu,\"tm\":%s,\"ti\":\"%s\",\"ta\":%0.3f,\"tv\":%0.3f,\"pl\":%0.3f,\"tz\":%0.3f,\"pm\":\"%s\",\"pa\":%d,\"pr\":\"%s\",\"tt\":\'%c\',\"tp\":%u,\"sl\":\'%c\',\"tg\":\"%s\",\"ci\":\"%s\"}\r\n\r\n",
 					number++,
-					tranx_savee.device_id, tranx_savee.token, tranx_savee.timestamp,
+					tranx_savee.device_id, tranx_savee.token, dateTime,   //tranx_savee.timestamp,  "tm\":%lu,
 					tranx_savee.transaction_id, tranx_savee.transaction_price,
 					tranx_savee.transaction_vol, tranx_savee.litre_price,
 					tranx_savee.totalizer, tranx_savee.nozzle_name,
@@ -5671,34 +5744,34 @@ void sendStructData(void)
 					tranx_savee.transaction_type, tranx_savee.transaction_period,
 					tranx_savee.storage_loc, tranx_savee.tag, tranx_savee.session_id);
 
- 	HAL_UART_Transmit (&huart2, ep_messagee, strlen(ep_messagee), 1000);
+ 	HAL_UART_Transmit (&huart3, ep_messagee, strlen(ep_messagee), 1000);
 }
 
 //uint8_t read_event1_1(void)
 //{
-//	extern bool lock_clr;
-//	   key19_flag = 0;
-//	 //  auth_cmd_flag = 0;
-//	 //  totaliser_flag = 0;
-//	 //  keypress_flag = 0;
+//	extern bool self->lock_clr;
+//	   self->key19_flag = 0;
+//	 //  self->auth_cmd_flag = 0;
+//	 //  self->totaliser_flag = 0;
+//	 //  self->keypress_flag = 0;
 //
 //	//READ STATES OF INPUTS PIN AND KEYPAD...
-//	  totaliser_flag =  readtotaliser1_state();
+//	  self->totaliser_flag =  readtotaliser1_state();
 //
-//	  //key19_flag =  readkey19_state();
+//	  //self->key19_flag =  readkey19_state();
 //
-//	  key_flag =  readsettingskey_state();
+//	  self->key_flag =  readsettingskey_state();
 //
-//	  nozzle_flag = readNozzle1();
+//	  self->nozzle_flag = readNozzle1();
 //
-//	  keypress_ = keynew;  //key flag is also set...
+//	  self->keypress_ = self->keynew;  //key flag is also set...
 //
 //#ifndef DEV_MODE
 //   			 //--------------------------------------------------
 //			  //  totaliser error.
-//				if( (totaliser_flag == 0) && (drive1 != ACTIVATE) )
+//				if( (self->totaliser_flag == 0) && (self->drive != ACTIVATE) )
 //				{
-//					totaliser_flag = 1;
+//					self->totaliser_flag = 1;
 //					return _tot_error_Event;
 //				}
 //   			  //--------------------------------------------------
@@ -5709,98 +5782,98 @@ void sendStructData(void)
 //	 //==================================================
 //	 //      then select the  operator  view mode...
 //	 //--------------------------------------------------
-//		tot_longpress_flag = long_press_tot();
-//		log_longpress_flag = long_press_log();
-//		key_longpress_flag = long_press_key();
-//		progExit_longpress_flag = long_press_progExit();
+//		self->tot_longpress_flag = long_press_tot();
+//		self->log_longpress_flag = long_press_log();
+//		self->key_longpress_flag = long_press_key();
+//		self->progExit_longpress_flag = long_press_progExit();
 //
-//		  if(tot_longpress_flag == 1)
+//		  if(self->tot_longpress_flag == 1)
 //		  {
-//			   operatorfxn = totaliser_view;
+//			   self->operatorfxn = totaliser_view;
 //			   return _operator_Event;
 //		  }
 //
-//		  else if(log_longpress_flag == 1)
+//		  else if(self->log_longpress_flag == 1)
 //		  {
-//			   operatorfxn = log_view;
+//			   self->operatorfxn = log_view;
 //			   return _operator_Event;
 //		  }
-//		  else if(key_longpress_flag == 1)
+//		  else if(self->key_longpress_flag == 1)
 //		  {
 //			//if not previously activated,
 ////				 if (key_longpress_status == 0)
 ////				 {
 ////					key_longpress_status = 1;
-//				prog_entry1 = 1;   //variable used to clear the var. states in settings menu.
+//				self->prog_entry = 1;   //variable used to clear the var. states in settings menu.
 //				return _keyup_Event;
 ////				 }
 ////				 else
 ////				 {
 ////					key_longpress_status = 0;
-////					prog_entry1 = 0;
+////					self->prog_entry = 0;
 ////					return _keydown_Event;
 ////				 }
 //		  }
-//		  else if(progExit_longpress_flag == 1)
+//		  else if(self->progExit_longpress_flag == 1)
 //		  {
 //			//if not previously activated,
 ////				 if (key_longpress_status == 0)
 ////				 {
 ////					key_longpress_status = 1;
-////					prog_entry1 = 1;   //variable used to clear the var. states in settings menu.
+////					self->prog_entry = 1;   //variable used to clear the var. states in settings menu.
 ////					return _keyup_Event;
 ////				 }
 ////				 else
 ////				 {
 ////					key_longpress_status = 0;
-//					prog_entry1 = 0;
+//					self->prog_entry = 0;
 //					return _keydown_Event;
 ////				 }
 //			  }
 //
 //       //--------------------------------------------------
 //	   //          error clear flag...
-//	   if( error_clr_flag == 1)
+//	   if( self->error_clr_flag == 1)
 //		 {
-//			error_clr_flag = 0;
+//			self->error_clr_flag = 0;
 //
-//			filling1 = 0;
+//			self->filling = 0;
 //
 //			return _error_clear_Event;
 //		 }
 //	  //--------------------------------------------------
 //			 // authorise  event capture.
-//	   else if ( auth_flag  == 1 )
+//	   else if ( self->auth_flag  == 1 )
 //		{
-//			auth_flag = 0;
+//			self->auth_flag = 0;
 //			return _authorise_Event;
 //		}
 //
 //		//--------------------------------------------------
 //				// authorise  command event.
-//	   else if ( auth_cmd_flag  == 1 )
+//	   else if ( self->auth_cmd_flag  == 1 )
 //		{
 //		  //if(settings[operating_side-1].mode == offline_)
 //		  //{
-//			auth_cmd_flag = 0;
+//			self->auth_cmd_flag = 0;
 //
-////				eNextState1 = authorised_nozzledown_State;
+////				self->eNextState = authorised_nozzledown_State;
 //				//---------------------------------------------
 //				//                nozzle-up overide
-//				if (eNextState1 == authorised_nozzledown_State)
+//				if (self->eNextState == authorised_nozzledown_State)
 //				{
-//					if (overide_ == overide)
+//					if (self->overide_ == overide)
 //					{
 //						return _nozzleup_Event;
 //					}
 //				}
 //				//---------------------------------------------
 //
-//				if(settings_stream1[0].mode == AUTO_MODE)
+//				if(self->settings_stream1.mode == AUTO_MODE)
 //				{
-//					if(nozzlezUp1 == 1)   //A NozzleUp that triggers a transaction
+//					if(self->nozzlezUp == 1)   //A NozzleUp that triggers a transaction
 //					{
-////						nozzlezUp1 = 0;
+////						self->nozzlezUp = 0;
 //						return _authorisecommand_Event;
 //					}
 //				}
@@ -5810,52 +5883,52 @@ void sendStructData(void)
 //		}
 //
 //		// mamo reach  event capture...
-//	   else if(mamo_reached_flag1 == 1)
+//	   else if(self->mamo_reached_flag == 1)
 //		{
-//			mamo_reached_flag1 = 0;
+//			self->mamo_reached_flag = 0;
 //			return _mamo_Event;
 //		}
 //
 //	   // idle state due-return event capture...
-//	   else if (fillingComplete_flag1 == 1)
+//	   else if (self->fillingComplete_flag == 1)
 //	   {
-//		   fillingComplete_flag1 = 0;
+//		   self->fillingComplete_flag = 0;
 //		   return _fillingcomplete_Event;
 //	   }
-//	   else if (reset_flag1 == 1)
+//	   else if (self->reset_flag == 1)
 //	   {
-//		   reset_flag1 = 0;
+//		   self->reset_flag = 0;
 //		   return _resetcommand_Event;
 //	   }
-//	   else if (authsuspend_flag1 == 1)
+//	   else if (self->authsuspend_flag == 1)
 //	   {
-//		   authsuspend_flag1 = 0;
+//		   self->authsuspend_flag = 0;
 //		   return  _auth_suspendcommand_Event;
 //	   }
-//	   else if (fillingsuspend_flag1 == 1)
+//	   else if (self->fillingsuspend_flag == 1)
 //	   {
-//		   fillingsuspend_flag1 = 0;
+//		   self->fillingsuspend_flag = 0;
 //		   return _filling_suspendcommand_Event;
 //	   }
-//	   else if (authresume_flag1 == 1)
+//	   else if (self->authresume_flag == 1)
 //	   {
-//		   authresume_flag1 = 0;
+//		   self->authresume_flag = 0;
 //		   return _auth_resumecommand_Event;
 //	   }
-//	   else if (fillingresume_flag1 == 1)
+//	   else if (self->fillingresume_flag == 1)
 //	   {
-//		   fillingresume_flag1 = 0;
+//		   self->fillingresume_flag = 0;
 //		   return _filling_resumecommand_Event;
 //	   }
 //
 //	   // nozzle up  event capture...
-//	   else if( (nozzle_flag_old == 0)&&(nozzle_flag == 1) )
+//	   else if( (self->nozzle_flag_old == 0)&&(self->nozzle_flag == 1) )
 //		{
-//			nozzle_flag_old = 1;
-//			if (overide_ != overide)
+//			self->nozzle_flag_old = 1;
+//			if (self->overide_ != overide)
 //			{
 //				//send nozzleup command only in MANUAL mode
-//				nozzlezUp1 = 1;
+//				self->nozzlezUp = 1;
 //				return _nozzleup_Event;
 //			}
 //			else 		// NozzlezUp, awaiting authorisation
@@ -5865,70 +5938,70 @@ void sendStructData(void)
 //		}
 //	  //-----------------------
 //	  // nozzle down  event capture...
-//	   else if( (nozzle_flag_old == 1)&&(nozzle_flag == 0) )
+//	   else if( (self->nozzle_flag_old == 1)&&(self->nozzle_flag == 0) )
 //		{
-//			nozzle_flag_old = 0;
-//			if (overide_ != overide) return _nozzledown_Event;
+//			self->nozzle_flag_old = 0;
+//			if (self->overide_ != overide) return _nozzledown_Event;
 //		}
-//		//	nozzle_flag_old = nozzle_flag;
+//		//	self->nozzle_flag_old = self->nozzle_flag;
 //	  //--------------------------------------------------
 //	  //--------------------------------------------------
 //		// key up  event capture...
-//	   else if( (key_flag_old == 0)&&(key_flag == 1) )
+//	   else if( (self->key_flag_old == 0)&&(self->key_flag == 1) )
 //			{
-//					key_flag_old = 1;
+//					self->key_flag_old = 1;
 //			      return _keyup_Event;
 //			}
 //	  //-----------------------
 //		// key down  event capture...
-//	   else if( (key_flag_old == 1)&&(key_flag == 0) )
+//	   else if( (self->key_flag_old == 1)&&(self->key_flag == 0) )
 //			{
-//					key_flag_old = 0;
+//					self->key_flag_old = 0;
 //				  return _keydown_Event;
 //			}
-//			key_flag_old = key_flag;
+//			self->key_flag_old = self->key_flag;
 //	  //--------------------------------------------------
 //	  //--------------------------------------------------
 //		// key press event capture...
-//	   if (keypress_flag == 1)
+//	   if (self->keypress_flag == 1)
 //		{
-//			keypress__ = 1;
-//			keypress_flag = 0;
+//			self->keypress__ = 1;
+//			self->keypress_flag = 0;
 //			return _keypress_Event;
 //		}
 //	  //--------------------------------------------------
-//	  /*	  if (key19_flag == 1)
+//	  /*	  if (self->key19_flag == 1)
 //			{
 //				return _key19_Event;
 //			}                              */
 //	  //--------------------------------------------------
 //	  //  totaliser error.
-////		if( (totaliser_flag == 0) && (drive1 != ACTIVATE) )
+////		if( (self->totaliser_flag == 0) && (self->drive != ACTIVATE) )
 ////		{
-////			totaliser_flag = 1;
+////			self->totaliser_flag = 1;
 ////			return _tot_error_Event;
 ////		}
 //	  //--------------------------------------------------
-//	   //filling1 pulse detection.
-//	   if ( (pulser_count_old < pulser_new) && ( eNextState1 == authorised_nozzleup_State ) )
+//	   //self->filling pulse detection.
+//	   if ( (self->pulser_count_old < self->pulser_new) && ( self->eNextState == authorised_nozzleup_State ) )
 //			{
-//				pulser_count_old = pulser_new;
-//				lock_clr = 0;
+//				self->pulser_count_old = self->pulser_new;
+//				self->lock_clr = 0;
 //				return _filling_pulse_Event;
 //			}
-//		 pulser_count_old = pulser_new;
+//		 self->pulser_count_old = self->pulser_new;
 //
 //	  //--------------------------------------------------
 //			  // timeout   event capture...
-//		if( (timer_flag_old == 0)&&(timer_flag == 1) )
+//		if( (self->timer_flag_old == 0)&&(self->timer_flag == 1) )
 //		{
-//				  timer_flag_old = 1;
+//				  self->timer_flag_old = 1;
 //
-//				  filling1 = 0;
+//				  self->filling = 0;
 //
 //			  return _timeout_Event;
 //		}
-//			timer_flag_old = timer_flag;
+//			self->timer_flag_old = self->timer_flag;
 //
 //	  return _no_Event;
 //}
